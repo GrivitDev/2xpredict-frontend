@@ -1,0 +1,19 @@
+export enum AdPosition {
+
+  POPUP = 'POPUP',
+
+  HERO = 'HERO',
+
+  TOP_BANNER = 'TOP_BANNER',
+
+  INLINE = 'INLINE',
+
+  SIDEBAR_LEFT = 'SIDEBAR_LEFT',
+
+  SIDEBAR_RIGHT = 'SIDEBAR_RIGHT',
+
+  BOTTOM = 'BOTTOM',
+
+  FOOTER = 'FOOTER',
+
+}
