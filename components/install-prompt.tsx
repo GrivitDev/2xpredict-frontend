@@ -79,7 +79,7 @@ export default function InstallPrompt() {
           </h2>
 
           <p className="text-white/80 text-sm mt-1">
-            Install Sure Predict
+            Install 1xpredicts
             Pro on your device.
           </p>
         </div>

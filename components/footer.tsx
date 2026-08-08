@@ -187,7 +187,7 @@ export default function Footer() {
       md:text-[260px]
     "
   >
-    PREDICTPRO
+    1xpredicts
   </div>
 
 </div>
@@ -229,7 +229,7 @@ export default function Footer() {
               >
                 <Image
                   src="/logo.png"
-                  alt="PredictPro"
+                  alt="1xpredicts"
                   width={98}
                   height={68}
                   className="rounded-lg h-auto "
@@ -246,7 +246,7 @@ export default function Footer() {
                     text-transparent
                   "
                 >
-                  PredictPro
+                  1xpredicts
                 </span>
               </Link>
               <p
@@ -409,7 +409,7 @@ export default function Footer() {
   "
 >
   <p className="font-medium">
-    © 2026 PredictPro
+    © 2026 1xpredicts
   </p>
 
   <p className="text-sm text-muted-foreground">

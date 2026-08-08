@@ -210,7 +210,7 @@ export default function AboutPage() {
             "
           >
 
-            Explore PredictPro
+            Explore 1xpredicts
 
             <ArrowRight className="
          h-4 w-4 transition

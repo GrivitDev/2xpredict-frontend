@@ -218,7 +218,7 @@ export default function DashboardSidebar({
             >
             <Image
               src="/logo.png"
-              alt="HonestPredict"
+              alt="1xpredicts"
               width={82}
               height={82}
               className="h-34 w-34 object-contain"

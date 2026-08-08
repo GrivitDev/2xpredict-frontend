@@ -27,18 +27,18 @@ export const metadata: Metadata = {
     canonical: SEO.url,
   },
 
-  applicationName: 'Sure Predict Pro',
+  applicationName: '1xpredicts',
 
   authors: [
     {
-      name: 'Sure Predict Pro',
+      name: '1xpredicts',
       url: SEO.url,
     },
   ],
 
-  creator: 'Sure Predict Pro',
+  creator: '1xpredicts',
 
-  publisher: 'Sure Predict Pro',
+  publisher: '1xpredicts',
 
   category: 'Sports',
 
@@ -89,7 +89,7 @@ export const metadata: Metadata = {
         url: SEO.image,
         width: 1200,
         height: 630,
-        alt: 'Sure Predict Pro',
+        alt: '1xpredicts',
       },
     ],
   },
@@ -127,7 +127,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
 
-    title: 'Sure Predict Pro',
+    title: '1xpredicts',
 
     statusBarStyle: 'black-translucent',
   },

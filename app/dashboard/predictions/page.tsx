@@ -430,7 +430,7 @@ export default function PredictionsPage(){
 
       src="/logo.png"
 
-      alt="HonestPredict"
+      alt="1xpredicts"
 
       width={64}
 
@@ -457,7 +457,7 @@ export default function PredictionsPage(){
       "
     >
 
-      HonestPredict
+      1xpredicts
 
     </span>
 

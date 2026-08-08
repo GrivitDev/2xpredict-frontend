@@ -259,7 +259,7 @@ export default function VerifyEmailClient() {
               "
             >
               Confirm your email address to
-              activate your PredictPro account
+              activate your 1xpredicts account
               and start accessing football
               predictions, statistics, and features.
             </p>

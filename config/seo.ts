@@ -1,5 +1,5 @@
 export const SEO = {
-  title: 'Sure Predict Pro',
+  title: '1xpredicts',
 
   description:
     'Professional football prediction platform offering Intelligent football predictions, VIP predictions, live scores, fixtures, standings, football statistics, and expert betting analysis.',
@@ -11,7 +11,7 @@ export const SEO = {
   keywords: [
     'football prediction',
     'football predictions',
-    'sure predict pro',
+    '1xpredicts',
     'VIP predictions',
     'football betting tips',
     'daily football tips',

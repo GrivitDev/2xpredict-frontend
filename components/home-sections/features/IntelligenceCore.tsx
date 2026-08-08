@@ -224,7 +224,7 @@ export default function IntelligenceCore() {
 
               src="/logo1.png"
 
-              alt="PredictPro Logo"
+              alt="1xpredicts Logo"
 
               fill
 
@@ -263,7 +263,7 @@ export default function IntelligenceCore() {
 
           >
 
-            PREDICTPRO
+            1xpredicts
 
           </p>
 

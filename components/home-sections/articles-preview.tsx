@@ -255,7 +255,7 @@ export default function ArticlesPreview() {
                   duration-500
                 "
               >
-                PredictPro Insights Hub is under construction
+                1xpredicts Insights Hub is under construction
               </div>
 
               {/* Animated dots */}

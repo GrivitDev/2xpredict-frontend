@@ -137,7 +137,7 @@ export default function CommunityGuidelinesContent() {
             sm:text-base
           "
         >
-          The PredictPro community is built for passionate football fans.
+          The 1xpredicts community is built for passionate football fans.
           Keep conversations friendly, insightful, and enjoyable for everyone.
         </p>
       </div>
