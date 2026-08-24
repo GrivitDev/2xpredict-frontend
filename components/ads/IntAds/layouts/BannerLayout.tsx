@@ -19,13 +19,20 @@ export function BannerLayout({
   return (
 
     <section
-
+      aria-label="Sponsored content"
+      className="
+        w-full
+        px-3
+        sm:px-4
+        lg:px-6
+      "
     >
 
       <div
         className="
           mx-auto
-          max-w-9xl
+          w-full
+          max-w-[1440px]
         "
       >
 

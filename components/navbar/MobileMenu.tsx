@@ -2,10 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  usePathname,
-  useRouter,
-} from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import {
   Menu,
@@ -28,7 +25,16 @@ import {
   TicketPercent,
   TrendingUp,
   ShoppingCart,
+  Sparkles,
+  ChevronRight,
 } from 'lucide-react';
+
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaXTwitter,
+  FaTelegram,
+} from 'react-icons/fa6';
 
 import {
   Sheet,
@@ -45,7 +51,6 @@ import { useAuth } from '@/providers/auth-provider';
 
 import ThemeSwitcher from './ThemeSwitcher';
 
-
 export default function MobileMenu() {
   const pathname = usePathname();
   const router = useRouter();
@@ -55,6 +60,9 @@ export default function MobileMenu() {
     logout,
   } = useAuth();
 
+  /* --------------------------------------------------------------------------
+     PUBLIC LINKS
+  -------------------------------------------------------------------------- */
 
   const publicLinks = [
     {
@@ -63,582 +71,733 @@ export default function MobileMenu() {
       icon: Home,
     },
     {
-      name: 'Live Scores',
-      href: '/livescore',
-      icon: Trophy,
-    },
-    {
       name: 'Community',
       href: '/community',
       icon: Handshake,
     },
     {
-      name: 'Articles',
-      href: '/articles',
-      icon: Newspaper,
+      name: 'Pricing',
+      href: '/pricing',
+      icon: Handshake,
     },
     {
-      name: 'About',
+      name: 'Contact',
       href: '/about',
       icon: Info,
     },
   ];
 
 
-  const adminLinks = [
-    {
-      title: 'Overview',
-      items: [
-        {
-          name: 'Dashboard',
-          href: '/admin',
-          icon: LayoutDashboard,
-        },
-      ],
-    },
-    {
-      title: 'Predictions',
-      items: [
-        {
-          name: 'Create Prediction',
-          href: '/admin/create-prediction',
-          icon: PlusCircle,
-        },
-        {
-          name: 'Manage Predictions',
-          href: '/admin/predictions',
-          icon: List,
-        },
-      ],
-    },
-    {
-      title: 'Content',
-      items: [
-        {
-          name: 'Create Article',
-          href: '/admin/create-article',
-          icon: FileText,
-        },
-        {
-          name: 'Manage Articles',
-          href: '/admin/articles',
-          icon: FileText,
-        },
-      ],
-    },
-    {
-      title: 'Management',
-      items: [
-        {
-          name: 'Users',
-          href: '/admin/users',
-          icon: Users,
-        },
-        {
-          name: 'Subscriptions',
-          href: '/admin/subscriptions',
-          icon: CreditCard,
-        },
-        {
-          name: 'Ads',
-          href: '/admin/ads',
-          icon: Megaphone,
-        },
-        {
-          name: 'Promos',
-          href: '/admin/promos',
-          icon: Gift,
-        },
-        {
-          name: 'Referrals',
-          href: '/admin/referrals',
-          icon: TicketPercent,
-        },
-      ],
-    },
-  ];
+  /* --------------------------------------------------------------------------
+     ACTIVE STATE
+  -------------------------------------------------------------------------- */
 
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
 
-  const userLinks = [
-    {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      name: 'My Predictions',
-      href: '/dashboard/predictions',
-      icon: TrendingUp,
-    },
-    {
-      name: 'My Purchases',
-      href: '/dashboard/purchases',
-      icon: ShoppingCart,
-    },
-    {
-      name: 'Referrals & Promos',
-      href: '/dashboard/referrals',
-      icon: Gift,
-    },
-    {
-      name: 'My Profile',
-      href: '/dashboard/profile',
-      icon: User,
-    },
-    {
-      name: 'Settings',
-      href: '/dashboard/settings',
-      icon: Settings,
-    },
-  ];
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
+  };
 
+  /* --------------------------------------------------------------------------
+     NAVIGATION LINK
+  -------------------------------------------------------------------------- */
 
   const linkClass = (active: boolean) => `
     group
+    relative
     flex
     items-center
     gap-3
-    rounded-2xl
-    px-4
+    overflow-hidden
+    rounded-xl
+    border
+    px-3.5
     py-3
-    text-sm
-    font-medium
+    text-s
+    font-semibold
     transition-all
-    duration-300
+    duration-200
 
     ${
       active
         ? `
-          border
           border-primary/20
           bg-primary/10
-          text-primary
+          text-foreground
+          shadow-sm
         `
         : `
+          border-transparent
           text-muted-foreground
-          hover:bg-muted
+          hover:border-border
+          hover:bg-secondary
           hover:text-foreground
         `
     }
   `;
 
-
   return (
     <div className="lg:hidden">
-
       <Sheet>
+        {/* ====================================================================
+            TRIGGER
+        ===================================================================== */}
 
         <SheetTrigger asChild>
-
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Open navigation menu"
             className="
+              relative
               h-10
               w-10
+              overflow-hidden
               rounded-xl
               border
-              border-border/50
-              bg-background/40
-              backdrop-blur-md
-              transition
-              hover:bg-primary/10
+              border-border
+              bg-card
+              text-foreground
+              shadow-sm
+              transition-all
+              duration-200
+              hover:border-primary/30
+              hover:bg-secondary
+              hover:text-foreground
             "
           >
-            <Menu className="h-5 w-5" />
-          </Button>
+            <Menu className="relative z-10 h-5 w-5" />
 
+            <span
+              className="
+                pointer-events-none
+                absolute
+                bottom-0
+                left-1/2
+                h-0.5
+                w-5
+                -translate-x-1/2
+                rounded-full
+                bg-gold
+              "
+            />
+          </Button>
         </SheetTrigger>
 
+        {/* ====================================================================
+            SHEET
+        ===================================================================== */}
 
         <SheetContent
           side="right"
           className="
             flex
-            w-[340px]
+            w-[min(88vw,380px)]
             flex-col
-            border-border/50
-            bg-background/90
+            overflow-hidden
+            border-l
+            border-border
+            bg-background
             p-0
-            backdrop-blur-2xl
+            text-foreground
+            shadow-2xl
+            shadow-black/20
+            dark:bg-background
+            dark:shadow-black/50
           "
         >
+          {/* ================================================================
+              DECORATIVE BACKGROUND
+          ================================================================= */}
 
           <div
             className="
               pointer-events-none
               absolute
-              -right-20
-              -top-20
-              h-60
-              w-60
+              -right-24
+              -top-24
+              h-72
+              w-72
               rounded-full
               bg-primary/10
               blur-3xl
             "
           />
 
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -left-32
+              top-[38%]
+              h-64
+              w-64
+              rounded-full
+              bg-gold/5
+              blur-3xl
+            "
+          />
+
+          {/* ================================================================
+              HEADER
+          ================================================================= */}
 
           <SheetHeader
             className="
               relative
               border-b
-              border-border/50
-              px-6
-              py-6
+              border-border
+              bg-card
+              px-5
+              pb-5
+              pt-6
+              text-left
             "
           >
-
             <SheetTitle asChild>
-
               <Link
                 href="/"
                 className="
+                  group
                   flex
                   items-center
                   gap-3
+                  text-left
                 "
               >
-
-                <Image
-                  src="/logo.png"
-                  alt="1xpredicts"
-                  width={42}
-                  height={42}
+                <div
                   className="
+                    relative
+                    flex
+                    h-12
+                    w-12
+                    shrink-0
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-xl
                     border
-                    border-border/50
+                    border-primary/20
+                    bg-background
+                    shadow-md
+                    transition-transform
+                    duration-200
+                    group-hover:scale-105
                   "
-                />
+                >
+                  <Image
+                    src="/logo.png"
+                    alt="2xpredict"
+                    width={48}
+                    height={48}
+                    priority
+                    className="h-full w-full object-cover"
+                  />
 
-
-                <div>
-
-                  <p
+                  <span
                     className="
-                      text-lg
-                      font-black
-                      tracking-tight
+                      pointer-events-none
+                      absolute
+                      inset-0
+                      rounded-xl
+                      ring-1
+                      ring-inset
+                      ring-white/10
                     "
-                  >
-                    1xpredicts
-                  </p>
-
-                  <p
-                    className="
-                      text-xs
-                      text-muted-foreground
-                    "
-                  >
-                    Smart Football Intelligence
-                  </p>
-
+                  />
                 </div>
 
-              </Link>
+                <div className="min-w-0">
+                  <p
+                    className="
+                      text-xl
+                      font-black
+                      tracking-[-0.04em]
+                      text-foreground
+                    "
+                  >
+                    2xpredict
+                  </p>
 
+                  <div
+                    className="
+                      mt-1
+                      flex
+                      items-center
+                      gap-1.5
+                    "
+                  >
+                    <span
+                      className="
+                        h-1.5
+                        w-1.5
+                        rounded-full
+                        bg-gold
+                        shadow-[0_0_8px_rgb(214_168_79_/_60%)]
+                      "
+                    />
+
+                    <p
+                      className="
+                        text-[9px]
+                        font-bold
+                        uppercase
+                        tracking-[0.18em]
+                        text-muted-foreground
+                      "
+                    >
+                      Bet With Confidence
+                    </p>
+                  </div>
+                </div>
+              </Link>
             </SheetTitle>
 
-          </SheetHeader>
-
-
-          <div
-            className="
-              flex-1
-              overflow-y-auto
-              px-5
-              py-6
-              scrollbar-hide
-            "
-          >
-
-            <div className="space-y-2">
-
-              <p
-                className="
-                  px-3
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-[0.2em]
-                  text-muted-foreground
-                "
-              >
-                Explore
-              </p>
-
-
-              {publicLinks.map((link) => {
-
-                const Icon = link.icon;
-
-                return (
-                  <SheetClose
-                    asChild
-                    key={link.href}
-                  >
-                    <Link
-                      href={link.href}
-                      className={linkClass(
-                        pathname === link.href
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-
-                      {link.name}
-
-                    </Link>
-
-                  </SheetClose>
-                );
-
-              })}
-
-            </div>
-
+            {/* Gold divider */}
 
             <div
               className="
-                mt-8
-                space-y-3
+                absolute
+                bottom-0
+                left-5
+                h-px
+                w-20
+                bg-gradient-to-r
+                from-gold
+                to-transparent
               "
-            >
+            />
+          </SheetHeader>
 
+          {/* ==================================================================
+              SCROLLABLE CONTENT
+          =================================================================== */}
+
+          <div
+            className="
+              relative
+              flex-1
+              overflow-y-auto
+              px-4
+              py-5
+              scrollbar-hide
+            "
+          >
+            {/* ================================================================
+                EXPLORE
+            ================================================================= */}
+
+            <section>
               <div
                 className="
-                  border-t
-                  border-border/50
-                "
-              />
-
-
-              <p
-                className="
-                  px-3
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-[0.2em]
-                  text-muted-foreground
+                  mb-3
+                  flex
+                  items-center
+                  justify-between
+                  px-2
                 "
               >
-                Theme
-              </p>
+                <div className="flex items-center gap-2">
+                  <Sparkles
+                    className="
+                      h-3.5
+                      w-3.5
+                      text-gold
+                    "
+                  />
 
-
-              <div
-                className="
-                  rounded-2xl
-                  border
-                  border-border/50
-                  bg-muted/20
-                  p-2
-                "
-              >
-                <ThemeSwitcher />
+                  <p
+                    className="
+                      text-[10px]
+                      font-black
+                      uppercase
+                      tracking-[0.2em]
+                      text-muted-foreground
+                    "
+                  >
+                    Explore
+                  </p>
+                </div>
               </div>
 
-            </div>
+              <div className="space-y-1">
+                {publicLinks.map((link) => {
+                  const Icon = link.icon;
+                  const active = isActive(link.href);
 
+                  return (
+                    <SheetClose
+                      asChild
+                      key={link.href}
+                    >
+                      <Link
+                        href={link.href}
+                        className={linkClass(active)}
+                      >
+                        {active && (
+                          <span
+                            className="
+                              absolute
+                              inset-y-2
+                              left-0
+                              w-0.5
+                              rounded-full
+                              bg-gold
+                            "
+                          />
+                        )}
 
-            {user && (
-              <div className="mt-8 space-y-4">
+                        <span
+                          className={`
+                            flex
+                            h-9
+                            w-9
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-lg
+                            transition-all
+                            duration-200
 
-                <div
+                            ${
+                              active
+                                ? `
+                                  bg-primary
+                                  text-primary-foreground
+                                  shadow-sm
+                                `
+                                : `
+                                  bg-secondary
+                                  text-muted-foreground
+                                  group-hover:bg-primary/10
+                                  group-hover:text-primary
+                                `
+                            }
+                          `}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+
+                        <span className="flex-1">
+                          {link.name}
+                        </span>
+
+                        <ChevronRight
+                          className={`
+                            h-4
+                            w-4
+                            transition-all
+                            duration-200
+
+                            ${
+                              active
+                                ? 'text-primary opacity-100'
+                                : `
+                                  text-muted-foreground/40
+                                  opacity-0
+                                  group-hover:translate-x-0.5
+                                  group-hover:opacity-100
+                                `
+                            }
+                          `}
+                        />
+                      </Link>
+                    </SheetClose>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ================================================================
+                THEME
+            ================================================================= */}
+
+            <section className="mt-7">
+              <div
+                className="
+                  mb-3
+                  flex
+                  items-center
+                  gap-2
+                  px-2
+                "
+              >
+                <span
                   className="
-                    border-t
-                    border-border/50
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-primary
                   "
                 />
 
-
                 <p
                   className="
-                    px-3
-                    text-xs
-                    font-semibold
+                    text-[10px]
+                    font-black
                     uppercase
                     tracking-[0.2em]
                     text-muted-foreground
                   "
                 >
-                  {user.role === 'admin'
-                    ? 'Administration'
-                    : 'Account'}
+                  Appearance
                 </p>
-
-
-                {user.role === 'admin'
-                  ? adminLinks.map((section) => (
-
-                      <div
-                        key={section.title}
-                        className="space-y-2"
-                      >
-
-                        <p
-                          className="
-                            px-3
-                            text-[11px]
-                            font-semibold
-                            uppercase
-                            tracking-wider
-                            text-muted-foreground/70
-                          "
-                        >
-                          {section.title}
-                        </p>
-
-
-                        {section.items.map((link) => {
-
-                          const Icon = link.icon;
-
-                          return (
-                            <SheetClose
-                              asChild
-                              key={link.href}
-                            >
-
-                              <Link
-                                href={link.href}
-                                className={linkClass(
-                                  pathname === link.href
-                                )}
-                              >
-
-                                <Icon className="h-5 w-5" />
-
-                                {link.name}
-
-                              </Link>
-
-                            </SheetClose>
-                          );
-
-                        })}
-
-                      </div>
-
-                    ))
-
-                  : userLinks.map((link) => {
-
-                      const Icon = link.icon;
-
-                      return (
-                        <SheetClose
-                          asChild
-                          key={link.href}
-                        >
-
-                          <Link
-                            href={link.href}
-                            className={linkClass(
-                              pathname === link.href
-                            )}
-                          >
-
-                            <Icon className="h-5 w-5" />
-
-                            {link.name}
-
-                          </Link>
-
-                        </SheetClose>
-                      );
-
-                    })
-                }
-
               </div>
-            )}
 
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-border
+                  bg-card
+                  p-2
+                  shadow-sm
+                "
+              >
+                <ThemeSwitcher />
+              </div>
+            </section>
           </div>
 
+          {/* ==================================================================
+              FOOTER
+          =================================================================== */}
 
           <div
             className="
+              relative
               border-t
-              border-border/50
-              p-5
+              border-border
+              bg-card
+              px-4
+              pb-5
+              pt-4
             "
           >
+            {/* Authentication */}
 
             {!user ? (
-
-              <div className="space-y-3">
-
+              <div className="grid grid-cols-2 gap-2">
                 <SheetClose asChild>
                   <Link
                     href="/login"
                     className="
-                      block
-                      rounded-2xl
+                      flex
+                      h-11
+                      items-center
+                      justify-center
+                      rounded-xl
                       border
                       border-border
-                      py-3
-                      text-center
-                      text-sm
-                      font-medium
+                      bg-background
+                      text-s
+                      font-bold
+                      text-foreground
+                      transition-all
+                      hover:border-primary/30
+                      hover:bg-secondary
                     "
                   >
                     Login
                   </Link>
                 </SheetClose>
 
-
                 <SheetClose asChild>
                   <Link
                     href="/register"
                     className="
-                      block
-                      rounded-2xl
+                      relative
+                      flex
+                      h-11
+                      items-center
+                      justify-center
+                      overflow-hidden
+                      rounded-xl
                       bg-primary
-                      py-3
-                      text-center
-                      text-sm
-                      font-semibold
+                      text-s
+                      font-bold
                       text-primary-foreground
+                      shadow-md
+                      shadow-primary/15
+                      transition-all
+                      hover:-translate-y-px
+                      hover:shadow-lg
                     "
                   >
-                    Register
+                    <span className="relative z-10">
+                      Register
+                    </span>
+
+                    <span
+                      className="
+                        absolute
+                        bottom-0
+                        left-1/2
+                        h-0.5
+                        w-8
+                        -translate-x-1/2
+                        rounded-full
+                        bg-gold
+                      "
+                    />
                   </Link>
                 </SheetClose>
-
               </div>
-
             ) : (
-
               <Button
                 onClick={async () => {
-
                   await logout();
-
                   router.push('/login');
-
                 }}
                 className="
+                  h-11
                   w-full
-                  rounded-2xl
+                  rounded-xl
+                  bg-destructive
+                  font-bold
+                  text-destructive-foreground
+                  shadow-sm
+                  hover:bg-destructive/90
                 "
               >
-
-                <LogOut className="h-5 w-5" />
-
+                <LogOut className="h-4 w-4" />
                 Logout
-
               </Button>
-
             )}
 
+            {/* Social Media */}
+
+            <div
+              className="
+                mt-4
+                flex
+                items-center
+                justify-center
+                gap-2
+                border-t
+                border-border
+                pt-4
+              "
+            >
+              <p
+                className="
+                  mr-1
+                  hidden
+                  text-[9px]
+                  font-bold
+                  uppercase
+                  tracking-[0.16em]
+                  text-muted-foreground
+                  xs:block
+                "
+              >
+                Follow
+              </p>
+
+              <Link
+                href="#"
+                aria-label="Facebook"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  border
+                  border-border
+                  bg-background
+                  text-muted-foreground
+                  transition-all
+                  duration-200
+                  hover:border-[#1877F2]/30
+                  hover:bg-[#1877F2]/10
+                  hover:text-[#1877F2]
+                "
+              >
+                <FaFacebookF className="h-3.5 w-3.5" />
+              </Link>
+
+              <Link
+                href="#"
+                aria-label="Instagram"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  border
+                  border-border
+                  bg-background
+                  text-muted-foreground
+                  transition-all
+                  duration-200
+                  hover:border-[#E4405F]/30
+                  hover:bg-[#E4405F]/10
+                  hover:text-[#E4405F]
+                "
+              >
+                <FaInstagram className="h-4 w-4" />
+              </Link>
+
+              <Link
+                href="#"
+                aria-label="X"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  border
+                  border-border
+                  bg-background
+                  text-muted-foreground
+                  transition-all
+                  duration-200
+                  hover:border-foreground/30
+                  hover:bg-secondary
+                  hover:text-foreground
+                "
+              >
+                <FaXTwitter className="h-3.5 w-3.5" />
+              </Link>
+
+              <Link
+                href="#"
+                aria-label="Telegram"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  border
+                  border-border
+                  bg-background
+                  text-muted-foreground
+                  transition-all
+                  duration-200
+                  hover:border-[#229ED9]/30
+                  hover:bg-[#229ED9]/10
+                  hover:text-[#229ED9]
+                "
+              >
+                <FaTelegram className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
-
         </SheetContent>
-
       </Sheet>
-
     </div>
   );
 }

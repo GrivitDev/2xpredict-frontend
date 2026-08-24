@@ -1,621 +1,392 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-
 import {
   CalendarDays,
   Crown,
   ShoppingBag,
-  UserPlus,
   Sparkles,
+  UserPlus,
 } from 'lucide-react';
 
-import {
-  Badge,
-} from '@/components/ui/badge';
-
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
-import {
-  DashboardCard,
-} from '@/components/dashboard/shared/DashboardCard';
-
-import {
-  EmptyState,
-} from '@/components/dashboard/shared/EmptyState';
-
-import {
-  LoadingCard,
-} from '@/components/dashboard/shared/LoadingCard';
-
-import {
-  SectionTitle,
-} from '@/components/dashboard/shared/SectionTitle';
-
-import {
-  StatusBadge,
-} from '@/components/dashboard/shared/StatusBadge';
-
-import {
-  getMyReferrals,
-} from '@/services/referrals.service';
+import { useMyReferrals } from '@/hooks/use-referrals';
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function ReferralActivity() {
-
 
   const {
     data: referrals = [],
     isLoading,
-  } = useQuery({
-
-    queryKey:[
-      'my-referrals',
-    ],
-
-    queryFn:
-      getMyReferrals,
-
-  });
+    isError,
+  } = useMyReferrals();
 
 
+  // ==========================================================
+  // LOADING
+  // ==========================================================
 
-
-
-  if(isLoading){
-
+  if (isLoading) {
     return (
-
-      <LoadingCard
-        text="Loading referral activity..."
-      />
-
-    );
-
-  }
-
-
-
-
-
-  if(referrals.length === 0){
-
-    return (
-
-      <EmptyState
-
-        title="No Referrals Yet"
-
-        description="
-          Share your referral link and start inviting users.
+      <div
+        className="
+          flex
+          min-h-16
+          items-center
+          justify-center
+          border-y
+          border-border/40
+          text-[10px]
+          text-muted-foreground
         "
-
-        icon={UserPlus}
-
-      />
-
+      >
+        Loading...
+      </div>
     );
-
   }
 
 
+  // ==========================================================
+  // ERROR
+  // ==========================================================
+
+  if (isError) {
+    return (
+      <div
+        className="
+          flex
+          min-h-20
+          flex-col
+          items-center
+          justify-center
+          border-y
+          border-border/40
+          px-3
+          py-5
+          text-center
+        "
+      >
+        <UserPlus className="h-4 w-4 text-muted-foreground" />
+
+        <p className="mt-1 text-xs font-semibold">
+          Unable to load referrals
+        </p>
+
+        <p className="mt-0.5 text-[10px] text-muted-foreground">
+          Please try again later.
+        </p>
+      </div>
+    );
+  }
 
 
+  // ==========================================================
+  // EMPTY
+  // ==========================================================
+
+  if (referrals.length === 0) {
+    return (
+      <div
+        className="
+          flex
+          min-h-20
+          flex-col
+          items-center
+          justify-center
+          border-y
+          border-border/40
+          px-3
+          py-5
+          text-center
+        "
+      >
+        <UserPlus className="h-4 w-4 text-muted-foreground" />
+
+        <p className="mt-1 text-xs font-semibold">
+          No Referrals Yet
+        </p>
+
+        <p className="mt-0.5 text-[10px] text-muted-foreground">
+          Share your referral link to invite users.
+        </p>
+      </div>
+    );
+  }
+
+
+  // ==========================================================
+  // CONTENT
+  // ==========================================================
 
   return (
+    <div className="overflow-hidden">
 
-    <div
-      className="
-        space-y-6
-      "
-    >
+      {/* Header */}
 
-
-      <SectionTitle
-
-        title="Referral Activity"
-
-        description="
-          Track how your referrals are progressing.
-        "
-
-      />
-
-
-
-
-      <DashboardCard
-
+      <div
         className="
-          relative
-          overflow-hidden
+          flex
+          items-center
+          gap-1.5
+          border-b
+          border-border/40
+          px-2.5
+          py-2
         "
-
       >
-
         <div
           className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-            h-60
-            w-60
-            rounded-full
-            bg-primary/20
-            blur-3xl
+            flex
+            h-6
+            w-6
+            items-center
+            justify-center
+            rounded-md
+            bg-primary/10
+            text-primary
           "
-        />
-
-
-
-        <CardHeader
-
-          className="
-            relative
-            border-b
-            border-border/50
-            bg-muted/20
-            px-5
-            py-5
-            sm:px-6
-          "
-
         >
+          <UserPlus className="h-3 w-3" />
+        </div>
 
-          <CardTitle
+        <span className="text-xs font-semibold">
+          Referral Network
+        </span>
+      </div>
 
-            className="
-              flex
-              items-center
-              gap-3
-              text-base
-              sm:text-lg
-            "
 
-          >
+      {/* Referrals */}
 
+      <div className="divide-y divide-border/30">
+
+        {referrals.map((referral) => {
+
+          const user = referral.referredUserId;
+
+          const initials = (
+            user?.username || 'U'
+          )
+            .slice(0, 2)
+            .toUpperCase();
+
+
+          return (
             <div
+              key={referral._id}
               className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-xl
-                bg-primary/10
-                text-primary
+                px-2.5
+                py-2
+                transition-colors
+                hover:bg-muted/10
               "
             >
 
-              <UserPlus
+              <div
                 className="
-                  h-5
-                  w-5
+                  flex
+                  items-center
+                  justify-between
+                  gap-2
                 "
-              />
+              >
 
-            </div>
+                {/* User */}
 
-
-
-            My Referral Network
-
-
-          </CardTitle>
-
-
-        </CardHeader>
-
-
-
-
-
-        <CardContent
-
-          className="
-            relative
-            space-y-4
-            p-5
-            sm:p-6
-          "
-
-        >
-
-
-          {
-            referrals.map(
-              (referral:any)=>{
-
-
-                const user =
-                  referral.referredUserId;
-
-
-
-                const initials =
-                  (
-                    user?.username ||
-                    'U'
-                  )
-                  .slice(
-                    0,
-                    2,
-                  )
-                  .toUpperCase();
-
-
-
-                return (
+                <div
+                  className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-2
+                  "
+                >
 
                   <div
-
-                    key={
-                      referral._id
-                    }
-
                     className="
-                      group
-                      relative
-                      overflow-hidden
-                      rounded-3xl
-                      border
-                      border-border/50
-                      bg-gradient-to-br
-                      from-background
-                      via-background
-                      to-primary/5
-                      p-4
-                      transition-all
-                      duration-300
-                      hover:-translate-y-1
-                      hover:shadow-lg
-                      sm:p-5
+                      flex
+                      h-7
+                      w-7
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-md
+                      bg-primary/10
+                      text-[10px]
+                      font-bold
+                      text-primary
                     "
-
                   >
+                    {initials}
+                  </div>
 
 
-                    <div
+                  <div className="min-w-0">
+
+                    <p
                       className="
-                        absolute
-                        -right-10
-                        -top-10
-                        h-32
-                        w-32
-                        rounded-full
-                        bg-primary/10
-                        blur-3xl
+                        truncate
+                        text-[11px]
+                        font-semibold
                       "
-                    />
-
+                    >
+                      {user?.username ?? 'Unknown User'}
+                    </p>
 
 
                     <div
-
                       className="
-                        relative
+                        mt-0.5
                         flex
-                        flex-col
-                        gap-5
-                        lg:flex-row
-                        lg:items-center
-                        lg:justify-between
+                        min-w-0
+                        items-center
+                        gap-1
+                        text-[9px]
+                        text-muted-foreground
                       "
-
                     >
 
+                      <span className="truncate">
+                        {user?.email ?? 'No email'}
+                      </span>
 
+                      <span className="shrink-0">
+                        ·
+                      </span>
 
-                      <div
-
+                      <CalendarDays
                         className="
-                          flex
-                          items-center
-                          gap-4
-                          min-w-0
+                          h-2.5
+                          w-2.5
+                          shrink-0
                         "
-
-                      >
-
-                        <div
-                          className="
-                            flex
-                            h-12
-                            w-12
-                            shrink-0
-                            items-center
-                            justify-center
-                            rounded-2xl
-                            bg-gradient-to-br
-                            from-primary/20
-                            to-cyan-500/20
-                            font-black
-                            text-primary
-                          "
-                        >
-
-                          {initials}
-
-                        </div>
-
-
-
-
-                        <div
-                          className="
-                            min-w-0
-                          "
-                        >
-
-                          <h3
-
-                            className="
-                              truncate
-                              font-bold
-                            "
-
-                          >
-
-                            {
-                              user?.username ??
-                              'Unknown User'
-                            }
-
-
-                          </h3>
-
-
-
-
-                          <p
-
-                            className="
-                              truncate
-                              text-sm
-                              text-muted-foreground
-                            "
-
-                          >
-
-                            {
-                              user?.email ??
-                              'No email'
-                            }
-
-                          </p>
-
-
-
-
-
-                          <div
-
-                            className="
-                              mt-2
-                              flex
-                              items-center
-                              gap-2
-                              text-xs
-                              text-muted-foreground
-                            "
-
-                          >
-
-                            <CalendarDays
-
-                              className="
-                                h-4
-                                w-4
-                              "
-
-                            />
-
-
-                            Joined
-
-
-                            <span>
-
-                              {
-                                new Date(
-                                  referral.createdAt,
-                                )
-                                .toLocaleDateString(
-                                  'en-GB',
-                                  {
-                                    day:'2-digit',
-                                    month:'short',
-                                    year:'numeric',
-                                  },
-                                )
-                              }
-
-                            </span>
-
-
-                          </div>
-
-
-                        </div>
-
-
-                      </div>
-
-
-
-
-
-
-
-                      <div
-
-                        className="
-                          flex
-                          flex-wrap
-                          gap-2
-                        "
-
-                      >
-
-
-                        {
-                          referral.registered && (
-
-                            <StatusBadge
-
-                              status="Registered"
-
-                            />
-
-                          )
-                        }
-
-
-
-
-                        {
-                          referral.regularSubscription && (
-
-                            <Badge
-
-                              variant="secondary"
-
-                              className="
-                                rounded-full
-                              "
-
-                            >
-
-                              Regular
-
-                            </Badge>
-
-                          )
-                        }
-
-
-
-
-
-                        {
-                          referral.vipSubscription && (
-
-                            <Badge
-
-                              className="
-                                rounded-full
-                                bg-amber-500/10
-                                text-amber-600
-                                dark:text-amber-400
-                              "
-
-                            >
-
-                              <Crown
-
-                                className="
-                                  mr-1
-                                  h-3.5
-                                  w-3.5
-                                "
-
-                              />
-
-                              VIP
-
-                            </Badge>
-
-                          )
-                        }
-
-
-
-
-
-                        {
-                          referral.predictionPurchased && (
-
-                            <Badge
-
-                              variant="secondary"
-
-                              className="
-                                rounded-full
-                              "
-
-                            >
-
-                              <ShoppingBag
-
-                                className="
-                                  mr-1
-                                  h-3.5
-                                  w-3.5
-                                "
-
-                              />
-
-                              Purchased
-
-
-                            </Badge>
-
-                          )
-                        }
-
-
-
-
-
-                        {
-                          referral.vipSubscription && (
-
-                            <Sparkles
-
-                              className="
-                                h-5
-                                w-5
-                                text-primary
-                              "
-
-                            />
-
-                          )
-                        }
-
-
-                      </div>
-
-
-
+                      />
+
+                      <span className="shrink-0">
+                        {new Date(
+                          referral.createdAt,
+                        ).toLocaleDateString(
+                          'en-GB',
+                          {
+                            day: '2-digit',
+                            month: 'short',
+                          },
+                        )}
+                      </span>
 
                     </div>
 
-
                   </div>
 
-                );
+                </div>
 
 
-              },
-            )
-          }
+                {/* Status */}
 
+                <div
+                  className="
+                    flex
+                    shrink-0
+                    items-center
+                    justify-end
+                    gap-1
+                  "
+                >
 
-        </CardContent>
+                  {referral.registered && (
+                    <Status
+                      label="Registered"
+                    />
+                  )}
 
+                  {referral.regularSubscription && (
+                    <Status
+                      label="Regular"
+                    />
+                  )}
 
-      </DashboardCard>
+                  {referral.vipSubscription && (
+                    <Status
+                      label="VIP"
+                      vip
+                      icon={Crown}
+                    />
+                  )}
 
+                  {referral.predictionPurchased && (
+                    <Status
+                      label="Purchased"
+                      icon={ShoppingBag}
+                    />
+                  )}
+
+                  {referral.vipSubscription && (
+                    <Sparkles
+                      className="
+                        ml-0.5
+                        h-3
+                        w-3
+                        text-primary
+                      "
+                    />
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
+          );
+
+        })}
+
+      </div>
 
     </div>
-
   );
+}
 
+
+// ============================================================
+// STATUS
+// ============================================================
+
+function Status({
+  label,
+  vip = false,
+  icon: Icon,
+}: {
+  label: string;
+  vip?: boolean;
+  icon?: typeof Crown;
+}) {
+
+  return (
+    <span
+      className={`
+        inline-flex
+        h-5
+        items-center
+        gap-0.5
+        rounded-full
+        px-1.5
+        text-[8px]
+        font-medium
+        ${
+          vip
+            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+            : 'bg-muted/50 text-muted-foreground'
+        }
+      `}
+    >
+
+      {Icon && (
+        <Icon className="h-2.5 w-2.5" />
+      )}
+
+      {label}
+
+    </span>
+  );
 }

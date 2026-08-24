@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,8 +15,6 @@ import {
   EyeOff,
   Lock,
   ShieldCheck,
-  Trophy,
-  TrendingUp,
   TriangleAlert,
   XCircle,
 } from 'lucide-react';
@@ -53,21 +52,24 @@ export default function ResetPasswordForm() {
   );
 
   const passwordStrength = useMemo(() => {
-    const score = Object.values(validations).filter(Boolean).length;
+    const score =
+      Object.values(validations).filter(Boolean).length;
 
-    if (score <= 2)
+    if (score <= 2) {
       return {
         text: 'Weak',
         width: '35%',
         color: 'bg-red-500',
       };
+    }
 
-    if (score <= 4)
+    if (score <= 4) {
       return {
         text: 'Medium',
         width: '70%',
         color: 'bg-yellow-500',
       };
+    }
 
     return {
       text: 'Strong',
@@ -94,7 +96,7 @@ export default function ResetPasswordForm() {
     }
 
     const timer = setTimeout(() => {
-      setRedirect((v) => v - 1);
+      setRedirect((value) => value - 1);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -132,484 +134,654 @@ export default function ResetPasswordForm() {
         },
       );
 
-      setSuccess(res.data.message);
+      setSuccess(
+        res.data.message ||
+          'Your password has been updated successfully.',
+      );
+
       setRedirect(3);
-
     } catch (err: any) {
-
       const message =
         err?.response?.data?.message;
 
       switch (message) {
-
         case 'Invalid token':
           setError(
-            'This reset link is invalid.'
+            'This reset link is invalid.',
           );
           break;
 
         case 'Token expired':
           setError(
-            'Your reset link has expired. Please request another one.'
+            'Your reset link has expired. Please request another one.',
           );
           break;
 
         case 'User not found':
           setError(
-            'No account was found.'
+            'No account was found.',
           );
           break;
 
         default:
           setError(
             message ||
-              'Unable to reset password. Please try again.'
+              'Unable to reset password. Please try again.',
           );
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background pt-12 pb-12 text-foreground">
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
 
-      {/* Background */}
+      {/* =====================================================
+          DRAMATIC BACKGROUND
+      ===================================================== */}
 
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
-        <div className="absolute left-0 top-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-[180px]" />
+        <div
+          className="
+            absolute
+            -left-40
+            -top-40
+            h-[420px]
+            w-[420px]
+            rounded-full
+            bg-primary/20
+            blur-[150px]
+          "
+        />
 
-        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-cyan-500/15 blur-[180px]" />
+        <div
+          className="
+            absolute
+            -bottom-40
+            -right-40
+            h-[480px]
+            w-[480px]
+            rounded-full
+            bg-cyan-500/15
+            blur-[160px]
+          "
+        />
 
-        <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/5 blur-[220px]" />
+        <div
+          className="
+            absolute
+            left-1/2
+            top-1/2
+            h-[600px]
+            w-[600px]
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-full
+            bg-primary/[0.03]
+            blur-[180px]
+          "
+        />
 
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/30 to-background" />
+        <div
+          className="
+            absolute
+            inset-0
+            bg-gradient-to-b
+            from-background/20
+            via-background/60
+            to-background
+          "
+        />
 
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6">
 
-        {/* LEFT */}
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
 
-        <div className="hidden flex-1 lg:block">
+      <div
+        className="
+          relative
+          z-10
+          flex
+          min-h-screen
+          items-center
+          justify-center
+          px-4
+          py-8
+          sm:px-6
+        "
+      >
 
-          <div className="max-w-xl">
+        {/* =================================================
+            FORM
+        ================================================= */}
 
-            <div className="mb-4 flex justify-center">
+        <div className="w-full max-w-[430px]">
 
+          {/* BRAND */}
+
+          <div className="mb-5 text-center">
+
+            <div
+              className="
+                mx-auto
+                flex
+                h-24
+                w-24
+                items-center
+                justify-center
+              "
+            >
               <Image
-                src="/images/ball5.png"
-                alt="Football Predictions"
-                width={560}
-                height={170}
-                className="max-w-full object-contain"
+                src="/logo.png"
+                alt="Logo"
+                width={56}
+                height={56}
+                className="h-45 w-45 object-contain"
                 priority
               />
-
             </div>
 
-            <h1 className="mt-8 text-4xl font-black leading-tight">
-
-              Secure
-
-              <br />
-
-              <span className="bg-gradient-to-r from-primary via-primary to-cyan-500 bg-clip-text text-6xl text-transparent">
-
-                Your Account.
-
-              </span>
-
+            <h1
+              className="
+                text-2xl
+                font-black
+                tracking-tight
+                sm:text-3xl
+              "
+            >
+              Reset Password
             </h1>
 
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">
-
-              Create a new secure password to
-              continue accessing your football
-              prediction account.
-
+            <p
+              className="
+                mx-auto
+                mt-1.5
+                max-w-sm
+                text-s
+                leading-6
+                text-muted-foreground
+              "
+            >
+              Create a strong new password to
+              secure your account.
             </p>
-
-            <div className="mt-12 grid grid-cols-3 gap-5">
-
-              <div className="rounded-2xl border border-border bg-card/70 p-5 shadow-lg backdrop-blur-xl">
-
-                <ShieldCheck className="mb-3 h-7 w-7 text-primary" />
-
-                <h3 className="text-2xl font-bold">
-
-                  100%
-
-                </h3>
-
-                <p className="text-sm text-muted-foreground">
-
-                  Secure
-
-                </p>
-
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card/70 p-5 shadow-lg backdrop-blur-xl">
-
-                <TrendingUp className="mb-3 h-7 w-7 text-cyan-500" />
-
-                <h3 className="text-2xl font-bold">
-
-                  Fast
-
-                </h3>
-
-                <p className="text-sm text-muted-foreground">
-
-                  Recovery
-
-                </p>
-
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card/70 p-5 shadow-lg backdrop-blur-xl">
-
-                <Trophy className="mb-3 h-7 w-7 text-yellow-500" />
-
-                <h3 className="text-2xl font-bold">
-
-                  Safe
-
-                </h3>
-
-                <p className="text-sm text-muted-foreground">
-
-                  Access
-
-                </p>
-
-              </div>
-
-            </div>
 
           </div>
 
-        </div>
 
-        {/* FORM */}
-
-        <div className="flex flex-1 justify-center lg:justify-end">
+          {/* =================================================
+              CARD
+          ================================================= */}
 
           <form
             onSubmit={handleReset}
-            className="w-full max-w-md rounded-3xl border border-border bg-card/70 p-10 shadow-2xl backdrop-blur-2xl"
+            className="
+              rounded-2xl
+              border
+              border-border/60
+              bg-card/65
+              p-5
+              shadow-2xl
+              backdrop-blur-2xl
+              sm:p-6
+            "
           >
 
-            <div className="mb-8 text-center">
+            {/* ACCOUNT INDICATOR */}
 
-              <div className="mb-5 flex justify-center">
-
-                <Image
-                  src="/logo1.png"
-                  alt="Logo"
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 object-contain"
-                  priority
+            {email && (
+              <div
+                className="
+                  mb-4
+                  flex
+                  items-center
+                  gap-2
+                  rounded-xl
+                  border
+                  border-border/60
+                  bg-background/40
+                  px-3
+                  py-2.5
+                  text-xs
+                  text-muted-foreground
+                "
+              >
+                <ShieldCheck
+                  className="h-4 w-4 shrink-0 text-primary"
                 />
+
+                <span className="truncate">
+                  Securing {email}
+                </span>
+              </div>
+            )}
+
+
+            {/* =================================================
+                PASSWORD
+            ================================================= */}
+
+            <div className="space-y-3">
+
+              {/* NEW PASSWORD */}
+
+              <div className="relative">
+
+                <Lock
+                  className="
+                    absolute
+                    left-3.5
+                    top-1/2
+                    h-4.5
+                    w-4.5
+                    -translate-y-1/2
+                    text-muted-foreground
+                  "
+                />
+
+                <input
+                  type={
+                    showPassword
+                      ? 'text'
+                      : 'password'
+                  }
+                  placeholder="New Password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                    setSuccess('');
+                  }}
+                  aria-invalid={!!error}
+                  autoComplete="new-password"
+                  className="
+                    h-12
+                    w-full
+                    rounded-xl
+                    border
+                    border-input
+                    bg-background/60
+                    pl-10
+                    pr-12
+                    text-s
+                    text-foreground
+                    outline-none
+                    transition
+                    placeholder:text-muted-foreground
+                    focus:border-primary/50
+                    focus:ring-2
+                    focus:ring-primary/20
+                  "
+                />
+
+                <button
+                  type="button"
+                  aria-label={
+                    showPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
+                  onClick={() =>
+                    setShowPassword(
+                      !showPassword,
+                    )
+                  }
+                  className="
+                    absolute
+                    right-3.5
+                    top-1/2
+                    -translate-y-1/2
+                    text-muted-foreground
+                    transition
+                    hover:text-foreground
+                  "
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
 
               </div>
 
-              <h2 className="text-4xl font-black">
 
-                Reset Password
+              {/* CONFIRM PASSWORD */}
 
-              </h2>
+              <div className="relative">
 
-              <p className="mt-2 text-muted-foreground">
+                <Lock
+                  className="
+                    absolute
+                    left-3.5
+                    top-1/2
+                    h-4.5
+                    w-4.5
+                    -translate-y-1/2
+                    text-muted-foreground
+                  "
+                />
 
-                Create a new secure password.
+                <input
+                  type={
+                    showConfirmPassword
+                      ? 'text'
+                      : 'password'
+                  }
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(
+                      e.target.value,
+                    );
+                    setError('');
+                  }}
+                  aria-invalid={!!error}
+                  autoComplete="new-password"
+                  className="
+                    h-12
+                    w-full
+                    rounded-xl
+                    border
+                    border-input
+                    bg-background/60
+                    pl-10
+                    pr-12
+                    text-s
+                    text-foreground
+                    outline-none
+                    transition
+                    placeholder:text-muted-foreground
+                    focus:border-primary/50
+                    focus:ring-2
+                    focus:ring-primary/20
+                  "
+                />
 
-              </p>
+                <button
+                  type="button"
+                  aria-label={
+                    showConfirmPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      !showConfirmPassword,
+                    )
+                  }
+                  className="
+                    absolute
+                    right-3.5
+                    top-1/2
+                    -translate-y-1/2
+                    text-muted-foreground
+                    transition
+                    hover:text-foreground
+                  "
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
 
-            </div>
-
-                        {/* PASSWORD */}
-
-            <div className="relative mb-5">
-
-              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="New Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                aria-invalid={!!error}
-                className={`h-14 w-full rounded-xl border bg-background/80 pl-12 pr-14 text-foreground placeholder:text-muted-foreground outline-none transition-all duration-300 focus-visible:ring-2 ${
-                  error
-                    ? 'border-destructive focus-visible:ring-destructive/30'
-                    : 'border-input focus-visible:border-ring focus-visible:ring-ring/30'
-                }`}
-              />
-
-              <button
-                type="button"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
-              >
-                {showPassword ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
-              </button>
-
-            </div>
-
-            {/* CONFIRM PASSWORD */}
-
-            <div className="relative mb-6">
-
-              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                aria-invalid={!!error}
-                className={`h-14 w-full rounded-xl border bg-background/80 pl-12 pr-14 text-foreground placeholder:text-muted-foreground outline-none transition-all duration-300 focus-visible:ring-2 ${
-                  error
-                    ? 'border-destructive focus-visible:ring-destructive/30'
-                    : 'border-input focus-visible:border-ring focus-visible:ring-ring/30'
-                }`}
-              />
-
-              <button
-                type="button"
-                aria-label={
-                  showConfirmPassword
-                    ? 'Hide password'
-                    : 'Show password'
-                }
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
-              </button>
+              </div>
 
             </div>
 
-            {/* PASSWORD STRENGTH */}
+
+            {/* =================================================
+                STRENGTH
+            ================================================= */}
 
             {password && (
+              <div className="mt-3">
 
-              <div className="mb-6">
-
-                <div className="mb-2 flex items-center justify-between text-sm">
-
+                <div
+                  className="
+                    mb-1.5
+                    flex
+                    items-center
+                    justify-between
+                    text-xs
+                  "
+                >
                   <span className="text-muted-foreground">
-                    Password Strength
+                    Password strength
                   </span>
 
                   <span
-                    className={`font-semibold ${
-                      passwordStrength.text === 'Strong'
-                        ? 'text-green-500'
-                        : passwordStrength.text === 'Medium'
-                        ? 'text-yellow-500'
-                        : 'text-red-500'
-                    }`}
+                    className={`
+                      font-semibold
+                      ${
+                        passwordStrength.text ===
+                        'Strong'
+                          ? 'text-green-500'
+                          : passwordStrength.text ===
+                            'Medium'
+                          ? 'text-yellow-500'
+                          : 'text-red-500'
+                      }
+                    `}
                   >
                     {passwordStrength.text}
                   </span>
-
                 </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-
+                <div
+                  className="
+                    h-1.5
+                    overflow-hidden
+                    rounded-full
+                    bg-muted
+                  "
+                >
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${passwordStrength.color}`}
+                    className={`
+                      h-full
+                      rounded-full
+                      transition-all
+                      duration-500
+                      ${passwordStrength.color}
+                    `}
                     style={{
-                      width: passwordStrength.width,
+                      width:
+                        passwordStrength.width,
                     }}
                   />
-
                 </div>
 
               </div>
-
             )}
 
-            {/* PASSWORD REQUIREMENTS */}
 
-            <div className="mb-6 rounded-2xl border border-border bg-muted/30 p-5">
+            {/* =================================================
+                REQUIREMENTS
+            ================================================= */}
 
-              <h3 className="mb-4 font-semibold">
-                Password Requirements
-              </h3>
+            <div
+              className="
+                mt-4
+                rounded-xl
+                border
+                border-border/60
+                bg-background/30
+                p-3.5
+              "
+            >
 
-              <div className="space-y-3">
+              <div className="mb-2.5 flex items-center gap-2">
 
-                <div className="flex items-center gap-3">
+                <ShieldCheck
+                  className="h-4 w-4 text-primary"
+                />
 
-                  {validations.length ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
+                <span className="text-xs font-semibold">
+                  Password requirements
+                </span>
 
-                  <span
-                    className={
-                      validations.length
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+
+                {[
+                  {
+                    valid: validations.length,
+                    label: '8+ characters',
+                  },
+                  {
+                    valid: validations.uppercase,
+                    label: 'Uppercase letter',
+                  },
+                  {
+                    valid: validations.lowercase,
+                    label: 'Lowercase letter',
+                  },
+                  {
+                    valid: validations.number,
+                    label: 'One number',
+                  },
+                  {
+                    valid: validations.special,
+                    label: 'Special character',
+                  },
+                ].map((item) => (
+
+                  <div
+                    key={item.label}
+                    className="
+                      flex
+                      min-w-0
+                      items-center
+                      gap-1.5
+                      text-xs
+                    "
                   >
-                    At least 8 characters
-                  </span>
 
-                </div>
+                    {item.valid ? (
+                      <CheckCircle2
+                        className="
+                          h-3.5
+                          w-3.5
+                          shrink-0
+                          text-green-500
+                        "
+                      />
+                    ) : (
+                      <XCircle
+                        className="
+                          h-3.5
+                          w-3.5
+                          shrink-0
+                          text-muted-foreground
+                        "
+                      />
+                    )}
 
-                <div className="flex items-center gap-3">
+                    <span
+                      className={
+                        item.valid
+                          ? 'text-green-500'
+                          : 'text-muted-foreground'
+                      }
+                    >
+                      {item.label}
+                    </span>
 
-                  {validations.uppercase ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  </div>
 
-                  <span
-                    className={
-                      validations.uppercase
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }
-                  >
-                    One uppercase letter
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  {validations.lowercase ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
-
-                  <span
-                    className={
-                      validations.lowercase
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }
-                  >
-                    One lowercase letter
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  {validations.number ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
-
-                  <span
-                    className={
-                      validations.number
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }
-                  >
-                    One number
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  {validations.special ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
-
-                  <span
-                    className={
-                      validations.special
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }
-                  >
-                    One special character
-                  </span>
-
-                </div>
+                ))}
 
               </div>
 
             </div>
 
-            {/* PASSWORD MATCH */}
+
+            {/* =================================================
+                MATCH STATUS
+            ================================================= */}
 
             {confirmPassword && (
+              <div
+                className={`
+                  mt-3
+                  flex
+                  items-center
+                  gap-2
+                  rounded-xl
+                  border
+                  px-3
+                  py-2.5
+                  text-xs
+                  ${
+                    passwordsMatch
+                      ? 'border-green-500/20 bg-green-500/10 text-green-500'
+                      : 'border-red-500/20 bg-red-500/10 text-red-500'
+                  }
+                `}
+              >
 
-              passwordsMatch ? (
+                {passwordsMatch ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <XCircle className="h-4 w-4" />
+                )}
 
-                <div className="mb-6 flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-500">
+                <span>
+                  {passwordsMatch
+                    ? 'Passwords match.'
+                    : 'Passwords do not match.'}
+                </span>
 
-                  <CheckCircle2 className="h-5 w-5" />
-
-                  <span className="font-medium">
-                    Passwords match.
-                  </span>
-
-                </div>
-
-              ) : (
-
-                <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-500">
-
-                  <XCircle className="h-5 w-5" />
-
-                  <span className="font-medium">
-                    Passwords do not match.
-                  </span>
-
-                </div>
-
-              )
-
+              </div>
             )}
 
-                        {/* ERROR MESSAGE */}
+
+            {/* =================================================
+                ERROR
+            ================================================= */}
 
             {error && (
               <div
-                className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-destructive animate-in slide-in-from-top-2 duration-300"
+                className="
+                  mt-3
+                  flex
+                  items-start
+                  gap-2.5
+                  rounded-xl
+                  border
+                  border-destructive/20
+                  bg-destructive/10
+                  p-3
+                  text-destructive
+                "
                 role="alert"
                 aria-live="assertive"
               >
-                <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
 
-                <div>
+                <TriangleAlert
+                  className="
+                    mt-0.5
+                    h-4
+                    w-4
+                    shrink-0
+                  "
+                />
 
-                  <p className="font-semibold">
+                <div className="min-w-0">
+
+                  <p className="text-xs font-semibold">
                     Unable to reset password
                   </p>
 
-                  <p className="mt-1 text-sm">
+                  <p className="mt-0.5 text-xs leading-5">
                     {error}
                   </p>
 
@@ -618,27 +790,49 @@ export default function ResetPasswordForm() {
               </div>
             )}
 
-            {/* SUCCESS MESSAGE */}
+
+            {/* =================================================
+                SUCCESS
+            ================================================= */}
 
             {success && (
               <div
-                className="mb-6 flex items-start gap-3 rounded-2xl border border-green-500/30 bg-green-500/10 p-4 text-green-500 animate-in slide-in-from-top-2 duration-300"
+                className="
+                  mt-3
+                  flex
+                  items-start
+                  gap-2.5
+                  rounded-xl
+                  border
+                  border-green-500/20
+                  bg-green-500/10
+                  p-3
+                  text-green-500
+                "
                 role="status"
                 aria-live="polite"
               >
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+
+                <CheckCircle2
+                  className="
+                    mt-0.5
+                    h-4
+                    w-4
+                    shrink-0
+                  "
+                />
 
                 <div>
 
-                  <p className="font-semibold">
-                    Password Updated Successfully
+                  <p className="text-xs font-semibold">
+                    Password updated successfully
                   </p>
 
-                  <p className="mt-1 text-sm">
+                  <p className="mt-0.5 text-xs leading-5">
                     {success}
                   </p>
 
-                  <p className="mt-2 text-sm font-medium">
+                  <p className="mt-1 text-xs font-medium">
                     Redirecting to login in {redirect}...
                   </p>
 
@@ -647,77 +841,161 @@ export default function ResetPasswordForm() {
               </div>
             )}
 
-            {/* SUBMIT BUTTON */}
+
+            {/* =================================================
+                SUBMIT
+            ================================================= */}
 
             <button
               type="submit"
-              disabled={loading || !formValid}
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-primary text-lg font-bold text-primary-foreground transition-all duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              disabled={
+                loading ||
+                !formValid ||
+                !!success
+              }
+              className="
+                mt-4
+                flex
+                h-12
+                w-full
+                items-center
+                justify-center
+                gap-2.5
+                rounded-xl
+                bg-primary
+                text-s
+                font-bold
+                text-primary-foreground
+                shadow-lg
+                shadow-primary/10
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                hover:shadow-xl
+                hover:shadow-primary/20
+                active:translate-y-0
+                disabled:pointer-events-none
+                disabled:opacity-50
+              "
             >
+
               {loading ? (
                 <>
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <div
+                    className="
+                      h-4
+                      w-4
+                      animate-spin
+                      rounded-full
+                      border-2
+                      border-current
+                      border-t-transparent
+                    "
+                  />
+
                   Resetting Password...
                 </>
               ) : success ? (
                 <>
-                  <CheckCircle2 size={20} />
+                  <CheckCircle2 size={18} />
                   Password Updated
                 </>
               ) : (
                 <>
                   Reset Password
-                  <ArrowRight size={20} />
+                  <ArrowRight size={18} />
                 </>
               )}
+
             </button>
 
-            {/* PASSWORD TIPS */}
 
-            <div className="mt-8 rounded-2xl border border-border bg-muted/30 p-5">
+            {/* =================================================
+                SECURITY NOTE
+            ================================================= */}
 
-              <h3 className="mb-3 flex items-center gap-2 font-semibold">
+            <div
+              className="
+                mt-4
+                flex
+                items-start
+                gap-2
+                rounded-xl
+                border
+                border-border/50
+                bg-muted/20
+                px-3
+                py-2.5
+                text-xs
+                leading-5
+                text-muted-foreground
+              "
+            >
 
-                <ShieldCheck className="h-5 w-5 text-primary" />
+              <ShieldCheck
+                className="
+                  mt-0.5
+                  h-4
+                  w-4
+                  shrink-0
+                  text-primary
+                "
+              />
 
-                Security Tips
-
-              </h3>
-
-              <ul className="space-y-2 text-sm text-muted-foreground">
-
-                <li>
-                  • Don't reuse passwords from other websites.
-                </li>
-
-                <li>
-                  • Make your password unique and difficult to guess.
-                </li>
-
-                <li>
-                  • Consider using a password manager.
-                </li>
-
-              </ul>
+              <span>
+                Use a unique password that you do
+                not use on other websites.
+              </span>
 
             </div>
 
-            {/* FOOTER */}
 
-            <p className="mt-8 text-center text-sm text-muted-foreground">
+            {/* =================================================
+                FOOTER
+            ================================================= */}
 
+            <p
+              className="
+                mt-5
+                text-center
+                text-xs
+                text-muted-foreground
+              "
+            >
               Remember your password?{' '}
 
               <Link
                 href="/login"
-                className="font-semibold text-primary transition hover:opacity-80"
+                className="
+                  font-semibold
+                  text-primary
+                  transition
+                  hover:opacity-80
+                "
               >
                 Back to Login
               </Link>
-
             </p>
 
           </form>
+
+
+          {/* SMALL TRUST INDICATOR */}
+
+          <div
+            className="
+              mt-4
+              flex
+              items-center
+              justify-center
+              gap-2
+              text-[11px]
+              text-muted-foreground/70
+            "
+          >
+            <Lock className="h-3 w-3" />
+            Secure account recovery
+          </div>
 
         </div>
 

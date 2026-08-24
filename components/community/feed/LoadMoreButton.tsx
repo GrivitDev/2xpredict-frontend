@@ -61,7 +61,7 @@ export default function LoadMoreButton({
           border-border
           bg-background/60
           px-5
-          text-sm
+          text-s
           font-medium
           shadow-sm
           transition-colors

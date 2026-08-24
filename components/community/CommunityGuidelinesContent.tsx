@@ -131,13 +131,13 @@ export default function CommunityGuidelinesContent() {
             mx-auto
             mt-5
             max-w-2xl
-            text-sm
+            text-s
             leading-7
             text-muted-foreground
             sm:text-base
           "
         >
-          The 1xpredicts community is built for passionate football fans.
+          The 2xpredict community is built for passionate football fans.
           Keep conversations friendly, insightful, and enjoyable for everyone.
         </p>
       </div>
@@ -204,7 +204,7 @@ export default function CommunityGuidelinesContent() {
 
               <p
                 className="
-                  text-sm
+                  text-s
                   text-muted-foreground
                 "
               >
@@ -260,7 +260,7 @@ export default function CommunityGuidelinesContent() {
                   <div>
                     <h4
                       className="
-                        text-sm
+                        text-s
                         font-semibold
                         text-foreground
                       "
@@ -271,7 +271,7 @@ export default function CommunityGuidelinesContent() {
                     <p
                       className="
                         mt-1
-                        text-sm
+                        text-s
                         leading-6
                         text-muted-foreground
                       "
@@ -334,7 +334,7 @@ export default function CommunityGuidelinesContent() {
 
               <p
                 className="
-                  text-sm
+                  text-s
                   text-muted-foreground
                 "
               >
@@ -365,7 +365,7 @@ export default function CommunityGuidelinesContent() {
               >
                 <h4
                   className="
-                    text-sm
+                    text-s
                     font-semibold
                     text-foreground
                   "
@@ -376,7 +376,7 @@ export default function CommunityGuidelinesContent() {
                 <p
                   className="
                     mt-2
-                    text-sm
+                    text-s
                     leading-6
                     text-muted-foreground
                   "
@@ -406,7 +406,7 @@ export default function CommunityGuidelinesContent() {
       >
         <p
           className="
-            text-sm
+            text-s
             leading-6
             text-muted-foreground
           "

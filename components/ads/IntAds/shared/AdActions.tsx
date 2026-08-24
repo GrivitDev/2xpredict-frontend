@@ -33,27 +33,36 @@ export function AdActions({
     <motion.div
       initial={{
         opacity: 0,
-        y: 10,
+        y: 8,
       }}
       animate={{
         opacity: 1,
         y: 0,
       }}
       transition={{
-        delay: .45,
+        duration: .35,
+        delay: .35,
       }}
+      className="w-full"
     >
 
       <Button
         asChild
         size="lg"
         className="
-          h-12
-          rounded-full
-          px-7
+          h-11
+          rounded-xl
+          px-5
           text-sm
           font-semibold
-          shadow-xl
+          shadow-md
+          transition-all
+          duration-300
+          hover:shadow-xl
+          hover:scale-[1.02]
+          active:scale-[0.98]
+          w-full
+          sm:w-auto
         "
       >
 
@@ -72,25 +81,30 @@ export function AdActions({
           className="
             flex
             items-center
+            justify-center
             gap-2
+            whitespace-nowrap
           "
         >
 
-          {action.label}
+          <span className="truncate">
+            {action.label}
+          </span>
 
-          <motion.div
+          <motion.span
             animate={{
               x: [0, 4, 0],
             }}
             transition={{
-              duration: 1.2,
+              duration: 1.4,
               repeat: Infinity,
+              ease: 'easeInOut',
             }}
           >
 
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 shrink-0" />
 
-          </motion.div>
+          </motion.span>
 
         </Link>
 

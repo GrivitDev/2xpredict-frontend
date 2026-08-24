@@ -46,12 +46,19 @@ export interface PredictionMarket {
 }
 
 // ========================================
-// USER PREDICTION RESPONSE
+// PREDICTION RESPONSE
 // ========================================
 
 export interface PredictionDetails {
-  [x: string]: any;
-  id: string;
+  date?: any;
+  match?: any;
+  venue?: any;
+
+  homeScore?: number;
+  awayScore?: number;
+
+  _id: string;
+  id?: string;
 
   matchId: string;
 
@@ -78,17 +85,11 @@ export interface PredictionDetails {
 
   access: {
     allowed: boolean;
-
     state: PredictionAccessState;
-
     purchased: boolean;
-
     plan: PredictionPlan;
-
     released: boolean;
-
     releaseAt: number;
-
     message: string | null;
   };
 
@@ -103,12 +104,14 @@ export interface PredictionDetails {
   } | null;
 }
 
-export interface CreatePredictionPayload {
+// ========================================
+// CREATE
+// ========================================
 
+export interface CreatePredictionPayload {
   matchId: string;
 
   leagueCode: string;
-
 
   league?: {
     code: string;
@@ -117,19 +120,15 @@ export interface CreatePredictionPayload {
     emblem?: string;
   };
 
-
   homeTeam: string;
 
   awayTeam: string;
-
 
   homeTeamBadge?: string;
 
   awayTeamBadge?: string;
 
-
   confidence: number;
-
 
   probabilities: {
     home: number;
@@ -137,75 +136,145 @@ export interface CreatePredictionPayload {
     away: number;
   };
 
-
   markets: {
     market: string;
     selection?: string;
   }[];
-
 
   accessType:
     | 'free'
     | 'regular'
     | 'vip';
 
-
   price: number;
 
-
   matchDate: string;
-
 }
 
-export const createPrediction = async (payload: CreatePredictionPayload) => {
-  const res = await api.post('/predictions', payload);
+export const createPrediction = async (
+  payload: CreatePredictionPayload,
+) => {
+  const res = await api.post(
+    '/predictions',
+    payload,
+  );
+
   return res.data;
 };
 
-// =========================
-// GET ALL (TABLE VIEW)
-// =========================
+// ========================================
+// GET ALL
+// ADMIN / TABLE VIEW
+// ========================================
+
 export const getPredictions = async () => {
   const res = await api.get('/predictions');
+
   return res.data;
 };
 
-// =========================
-// GET ONE (ADMIN RAW)
-// =========================
-export const getPrediction = async (id: string) => {
-  const res = await api.get(`/predictions/${id}`);
+// ========================================
+// GET SETTLED WINS
+// PUBLIC
+// ========================================
+//
+// Used by the homepage "Our Wins" section.
+//
+// Endpoint:
+// GET /predictions/settled-wins
+//
+// No JWT required.
+// Returns only:
+// - won predictions
+// - settled predictions
+// - non-deleted predictions
+//
+// Includes prediction + probabilities.
+// ========================================
+export const getSettledWins = async (): Promise<
+  PredictionDetails[]
+> => {
+  const res = await api.get('/predictions/settled-wins');
+
+  return Array.isArray(res.data)
+    ? res.data
+    : [];
+};
+
+// ========================================
+// GET ONE
+// ADMIN RAW
+// ========================================
+
+export const getPrediction = async (
+  id: string,
+) => {
+  const res = await api.get(
+    `/predictions/${id}`,
+  );
+
   return res.data;
 };
 
-// =========================
-// GET USER ACCESS VIEW (IMPORTANT)
-// =========================
+// ========================================
+// GET USER ACCESS VIEW
+// ========================================
+
 export const getPredictionAccess = async (
   id: string,
 ): Promise<PredictionDetails> => {
-  const res = await api.get(`/predictions/user/${id}`);
+  const res = await api.get(
+    `/predictions/user/${id}`,
+  );
+
   return res.data;
 };
 
-export const updatePrediction = async (id: string, payload: any) => {
-  const res = await api.patch(`/predictions/${id}`, payload);
+// ========================================
+// UPDATE
+// ========================================
+
+export const updatePrediction = async (
+  id: string,
+  payload: any,
+) => {
+  const res = await api.patch(
+    `/predictions/${id}`,
+    payload,
+  );
+
   return res.data;
 };
 
-export const deletePrediction = async (id: string) => {
-  const res = await api.delete(`/predictions/${id}`);
+// ========================================
+// DELETE
+// ========================================
+
+export const deletePrediction = async (
+  id: string,
+) => {
+  const res = await api.delete(
+    `/predictions/${id}`,
+  );
+
   return res.data;
 };
+
+// ========================================
+// SETTLE
+// ADMIN
+// ========================================
 
 export const settlePrediction = async (
   id: string,
   actualResult: PredictionResult | 'VOID',
 ) => {
-
-  const res = await api.post(`/settlement/${id}`, {
-    result: actualResult,
-  });
+  const res = await api.post(
+    `/settlement/${id}`,
+    {
+      result: actualResult,
+    },
+  );
 
   return res.data;
 };

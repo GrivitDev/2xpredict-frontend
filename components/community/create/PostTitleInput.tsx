@@ -24,7 +24,7 @@ export default function PostTitleInput({
         border-border
         bg-background/60
         px-4
-        text-sm
+        text-s
         shadow-sm
         transition-colors
         placeholder:text-muted-foreground

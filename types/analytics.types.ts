@@ -24,14 +24,19 @@ export interface AnalyticsUsers {
 // REVENUE ANALYTICS
 // =====================================================
 
+export interface RevenueBreakdown {
+  NGN: number;
+  USD: number;
+}
+
 export interface AnalyticsRevenue {
-  totalRevenue: number;
+  totalRevenue: RevenueBreakdown;
 
-  vipRevenue: number;
+  vipRevenue: RevenueBreakdown;
 
-  regularRevenue: number;
+  regularRevenue: RevenueBreakdown;
 
-  predictionRevenue: number;
+  predictionRevenue: RevenueBreakdown;
 
   totalPayments: number;
 

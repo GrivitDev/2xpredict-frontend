@@ -115,7 +115,7 @@ export default function AdminHeader({
 
             <h2
               className="
-                text-sm
+                text-s
                 font-bold
                 tracking-tight
               "
@@ -186,7 +186,7 @@ export default function AdminHeader({
             bg-card/70
             px-4
             py-2.5
-            text-sm
+            text-s
             font-medium
             text-muted-foreground
             shadow-lg

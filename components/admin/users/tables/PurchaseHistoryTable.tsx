@@ -135,7 +135,7 @@ export default function PurchaseHistoryTable({
 
 
             <p className="
-              text-sm
+              text-s
               text-muted-foreground
             ">
               This user has not purchased any predictions.
@@ -158,7 +158,7 @@ export default function PurchaseHistoryTable({
 
             <table className="
               w-full
-              text-sm
+              text-s
             ">
 
 
@@ -366,7 +366,7 @@ export default function PurchaseHistoryTable({
                           bg-green-500/10
                           px-3
                           py-1
-                          text-sm
+                          text-s
                           font-semibold
                           text-green-500
                         ">

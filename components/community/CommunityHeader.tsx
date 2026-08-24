@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  useState,
-} from 'react';
-
-import Image from 'next/image';
+import { useState } from 'react';
 
 import {
   AnimatePresence,
@@ -17,9 +13,7 @@ import {
   Search,
 } from 'lucide-react';
 
-import {
-  Button,
-} from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 
 import {
   DropdownMenu,
@@ -32,18 +26,9 @@ import CommunitySearch from './CommunitySearch';
 import CommunityActions from './CommunityActions';
 import CommunityGuidelinesDialog from './CommunityGuidelinesDialog';
 
-import { cn } from '@/lib/utils';
-
-import {
-  useNavbar,
-} from '../navbar/NavbarContext';
-
-
 interface CommunityHeaderProps {
   search: string;
-  onSearch: (
-    value: string,
-  ) => void;
+  onSearch: (value: string) => void;
   onDiscussion: () => void;
   onMedia: () => void;
 }
@@ -54,55 +39,38 @@ export default function CommunityHeader({
   onDiscussion,
   onMedia,
 }: CommunityHeaderProps) {
-  const [
-    searchMode,
-    setSearchMode,
-  ] = useState(false);
+  const [searchMode, setSearchMode] = useState(false);
+  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
 
-  const [
-    guidelinesOpen,
-    setGuidelinesOpen,
-  ] = useState(false);
-
-  const { visible } =
-  useNavbar();
   return (
     <>
-<header
-  className={cn(
-    `
-      fixed
-      left-0
-      right-0
-      z-40
-      transition-all
-      duration-300
-    `,
-    visible
-      ? 'top-18'
-      : 'top-0',
-  )}
->
-<div
-  className="
-    mx-auto
-    max-w-8xl
-    px-8
-    sm:px-8
-  "
->
-
-          <AnimatePresence
-            mode="wait"
-          >
+      <header
+        className="
+          fixed
+          left-0
+          right-0
+          top-22
+          z-40
+        "
+      >
+        <div
+          className="
+            mx-auto
+            w-full
+            max-w-8xl
+            px-3
+            sm:px-6
+            lg:px-8
+          "
+        >
+          <AnimatePresence mode="wait">
             {searchMode ? (
               /* MOBILE SEARCH */
-
               <motion.div
                 key="mobile-search"
                 initial={{
                   opacity: 0,
-                  y: -6,
+                  y: -4,
                 }}
                 animate={{
                   opacity: 1,
@@ -110,14 +78,14 @@ export default function CommunityHeader({
                 }}
                 exit={{
                   opacity: 0,
-                  y: -6,
+                  y: -4,
                 }}
                 transition={{
                   duration: 0.18,
                 }}
                 className="
                   flex
-                  h-16
+                  h-14
                   items-center
                   gap-2
                   md:hidden
@@ -128,91 +96,79 @@ export default function CommunityHeader({
                   size="icon"
                   variant="ghost"
                   aria-label="Close search"
-                  onClick={() =>
-                    setSearchMode(false)
-                  }
+                  onClick={() => setSearchMode(false)}
                   className="
+                    size-9
                     shrink-0
                     rounded-full
                   "
                 >
-                  <ArrowLeft
-                    className="size-5"
-                    aria-hidden="true"
-                  />
+                  <ArrowLeft className="size-5" />
                 </Button>
 
-                <CommunitySearch
-                  value={search}
-                  onChange={onSearch}
-                  autoFocus
-                />
+                <div className="min-w-0 flex-1">
+                  <CommunitySearch
+                    value={search}
+                    onChange={onSearch}
+                    autoFocus
+                  />
+                </div>
               </motion.div>
             ) : (
               /* MAIN HEADER */
-
               <motion.div
                 key="header"
-                initial={{
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="
                   flex
-                  h-16
+                  h-14
                   items-center
                   justify-between
-                  gap-3
+                  gap-2
                 "
               >
                 {/* BRAND */}
 
                 <div
                   className="
-                    flex
                     min-w-0
-                    shrink-0
-                    items-center
-                    px-6
+                    flex-1
                   "
                 >
-
                   <h1
                     className="
                       truncate
-                      text-l
-                      font-semibold
+                      text-s
+                      font-bold
                       tracking-tight
                       text-foreground
                       sm:text-base
                     "
                   >
-                    Football Community
+                    2XFOOTBALL Community
                   </h1>
                 </div>
 
                 {/* DESKTOP SEARCH */}
 
-                <div
-                  className="
-                    hidden
-                    min-w-0
-                    max-w-xl
-                    flex-1
-                    px-4
-                    md:block
-                  "
-                >
-                  <CommunitySearch
-                    value={search}
-                    onChange={onSearch}
-                  />
-                </div>
+              <div
+                className="
+                  absolute
+                  left-1/2
+                  hidden
+                  w-full
+                  max-w-xl
+                  -translate-x-1/2
+                  md:block
+                "
+              >
+                <CommunitySearch
+                  value={search}
+                  onChange={onSearch}
+                />
+              </div>
 
                 {/* ACTIONS */}
 
@@ -232,47 +188,37 @@ export default function CommunityHeader({
                     variant="ghost"
                     aria-label="Search community"
                     className="
+                      size-9
                       rounded-full
                       md:hidden
                     "
-                    onClick={() =>
-                      setSearchMode(true)
-                    }
+                    onClick={() => setSearchMode(true)}
                   >
-                    <Search
-                      className="size-5"
-                      aria-hidden="true"
-                    />
+                    <Search className="size-5" />
                   </Button>
 
+                  {/* CREATE POST */}
+
                   <CommunityActions
-                    onDiscussion={
-                      onDiscussion
-                    }
-                    onMedia={
-                      onMedia
-                    }
+                    onDiscussion={onDiscussion}
+                    onMedia={onMedia}
                   />
 
-                  {/* MORE MENU */}
+                  {/* MORE */}
 
                   <DropdownMenu>
-                    <DropdownMenuTrigger
-                      asChild
-                    >
+                    <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
                         size="icon"
                         variant="ghost"
                         aria-label="More community options"
                         className="
+                          size-9
                           rounded-full
                         "
                       >
-                        <MoreVertical
-                          className="size-5"
-                          aria-hidden="true"
-                        />
+                        <MoreVertical className="size-5" />
                       </Button>
                     </DropdownMenuTrigger>
 
@@ -305,16 +251,11 @@ export default function CommunityHeader({
             )}
           </AnimatePresence>
         </div>
-
       </header>
-
-      {/* GUIDELINES DIALOG */}
 
       <CommunityGuidelinesDialog
         open={guidelinesOpen}
-        onOpenChange={
-          setGuidelinesOpen
-        }
+        onOpenChange={setGuidelinesOpen}
       />
     </>
   );

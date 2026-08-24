@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 
 import './globals.css';
 
+import Script from "next/script";
+
 import QueryProvider from '@/providers/query-provider';
 import { AuthProvider } from '@/providers/auth-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -27,18 +29,18 @@ export const metadata: Metadata = {
     canonical: SEO.url,
   },
 
-  applicationName: '1xpredicts',
+  applicationName: '2xpredict',
 
   authors: [
     {
-      name: '1xpredicts',
+      name: '2xpredict',
       url: SEO.url,
     },
   ],
 
-  creator: '1xpredicts',
+  creator: '2xpredict',
 
-  publisher: '1xpredicts',
+  publisher: '2xpredict',
 
   category: 'Sports',
 
@@ -89,7 +91,7 @@ export const metadata: Metadata = {
         url: SEO.image,
         width: 1200,
         height: 630,
-        alt: '1xpredicts',
+        alt: '2xpredict',
       },
     ],
   },
@@ -127,7 +129,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
 
-    title: '1xpredicts',
+    title: '2xpredict',
 
     statusBarStyle: 'black-translucent',
   },
@@ -166,26 +168,32 @@ export default function RootLayout({
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
-<body className={cn(
-  "min-h-screen overflow-x-hidden bg-background text-foreground transition-colors duration-300, "
-  )}
-  >
-        <QueryProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              {children}
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    className:
-                      'border border-border bg-card text-foreground',
-                  }}
-                />
-            </ThemeProvider>
-          </AuthProvider>
-        </QueryProvider>
-      </body>
+      <body className={cn(
+        "min-h-screen overflow-x-hidden bg-background text-foreground transition-colors duration-300, "
+        )}
+        >
+
+          <Script async 
+                  src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID}`}
+                  crossOrigin="anonymous"
+                  strategy="afterInteractive" 
+          />
+              <QueryProvider>
+                <AuthProvider>
+                  <ThemeProvider>
+                    {children}
+                      <Toaster
+                        position="top-right"
+                        toastOptions={{
+                          duration: 4000,
+                          className:
+                            'border border-border bg-card text-foreground',
+                        }}
+                      />
+                  </ThemeProvider>
+                </AuthProvider>
+              </QueryProvider>
+        </body>
     </html>
   );
 }

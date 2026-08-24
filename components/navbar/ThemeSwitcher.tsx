@@ -10,6 +10,7 @@ import {
   Sun,
   Monitor,
   Check,
+  Sparkles,
 } from 'lucide-react';
 
 import { useTheme } from 'next-themes';
@@ -32,66 +33,100 @@ export default function ThemeSwitcher() {
   const [mounted, setMounted] =
     useState(false);
 
-
   useEffect(() => {
     setMounted(true);
   }, []);
-
 
   if (!mounted) {
     return null;
   }
 
-
   const themes = [
     {
       name: 'Light',
+      description: 'Bright interface',
       value: 'light',
       icon: Sun,
+      tone: 'amber',
     },
     {
       name: 'Dark',
+      description: 'Easy on the eyes',
       value: 'dark',
       icon: Moon,
+      tone: 'blue',
     },
     {
       name: 'System',
+      description: 'Follow device settings',
       value: 'system',
       icon: Monitor,
+      tone: 'slate',
     },
-  ];
+  ] as const;
 
+  const activeTheme =
+    themes.find(
+      (item) => item.value === theme,
+    ) ?? themes[2];
 
-  const ActiveIcon =
-    theme === 'dark'
-      ? Moon
-      : theme === 'light'
-        ? Sun
-        : Monitor;
-
+  const ActiveIcon = activeTheme.icon;
 
   return (
     <DropdownMenu>
+      {/* =====================================================================
+          TRIGGER
+      ====================================================================== */}
 
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
+          aria-label="Change theme"
           className="
             group
+            relative
             h-10
             w-10
             rounded-xl
             border
-            border-border/50
-            bg-background/40
+            border-border
+            bg-card
             p-0
-            backdrop-blur-md
+            shadow-sm
             transition-all
             duration-300
+
             hover:border-primary/30
-            hover:bg-primary/10
+            hover:bg-secondary
+            hover:shadow-md
+
+            focus-visible:border-primary
+            focus-visible:ring-2
+            focus-visible:ring-primary/20
           "
         >
+          {/* Active indicator */}
+
+          <span
+            className="
+              absolute
+              bottom-0
+              left-1/2
+              h-0.5
+              w-5
+              -translate-x-1/2
+              rounded-full
+              bg-gold
+              opacity-60
+              transition-all
+              duration-300
+              group-hover:w-7
+              group-hover:opacity-100
+            "
+          />
+
+          {/* Icon container */}
+
           <span
             className="
               flex
@@ -102,146 +137,321 @@ export default function ThemeSwitcher() {
               rounded-lg
               bg-primary/10
               text-primary
-              transition-transform
+              transition-all
               duration-300
-              group-hover:scale-110
+              group-hover:scale-105
+              group-hover:bg-primary/15
             "
           >
             <ActiveIcon
               className="
                 h-4
                 w-4
+                transition-transform
+                duration-300
+                group-hover:rotate-6
               "
             />
           </span>
         </Button>
       </DropdownMenuTrigger>
 
+      {/* =====================================================================
+          DROPDOWN
+      ====================================================================== */}
 
       <DropdownMenuContent
-        align="start"
-        sideOffset={8}
+        align="end"
+        sideOffset={10}
         className="
-          w-56
+          w-[250px]
+          overflow-hidden
           rounded-2xl
           border
-          border-border/50
-          bg-background/90
+          border-border
+          bg-popover
           p-2
-          shadow-lg
-          backdrop-blur-xl
+          text-popover-foreground
+          shadow-2xl
+          shadow-black/10
+          dark:shadow-black/40
         "
       >
+        {/* -------------------------------------------------------------------
+            HEADER
+        -------------------------------------------------------------------- */}
 
         <div
           className="
-            mb-2
-            h-px
-            w-full
-            bg-gradient-to-r
-            from-indigo-500/30
-            via-sky-500/30
-            to-emerald-500/30
+            relative
+            mb-1
+            overflow-hidden
+            rounded-xl
+            border
+            border-border
+            bg-secondary/60
+            px-3
+            py-3
           "
-        />
+        >
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -right-8
+              -top-8
+              h-20
+              w-20
+              rounded-full
+              bg-primary/10
+              blur-2xl
+            "
+          />
 
+          <div
+            className="
+              pointer-events-none
+              absolute
+              bottom-0
+              left-0
+              h-px
+              w-20
+              bg-gradient-to-r
+              from-gold
+              to-transparent
+            "
+          />
 
-        {themes.map((item) => {
-
-          const Icon = item.icon;
-
-          const active =
-            theme === item.value;
-
-
-          return (
-            <DropdownMenuItem
-              key={item.value}
-              onClick={() =>
-                setTheme(item.value)
-              }
+          <div
+            className="
+              relative
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <span
               className="
                 flex
-                cursor-pointer
+                h-9
+                w-9
+                shrink-0
                 items-center
-                justify-between
-                rounded-xl
-                px-3
-                py-2.5
-                transition-all
-                duration-200
-                hover:bg-muted
+                justify-center
+                rounded-lg
+                border
+                border-primary/15
+                bg-primary/10
+                text-primary
               "
             >
+              <Sparkles className="h-4 w-4" />
+            </span>
 
-              <div
+            <div className="min-w-0">
+              <p
                 className="
-                  flex
-                  items-center
-                  gap-3
+                  text-s
+                  font-bold
+                  text-foreground
                 "
               >
+                Appearance
+              </p>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[11px]
+                  text-muted-foreground
+                "
+              >
+                Choose your preferred theme
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* -------------------------------------------------------------------
+            OPTIONS
+        -------------------------------------------------------------------- */}
+
+        <div className="space-y-1">
+          {themes.map((item) => {
+            const Icon = item.icon;
+
+            const active =
+              theme === item.value;
+
+            return (
+              <DropdownMenuItem
+                key={item.value}
+                onClick={() =>
+                  setTheme(item.value)
+                }
+                className={`
+                  group
+                  cursor-pointer
+                  rounded-xl
+                  border
+                  p-2
+                  outline-none
+                  transition-all
+                  duration-200
+
+                  ${
+                    active
+                      ? `
+                        border-primary/20
+                        bg-primary/10
+                        text-foreground
+                      `
+                      : `
+                        border-transparent
+                        text-foreground
+                        hover:border-border
+                        hover:bg-secondary
+                        focus:bg-secondary
+                        data-[highlighted]:bg-secondary
+                        data-[highlighted]:text-foreground
+                      `
+                  }
+                `}
+              >
+                {/* Icon */}
 
                 <span
                   className={`
                     flex
-                    h-8
-                    w-8
+                    h-9
+                    w-9
+                    shrink-0
                     items-center
                     justify-center
-                    rounded-xl
+                    rounded-lg
+                    border
+                    transition-all
+                    duration-200
 
                     ${
                       active
                         ? `
+                          border-primary/20
                           bg-primary/10
                           text-primary
                         `
                         : `
-                          bg-muted
+                          border-border
+                          bg-secondary
                           text-muted-foreground
+                          group-hover:text-foreground
                         `
                     }
                   `}
                 >
-                  <Icon
-                    className="
-                      h-4
-                      w-4
-                    "
-                  />
+                  <Icon className="h-4 w-4" />
                 </span>
 
+                {/* Text */}
 
-                <span
+                <div
                   className="
-                    text-sm
-                    font-medium
+                    ml-3
+                    min-w-0
+                    flex-1
                   "
                 >
-                  {item.name}
-                </span>
+                  <span
+                    className="
+                      block
+                      text-s
+                      font-semibold
+                      text-foreground
+                    "
+                  >
+                    {item.name}
+                  </span>
 
-              </div>
+                  <span
+                    className="
+                      mt-0.5
+                      block
+                      text-[11px]
+                      text-muted-foreground
+                    "
+                  >
+                    {item.description}
+                  </span>
+                </div>
 
+                {/* Active check */}
 
-              {active && (
-                <Check
-                  className="
-                    h-4
-                    w-4
-                    text-primary
-                  "
-                />
-              )}
+                {active && (
+                  <span
+                    className="
+                      ml-2
+                      flex
+                      h-6
+                      w-6
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-primary
+                      text-primary-foreground
+                    "
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </DropdownMenuItem>
+            );
+          })}
+        </div>
 
-            </DropdownMenuItem>
-          );
+        {/* -------------------------------------------------------------------
+            CURRENT THEME
+        -------------------------------------------------------------------- */}
 
-        })}
+        <div
+          className="
+            mt-2
+            flex
+            items-center
+            justify-between
+            border-t
+            border-border
+            px-2
+            pt-2
+          "
+        >
+          <span
+            className="
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-[0.16em]
+              text-muted-foreground
+            "
+          >
+            Current
+          </span>
 
+          <span
+            className="
+              rounded-md
+              bg-secondary
+              px-2
+              py-1
+              text-[10px]
+              font-semibold
+              text-foreground
+            "
+          >
+            {activeTheme.name}
+          </span>
+        </div>
       </DropdownMenuContent>
-
     </DropdownMenu>
   );
 }

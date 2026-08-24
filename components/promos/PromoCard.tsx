@@ -294,7 +294,7 @@ export default function UserPromosPage() {
                       <div className="space-y-2">
 
 
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-s">
 
 
                           <span>
@@ -335,7 +335,7 @@ export default function UserPromosPage() {
 
 
 
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-s text-muted-foreground">
 
 
                           {
@@ -368,7 +368,7 @@ export default function UserPromosPage() {
                   {
                     promo.completed && (
 
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-s">
 
 
                         <CheckCircle className="h-4 w-4"/>
@@ -458,7 +458,7 @@ function InfoCard({
     <div className="rounded-lg border p-4">
 
 
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-s text-muted-foreground">
 
 
         {icon}

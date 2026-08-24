@@ -2,181 +2,726 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* =============================================================================
+   2X PREDICT
+   PREMIUM SPORTS / FOOTBALL PREDICTION DESIGN SYSTEM
+
+   Brand Palette
+   ─────────────────────────────────────────────────────────────────────────────
+   Midnight Navy    #061A3A
+   Deep Navy        #0A2450
+   Royal Blue       #0757D5
+   Electric Blue    #168BFF
+   Sky Blue         #4DB5FF
+   Champagne Gold   #F2B84B
+   Bright Gold      #FFC928
+   Dark Gold        #B98216
+
+   Architecture
+   ─────────────────────────────────────────────────────────────────────────────
+   • Tailwind CSS v4
+   • shadcn/ui compatible
+   • next-themes compatible
+   • Fully light/dark theme aware
+   • Existing project utility classes preserved
+   • Semantic design tokens
+   • Responsive by default through Tailwind
+   ============================================================================= */
+
 
 /* =============================================================================
-   THEME CONFIGURATION
-============================================================================= */
+   DARK VARIANT
+   ============================================================================= */
+
 @custom-variant dark (&:is(.dark *));
+
+
+/* =============================================================================
+   TAILWIND THEME MAPPING
+   ============================================================================= */
+
 @theme inline {
-  --color-background:
-    var(--background);
-  --color-foreground:
-    var(--foreground);
-  --color-card:
-    var(--card);
-  --color-card-foreground:
-    var(--card-foreground);
-  --color-popover:
-    var(--popover);
-  --color-popover-foreground:
-    var(--popover-foreground);
-  --color-primary:
-    var(--primary);
-  --color-primary-foreground:
-    var(--primary-foreground);
-  --color-secondary:
-    var(--secondary);
-  --color-secondary-foreground:
-    var(--secondary-foreground);
-  --color-muted:
-    var(--muted);
-  --color-muted-foreground:
-    var(--muted-foreground);
-  --color-accent:
-    var(--accent);
-  --color-accent-foreground:
-    var(--accent-foreground);
-  --color-destructive:
-    var(--destructive);
-  --color-border:
-    var(--border);
-  --color-input:
-    var(--input);
-  --color-ring:
-    var(--ring);
-  --radius-sm:
-    calc(var(--radius) * .6);
-  --radius-md:
-    calc(var(--radius) * .8);
-  --radius-lg:
-    var(--radius);
-  --radius-xl:
-    calc(var(--radius) * 1.35);
+
+  /* ---------------------------------------------------------------------------
+     Core
+     --------------------------------------------------------------------------- */
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+
+  /* ---------------------------------------------------------------------------
+     Primary
+     --------------------------------------------------------------------------- */
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+
+  /* ---------------------------------------------------------------------------
+     Accent / Muted
+     --------------------------------------------------------------------------- */
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+
+  /* ---------------------------------------------------------------------------
+     Status
+     --------------------------------------------------------------------------- */
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+
+  /* ---------------------------------------------------------------------------
+     Borders / Forms
+     --------------------------------------------------------------------------- */
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+
+  /* ---------------------------------------------------------------------------
+     Brand
+     --------------------------------------------------------------------------- */
+
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-midnight: var(--brand-midnight);
+
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-electric: var(--brand-electric);
+  --color-brand-sky: var(--brand-sky);
+
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-bright: var(--brand-gold-bright);
+  --color-brand-gold-dark: var(--brand-gold-dark);
+
+
+  /* ---------------------------------------------------------------------------
+     Premium
+     --------------------------------------------------------------------------- */
+
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+
+
+  /* ---------------------------------------------------------------------------
+     Sidebar
+     --------------------------------------------------------------------------- */
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+
+  /* ---------------------------------------------------------------------------
+     Charts
+     --------------------------------------------------------------------------- */
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+
+  /* ---------------------------------------------------------------------------
+     Radius
+     --------------------------------------------------------------------------- */
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.35);
+  --radius-2xl: calc(var(--radius) * 1.75);
 }
+
 
 /* =============================================================================
    LIGHT THEME
-============================================================================= */
+   CLASSIC / HERITAGE / PREMIUM SPORTS
+   ============================================================================= */
+
 :root {
-  color-scheme:
-    light;
-  --background:
-    oklch(.985 .008 240);
-  --foreground:
-    oklch(.15 .02 250);
-  --card:
-    oklch(1 0 0);
-  --card-foreground:
-    var(--foreground);
-  --popover:
-    oklch(1 0 0);
-  --popover-foreground:
-    var(--foreground);
-  /*
-    Football platform identity
-    Primary:
-    Premium emerald energy
-    Accent:
-    Cyber blue intelligence
-  */
-  --primary:
-    oklch(.72 .18 160);
-  --primary-foreground:
-    oklch(.98 0 0);
-  --accent:
-    oklch(.68 .16 250);
-  --accent-foreground:
-    oklch(.98 0 0);
-  --secondary:
-    oklch(.95 .01 240);
-  --secondary-foreground:
-    oklch(.22 .02 250);
-  --muted:
-    oklch(.94 .01 240);
-  --muted-foreground:
-    oklch(.48 .02 250);
-  --destructive:
-    oklch(.63 .22 28);
-  --border:
-    oklch(.90 .01 240);
-  --input:
-    oklch(.90 .01 240);
-  --ring:
-    var(--primary);
-  --radius:
-    .9rem;
+  color-scheme: light;
+
+  /* ===========================================================================
+     BRAND
+     =========================================================================== */
+
+  --brand-navy: #071426;
+  --brand-midnight: #0b1f35;
+
+  /* Blue is now an accent, not the dominant identity */
+  --brand-blue: #1759a6;
+  --brand-electric: #2878c8;
+  --brand-sky: #6fa8d8;
+
+  /* Premium */
+  --brand-gold: #d6a84f;
+  --brand-gold-bright: #f0c75e;
+  --brand-gold-dark: #9a6f25;
+
+  /* Heritage accents */
+  --brand-bronze: #a86f3d;
+  --brand-oxblood: #6f2634;
+
+
+  /* ===========================================================================
+     PAGE
+     =========================================================================== */
+
+  --background: #f7f6f2;
+  --foreground: #18212b;
+
+
+  /* ===========================================================================
+     CARDS
+     =========================================================================== */
+
+  --card: #ffffff;
+  --card-foreground: #18212b;
+
+
+  /* ===========================================================================
+     POPOVERS
+     =========================================================================== */
+
+  --popover: #ffffff;
+  --popover-foreground: #18212b;
+
+
+  /* ===========================================================================
+     PRIMARY
+     =========================================================================== */
+
+  --primary: #1759a6;
+  --primary-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     SECONDARY
+     =========================================================================== */
+
+  --secondary: #eeece6;
+  --secondary-foreground: #252b32;
+
+
+  /* ===========================================================================
+     MUTED
+     =========================================================================== */
+
+  --muted: #eceae4;
+  --muted-foreground: #68717c;
+
+
+  /* ===========================================================================
+     ACCENT
+     =========================================================================== */
+
+  --accent: #d6a84f;
+  --accent-foreground: #1b1710;
+
+
+  /* ===========================================================================
+     DESTRUCTIVE
+     =========================================================================== */
+
+  --destructive: #a63d48;
+  --destructive-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     SUCCESS
+     =========================================================================== */
+
+  --success: #287a58;
+  --success-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     WARNING
+     =========================================================================== */
+
+  --warning: #b7791f;
+  --warning-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     INFO
+     =========================================================================== */
+
+  --info: #2878c8;
+  --info-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     BORDERS
+     =========================================================================== */
+
+  --border: #ddd9d0;
+  --input: #d4d0c7;
+  --ring: #1759a6;
+
+
+  /* ===========================================================================
+     SURFACES
+     =========================================================================== */
+
+  --surface: #ffffff;
+  --surface-secondary: #f0eee9;
+
+  --surface-hover: #f3f1eb;
+  --surface-active: #e9e5dc;
+
+
+  /* ===========================================================================
+     TEXT
+     =========================================================================== */
+
+  --text-primary: #18212b;
+  --text-secondary: #46505a;
+  --text-muted: #737b84;
+  --text-disabled: #a7adb3;
+  --text-inverse: #ffffff;
+
+
+  /* ===========================================================================
+     PREMIUM
+     =========================================================================== */
+
+  --gold: #d6a84f;
+  --gold-foreground: #1b1710;
+
+  --bronze: #a86f3d;
+  --bronze-foreground: #ffffff;
+
+  --oxblood: #6f2634;
+  --oxblood-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     NAVIGATION
+     =========================================================================== */
+
+  --navbar-background: #ffffff;
+  --navbar-foreground: #46505a;
+
+  --navbar-active: #18212b;
+  --navbar-hover: #1759a6;
+
+  --navbar-border: #ddd9d0;
+
+
+  /* ===========================================================================
+     SIDEBAR
+     =========================================================================== */
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #46505a;
+
+  --sidebar-primary: #1759a6;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #eeece6;
+  --sidebar-accent-foreground: #18212b;
+
+  --sidebar-border: #ddd9d0;
+  --sidebar-ring: #1759a6;
+
+
+  /* ===========================================================================
+     TABLES
+     =========================================================================== */
+
+  --table-background: #ffffff;
+  --table-header: #f0eee9;
+
+  --table-row-hover: #f5f3ee;
+
+  --table-border: #ddd9d0;
+
+
+  /* ===========================================================================
+     MODALS / OVERLAYS
+     =========================================================================== */
+
+  --overlay: rgb(7 20 38 / 58%);
+
+  --modal-background: #ffffff;
+  --modal-border: #ddd9d0;
+
+
+  /* ===========================================================================
+     SCROLLBAR
+     =========================================================================== */
+
+  --scrollbar-track: #eeece6;
+  --scrollbar-thumb: #c5c0b6;
+  --scrollbar-thumb-hover: #1759a6;
+
+
+  /* ===========================================================================
+     CHARTS
+     =========================================================================== */
+
+  --chart-1: #1759a6;
+  --chart-2: #d6a84f;
+  --chart-3: #a86f3d;
+  --chart-4: #6f2634;
+  --chart-5: #287a58;
+
+
+  /* ===========================================================================
+     RADIUS
+     =========================================================================== */
+
+  --radius: 0.8rem;
+
+
+  /* ===========================================================================
+     SHADOWS
+     =========================================================================== */
+
+  --shadow-sm:
+    0 2px 8px rgb(24 33 43 / 7%);
+
+  --shadow-md:
+    0 8px 24px rgb(24 33 43 / 10%);
+
+  --shadow-lg:
+    0 16px 40px rgb(24 33 43 / 15%);
+
+
+  /* ===========================================================================
+     TRANSITIONS
+     =========================================================================== */
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
 }
+
 
 /* =============================================================================
    DARK THEME
-============================================================================= */
+   CLASSIC / HERITAGE / PREMIUM SPORTS
+   ============================================================================= */
+
 .dark {
-  color-scheme:
-    dark;
-  --background:
-    oklch(.12 .02 250);
-  --foreground:
-    oklch(.96 .01 240);
-  --card:
-    oklch(.17 .025 250);
-  --card-foreground:
-    var(--foreground);
-  --popover:
-    var(--card);
-  --popover-foreground:
-    var(--foreground);
-  --primary:
-    oklch(.78 .20 160);
-  --primary-foreground:
-    oklch(.12 .02 250);
-  --accent:
-    oklch(.72 .18 250);
-  --accent-foreground:
-    oklch(.12 .02 250);
-  --secondary:
-    oklch(.22 .02 250);
-  --secondary-foreground:
-    var(--foreground);
-  --muted:
-    oklch(.22 .02 250);
-  --muted-foreground:
-    oklch(.68 .02 240);
-  --destructive:
-    oklch(.66 .22 28);
-  --border:
-    oklch(1 0 0 / 10%);
-  --input:
-    oklch(1 0 0 / 12%);
-  --ring:
-    var(--primary);
+  color-scheme: dark;
+
+
+  /* ===========================================================================
+     PAGE
+     =========================================================================== */
+
+  --background: #070b10;
+  --foreground: #f7f4ec;
+
+
+  /* ===========================================================================
+     CARDS
+     =========================================================================== */
+
+  --card: #0d141c;
+  --card-foreground: #f7f4ec;
+
+
+  /* ===========================================================================
+     POPOVERS
+     =========================================================================== */
+
+  --popover: #101820;
+  --popover-foreground: #f7f4ec;
+
+
+  /* ===========================================================================
+     PRIMARY
+     =========================================================================== */
+
+  --primary: #2878c8;
+  --primary-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     SECONDARY
+     =========================================================================== */
+
+  --secondary: #30424f;
+  --secondary-foreground: #e9e5dc;
+
+
+  /* ===========================================================================
+     MUTED
+     =========================================================================== */
+
+  --muted: #171d24;
+  --muted-foreground: #a7adb5;
+
+
+  /* ===========================================================================
+     ACCENT
+     =========================================================================== */
+
+  --accent: #d6a84f;
+  --accent-foreground: #17120a;
+
+
+  /* ===========================================================================
+     DESTRUCTIVE
+     =========================================================================== */
+
+  --destructive: #b74753;
+  --destructive-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     SUCCESS
+     =========================================================================== */
+
+  --success: #36966c;
+  --success-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     WARNING
+     =========================================================================== */
+
+  --warning: #c28a2c;
+  --warning-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     INFO
+     =========================================================================== */
+
+  --info: #6fa8d8;
+  --info-foreground: #071426;
+
+
+  /* ===========================================================================
+     BORDERS
+     =========================================================================== */
+
+  --border: rgb(214 168 79 / 14%);
+  --input: rgb(220 214 202 / 16%);
+
+  --ring: #d6a84f;
+
+
+  /* ===========================================================================
+     SURFACES
+     =========================================================================== */
+
+  --surface: #0d141c;
+  --surface-secondary: #111820;
+
+  --surface-hover: #18212a;
+  --surface-active: #202a34;
+
+
+  /* ===========================================================================
+     TEXT
+     =========================================================================== */
+
+  --text-primary: #f7f4ec;
+  --text-secondary: #d2d0cb;
+  --text-muted: #969da5;
+  --text-disabled: #5f6770;
+  --text-inverse: #071426;
+
+
+  /* ===========================================================================
+     PREMIUM
+     =========================================================================== */
+
+  --gold: #d6a84f;
+  --gold-foreground: #17120a;
+
+  --bronze: #c08a52;
+  --bronze-foreground: #ffffff;
+
+  --oxblood: #8c3545;
+  --oxblood-foreground: #ffffff;
+
+
+  /* ===========================================================================
+     NAVIGATION
+     =========================================================================== */
+
+  --navbar-background: #080d13;
+  --navbar-foreground: #c8c9c9;
+
+  --navbar-active: #f7f4ec;
+  --navbar-hover: #d6a84f;
+
+  --navbar-border: rgb(214 168 79 / 12%);
+
+
+  /* ===========================================================================
+     SIDEBAR
+     =========================================================================== */
+
+  --sidebar: #080d13;
+  --sidebar-foreground: #c8c9c9;
+
+  --sidebar-primary: #2878c8;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #151b22;
+  --sidebar-accent-foreground: #f7f4ec;
+
+  --sidebar-border: rgb(214 168 79 / 12%);
+  --sidebar-ring: #d6a84f;
+
+
+  /* ===========================================================================
+     TABLES
+     =========================================================================== */
+
+  --table-background: #0d141c;
+  --table-header: #151b22;
+
+  --table-row-hover: #18212a;
+
+  --table-border: rgb(220 214 202 / 12%);
+
+
+  /* ===========================================================================
+     MODALS / OVERLAYS
+     =========================================================================== */
+
+  --overlay: rgb(0 0 0 / 78%);
+
+  --modal-background: #101820;
+  --modal-border: rgb(214 168 79 / 16%);
+
+
+  /* ===========================================================================
+     SCROLLBAR
+     =========================================================================== */
+
+  --scrollbar-track: #10161d;
+  --scrollbar-thumb: #4b535c;
+  --scrollbar-thumb-hover: #d6a84f;
+
+
+  /* ===========================================================================
+     CHARTS
+     =========================================================================== */
+
+  --chart-1: #2878c8;
+  --chart-2: #d6a84f;
+  --chart-3: #c08a52;
+  --chart-4: #8c3545;
+  --chart-5: #36966c;
+
+
+  /* ===========================================================================
+     SHADOWS
+     =========================================================================== */
+
+  --shadow-sm:
+    0 2px 8px rgb(0 0 0 / 28%);
+
+  --shadow-md:
+    0 8px 24px rgb(0 0 0 / 38%);
+
+  --shadow-lg:
+    0 16px 40px rgb(0 0 0 / 48%);
 }
 
 /* =============================================================================
    GLOBAL FOUNDATION
-============================================================================= */
+   ============================================================================= */
+
 @layer base {
+
   *,
   *::before,
   *::after {
+    box-sizing: border-box;
+
     @apply border-border;
-    box-sizing:border-box;
   }
 
-  html {
-    scroll-behavior:smooth;
-    text-rendering:
-      optimizeLegibility;
-    -webkit-font-smoothing:
-      antialiased;
-  }
+
+  /* ---------------------------------------------------------------------------
+     HTML
+     --------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+
+  text-rendering: optimizeLegibility;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+  /* ---------------------------------------------------------------------------
+     BODY
+     --------------------------------------------------------------------------- */
 
   body {
-    @apply
-      bg-background
-      text-foreground;
-    min-height:
-      100vh;
+    @apply bg-background text-foreground;
+
+    min-height: 100vh;
+
+    margin: 0;
+    padding: 0;
+
+    font-family:
+      Arial,
+      Helvetica,
+      sans-serif;
+
+    overflow-x: hidden;
+
+    transition:
+      background-color var(--transition-normal),
+      color var(--transition-normal);
   }
+
+
+  /* ---------------------------------------------------------------------------
+     TYPOGRAPHY
+     --------------------------------------------------------------------------- */
 
   h1,
   h2,
@@ -184,102 +729,394 @@
   h4,
   h5,
   h6 {
-    font-weight:
-      700;
-    letter-spacing:
-      -.03em;
-    line-height:
-      1.15;
-    text-wrap:
-      balance;
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-weight: 700;
+
+    letter-spacing: -0.025em;
+
+    line-height: 1.15;
+
+    text-wrap: balance;
   }
+
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+
+  h2 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  h3 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+
 
   p {
-    line-height:
-      1.7;
+    margin: 0;
+
+    color: var(--text-secondary);
+
+    line-height: 1.7;
   }
 
-  img,
-  svg,
-  video {
-    display:block;
-    max-width:100%;
+
+  strong {
+    color: var(--text-primary);
   }
+
+
+  small {
+    color: var(--text-muted);
+  }
+
+
+  /* ---------------------------------------------------------------------------
+     MEDIA
+     --------------------------------------------------------------------------- */
+
+  img,
+  picture,
+  svg,
+  video,
+  canvas {
+    display: block;
+
+    max-width: 100%;
+  }
+
+
+  /* ---------------------------------------------------------------------------
+     FORM ELEMENTS
+     --------------------------------------------------------------------------- */
 
   button,
   input,
   textarea,
   select {
-    font:inherit;
+    font: inherit;
   }
 
-  button:not(:disabled){
-    cursor:pointer;
+
+  button:not(:disabled) {
+    cursor: pointer;
   }
+
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+
+  /* ---------------------------------------------------------------------------
+     LINKS
+     --------------------------------------------------------------------------- */
+
+  a {
+    color: var(--primary);
+
+    text-decoration: none;
+
+    transition:
+      color var(--transition-fast);
+  }
+
+  a:hover {
+    color: var(--brand-electric);
+  }
+
+
+  /* ---------------------------------------------------------------------------
+     SELECTION
+     --------------------------------------------------------------------------- */
 
   ::selection {
-    background:
-      color-mix(
-        in oklab,
-        var(--primary) 30%,
-        transparent
-      );
+    background: var(--brand-blue);
 
-    color:
-      var(--foreground);
+    color: #ffffff;
   }
+
+
+  /* ---------------------------------------------------------------------------
+     FOCUS
+     --------------------------------------------------------------------------- */
 
   :focus-visible {
-    outline:
-      2px solid var(--ring);
-    outline-offset:
-      3px;
+    outline: 2px solid var(--ring);
+
+    outline-offset: 3px;
   }
 }
+
+
+/* =============================================================================
+   PREMIUM PAGE BACKGROUND
+   ============================================================================= */
+
+.bg-premium {
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgb(22 139 255 / 8%),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgb(242 184 75 / 7%),
+      transparent 28%
+    ),
+    var(--background);
+}
+
+.dark .bg-premium {
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      rgb(7 87 213 / 24%),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      rgb(22 139 255 / 12%),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgb(242 184 75 / 6%),
+      transparent 35%
+    ),
+    var(--background);
+}
+
+
+/* =============================================================================
+   HERO
+   ============================================================================= */
+
+.hero-gradient {
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgb(22 139 255 / 25%),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgb(242 184 75 / 10%),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #061a3a 0%,
+      #0a2450 50%,
+      #12366d 100%
+    );
+}
+
+
+/* =============================================================================
+   BRAND GRADIENT
+   ============================================================================= */
+
+.brand-gradient {
+  background:
+    linear-gradient(
+      135deg,
+      #061a3a 0%,
+      #0757d5 65%,
+      #168bff 100%
+    );
+}
+
+
+/* =============================================================================
+   LUXURY GRADIENT
+   ============================================================================= */
+
+.luxury-gradient {
+  background:
+    linear-gradient(
+      135deg,
+      #0757d5 0%,
+      #168bff 55%,
+      #f2b84b 100%
+    );
+}
+
+
+/* =============================================================================
+   CYAN ACCENT
+   ----------------------------------------------------------------------------- 
+   Preserved for existing project usage.
+   Use sparingly for live indicators, statistics and special active states.
+   ============================================================================= */
+
+.cyan-accent {
+  color: #4db5ff;
+}
+
+.cyan-glow {
+  box-shadow:
+    0 0 20px rgb(77 181 255 / 18%);
+}
+
+
+/* =============================================================================
+   PREMIUM CARD
+   ============================================================================= */
+
+.premium-card {
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #f5f8fc 100%
+    );
+
+  border: 1px solid #dce6f2;
+
+  box-shadow:
+    0 10px 30px rgb(6 26 58 / 6%),
+    0 2px 8px rgb(6 26 58 / 4%);
+
+  border-radius: var(--radius-lg);
+}
+
+.dark .premium-card {
+  background:
+    linear-gradient(
+      145deg,
+      #0d2b59 0%,
+      #081f43 100%
+    );
+
+  border-color: rgb(77 181 255 / 14%);
+
+  box-shadow:
+    0 18px 45px rgb(0 0 0 / 28%);
+}
+
+
+/* =============================================================================
+   GLASS
+   ============================================================================= */
+
+.glass {
+  background: rgb(255 255 255 / 78%);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border: 1px solid rgb(6 26 58 / 8%);
+}
+
+.dark .glass {
+  background: rgb(6 26 58 / 72%);
+
+  border-color: rgb(148 163 184 / 12%);
+}
+
+
+/* =============================================================================
+   GRADIENT TEXT
+   ============================================================================= */
+
+.text-gradient {
+  background:
+    linear-gradient(
+      135deg,
+      #061a3a 0%,
+      #0757d5 60%,
+      #168bff 100%
+    );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent;
+}
+
+.dark .text-gradient {
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #dce8ff 45%,
+      #f2b84b 100%
+    );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent;
+}
+
+
+/* =============================================================================
+   LUXURY ACCENT
+   ============================================================================= */
+
+.luxury-accent {
+  color: var(--brand-gold);
+}
+
+.luxury-glow {
+  box-shadow:
+    0 0 24px rgb(242 184 75 / 14%);
+}
+
+
+/* =============================================================================
+   PREMIUM BORDER
+   ============================================================================= */
+
+.border-premium {
+  border-color: rgb(6 26 58 / 10%);
+}
+
+.dark .border-premium {
+  border-color: rgb(148 163 184 / 14%);
+}
+
 
 /* =============================================================================
    ACCESSIBILITY
-============================================================================= */
+   ============================================================================= */
+
 .sr-only {
-  position:absolute;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+
+  white-space: nowrap;
+
+  border: 0;
 }
 
 .no-scrollbar {
-  scrollbar-width:none;
+  scrollbar-width: none;
 }
 
 .no-scrollbar::-webkit-scrollbar {
-  display:none;
-}
-
-.font-display {
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow",
-    sans-serif;
-}
-
-/* =============================================================================
-   MOTION ACCESSIBILITY
-============================================================================= */
-@media(prefers-reduced-motion:reduce){
-  *,
-  *::before,
-  *::after {
-    animation-duration:.01ms!important;
-    transition-duration:.01ms!important;
-    scroll-behavior:auto!important;
-  }
+  display: none;
 }
 
 .scrollbar-hide {
   -ms-overflow-style: none;
+
   scrollbar-width: none;
 }
 
@@ -287,32 +1124,111 @@
   display: none;
 }
 
-@keyframes gradientMove {
 
+/* =============================================================================
+   FONTS
+   ============================================================================= */
+
+.font-display {
+  font-family:
+    Impact,
+    Haettenschweiler,
+    "Arial Narrow Bold",
+    "Arial Narrow",
+    sans-serif;
+}
+
+.font-bebas {
+  font-family:
+    var(--font-bebas),
+    sans-serif;
+}
+
+
+/* =============================================================================
+   SCROLLBAR
+   ============================================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+* {
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--scrollbar-thumb)
+    var(--scrollbar-track);
+}
+
+
+/* =============================================================================
+   MOTION ACCESSIBILITY
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* =============================================================================
+   GRADIENT ANIMATION
+   ============================================================================= */
+
+@keyframes gradientMove {
   0% {
-    background-position:0% 50%;
+    background-position: 0% 50%;
   }
 
   50% {
-    background-position:100% 50%;
+    background-position: 100% 50%;
   }
 
   100% {
-    background-position:0% 50%;
+    background-position: 0% 50%;
   }
-
 }
-
 
 .animate-gradient {
+  background-size: 200% 200%;
 
   animation:
-    gradientMove
-    6s
-    ease
-    infinite;
-
+    gradientMove 6s ease infinite;
 }
+
+
+/* =============================================================================
+   TICKER
+   ============================================================================= */
 
 @keyframes ticker {
   from {
@@ -325,9 +1241,36 @@
 }
 
 .animate-ticker {
-  animation: ticker 35s linear infinite;
+  animation:
+    ticker 35s linear infinite;
 }
 
-.font-bebas {
-  font-family: var(--font-bebas), sans-serif;
+@keyframes loader-message {
+  0% {
+    opacity: 0;
+    transform: translateY(-18px) scale(.96);
+    filter: blur(6px);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+}
+
+.animate-loader-message {
+  animation: loader-message 5s ease-in-out forwards;
 }

@@ -115,7 +115,7 @@ export default function LegalNotice({
           <div
             className="
               mt-2
-              text-sm
+              text-s
               leading-7
               text-muted-foreground
               sm:text-base

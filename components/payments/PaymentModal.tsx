@@ -528,7 +528,7 @@ useEffect(()=>{
 
             <p
               className="
-                text-sm
+                text-s
                 text-muted-foreground
               "
             >
@@ -562,7 +562,7 @@ useEffect(()=>{
         >
 
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-s text-muted-foreground">
 
             Amount
 
@@ -610,7 +610,7 @@ useEffect(()=>{
                 rounded-2xl
                 border
                 p-5
-                text-sm
+                text-s
               "
 
             >

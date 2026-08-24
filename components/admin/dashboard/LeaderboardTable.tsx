@@ -1,139 +1,119 @@
 'use client';
 
 import {
-
-Table,
-
-TableBody,
-
-TableCell,
-
-TableHead,
-
-TableHeader,
-
-TableRow,
-
-} from '@/components/ui/table';
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 import {
-Badge,
+  Badge,
 } from '@/components/ui/badge';
 
 import {
-AnalyticsLeaderboardUser,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+import {
+  AnalyticsLeaderboardUser,
 } from '@/types/analytics.types';
 
 interface Props {
-
-title: string;
-
-users: AnalyticsLeaderboardUser[];
-
-metric: keyof AnalyticsLeaderboardUser;
-
+  title: string;
+  users: AnalyticsLeaderboardUser[];
+  metric: keyof AnalyticsLeaderboardUser;
 }
 
 export default function LeaderboardTable({
-
-title,
-
-users,
-
-metric,
-
+  title,
+  users,
+  metric,
 }: Props) {
+  return (
+    <Card className="surface-card">
+      <CardHeader className="pb-1">
+        <CardTitle className="text-base">
+          {title}
+        </CardTitle>
+      </CardHeader>
 
-return (
+      <CardContent className="p-0 px-8">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">
+                  Rank
+                </TableHead>
 
-<div className="rounded-xl border overflow-hidden">
+                <TableHead>
+                  User
+                </TableHead>
 
-<div className="border-b px-6 py-4">
+                <TableHead>
+                  Email
+                </TableHead>
 
-<h3 className="font-semibold">
-{title}
-</h3>
+                <TableHead className="text-right">
+                  Value
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-</div>
+            <TableBody>
+              {users.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    No data available.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user, index) => (
+                  <TableRow key={user.userId}>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className="min-w-10 justify-center"
+                      >
+                        #{index + 1}
+                      </Badge>
+                    </TableCell>
 
-<Table>
+                    <TableCell>
+                      <div className="space-y-0.5">
+                        <p className="font-medium leading-none">
+                          {user.fullName}
+                        </p>
 
-<TableHeader>
+                        <p className="text-xs text-muted-foreground">
+                          @{user.username}
+                        </p>
+                      </div>
+                    </TableCell>
 
-<TableRow>
+                    <TableCell className="text-muted-foreground">
+                      {user.email}
+                    </TableCell>
 
-<TableHead>#</TableHead>
-
-<TableHead>User</TableHead>
-
-<TableHead>Email</TableHead>
-
-<TableHead className="text-right">
-Value
-</TableHead>
-
-</TableRow>
-
-</TableHeader>
-
-<TableBody>
-
-{users.map((user,index)=>(
-
-<TableRow key={user.userId}>
-
-<TableCell>
-
-<Badge>
-
-#{index+1}
-
-</Badge>
-
-</TableCell>
-
-<TableCell>
-
-<div>
-
-<p className="font-medium">
-
-{user.fullName}
-
-</p>
-
-<p className="text-xs text-muted-foreground">
-
-@{user.username}
-
-</p>
-
-</div>
-
-</TableCell>
-
-<TableCell>
-
-{user.email}
-
-</TableCell>
-
-<TableCell className="text-right font-semibold">
-
-{user[metric] ?? 0}
-
-</TableCell>
-
-</TableRow>
-
-))}
-
-</TableBody>
-
-</Table>
-
-</div>
-
-);
-
+                    <TableCell className="text-right font-semibold tabular-nums">
+                      {user[metric] ?? 0}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }

@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -12,13 +13,14 @@ import {
 
 import {
   ArrowRight,
+  ChevronDown,
   Loader2,
   RefreshCw,
-  Sparkles,
 } from 'lucide-react';
 
 import {
   getPredictions,
+  getPredictionAccess,
   PredictionDetails,
 } from '@/services/prediction.service';
 
@@ -27,288 +29,733 @@ import PredictionPreviewCard from './PredictionPreviewCard';
 import {
   useAuth,
 } from '@/providers/auth-provider';
+import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
+import { toast } from 'sonner';
 
 
-export default function PredictionsPreview() {
+// ============================================================
+// TYPES
+// ============================================================
+
+interface PredictionsPreviewProps {
+
+  search: string;
+
+  selectedDate: string;
+
+  goalFilter: string;
+
+  resultFilter:
+    | 'all'
+    | 'home'
+    | 'away'
+    | 'draw';
+
+}
 
 
-  const router = useRouter();
+// ============================================================
+// CONSTANTS
+// ============================================================
 
+const INITIAL_VISIBLE_COUNT = 10;
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
+export default function PredictionsPreview({
+
+  search,
+
+  selectedDate,
+
+  goalFilter,
+
+  resultFilter,
+
+}: PredictionsPreviewProps) {
+
+
+  // ==========================================================
+  // ROUTER
+  // ==========================================================
+
+  const router =
+    useRouter();
+
+
+  // ==========================================================
+  // AUTH
+  // ==========================================================
 
   const {
     user,
     loading: authLoading,
-  } = useAuth();
+  } =
+    useAuth();
 
 
+  // ==========================================================
+  // STATE
+  // ==========================================================
 
   const [
     predictions,
     setPredictions,
-  ] = useState<PredictionDetails[]>([]);
+  ] =
+    useState<PredictionDetails[]>([]);
 
 
   const [
     loading,
     setLoading,
-  ] = useState(true);
+  ] =
+    useState(true);
 
 
   const [
     error,
     setError,
-  ] = useState(false);
+  ] =
+    useState(false);
 
 
-
-  /*
-   * ========================================
-   * LOAD RANDOM PREDICTIONS
-   * ========================================
-   */
-
-
-  const loadPredictions = useCallback(
-    async () => {
-
-      try {
-
-        setLoading(true);
-
-        setError(false);
+  const [
+    expanded,
+    setExpanded,
+  ] =
+    useState(false);
 
 
-        const response =
-          await getPredictions();
+  const [
+    openingPredictionId,
+    setOpeningPredictionId,
+  ] =
+    useState<string | null>(null);
 
 
+  // ==========================================================
+  // LOAD ALL PREDICTIONS
+  // ==========================================================
 
-        /*
-         * Handle possible API response shapes
-         */
+  const loadPredictions =
+    useCallback(
+      async () => {
 
+        try {
 
-        let data: PredictionDetails[] = [];
+          setLoading(true);
 
-
-        if (
-          Array.isArray(response)
-        ) {
-
-          data = response;
-
-        } else if (
-          Array.isArray(
-            response?.data,
-          )
-        ) {
-
-          data =
-            response.data;
-
-        } else if (
-          Array.isArray(
-            response?.predictions,
-          )
-        ) {
-
-          data =
-            response.predictions;
-
-        }
+          setError(false);
 
 
-
-        /*
-         * Keep only valid predictions
-         */
+          const response =
+            await getPredictions();
 
 
-        const validPredictions =
-          data.filter(
-            (
-              prediction,
-            ) =>
-              Boolean(
-                prediction?.id ??
-                prediction?.matchId,
-              ),
+          // --------------------------------------------------
+          // NORMALIZE RESPONSE
+          // --------------------------------------------------
+
+          let data:
+            PredictionDetails[] = [];
+
+
+          if (
+            Array.isArray(response)
+          ) {
+
+            data =
+              response;
+
+          } else if (
+            Array.isArray(
+              response?.data,
+            )
+          ) {
+
+            data =
+              response.data;
+
+          } else if (
+            Array.isArray(
+              response?.predictions,
+            )
+          ) {
+
+            data =
+              response.predictions;
+
+          }
+
+
+          // --------------------------------------------------
+          // VALID PREDICTIONS
+          // --------------------------------------------------
+
+            const validPredictions =
+              data.filter(
+                prediction =>
+                  Boolean(
+                    prediction?._id,
+                  ),
+              );
+
+
+          // --------------------------------------------------
+          // REMOVE PAST PREDICTIONS
+          // --------------------------------------------------
+
+          const now =
+            Date.now();
+
+
+          const upcomingPredictions =
+            validPredictions
+              .filter(
+                prediction => {
+
+                  const dateValue =
+                    (typeof prediction.matchId === 'object' &&
+                    prediction.matchId !== null
+                      ? (prediction.matchId as { utcDate?: string }).utcDate
+                      : undefined) ??
+                    prediction.matchDate ??
+                    prediction.date;
+
+
+                  if (
+                    !dateValue
+                  ) {
+
+                    return false;
+
+                  }
+
+
+                  const timestamp =
+                    new Date(
+                      dateValue,
+                    ).getTime();
+
+
+                  if (
+                    Number.isNaN(timestamp)
+                  ) {
+
+                    return false;
+
+                  }
+
+
+                  return timestamp >= now;
+
+                },
+              )
+              .sort(
+                (
+                  first,
+                  second,
+                ) => {
+
+                  const firstDate =
+                    new Date(
+                      first.match?.utcDate ??
+                      first.matchDate ??
+                      first.date,
+                    ).getTime();
+
+
+                  const secondDate =
+                    new Date(
+                      second.match?.utcDate ??
+                      second.matchDate ??
+                      second.date,
+                    ).getTime();
+
+
+                  return (
+                    firstDate -
+                    secondDate
+                  );
+
+                },
+              );
+
+
+          setPredictions(
+            upcomingPredictions,
           );
 
 
+        } catch (err) {
 
-        /*
-         * Fisher-Yates shuffle
-         */
-
-
-        const shuffled = [
-          ...validPredictions,
-        ];
+          console.error(
+            'Failed to load predictions:',
+            err,
+          );
 
 
-        for (
-          let i =
-            shuffled.length - 1;
+          setError(true);
 
-          i > 0;
+          setPredictions([]);
 
-          i--
+
+        } finally {
+
+          setLoading(false);
+
+        }
+
+      },
+      [],
+    );
+
+
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
+
+  useEffect(
+    () => {
+
+      loadPredictions();
+
+    },
+    [
+      loadPredictions,
+    ],
+  );
+
+
+  // ==========================================================
+  // FILTER PREDICTIONS
+  // ==========================================================
+
+  const filteredPredictions =
+    useMemo(
+      () => {
+
+        const query =
+          search
+            .trim()
+            .toLowerCase();
+
+
+        return predictions.filter(
+          prediction => {
+
+            // ----------------------------------------------
+            // SEARCH
+            // ----------------------------------------------
+
+            if (query) {
+
+              const homeTeam =
+                prediction.homeTeam
+                  ?.toLowerCase() ?? '';
+
+
+              const awayTeam =
+                prediction.awayTeam
+                  ?.toLowerCase() ?? '';
+
+
+              const league =
+                prediction.league?.name
+                  ?.toLowerCase() ?? '';
+
+
+              const venue =
+                prediction.venue
+                  ?.toLowerCase() ?? '';
+
+
+              const found =
+                homeTeam.includes(query) ||
+                awayTeam.includes(query) ||
+                league.includes(query) ||
+                venue.includes(query);
+
+
+              if (!found) {
+
+                return false;
+
+              }
+
+            }
+
+
+            // ----------------------------------------------
+            // DATE
+            // ----------------------------------------------
+
+            if (selectedDate) {
+
+              const dateValue =
+                prediction.match?.utcDate ??
+                prediction.matchDate ??
+                prediction.date;
+
+
+              if (!dateValue) {
+
+                return false;
+
+              }
+
+
+              const predictionDate =
+                new Date(
+                  dateValue,
+                )
+                  .toISOString()
+                  .split('T')[0];
+
+
+              if (
+                predictionDate !==
+                selectedDate
+              ) {
+
+                return false;
+
+              }
+
+            }
+
+
+            // ----------------------------------------------
+            // GOALS
+            // ----------------------------------------------
+
+            if (goalFilter) {
+
+              const goals =
+                (prediction.homeScore ?? 0) +
+                (prediction.awayScore ?? 0);
+
+
+              if (
+                goals <
+                Number(goalFilter)
+              ) {
+
+                return false;
+
+              }
+
+            }
+
+
+            // ----------------------------------------------
+            // RESULT
+            // ----------------------------------------------
+
+            if (
+              resultFilter !== 'all'
+            ) {
+
+              const homeScore =
+                prediction.homeScore ?? 0;
+
+
+              const awayScore =
+                prediction.awayScore ?? 0;
+
+
+              if (
+                resultFilter === 'home' &&
+                homeScore <= awayScore
+              ) {
+
+                return false;
+
+              }
+
+
+              if (
+                resultFilter === 'away' &&
+                awayScore <= homeScore
+              ) {
+
+                return false;
+
+              }
+
+
+              if (
+                resultFilter === 'draw' &&
+                homeScore !== awayScore
+              ) {
+
+                return false;
+
+              }
+
+            }
+
+
+            return true;
+
+          },
+        );
+
+      },
+      [
+        predictions,
+        search,
+        selectedDate,
+        goalFilter,
+        resultFilter,
+      ],
+    );
+
+
+  // ==========================================================
+  // VISIBLE PREDICTIONS
+  // ==========================================================
+
+  const visiblePredictions =
+    useMemo(
+      () => {
+
+        if (
+          expanded
         ) {
 
-          const j =
-            Math.floor(
-              Math.random() *
-              (i + 1),
-            );
-
-
-          [
-            shuffled[i],
-            shuffled[j],
-          ] = [
-            shuffled[j],
-            shuffled[i],
-          ];
+          return filteredPredictions;
 
         }
 
 
-
-        /*
-         * Only show 4 random predictions
-         */
-
-
-        setPredictions(
-          shuffled.slice(
-            0,
-            4,
-          ),
+        return filteredPredictions.slice(
+          0,
+          INITIAL_VISIBLE_COUNT,
         );
 
-
-      } catch (err) {
-
-        console.error(
-          'Failed to load predictions:',
-          err,
-        );
-
-
-        setError(true);
-
-        setPredictions([]);
+      },
+      [
+        filteredPredictions,
+        expanded,
+      ],
+    );
 
 
-      } finally {
+  // ==========================================================
+  // FILTER CHANGE
+  // ==========================================================
+  //
+  // Whenever filtering changes, collapse the list back to
+  // the first 10 results.
+  //
+  // ==========================================================
 
-        setLoading(false);
+  useEffect(
+    () => {
 
-      }
+      setExpanded(false);
 
     },
-    [],
+    [
+      search,
+      selectedDate,
+      goalFilter,
+      resultFilter,
+    ],
   );
 
 
-
-  /*
-   * ========================================
-   * INITIAL LOAD
-   * ========================================
-   */
-
-
-  useEffect(() => {
-
-    const timer = window.setTimeout(() => {
-      loadPredictions();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-
-  }, [
-    loadPredictions,
-  ]);
-
-
-
-  /*
-   * ========================================
-   * VIEW ALL PREDICTIONS
-   * ========================================
-   */
-
+  // ==========================================================
+  // GO TO DASHBOARD
+  // ==========================================================
 
   const handleViewAll =
-    () => {
+    useCallback(
+      () => {
 
-      if (
-        authLoading
-      ) {
+        if (
+          authLoading
+        ) {
 
-        return;
+          return;
 
-      }
+        }
 
 
-      if (
-        user
-      ) {
+        if (
+          user
+        ) {
+
+          router.push(
+            '/dashboard/predictions',
+          );
+
+          return;
+
+        }
+
 
         router.push(
-          '/dashboard/predictions',
+          '/login?redirect=/dashboard/predictions',
         );
 
-        return;
-
-      }
-
-
-      router.push(
-        '/login?redirect=/dashboard/predictions',
-      );
-
-    };
+      },
+      [
+        authLoading,
+        user,
+        router,
+      ],
+    );
 
 
+  // ==========================================================
+  // OPEN PREDICTION
+  // ==========================================================
 
-  /*
-   * ========================================
-   * OPEN PREDICTION
-   * ========================================
-   */
-
-
-  const handlePredictionClick =
-    (
+const handlePredictionClick =
+  useCallback(
+    async (
       prediction: PredictionDetails,
     ) => {
 
       const predictionId =
-        prediction.id ??
-        prediction.matchId;
+        prediction._id;
 
 
-      if (
-        !predictionId
-      ) {
+      // ======================================================
+      // INVALID PREDICTION
+      // ======================================================
+
+      if (!predictionId) {
+
+        console.error(
+          'Prediction is missing its database ID:',
+          prediction,
+        );
+
+        toast.error(
+          'Unable to open prediction',
+          {
+            description:
+              'This prediction does not have a valid database ID.',
+          },
+        );
 
         return;
 
       }
 
 
-      router.push(
-        `/predictions/${predictionId}`,
-      );
+      // ======================================================
+      // AUTHENTICATION STILL LOADING
+      // ======================================================
 
-    };
+      if (authLoading) {
+
+        toast.info(
+          'Checking your account...',
+        );
+
+        return;
+
+      }
 
 
+      // ======================================================
+      // LOGIN REQUIRED
+      // ======================================================
+
+      const dashboardUrl =
+        `/dashboard/predictions?prediction=${encodeURIComponent(
+          predictionId,
+        )}`;
+
+
+      if (!user) {
+
+        router.push(
+          `/login?redirect=${encodeURIComponent(
+            dashboardUrl,
+          )}`,
+        );
+
+        return;
+
+      }
+
+
+      // ======================================================
+      // CHECK ACCESS
+      // ======================================================
+
+      try {
+
+        setOpeningPredictionId(
+          predictionId,
+        );
+
+
+        await getPredictionAccess(
+          predictionId,
+        );
+
+
+        // ====================================================
+        // SUCCESS
+        // Dashboard handles opening the modal.
+        // ====================================================
+
+        router.push(
+          dashboardUrl,
+        );
+
+
+      } catch (error: unknown) {
+
+        console.error(
+          'Unable to access prediction:',
+          error,
+        );
+
+
+        const message =
+          getApiErrorMessage(
+            error,
+            'Unable to open this prediction. Please try again.',
+          );
+
+
+        toast.error(
+          'Unable to open prediction',
+          {
+            description: message,
+          },
+        );
+
+
+      } finally {
+
+        setOpeningPredictionId(
+          null,
+        );
+
+      }
+
+    },
+    [
+      authLoading,
+      user,
+      router,
+    ],
+  );
+  
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
 
@@ -317,20 +764,19 @@ export default function PredictionsPreview() {
         relative
         overflow-hidden
         bg-background
-        py-16
+        py-4
         text-foreground
         transition-colors
         duration-300
-        sm:py-20
-        lg:py-24
+        sm:py-4
+        lg:py-4
+        rounded-3xl
       "
     >
 
-
-      {/* ======================================== */}
-      {/* BACKGROUND DECORATION */}
-      {/* ======================================== */}
-
+      {/* ====================================================
+          BACKGROUND DECORATION
+      ==================================================== */}
 
       <div
         className="
@@ -346,8 +792,8 @@ export default function PredictionsPreview() {
             absolute
             left-1/2
             top-0
-            h-[500px]
-            w-[500px]
+            h-[420px]
+            w-[420px]
             -translate-x-1/2
             -translate-y-1/2
             rounded-full
@@ -356,14 +802,13 @@ export default function PredictionsPreview() {
           "
         />
 
-
         <div
           className="
             absolute
             bottom-0
             right-0
-            h-[300px]
-            w-[300px]
+            h-[280px]
+            w-[280px]
             translate-x-1/3
             translate-y-1/3
             rounded-full
@@ -376,6 +821,10 @@ export default function PredictionsPreview() {
 
 
 
+      {/* ====================================================
+          CONTENT
+      ==================================================== */}
+
       <div
         className="
           relative
@@ -387,25 +836,22 @@ export default function PredictionsPreview() {
         "
       >
 
-
-        {/* ======================================== */}
-        {/* HEADER */}
-        {/* ======================================== */}
-
+        {/* ==================================================
+            HEADER
+        ================================================== */}
 
         <div
           className="
-            mb-10
+            mb-4
             flex
             flex-col
-            gap-6
-            sm:mb-12
+            gap-5
+            sm:mb-4
             lg:flex-row
             lg:items-end
             lg:justify-between
           "
         >
-
 
           <div
             className="
@@ -414,112 +860,41 @@ export default function PredictionsPreview() {
           >
 
 
-            {/* EYEBROW */}
-
-
-            <div
-              className="
-                mb-4
-                inline-flex
-                items-center
-                gap-2
-                rounded-full
-                border
-                border-border
-                bg-card/70
-                px-3
-                py-1.5
-                text-xs
-                font-semibold
-                text-muted-foreground
-                backdrop-blur-xl
-              "
-            >
-
-              <Sparkles
-                className="
-                  h-3.5
-                  w-3.5
-                  text-primary
-                "
-              />
-
-              Featured Predictions
-
-            </div>
-
-
 
             {/* TITLE */}
 
-
             <h2
               className="
-                text-3xl
+                text-2xl
                 font-bold
                 tracking-tight
                 text-foreground
-                sm:text-4xl
-                lg:text-5xl
+                sm:text-3xl
               "
             >
 
-              Today&apos;s{' '}
+              Our Latest {' '}
 
               <span
                 className="
                   text-primary
                 "
               >
-                predictions
+                Predictions
               </span>
 
             </h2>
-
-
-
-            {/* DESCRIPTION */}
-
-
-            <p
-              className="
-                mt-4
-                max-w-xl
-                text-sm
-                leading-6
-                text-muted-foreground
-                sm:text-base
-              "
-            >
-
-              Explore a selection of our latest
-              football predictions, featuring
-              upcoming matches and our confidence
-              levels.
-
-            </p>
-
 
           </div>
 
 
 
-          {/* ======================================== */}
-          {/* VIEW ALL */}
-          {/* ======================================== */}
-
+          {/* DASHBOARD BUTTON */}
 
           <button
             type="button"
-
-            onClick={
-              handleViewAll
-            }
-
-            disabled={
-              authLoading
-            }
-
+            onClick={handleViewAll}
+            disabled={authLoading}
             className="
               group
               inline-flex
@@ -533,12 +908,12 @@ export default function PredictionsPreview() {
               bg-card
               px-4
               py-2.5
-              text-sm
+              text-s
               font-semibold
               text-foreground
               shadow-sm
               transition-all
-              duration-300
+              duration-200
               hover:border-primary/40
               hover:bg-primary/5
               hover:shadow-md
@@ -550,7 +925,7 @@ export default function PredictionsPreview() {
             {
               authLoading
                 ? 'Checking access...'
-                : 'View all predictions'
+                : 'View Predictions in Dashboard'
             }
 
 
@@ -574,7 +949,7 @@ export default function PredictionsPreview() {
                       h-4
                       w-4
                       transition-transform
-                      duration-300
+                      duration-200
                       group-hover:translate-x-1
                     "
                   />
@@ -584,15 +959,13 @@ export default function PredictionsPreview() {
 
           </button>
 
-
         </div>
 
 
 
-        {/* ======================================== */}
-        {/* LOADING */}
-        {/* ======================================== */}
-
+        {/* ==================================================
+            LOADING
+        ================================================== */}
 
         {
           loading && (
@@ -600,9 +973,9 @@ export default function PredictionsPreview() {
             <div
               className="
                 grid
-                min-h-[320px]
+                min-h-[260px]
                 place-items-center
-                rounded-3xl
+                rounded-2xl
                 border
                 border-border
                 bg-card/50
@@ -614,7 +987,7 @@ export default function PredictionsPreview() {
                   flex
                   items-center
                   gap-3
-                  text-sm
+                  text-s
                   text-muted-foreground
                 "
               >
@@ -639,10 +1012,9 @@ export default function PredictionsPreview() {
 
 
 
-        {/* ======================================== */}
-        {/* ERROR */}
-        {/* ======================================== */}
-
+        {/* ==================================================
+            ERROR
+        ================================================== */}
 
         {
           !loading &&
@@ -654,50 +1026,41 @@ export default function PredictionsPreview() {
                 flex-col
                 items-center
                 justify-center
-                rounded-3xl
+                rounded-2xl
                 border
                 border-border
                 bg-card/70
-                p-10
+                p-8
                 text-center
-                backdrop-blur-xl
               "
             >
 
               <p
                 className="
-                  text-sm
+                  text-s
                   font-semibold
                   text-foreground
                 "
               >
-
                 Unable to load predictions.
-
               </p>
 
 
               <p
                 className="
                   mt-2
-                  text-sm
+                  text-s
                   text-muted-foreground
                 "
               >
-
-                Something went wrong while
-                loading the latest predictions.
-
+                Something went wrong while loading
+                the latest predictions.
               </p>
 
 
               <button
                 type="button"
-
-                onClick={
-                  loadPredictions
-                }
-
+                onClick={loadPredictions}
                 className="
                   mt-5
                   inline-flex
@@ -709,7 +1072,7 @@ export default function PredictionsPreview() {
                   bg-background
                   px-4
                   py-2
-                  text-sm
+                  text-s
                   font-semibold
                   text-foreground
                   transition-colors
@@ -736,37 +1099,35 @@ export default function PredictionsPreview() {
 
 
 
-        {/* ======================================== */}
-        {/* EMPTY */}
-        {/* ======================================== */}
-
+        {/* ==================================================
+            EMPTY
+        ================================================== */}
 
         {
           !loading &&
           !error &&
-          predictions.length === 0 && (
+          filteredPredictions.length === 0 && (
 
             <div
               className="
-                rounded-3xl
+                rounded-2xl
                 border
                 border-border
                 bg-card/70
-                p-10
+                p-8
                 text-center
-                backdrop-blur-xl
               "
             >
 
               <p
                 className="
-                  text-sm
+                  text-s
                   font-semibold
                   text-foreground
                 "
               >
 
-                No predictions available.
+                No upcoming predictions available.
 
               </p>
 
@@ -774,13 +1135,12 @@ export default function PredictionsPreview() {
               <p
                 className="
                   mt-2
-                  text-sm
+                  text-s
                   text-muted-foreground
                 "
               >
 
-                Check back soon for upcoming
-                predictions.
+                Try adjusting your search or filters.
 
               </p>
 
@@ -791,67 +1151,197 @@ export default function PredictionsPreview() {
 
 
 
-        {/* ======================================== */}
-        {/* PREDICTIONS GRID */}
-        {/* ======================================== */}
-
+        {/* ==================================================
+            PREDICTIONS
+        ================================================== */}
 
         {
           !loading &&
           !error &&
-          predictions.length > 0 && (
+          filteredPredictions.length > 0 && (
 
-            <div
-              className="
-                grid
-                grid-cols-1
-                gap-5
-                sm:grid-cols-2
-                lg:grid-cols-4
-              "
-            >
+            <>
+
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  gap-3
+                  sm:grid-cols-2
+                  lg:grid-cols-4
+                "
+              >
+
+                {
+                  visiblePredictions.map(
+                    (
+                      prediction,
+                    ) => {
+
+                    const predictionId =
+                      prediction._id;
+
+
+                      const isOpening =
+                        openingPredictionId ===
+                        predictionId;
+
+
+                      return (
+
+                        <div
+                          key={predictionId}
+                          className="
+                            relative
+                          "
+                        >
+
+                          <PredictionPreviewCard
+                            prediction={
+                              prediction
+                            }
+                            onClick={() => {
+
+                              if (
+                                !isOpening
+                              ) {
+
+                                handlePredictionClick(
+                                  prediction,
+                                );
+
+                              }
+
+                            }}
+                          />
+
+
+                          {
+                            isOpening && (
+
+                              <div
+                                className="
+                                  pointer-events-none
+                                  absolute
+                                  inset-0
+                                  flex
+                                  items-center
+                                  justify-center
+                                  rounded-2xl
+                                  bg-background/60
+                                  backdrop-blur-[2px]
+                                "
+                              >
+
+                                <Loader2
+                                  className="
+                                    h-5
+                                    w-5
+                                    animate-spin
+                                    text-primary
+                                  "
+                                />
+
+                              </div>
+
+                            )
+                          }
+
+                        </div>
+
+                      );
+
+                    },
+                  )
+                }
+
+              </div>
+
+
+
+              {/* =================================================
+                  SHOW MORE / SHOW LESS
+              ================================================= */}
 
               {
-                predictions.map(
-                  (
-                    prediction,
-                    index,
-                  ) => (
+                filteredPredictions.length >
+                INITIAL_VISIBLE_COUNT && (
 
-                    <PredictionPreviewCard
+                  <div
+                    className="
+                      mt-7
+                      flex
+                      justify-center
+                    "
+                  >
 
-                      key={
-                        prediction.id ??
-                        prediction.matchId ??
-                        `prediction-${index}`
-                      }
-
-                      prediction={
-                        prediction
-                      }
-
+                    <button
+                      type="button"
                       onClick={() => {
 
-                        handlePredictionClick(
-                          prediction,
+                        setExpanded(
+                          current =>
+                            !current,
                         );
 
                       }}
+                      className="
+                        group
+                        inline-flex
+                        items-center
+                        gap-2
+                        rounded-xl
+                        border
+                        border-border
+                        bg-card
+                        px-5
+                        py-2.5
+                        text-s
+                        font-semibold
+                        text-foreground
+                        shadow-sm
+                        transition-all
+                        duration-200
+                        hover:border-primary/40
+                        hover:bg-primary/5
+                        hover:shadow-md
+                      "
+                    >
 
-                    />
+                      {
+                        expanded
+                          ? 'Show less'
+                          : `Show all ${filteredPredictions.length} predictions`
+                      }
 
-                  ),
+
+                      <ChevronDown
+                        className={`
+                          h-4
+                          w-4
+                          transition-transform
+                          duration-200
+                          ${
+                            expanded
+                              ? 'rotate-180'
+                              : ''
+                          }
+                        `}
+                      />
+
+                    </button>
+
+                  </div>
+
                 )
               }
 
-            </div>
+            </>
 
           )
         }
 
-
       </div>
-
 
     </section>
 

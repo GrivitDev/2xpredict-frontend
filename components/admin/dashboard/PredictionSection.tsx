@@ -1,173 +1,117 @@
 import {
-Target,
-Crown,
-Users,
-CheckCircle,
-XCircle,
-ShieldAlert,
-Clock,
+  Target,
+  Crown,
+  Users,
+  CheckCircle,
+  XCircle,
+  ShieldAlert,
+  Clock,
 } from 'lucide-react';
 
-
-
-import AnalyticsCard
-from './AnalyticsCard';
-
-
+import AnalyticsCard from './AnalyticsCard';
 
 import {
-AnalyticsPredictions,
+  AnalyticsPredictions,
 } from '@/types/analytics.types';
 
-
-
-interface Props{
-
-predictions:
-AnalyticsPredictions;
-
+interface Props {
+  predictions: AnalyticsPredictions;
 }
-
-
 
 export default function PredictionSection({
-predictions,
-}:Props){
+  predictions,
+}: Props) {
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="text-xl font-semibold">
+          Prediction Performance
+        </h2>
+      </div>
 
+      <div
+        className="
+          grid
+          grid-cols-1
+          md:grid-cols-2
+          xl:grid-cols-4
+          gap-5
+        "
+      >
+        <AnalyticsCard
+          title="Total Predictions"
+          icon={Target}
+          highlight
+        >
+          <p className="text-3xl font-bold">
+            {predictions.totalPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
+        <AnalyticsCard
+          title="VIP Predictions"
+          icon={Crown}
+        >
+          <p className="text-3xl font-bold">
+            {predictions.vipPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
-const cards=[
+        <AnalyticsCard
+          title="Regular Predictions"
+          icon={Users}
+        >
+          <p className="text-3xl font-bold">
+            {predictions.regularPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
+        <AnalyticsCard
+          title="Free Predictions"
+          icon={Target}
+        >
+          <p className="text-3xl font-bold">
+            {predictions.freePredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
-{
-title:'Total Predictions',
-value:predictions.totalPredictions,
-icon:Target,
-highlight:true,
-},
+        <AnalyticsCard
+          title="Won"
+          icon={CheckCircle}
+          highlight
+        >
+          <p className="text-3xl font-bold">
+            {predictions.wonPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
+        <AnalyticsCard
+          title="Lost"
+          icon={XCircle}
+        >
+          <p className="text-3xl font-bold">
+            {predictions.lostPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
-{
-title:'VIP Predictions',
-value:predictions.vipPredictions,
-icon:Crown,
-},
+        <AnalyticsCard
+          title="Void"
+          icon={ShieldAlert}
+        >
+          <p className="text-3xl font-bold">
+            {predictions.voidPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
-
-{
-title:'Regular Predictions',
-value:predictions.regularPredictions,
-icon:Users,
-},
-
-
-{
-title:'Free Predictions',
-value:predictions.freePredictions,
-icon:Target,
-},
-
-
-{
-title:'Won',
-value:predictions.wonPredictions,
-icon:CheckCircle,
-highlight:true,
-},
-
-
-{
-title:'Lost',
-value:predictions.lostPredictions,
-icon:XCircle,
-},
-
-
-{
-title:'Void',
-value:predictions.voidPredictions,
-icon:ShieldAlert,
-},
-
-
-{
-title:'Pending',
-value:predictions.pendingPredictions,
-icon:Clock,
-},
-
-
-];
-
-
-
-return (
-
-<section
-className="
-space-y-4
-"
->
-
-
-<div>
-
-<h2
-className="
-text-xl
-font-semibold
-"
->
-
-Prediction Performance
-
-</h2>
-
-
-<p
-className="
-text-sm
-text-muted-foreground
-"
->
-
-Prediction activity and success rate
-
-</p>
-
-
-</div>
-
-
-
-<div
-className="
-grid
-grid-cols-1
-md:grid-cols-2
-xl:grid-cols-4
-gap-5
-"
->
-
-
-{
-cards.map(card=>(
-
-<AnalyticsCard
-key={card.title}
-{...card}
-/>
-
-))
-}
-
-
-</div>
-
-
-</section>
-
-);
-
+        <AnalyticsCard
+          title="Pending"
+          icon={Clock}
+        >
+          <p className="text-3xl font-bold">
+            {predictions.pendingPredictions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
+      </div>
+    </section>
+  );
 }

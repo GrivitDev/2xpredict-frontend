@@ -1,3 +1,5 @@
+'use client';
+
 import {
   CalendarDays,
   BadgeCheck,
@@ -9,100 +11,44 @@ import {
 import {
   useEffect,
   useState,
-  type ReactNode,
 } from 'react';
 
 import { fmtDate } from './dashboard.utils';
 
 
+// ============================================================
+// TYPES
+// ============================================================
 
-function MiniStat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: any;
-  label: string;
-  value: ReactNode;
-}) {
-
-  return (
-    <div
-      className="
-        rounded-2xl
-        border
-        border-border
-        bg-background/60
-        p-4
-      "
-    >
-
-      <div
-        className="
-          flex
-          items-center
-          gap-3
-        "
-      >
-
-        <div
-          className="
-            rounded-2xl
-            border
-            border-border
-            bg-muted/40
-            p-2.5
-          "
-        >
-
-          <Icon
-            className="
-              h-4
-              w-4
-            "
-          />
-
-        </div>
+type Currency = 'NGN' | 'USD';
 
 
+// ============================================================
+// CURRENCY FORMATTER
+// ============================================================
 
-        <div>
+function formatCurrency(
+  amount: number,
+  currency: Currency,
+) {
 
-          <p
-            className="
-              text-xs
-              text-muted-foreground
-            "
-          >
-            {label}
-          </p>
+  return new Intl.NumberFormat(
+    currency === 'NGN'
+      ? 'en-NG'
+      : 'en-US',
+    {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    },
+  ).format(amount);
 
-
-
-          <p
-            className="
-              mt-1
-              text-base
-              font-semibold
-            "
-          >
-            {value}
-          </p>
-
-
-        </div>
-
-
-      </div>
-
-
-    </div>
-  );
 }
 
 
-
-
+// ============================================================
+// COUNTDOWN
+// ============================================================
 
 function useCountdown(
   expiryDate?: string | Date | null,
@@ -120,105 +66,74 @@ function useCountdown(
     }
 
 
-
     const difference =
       new Date(expiryDate).getTime() -
       Date.now();
 
 
-
     if (difference <= 0) {
-
       return {
         days: 0,
         hours: 0,
         minutes: 0,
         seconds: 0,
       };
-
     }
 
 
-
     return {
-
-      days:
-        Math.floor(
-          difference /
+      days: Math.floor(
+        difference /
           (1000 * 60 * 60 * 24),
-        ),
+      ),
 
-
-      hours:
-        Math.floor(
-          (difference /
-            (1000 * 60 * 60)) %
+      hours: Math.floor(
+        (difference /
+          (1000 * 60 * 60)) %
           24,
-        ),
+      ),
 
-
-      minutes:
-        Math.floor(
-          (difference /
-            (1000 * 60)) %
+      minutes: Math.floor(
+        (difference /
+          (1000 * 60)) %
           60,
-        ),
+      ),
 
-
-      seconds:
-        Math.floor(
-          (difference /
-            1000) %
+      seconds: Math.floor(
+        (difference / 1000) %
           60,
-        ),
-
+      ),
     };
-
   };
-
 
 
   const [
     time,
     setTime,
-  ] = useState(
-    calculate,
-  );
-
+  ] = useState(calculate);
 
 
   useEffect(() => {
 
     const timer =
-      setInterval(
-        () => {
-          setTime(
-            calculate(),
-          );
-        },
-        1000,
-      );
-
+      setInterval(() => {
+        setTime(calculate());
+      }, 1000);
 
 
     return () =>
       clearInterval(timer);
 
-
-  }, [
-    expiryDate,
-  ]);
-
+  }, [expiryDate]);
 
 
   return time;
-
 }
 
 
-
-
-
+// ============================================================
+// PLAN THEME
+// ============================================================
 
 function getPlanTheme(
   plan?: string | null,
@@ -228,226 +143,197 @@ function getPlanTheme(
     plan?.toLowerCase();
 
 
-
   if (current === 'vip') {
 
     return {
-
-      title:
-        'VIP Membership',
-
-      icon:
-        Crown,
-
-      label:
-        'VIP',
-
-      iconClass:
-        'text-amber-400',
-
-      wrapper:
-        `
-        border-amber-500/20
-        bg-gradient-to-br
-        from-amber-500/10
-        via-background
-        to-background
-        `,
-
+      title: 'VIP Membership',
+      icon: Crown,
+      label: 'VIP',
+      iconClass: 'text-amber-500',
+      borderClass:
+        'border-amber-500/25',
       iconWrapper:
-        `
-        bg-amber-500/10
-        border-amber-500/20
-        `,
-
+        'border-amber-500/25 bg-amber-500/10',
       labelClass:
-        'text-amber-400',
-
+        'text-amber-600 dark:text-amber-400',
+      headerClass:
+        'bg-amber-500/[0.035]',
     };
 
   }
-
-
 
 
   if (current === 'regular') {
 
     return {
-
-      title:
-        'Regular Membership',
-
-      icon:
-        BadgeCheck,
-
-      label:
-        'Regular',
-
-      iconClass:
-        'text-blue-400',
-
-      wrapper:
-        `
-        border-blue-500/20
-        bg-gradient-to-br
-        from-blue-500/10
-        via-background
-        to-background
-        `,
-
+      title: 'Regular Membership',
+      icon: BadgeCheck,
+      label: 'Regular',
+      iconClass: 'text-primary',
+      borderClass:
+        'border-primary/25',
       iconWrapper:
-        `
-        bg-blue-500/10
-        border-blue-500/20
-        `,
-
+        'border-primary/25 bg-primary/10',
       labelClass:
-        'text-blue-400',
-
+        'text-primary',
+      headerClass:
+        'bg-primary/[0.035]',
     };
 
   }
 
 
-
-
-
   return {
-
-    title:
-      'Free Membership',
-
-    icon:
-      UserRound,
-
-    label:
-      'Free',
-
+    title: 'Free Membership',
+    icon: UserRound,
+    label: 'Free',
     iconClass:
       'text-muted-foreground',
-
-    wrapper:
-      `
-      border-border
-      bg-gradient-to-br
-      from-muted/30
-      via-background
-      to-background
-      `,
-
+    borderClass:
+      'border-border/60',
     iconWrapper:
-      `
-      bg-muted
-      border-border
-      `,
-
+      'border-border/60 bg-muted/30',
     labelClass:
       'text-muted-foreground',
-
+    headerClass:
+      'bg-muted/[0.025]',
   };
-
 }
 
 
-
-
-
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function PlanCard({
   plan,
   startDate,
   expiresAt,
   revenue,
+  currency = 'NGN',
 }: {
   plan?: string | null;
   startDate?: string | Date | null;
   expiresAt?: string | Date | null;
   revenue?: number | null;
+  currency?: Currency;
 }) {
 
-
   const countdown =
-    useCountdown(
-      expiresAt,
-    );
+    useCountdown(expiresAt);
 
 
   const theme =
-    getPlanTheme(
-      plan,
-    );
+    getPlanTheme(plan);
 
 
   const PlanIcon =
     theme.icon;
 
 
+  const formattedRevenue =
+    formatCurrency(
+      revenue ?? 0,
+      currency,
+    );
+
 
   return (
-
     <div
       className="
-        space-y-5
-        rounded-3xl
+        relative
+        overflow-hidden
+        rounded-2xl
         border
-        border-border
+        border-border/60
         bg-card
-        p-5
         shadow-sm
       "
     >
 
+      {/* ======================================================
+          PREMIUM ACCENT
+          ====================================================== */}
 
-      {/* MEMBERSHIP HEADER */}
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          top-0
+          h-px
+          bg-gradient-to-r
+          from-transparent
+          via-primary/70
+          to-transparent
+        "
+      />
+
+
+      {/* ======================================================
+          HEADER
+          ====================================================== */}
 
       <div
         className={`
-          rounded-3xl
-          border
-          p-5
-          ${theme.wrapper}
+          flex
+          items-center
+          gap-3
+          border-b
+          px-4
+          py-3
+          ${theme.borderClass}
+          ${theme.headerClass}
         `}
       >
 
+        {/* Plan icon */}
+
+        <div
+          className={`
+            flex
+            h-10
+            w-10
+            shrink-0
+            items-center
+            justify-center
+            rounded-xl
+            border
+            ${theme.iconWrapper}
+          `}
+        >
+
+          <PlanIcon
+            className={`
+              h-5
+              w-5
+              ${theme.iconClass}
+            `}
+          />
+
+        </div>
+
+
+        {/* Plan information */}
+
         <div
           className="
-            flex
-            items-center
-            gap-3
+            min-w-0
+            flex-1
           "
         >
 
           <div
-            className={`
+            className="
               flex
-              h-14
-              w-14
               items-center
-              justify-center
-              rounded-2xl
-              border
-              ${theme.iconWrapper}
-            `}
+              gap-2
+            "
           >
 
-            <PlanIcon
+            <span
               className={`
-                h-7
-                w-7
-                ${theme.iconClass}
-              `}
-            />
-
-          </div>
-
-
-
-
-          <div>
-
-            <div
-              className={`
-                text-sm
+                text-[10px]
                 font-semibold
                 uppercase
                 tracking-wider
@@ -455,230 +341,434 @@ export function PlanCard({
               `}
             >
               {theme.label}
-            </div>
+            </span>
 
 
-
-            <h3
+            <span
               className="
-                text-xl
-                font-bold
+                h-1
+                w-1
+                rounded-full
+                bg-muted-foreground/40
               "
-            >
-              {theme.title}
-            </h3>
+            />
 
 
-
-            <p
-              className="
-                text-sm
-                text-muted-foreground
-              "
-            >
-              Started {fmtDate(startDate)}
-            </p>
-
-
-          </div>
-
-
-        </div>
-
-
-      </div>
-
-
-
-
-
-      {/* EXPIRY */}
-
-
-      <div
-        className="
-          rounded-3xl
-          border
-          border-border
-          bg-background/60
-          p-5
-        "
-      >
-
-        <div
-          className="
-            flex
-            items-center
-            gap-3
-          "
-        >
-
-          <CalendarDays
-            className="
-              h-5
-              w-5
-            "
-          />
-
-
-
-          <div>
-
-            <p
+            <span
               className="
                 text-xs
                 text-muted-foreground
               "
             >
-              Expires
-            </p>
-
-
-
-            <p
-              className="
-                font-semibold
-              "
-            >
-              {fmtDate(expiresAt)}
-            </p>
-
+              Active
+            </span>
 
           </div>
 
 
+          <h3
+            className="
+              mt-0.5
+              truncate
+              text-sm
+              font-semibold
+              tracking-tight
+            "
+          >
+            {theme.title}
+          </h3>
+
         </div>
 
 
-
-
+        {/* Start date */}
 
         <div
           className="
-            mt-5
-            grid
-            grid-cols-4
-            gap-2
+            hidden
+            shrink-0
+            text-right
+            sm:block
           "
         >
 
-          {
-            [
-              {
-                value:
-                  countdown.days,
-                label:
-                  'Days',
-              },
-
-              {
-                value:
-                  countdown.hours,
-                label:
-                  'Hours',
-              },
-
-              {
-                value:
-                  countdown.minutes,
-                label:
-                  'Minutes',
-              },
-
-              {
-                value:
-                  countdown.seconds,
-                label:
-                  'Seconds',
-              },
-
-            ].map((item)=>(
-
-              <div
-                key={item.label}
-                className="
-                  rounded-2xl
-                  border
-                  border-border
-                  bg-card
-                  p-3
-                  text-center
-                "
-              >
-
-                <p
-                  className="
-                    text-xl
-                    font-bold
-                    tabular-nums
-                  "
-                >
-                  {String(item.value).padStart(2,'0')}
-                </p>
+          <p
+            className="
+              text-[10px]
+              font-medium
+              uppercase
+              tracking-wider
+              text-muted-foreground
+            "
+          >
+            Started
+          </p>
 
 
-
-                <p
-                  className="
-                    text-xs
-                    text-muted-foreground
-                  "
-                >
-                  {item.label}
-                </p>
-
-
-              </div>
-
-
-            ))
-          }
-
+          <p
+            className="
+              mt-0.5
+              text-xs
+              font-semibold
+            "
+          >
+            {fmtDate(startDate)}
+          </p>
 
         </div>
-
 
       </div>
 
 
+      {/* ======================================================
+          EXPIRY / COUNTDOWN
+          ====================================================== */}
+
+      <div
+        className="
+          px-4
+          py-3
+        "
+      >
+
+        {/* Expiry header */}
+
+        <div
+          className="
+            mb-2
+            flex
+            items-center
+            justify-between
+            gap-3
+          "
+        >
+
+          <div
+            className="
+              flex
+              min-w-0
+              items-center
+              gap-2
+            "
+          >
+
+            <CalendarDays
+              className="
+                h-4
+                w-4
+                shrink-0
+                text-primary
+              "
+            />
 
 
+            <div
+              className="
+                flex
+                min-w-0
+                items-center
+                gap-1.5
+              "
+            >
 
-      {/* STATS */}
+              <span
+                className="
+                  text-xs
+                  text-muted-foreground
+                "
+              >
+                Expires
+              </span>
 
+
+              <span
+                className="
+                  truncate
+                  text-xs
+                  font-semibold
+                "
+              >
+                {fmtDate(expiresAt)}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <span
+            className="
+              shrink-0
+              rounded-full
+              border
+              border-emerald-500/20
+              bg-emerald-500/10
+              px-2
+              py-0.5
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-wide
+              text-emerald-600
+              dark:text-emerald-400
+            "
+          >
+            Active
+          </span>
+
+        </div>
+
+
+        {/* Countdown */}
+
+        <div
+          className="
+            grid
+            grid-cols-4
+            overflow-hidden
+            rounded-xl
+            border
+            border-border/50
+            bg-muted/20
+          "
+        >
+
+          {[
+            {
+              value: countdown.days,
+              label: 'Days',
+            },
+            {
+              value: countdown.hours,
+              label: 'Hours',
+            },
+            {
+              value: countdown.minutes,
+              label: 'Minutes',
+            },
+            {
+              value: countdown.seconds,
+              label: 'Seconds',
+            },
+          ].map((item, index) => (
+
+            <div
+              key={item.label}
+              className={`
+                flex
+                flex-col
+                items-center
+                justify-center
+                gap-0.5
+                px-2
+                py-2
+                ${
+                  index !== 0
+                    ? 'border-l border-border/50'
+                    : ''
+                }
+              `}
+            >
+
+              <span
+                className="
+                  text-base
+                  font-bold
+                  leading-none
+                  tabular-nums
+                "
+              >
+                {String(
+                  item.value,
+                ).padStart(2, '0')}
+              </span>
+
+
+              <span
+                className="
+                  text-[10px]
+                  font-medium
+                  text-muted-foreground
+                "
+              >
+                {item.label}
+              </span>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
+
+      {/* ======================================================
+          STATS
+          ====================================================== */}
 
       <div
         className="
           grid
-          gap-3
-          sm:grid-cols-2
+          grid-cols-2
+          border-t
+          border-border/50
+          bg-muted/[0.025]
         "
       >
 
-        <MiniStat
-          icon={CircleDollarSign}
-          label="Subscription Value"
-          value={
-            `₦${(
-              revenue ?? 0
-            ).toLocaleString('en-GB')}`
-          }
-        />
+        {/* Value */}
+
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-2.5
+            px-4
+            py-3
+          "
+        >
+
+          <div
+            className="
+              flex
+              h-8
+              w-8
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              border
+              border-primary/10
+              bg-primary/10
+              text-primary
+            "
+          >
+
+            <CircleDollarSign
+              className="
+                h-4
+                w-4
+              "
+            />
+
+          </div>
 
 
+          <div
+            className="
+              min-w-0
+            "
+          >
 
-        <MiniStat
-          icon={BadgeCheck}
-          label="Status"
-          value="Active"
-        />
+            <p
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-wider
+                text-muted-foreground
+              "
+            >
+              Value
+            </p>
+
+
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-sm
+                font-semibold
+              "
+            >
+              {formattedRevenue}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* Status */}
+
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-2.5
+            border-l
+            border-border/50
+            px-4
+            py-3
+          "
+        >
+
+          <div
+            className="
+              flex
+              h-8
+              w-8
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              border
+              border-emerald-500/10
+              bg-emerald-500/10
+              text-emerald-500
+            "
+          >
+
+            <BadgeCheck
+              className="
+                h-4
+                w-4
+              "
+            />
+
+          </div>
+
+
+          <div
+            className="
+              min-w-0
+            "
+          >
+
+            <p
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-wider
+                text-muted-foreground
+              "
+            >
+              Status
+            </p>
+
+
+            <p
+              className="
+                mt-0.5
+                text-sm
+                font-semibold
+                text-emerald-600
+                dark:text-emerald-400
+              "
+            >
+              Active
+            </p>
+
+          </div>
+
+        </div>
 
       </div>
 
-
-
     </div>
-
   );
-
 }

@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -20,6 +21,8 @@ import {
   WandSparkles,
 } from 'lucide-react';
 
+import api from '@/lib/axios';
+
 import {
   createPrediction,
 } from '@/services/prediction.service';
@@ -33,6 +36,10 @@ import {
 
 import PredictionModal from '@/components/admin/predictions/prediction-modal';
 import ManualPredictionForm from '@/components/admin/predictions/manual-prediction-form';
+
+import PredictionDateFilter, {
+  type PredictionDateFilter as PredictionDateFilterType,
+} from '@/components/admin/predictions/PredictionDateFilter';
 
 function formatFixtureDate(date: string) {
   const fixtureDate = new Date(date);
@@ -73,11 +80,37 @@ export default function CreatePredictionPage() {
   const [submitting, setSubmitting] =
     useState(false);
 
+    const [
+  dateFilter,
+  setDateFilter,
+] = useState<PredictionDateFilterType>('all');
+
+const [
+  customFrom,
+  setCustomFrom,
+] = useState('');
+
+const [
+  customTo,
+  setCustomTo,
+] = useState('');
+
   const [error, setError] = useState('');
+
+  /*
+    Stores the match IDs that already have
+    predictions created for them.
+  */
+  const [createdMatchIds, setCreatedMatchIds] =
+    useState<Set<string>>(new Set());
 
   const currentLeague = leagues.find(
     (league) => league.code === selectedLeague,
   );
+
+  // ============================================================
+  // LOAD LEAGUES
+  // ============================================================
 
   useEffect(() => {
     const loadLeagues = async () => {
@@ -102,6 +135,48 @@ export default function CreatePredictionPage() {
     loadLeagues();
   }, []);
 
+  // ============================================================
+  // LOAD EXISTING PREDICTIONS
+  // ============================================================
+
+  useEffect(() => {
+    const loadCreatedPredictions = async () => {
+      try {
+        const response =
+          await api.get('/predictions');
+
+        const predictions =
+          response.data || [];
+
+        const matchIds =
+          new Set<string>(
+            predictions
+              .map(
+                (prediction: any) =>
+                  prediction.matchId,
+              )
+              .filter(Boolean)
+              .map(String),
+          );
+
+        setCreatedMatchIds(
+          matchIds,
+        );
+      } catch (err) {
+        console.error(
+          'Failed to load existing predictions:',
+          err,
+        );
+      }
+    };
+
+    loadCreatedPredictions();
+  }, []);
+
+  // ============================================================
+  // LEAGUE CHANGE
+  // ============================================================
+
   const handleLeagueChange = async (
     leagueCode: string,
   ) => {
@@ -116,7 +191,8 @@ export default function CreatePredictionPage() {
     try {
       setLoadingMatches(true);
 
-      const data = await getFixtures(leagueCode);
+      const data =
+        await getFixtures(leagueCode);
 
       setMatches(data || []);
     } catch (err) {
@@ -130,22 +206,216 @@ export default function CreatePredictionPage() {
     }
   };
 
+  const filteredMatches = useMemo(() => {
+  if (!matches.length) {
+    return [];
+  }
+
+  if (dateFilter === 'all') {
+    return matches;
+  }
+
+  const now = new Date();
+
+  const startOfDay = (date: Date) => {
+    const result = new Date(date);
+
+    result.setHours(
+      0,
+      0,
+      0,
+      0,
+    );
+
+    return result;
+  };
+
+  const endOfDay = (date: Date) => {
+    const result = new Date(date);
+
+    result.setHours(
+      23,
+      59,
+      59,
+      999,
+    );
+
+    return result;
+  };
+
+  let from: Date;
+  let to: Date;
+
+
+  // THIS WEEK
+
+  if (dateFilter === 'this-week') {
+
+    const day =
+      now.getDay();
+
+    const mondayOffset =
+      day === 0
+        ? -6
+        : 1 - day;
+
+    from = new Date(now);
+
+    from.setDate(
+      now.getDate() +
+      mondayOffset
+    );
+
+    to = new Date(from);
+
+    to.setDate(
+      from.getDate() + 6
+    );
+
+  }
+
+
+  // NEXT WEEK
+
+  else if (dateFilter === 'next-week') {
+
+    const day =
+      now.getDay();
+
+    const mondayOffset =
+      day === 0
+        ? -6
+        : 1 - day;
+
+    from = new Date(now);
+
+    from.setDate(
+      now.getDate() +
+      mondayOffset +
+      7
+    );
+
+    to = new Date(from);
+
+    to.setDate(
+      from.getDate() + 6
+    );
+
+  }
+
+
+  // THIS MONTH
+
+  else if (dateFilter === 'this-month') {
+
+    from = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+    to = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0
+    );
+
+  }
+
+
+  // CUSTOM
+
+  else {
+
+    if (!customFrom) {
+      return matches;
+    }
+
+    from = new Date(
+      `${customFrom}T00:00:00`
+    );
+
+    to = customTo
+      ? new Date(
+          `${customTo}T23:59:59`
+        )
+      : endOfDay(from);
+
+  }
+
+
+  from = startOfDay(from);
+  to = endOfDay(to);
+
+
+  return matches.filter(
+    (match) => {
+
+      const matchDate =
+        new Date(match.date);
+
+      return (
+        matchDate >= from &&
+        matchDate <= to
+      );
+
+    }
+  );
+
+}, [
+  matches,
+  dateFilter,
+  customFrom,
+  customTo,
+]);
+  // ============================================================
+  // OPEN MODAL
+  // ============================================================
+
   const openModal = (match: Match) => {
+    /*
+      Prevent opening the prediction modal if
+      this match already has a prediction.
+    */
+    if (
+      createdMatchIds.has(
+        String(match.id),
+      )
+    ) {
+      return;
+    }
+
     setSelectedMatch(match);
     setShowModal(true);
   };
 
-  const handleManualMatch = (match: Match) => {
+  // ============================================================
+  // MANUAL MATCH
+  // ============================================================
+
+  const handleManualMatch = (
+    match: Match,
+  ) => {
     setSelectedMatch(match);
     setShowModal(true);
   };
+
+  // ============================================================
+  // CLOSE MODAL
+  // ============================================================
 
   const closeModal = () => {
     setSelectedMatch(null);
     setShowModal(false);
   };
 
-  const handleSubmit = async (payload: any) => {
+  // ============================================================
+  // SUBMIT
+  // ============================================================
+
+  const handleSubmit = async (
+    payload: any,
+  ) => {
     if (!selectedMatch) {
       return;
     }
@@ -155,29 +425,32 @@ export default function CreatePredictionPage() {
       Manual fixtures only include `leagueCode`,
       so this fallback prevents a runtime error.
     */
-    const matchLeague = selectedMatch.league || {
-      code:
-        selectedMatch.leagueCode ||
-        currentLeague?.code ||
-        'MANUAL',
+    const matchLeague =
+      selectedMatch.league || {
+        code:
+          selectedMatch.leagueCode ||
+          currentLeague?.code ||
+          'MANUAL',
 
-      name:
-        currentLeague?.name ||
-        selectedMatch.leagueCode ||
-        'Manual Fixture',
+        name:
+          currentLeague?.name ||
+          selectedMatch.leagueCode ||
+          'Manual Fixture',
 
-      country:
-        currentLeague?.country ||
-        'Manual',
+        country:
+          currentLeague?.country ||
+          'Manual',
 
-      emblem: currentLeague?.emblem,
-    };
+        emblem:
+          currentLeague?.emblem,
+      };
 
     try {
       setSubmitting(true);
 
       await createPrediction({
-        matchId: selectedMatch.id,
+        matchId:
+          selectedMatch.id,
 
         leagueCode:
           selectedMatch.leagueCode ||
@@ -190,8 +463,11 @@ export default function CreatePredictionPage() {
           emblem: matchLeague.emblem,
         },
 
-        homeTeam: selectedMatch.homeTeam,
-        awayTeam: selectedMatch.awayTeam,
+        homeTeam:
+          selectedMatch.homeTeam,
+
+        awayTeam:
+          selectedMatch.awayTeam,
 
         homeTeamBadge:
           selectedMatch.homeTeamBadge,
@@ -199,18 +475,43 @@ export default function CreatePredictionPage() {
         awayTeamBadge:
           selectedMatch.awayTeamBadge,
 
-        confidence: Number(payload.confidence),
+        confidence:
+          Number(payload.confidence),
 
-        probabilities: payload.probabilities,
+        probabilities:
+          payload.probabilities,
 
-        markets: payload.markets,
+        markets:
+          payload.markets,
 
-        accessType: payload.accessType,
+        accessType:
+          payload.accessType,
 
-        price: Number(payload.price || 0),
+        price:
+          Number(payload.price || 0),
 
-        matchDate: selectedMatch.date,
+        matchDate:
+          selectedMatch.date,
       });
+
+      /*
+        Immediately mark the match as predicted
+        without requiring a page refresh.
+      */
+      setCreatedMatchIds(
+        (previous) => {
+          const next =
+            new Set(previous);
+
+          next.add(
+            String(
+              selectedMatch.id,
+            ),
+          );
+
+          return next;
+        },
+      );
 
       toast.success(
         'Prediction created successfully.',
@@ -218,7 +519,9 @@ export default function CreatePredictionPage() {
 
       closeModal();
     } catch (err: any) {
-      console.error(err?.response?.data || err);
+      console.error(
+        err?.response?.data || err,
+      );
 
       toast.error(
         err?.response?.data?.message ||
@@ -322,7 +625,7 @@ export default function CreatePredictionPage() {
                 className="
                   mt-2
                   max-w-2xl
-                  text-sm
+                  text-s
                   leading-6
                   text-muted-foreground
                   sm:text-base
@@ -376,7 +679,7 @@ export default function CreatePredictionPage() {
             border-destructive/25
             bg-destructive/10
             p-4
-            text-sm
+            text-s
             text-destructive
           "
         >
@@ -385,7 +688,16 @@ export default function CreatePredictionPage() {
           <p>{error}</p>
         </div>
       )}
-
+<div className="mt-6">
+  <PredictionDateFilter
+    value={dateFilter}
+    onChange={setDateFilter}
+    customFrom={customFrom}
+    customTo={customTo}
+    onCustomFromChange={setCustomFrom}
+    onCustomToChange={setCustomTo}
+  />
+</div>
       {/* API Fixtures */}
 
       <section
@@ -425,7 +737,9 @@ export default function CreatePredictionPage() {
                 value={selectedLeague}
                 disabled={loadingLeagues}
                 onChange={(event) =>
-                  handleLeagueChange(event.target.value)
+                  handleLeagueChange(
+                    event.target.value,
+                  )
                 }
                 className="
                   h-12
@@ -437,7 +751,7 @@ export default function CreatePredictionPage() {
                   bg-background
                   px-4
                   pr-12
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -453,14 +767,17 @@ export default function CreatePredictionPage() {
                     : 'Choose a league'}
                 </option>
 
-                {leagues.map((league) => (
-                  <option
-                    key={league.code}
-                    value={league.code}
-                  >
-                    {league.name} ({league.country})
-                  </option>
-                ))}
+                {leagues.map(
+                  (league) => (
+                    <option
+                      key={league.code}
+                      value={league.code}
+                    >
+                      {league.name} (
+                      {league.country})
+                    </option>
+                  ),
+                )}
               </select>
 
               {loadingLeagues ? (
@@ -528,8 +845,12 @@ export default function CreatePredictionPage() {
             >
               {currentLeague.emblem ? (
                 <Image
-                  src={currentLeague.emblem}
-                  alt={currentLeague.name}
+                  src={
+                    currentLeague.emblem
+                  }
+                  alt={
+                    currentLeague.name
+                  }
                   width={40}
                   height={40}
                   className="object-contain"
@@ -544,7 +865,7 @@ export default function CreatePredictionPage() {
                 {currentLeague.name}
               </p>
 
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-s text-muted-foreground">
                 {currentLeague.country}
               </p>
             </div>
@@ -562,8 +883,8 @@ export default function CreatePredictionPage() {
                 text-muted-foreground
               "
             >
-              {matches.length} fixture
-              {matches.length === 1 ? '' : 's'}
+            {filteredMatches.length} fixture
+            {filteredMatches.length === 1 ? '' : 's'}
             </span>
           </div>
         )}
@@ -593,7 +914,7 @@ export default function CreatePredictionPage() {
                   No upcoming fixtures found
                 </p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-s text-muted-foreground">
                   Try another league or create the fixture
                   manually.
                 </p>
@@ -603,13 +924,21 @@ export default function CreatePredictionPage() {
           {!loadingMatches &&
             matches.length > 0 && (
               <div className="grid gap-4">
-                {matches.map((match) => (
-                  <FixtureCard
-                    key={match.id}
-                    match={match}
-                    onCreate={() => openModal(match)}
-                  />
-                ))}
+                {filteredMatches.map((match) => (
+                    <FixtureCard
+                      key={match.id}
+                      match={match}
+                      alreadyCreated={
+                        createdMatchIds.has(
+                          String(match.id),
+                        )
+                      }
+                      onCreate={() =>
+                        openModal(match)
+                      }
+                    />
+                  ),
+                )}
               </div>
             )}
 
@@ -632,7 +961,7 @@ export default function CreatePredictionPage() {
                   Choose a league to begin
                 </p>
 
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-s text-muted-foreground">
                   Upcoming fixtures will appear here.
                 </p>
               </div>
@@ -665,7 +994,7 @@ export default function CreatePredictionPage() {
               Manual Fixture Alternative
             </h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-s text-muted-foreground">
               Use this when a fixture is unavailable through
               the football API.
             </p>
@@ -673,7 +1002,9 @@ export default function CreatePredictionPage() {
         </div>
 
         <ManualPredictionForm
-          onCreateMatch={handleManualMatch}
+          onCreateMatch={
+            handleManualMatch
+          }
         />
       </section>
 
@@ -689,6 +1020,10 @@ export default function CreatePredictionPage() {
     </div>
   );
 }
+
+// ============================================================
+// SECTION HEADER
+// ============================================================
 
 function SectionHeader({
   icon,
@@ -734,7 +1069,7 @@ function SectionHeader({
             {title}
           </h2>
 
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          <p className="mt-1 text-s leading-6 text-muted-foreground">
             {description}
           </p>
         </div>
@@ -757,6 +1092,10 @@ function SectionHeader({
     </div>
   );
 }
+
+// ============================================================
+// METRIC
+// ============================================================
 
 function Metric({
   label,
@@ -788,34 +1127,47 @@ function Metric({
   );
 }
 
+// ============================================================
+// LOADING FIXTURES
+// ============================================================
+
 function LoadingFixtures() {
   return (
     <div className="space-y-4">
-      {[1, 2, 3].map((item) => (
-        <div
-          key={item}
-          className="
-            h-32
-            animate-pulse
-            rounded-2xl
-            border
-            border-border
-            bg-muted/30
-          "
-        />
-      ))}
+      {[1, 2, 3].map(
+        (item) => (
+          <div
+            key={item}
+            className="
+              h-32
+              animate-pulse
+              rounded-2xl
+              border
+              border-border
+              bg-muted/30
+            "
+          />
+        ),
+      )}
     </div>
   );
 }
 
+// ============================================================
+// FIXTURE CARD
+// ============================================================
+
 function FixtureCard({
   match,
+  alreadyCreated,
   onCreate,
 }: {
   match: Match;
+  alreadyCreated: boolean;
   onCreate: () => void;
 }) {
-  const formattedDate = formatFixtureDate(match.date);
+  const formattedDate =
+    formatFixtureDate(match.date);
 
   return (
     <article
@@ -844,6 +1196,27 @@ function FixtureCard({
         "
       >
         <div className="min-w-0 flex-1">
+
+          {/* Predicted indicator */}
+
+          {alreadyCreated && (
+            <div
+              className="
+                mb-3
+                flex
+                items-center
+                gap-1.5
+                text-xs
+                font-semibold
+                text-muted-foreground
+              "
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+
+              Predicted
+            </div>
+          )}
+
           <div
             className="
               grid
@@ -907,7 +1280,9 @@ function FixtureCard({
               {formattedDate.date}
             </span>
 
-            <span>{formattedDate.time}</span>
+            <span>
+              {formattedDate.time}
+            </span>
 
             <span
               className="
@@ -928,7 +1303,8 @@ function FixtureCard({
         <button
           type="button"
           onClick={onCreate}
-          className="
+          disabled={alreadyCreated}
+          className={`
             inline-flex
             h-11
             shrink-0
@@ -936,24 +1312,51 @@ function FixtureCard({
             justify-center
             gap-2
             rounded-xl
-            bg-primary
             px-5
-            text-sm
+            text-s
             font-semibold
-            text-primary-foreground
             shadow-sm
             transition
-            hover:brightness-110
             active:scale-[0.98]
-          "
+
+            ${
+              alreadyCreated
+                ? `
+                  cursor-not-allowed
+                  border
+                  border-border
+                  bg-muted
+                  text-muted-foreground
+                  opacity-70
+                `
+                : `
+                  bg-primary
+                  text-primary-foreground
+                  hover:brightness-110
+                `
+            }
+          `}
         >
-          <WandSparkles className="h-4 w-4" />
-          Create Prediction
+          {alreadyCreated ? (
+            <>
+              <ShieldCheck className="h-4 w-4" />
+              Prediction Created
+            </>
+          ) : (
+            <>
+              <WandSparkles className="h-4 w-4" />
+              Create Prediction
+            </>
+          )}
         </button>
       </div>
     </article>
   );
 }
+
+// ============================================================
+// TEAM
+// ============================================================
 
 function Team({
   name,
@@ -964,7 +1367,8 @@ function Team({
   badge?: string;
   align: 'left' | 'right';
 }) {
-  const isRight = align === 'right';
+  const isRight =
+    align === 'right';
 
   return (
     <div
@@ -973,11 +1377,15 @@ function Team({
         min-w-0
         items-center
         gap-2
-        ${isRight ? 'justify-end text-right' : 'text-left'}
+        ${
+          isRight
+            ? 'justify-end text-right'
+            : 'text-left'
+        }
       `}
     >
       {isRight && (
-        <span className="truncate text-sm font-bold sm:text-base">
+        <span className="truncate text-s font-bold sm:text-base">
           {name}
         </span>
       )}
@@ -1010,7 +1418,7 @@ function Team({
       </div>
 
       {!isRight && (
-        <span className="truncate text-sm font-bold sm:text-base">
+        <span className="truncate text-s font-bold sm:text-base">
           {name}
         </span>
       )}

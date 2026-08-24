@@ -1,12 +1,14 @@
-import Link from 'next/link';
+
 
 import {
   Badge,
 } from '@/components/ui/badge';
 
+
 import {
   TrendingUp,
-  Home,
+  Users,
+  Wallet,
 } from 'lucide-react';
 
 import {
@@ -21,21 +23,32 @@ export default function AnalyticsHeader({
   data,
 }: Props) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
           Admin Analytics
         </h1>
-
-        <p className="text-muted-foreground">
-          Platform performance overview
-        </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge
+          variant="secondary"
+          className="gap-2 px-3 py-1"
+        >
+          <Users size={14} />
+          {data.users.totalUsers.toLocaleString()} Users
+        </Badge>
 
-        <Badge className="flex gap-2">
-          <TrendingUp size={16} />
+        <Badge
+          variant="secondary"
+          className="gap-2 px-3 py-1"
+        >
+          <Wallet size={14} />
+          ₦{data.revenue.totalRevenue.NGN.toLocaleString()}
+        </Badge>
+
+        <Badge className="gap-2 px-3 py-1">
+          <TrendingUp size={14} />
           Live Metrics
         </Badge>
       </div>

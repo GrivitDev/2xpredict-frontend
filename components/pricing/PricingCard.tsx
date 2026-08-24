@@ -8,385 +8,395 @@ import {
   Trophy,
 } from 'lucide-react';
 
+import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
 interface PricingPlan {
-
-  id:'free' | 'regular' | 'vip';
-
-  name:string;
-
-  price:number;
-
-  description:string;
-
-  features:string[];
-
-  popular?:boolean;
-
+  id: 'free' | 'regular' | 'vip';
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+  popular?: boolean;
 }
-
 
 interface PricingCardProps {
-
-  plan:PricingPlan;
-
-  onSelect:(
-    id:'free' | 'regular' | 'vip'
-  )=>void;
-
+  plan: PricingPlan;
+  currency: PaymentCurrency;
+  subscriptionDurationDays: number;
+  onSelect: (
+    id: 'free' | 'regular' | 'vip'
+  ) => void;
 }
-
-
 
 export default function PricingCard({
   plan,
+  currency,
+  subscriptionDurationDays,
   onSelect,
-}:PricingCardProps){
-
-
-  const handleSelectPlan=()=>{
-
-    if(plan.id==='free'){
-
-      window.location.href='/register';
-
+}: PricingCardProps) {
+  const handleSelectPlan = () => {
+    if (plan.id === 'free') {
+      window.location.href = '/register';
       return;
-
     }
 
     onSelect(plan.id);
-
   };
 
-
-  const icons={
-
-    free:ShieldCheck,
-
-    regular:Trophy,
-
-    vip:Crown,
-
+  const icons = {
+    free: ShieldCheck,
+    regular: Trophy,
+    vip: Crown,
   };
 
+  const Icon = icons[plan.id];
 
-  const cardStyles={
+  const currencySymbol =
+    currency === 'USD'
+      ? '$'
+      : '₦';
 
-    free:`
-      border-border
-      hover:border-primary/40
+  const buttonText = {
+    free: 'Get Started',
+    regular: 'Subscribe',
+    vip: 'Become VIP',
+  };
+
+  const cardStyles = {
+    free: `
+      border-border/70
+      bg-card/60
+      hover:border-primary/30
     `,
 
-    regular:`
-    border-blue-500
-    bg-gradient-to-br
-    from-blue-500/10
-    via-blue-500/5
-    to-background
-    shadow-xl
-    shadow-blue-500/20
-    lg:scale-105
-    `,
-
-    vip:`
-      border-yellow-500/30
+    regular: `
+      border-blue-500/40
       bg-gradient-to-b
-      from-yellow-500/10
-      via-background
-      to-background
-      shadow-xl
-      shadow-yellow-500/15
+      from-blue-500/[0.07]
+      via-card/70
+      to-card/50
+      shadow-lg
+      shadow-blue-500/10
+      lg:scale-[1.02]
     `,
 
+    vip: `
+      border-gold/30
+      bg-gradient-to-b
+      from-gold/[0.08]
+      via-card/70
+      to-card/50
+      shadow-lg
+      shadow-gold/10
+    `,
   };
 
-
-  const iconStyles={
-
-    free:`
+  const iconStyles = {
+    free: `
       bg-muted
-      text-primary
+      text-muted-foreground
     `,
 
-    regular:`
-    bg-blue-500/15
-    text-blue-500
-    ring-2
-    ring-blue-500/20
+    regular: `
+      bg-blue-500/10
+      text-blue-500
     `,
 
-    vip:`
-      bg-yellow-500/15
-      text-yellow-500
+    vip: `
+      bg-gold/10
+      text-gold
     `,
-
   };
-
-
-  const buttonText={
-
-    free:'Create Free Account',
-
-    regular:'Subscribe Now',
-
-    vip:'Become VIP Member',
-
-  };
-
-
-  const Icon=icons[plan.id];
-
 
   return (
-
     <div
       className={`
+        group
         relative
-        rounded-3xl
+        overflow-hidden
+        rounded-2xl
         border
-        p-8
+        p-5
+
         transition-all
-        duration-500
-        hover:-translate-y-2
-        hover:shadow-2xl
+        duration-300
+
+        hover:-translate-y-1
+        hover:shadow-xl
+
         ${cardStyles[plan.id]}
       `}
     >
 
+      {/* ================================================================
+          VIP GLOW
+      ================================================================= */}
 
-      {
-        plan.id==='vip' && (
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              bg-gradient-to-br
-              from-yellow-500/5
-              via-transparent
-              to-yellow-300/10
-            "
-          />
-
-        )
-      }
+      {plan.id === 'vip' && (
+        <div
+          className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+            h-40
+            w-40
+            rounded-full
+            bg-gold/10
+            blur-3xl
+          "
+        />
+      )}
 
 
-      {
-        plan.popular && (
+      {/* ================================================================
+          POPULAR
+      ================================================================= */}
 
-                <div
-                className="
-                    absolute
-                    left-1/2
-                    top-0
-                    flex
-                    -translate-x-1/2
-                    -translate-y-1/2
-                    items-center
-                    gap-2
-                    rounded-full
-                    bg-blue-600
-                    px-5
-                    py-2
-                    text-xs
-                    font-bold
-                    tracking-wider
-                    text-white
-                    shadow-xl
-                    shadow-blue-500/30
-                "
-                >
+      {plan.popular && (
+        <div
+          className="
+            absolute
+            right-4
+            top-4
 
-                <Sparkles size={14}/>
+            inline-flex
+            items-center
+            gap-1.5
 
-                MOST POPULAR
+            rounded-full
+            border
+            border-blue-500/20
+            bg-blue-500/10
 
-                </div>
+            px-2.5
+            py-1
 
-        )
-      }
+            text-[9px]
+            font-bold
+            uppercase
+            tracking-wider
+            text-blue-500
+          "
+        >
+          <Sparkles className="h-3 w-3" />
+
+          Popular
+        </div>
+      )}
 
 
       <div className="relative">
 
+        {/* ================================================================
+            HEADER
+        ================================================================= */}
 
-        <div className="flex items-center gap-4">
-
+        <div className="flex items-center gap-3">
 
           <div
             className={`
               flex
-              h-16
-              w-16
+              h-10
+              w-10
+              shrink-0
               items-center
               justify-center
-              rounded-2xl
+              rounded-xl
+
               ${iconStyles[plan.id]}
             `}
           >
-
-            <Icon size={30}/>
-
+            <Icon className="h-5 w-5" />
           </div>
 
 
-          <div>
+          <div className="min-w-0">
 
-            <h2 className="text-2xl font-black">
-
+            <h2
+              className="
+                text-lg
+                font-black
+                tracking-tight
+              "
+            >
               {plan.name}
-
             </h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-xs
+                text-muted-foreground
+              "
+            >
               {plan.description}
-
             </p>
 
           </div>
 
+        </div>
+
+
+        {/* ================================================================
+            PRICE
+        ================================================================= */}
+
+        <div className="mt-5">
+
+          {plan.price === 0 ? (
+
+            <div
+              className="
+                text-3xl
+                font-black
+                tracking-tight
+              "
+            >
+              Free
+            </div>
+
+          ) : (
+
+            <div className="flex items-baseline gap-1.5">
+
+              <span
+                className="
+                  text-3xl
+                  font-black
+                  tracking-[-0.04em]
+                "
+              >
+                {currencySymbol}
+                {plan.price.toLocaleString()}
+              </span>
+
+              <span
+                className="
+                  text-[10px]
+                  font-medium
+                  text-muted-foreground
+                "
+              >
+                / {subscriptionDurationDays} days
+              </span>
+
+            </div>
+
+          )}
 
         </div>
 
 
+        {/* ================================================================
+            FEATURES
+        ================================================================= */}
 
+        <div className="mt-5">
 
-        <div className="mt-8">
+          <ul className="space-y-2.5">
 
+            {plan.features.map((feature) => (
 
-          {
-            plan.price===0 ? (
+              <li
+                key={feature}
+                className="
+                  flex
+                  items-start
+                  gap-2
+                "
+              >
 
-              <div>
-
-                <span className="text-5xl font-black">
-
-                  ₦0
-
-                </span>
-
-              </div>
-
-            ):(
-
-              <div className="flex items-end gap-2">
-
-                <span className="text-5xl font-black">
-
-                  ₦{plan.price.toLocaleString()}
-
-                </span>
-
-                <span className="mb-2 text-muted-foreground">
-
-                  /30 Days
-
-                </span>
-
-              </div>
-
-            )
-          }
-
-
-        </div>
-
-
-
-
-        <div className="mt-10">
-
-
-          <ul className="space-y-4">
-
-
-            {
-              plan.features.map(feature=>(
-
-                <li
-                  key={feature}
-                  className="flex items-start gap-3"
+                <span
+                  className="
+                    mt-0.5
+                    flex
+                    h-4
+                    w-4
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-green-500/10
+                  "
                 >
-
-                  <div
+                  <Check
                     className="
-                      mt-0.5
-                      rounded-full
-                      bg-green-500/10
-                      p-1
+                      h-2.5
+                      w-2.5
+                      text-green-500
                     "
-                  >
+                  />
+                </span>
 
-                    <Check
-                      size={14}
-                      className="text-green-500"
-                    />
+                <span
+                  className="
+                    text-xs
+                    leading-5
+                    text-muted-foreground
+                  "
+                >
+                  {feature}
+                </span>
 
-                  </div>
+              </li>
 
-                  <span className="text-sm leading-6">
-
-                    {feature}
-
-                  </span>
-
-                </li>
-
-              ))
-            }
-
+            ))}
 
           </ul>
 
-
         </div>
 
 
-
+        {/* ================================================================
+            ACTION
+        ================================================================= */}
 
         <button
           onClick={handleSelectPlan}
           className={`
-            mt-10
+            mt-6
             flex
             w-full
             items-center
             justify-center
             rounded-xl
-            py-3.5
+            px-4
+            py-2.5
+
+            text-xs
             font-bold
+
             transition-all
             duration-300
 
+            hover:-translate-y-px
+
             ${
-              plan.id==='vip'
-                ?`
-                  bg-yellow-500
-                  text-black
-                  hover:bg-yellow-400
+              plan.id === 'vip'
+                ? `
+                  bg-gold
+                  text-background
+                  shadow-md
+                  shadow-gold/10
+                  hover:bg-gold/90
                 `
-                :`
+                : `
                   bg-primary
                   text-primary-foreground
+                  shadow-md
+                  shadow-primary/10
                   hover:opacity-90
                 `
             }
           `}
         >
-
           {buttonText[plan.id]}
-
         </button>
-
 
       </div>
 
-
     </div>
-
   );
-
 }

@@ -401,7 +401,7 @@ export default function CommunityPreviewCard({
 
               className="
 
-                text-sm
+                text-s
 
                 font-semibold
 
@@ -658,7 +658,7 @@ export default function CommunityPreviewCard({
 
                     line-clamp-3
 
-                    text-sm
+                    text-s
 
                     leading-relaxed
 
@@ -670,7 +670,7 @@ export default function CommunityPreviewCard({
 
                     line-clamp-4
 
-                    text-sm
+                    text-s
 
                     leading-relaxed
 
@@ -733,7 +733,7 @@ export default function CommunityPreviewCard({
 
               gap-2
 
-              text-sm
+              text-s
 
               text-muted-foreground
 

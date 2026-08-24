@@ -1,6 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+
 import { toast } from 'sonner';
 
 import {
@@ -10,8 +15,20 @@ import {
 
 import type { User } from '@/types/user';
 
+
+// ============================================================
+// HOOK
+// ============================================================
+
 export function useProfile() {
-  const queryClient = useQueryClient();
+
+  const queryClient =
+    useQueryClient();
+
+
+  // ==========================================================
+  // GET PROFILE
+  // ==========================================================
 
   const {
     data: user,
@@ -22,60 +39,104 @@ export function useProfile() {
     queryFn: userService.getMe,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (data: UpdateProfileDto) =>
-      userService.updateProfile(data),
 
-    onSuccess: (response) => {
-      toast.success(
-        response?.message ??
+  // ==========================================================
+  // UPDATE PROFILE
+  // ==========================================================
+
+  const updateMutation =
+    useMutation({
+
+      mutationFn: (
+        data: UpdateProfileDto,
+      ) =>
+        userService.updateProfile(data),
+
+      onSuccess: (
+        updatedUser,
+      ) => {
+
+        queryClient.setQueryData<User>(
+          ['profile'],
+          updatedUser,
+        );
+
+        toast.success(
           'Profile updated successfully.',
-      );
+        );
 
-      queryClient.invalidateQueries({
-        queryKey: ['profile'],
-      });
-    },
+      },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ??
-          'Failed to update profile.',
-      );
-    },
-  });
+      onError: (error: any) => {
 
-  const deleteMutation = useMutation({
-    mutationFn: userService.deleteAccount,
+        toast.error(
+          error?.response?.data?.message ??
+            'Failed to update profile.',
+        );
 
-    onSuccess: (response) => {
-      toast.success(
-        response?.message ??
+      },
+
+    });
+
+
+  // ==========================================================
+  // DELETE ACCOUNT
+  // ==========================================================
+
+  const deleteMutation =
+    useMutation({
+
+      mutationFn:
+        userService.deleteAccount,
+
+      onSuccess: () => {
+
+        queryClient.removeQueries({
+          queryKey: ['profile'],
+        });
+
+        toast.success(
           'Account deleted successfully.',
-      );
-    },
+        );
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ??
-          'Failed to delete account.',
-      );
-    },
-  });
+      },
+
+      onError: (error: any) => {
+
+        toast.error(
+          error?.response?.data?.message ??
+            'Failed to delete account.',
+        );
+
+      },
+
+    });
+
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
 
   return {
+
     user,
 
     loading,
 
-    updating: updateMutation.isPending,
+    updating:
+      updateMutation.isPending,
 
-    deleting: deleteMutation.isPending,
+    deleting:
+      deleteMutation.isPending,
 
-    updateProfile: updateMutation.mutateAsync,
+    updateProfile:
+      updateMutation.mutateAsync,
 
-    deleteAccount: deleteMutation.mutateAsync,
+    deleteAccount:
+      deleteMutation.mutateAsync,
 
     refetch,
+
   };
+
 }

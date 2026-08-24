@@ -34,10 +34,10 @@ export default function PublicLayout({
       </main>
 
       <CookieConsent />
-      <InternalAds
-  page={AdPage.HOME}
-  position={AdPosition.FOOTER}
-/>
+        <InternalAds
+          page={AdPage.HOME}
+          position={AdPosition.FOOTER}
+        />
 
       <Footer />
 

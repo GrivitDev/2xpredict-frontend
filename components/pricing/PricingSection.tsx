@@ -1,476 +1,480 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import PricingCard from './PricingCard';
+import GatewayModal from './GatewayModal';
 
 import { getPlanConfig } from '@/lib/plan-config';
 
 import type { PlanConfig } from '@/types/plan-config';
+import type { PaymentCurrency } from '@/services/payment-gateway.service';
+
 import { useAuth } from '@/providers/auth-provider';
+
 import {
   Crown,
-  Gift,
-  MessageCircle,
   ShieldCheck,
   TrendingUp,
+  Gift,
 } from 'lucide-react';
-import GatewayModal from './GatewayModal';
 
 type SelectedPlan =
   | 'regular'
   | 'vip'
   | null;
 
-
-
 export default function PricingSection() {
+  const { user } = useAuth();
 
-const { user } = useAuth();
   const [config, setConfig] =
     useState<PlanConfig | null>(null);
-
 
   const [loading, setLoading] =
     useState(true);
 
-
   const [selectedPlan, setSelectedPlan] =
     useState<SelectedPlan>(null);
 
+  const [currency, setCurrency] =
+    useState<PaymentCurrency>('USD');
 
+
+  /* ==========================================================================
+     LOAD PLAN CONFIG
+  ========================================================================== */
 
   useEffect(() => {
-
     async function loadPlans() {
-
       try {
-
         const data = await getPlanConfig();
 
         setConfig(data);
-
-      } catch(error) {
-
+      } catch (error) {
         console.error(
           'Failed loading plans',
           error,
         );
-
       } finally {
-
         setLoading(false);
-
       }
-
     }
 
-
     loadPlans();
-
   }, []);
 
 
+  /* ==========================================================================
+     CURRENCY
+  ========================================================================== */
 
+  useEffect(() => {
+    if (!user) {
+      setCurrency('USD');
+      return;
+    }
+
+    setCurrency(user.currency);
+  }, [user]);
+
+
+  /* ==========================================================================
+     PRICES
+  ========================================================================== */
+
+  const prices = useMemo(() => {
+    if (!config) {
+      return {
+        regular: 0,
+        vip: 0,
+      };
+    }
+
+    return {
+      regular:
+        currency === 'USD'
+          ? config.regularPriceUSD
+          : config.regularPrice,
+
+      vip:
+        currency === 'USD'
+          ? config.vipPriceUSD
+          : config.vipPrice,
+    };
+  }, [config, currency]);
+
+
+  /* ==========================================================================
+     LOADING
+  ========================================================================== */
 
   if (loading) {
-
     return (
-      <section className="px-6 py-20">
-        Loading plans...
+      <section
+        className="
+          px-4
+          py-10
+          sm:px-6
+        "
+      >
+        <div
+          className="
+            mx-auto
+            max-w-5xl
+            animate-pulse
+            rounded-2xl
+            border
+            border-border/50
+            bg-card/40
+            p-8
+          "
+        >
+          <div className="mx-auto h-5 w-32 rounded bg-muted" />
+
+          <div className="mx-auto mt-3 h-8 w-64 rounded bg-muted" />
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="h-72 rounded-2xl bg-muted/50" />
+            <div className="h-72 rounded-2xl bg-muted/50" />
+            <div className="h-72 rounded-2xl bg-muted/50" />
+          </div>
+        </div>
       </section>
     );
-
   }
 
 
+  /* ==========================================================================
+     ERROR
+  ========================================================================== */
 
   if (!config) {
-
     return (
-      <section className="px-6 py-20">
-        Failed loading plans.
+      <section className="px-4 py-10 text-center">
+        <p className="text-s text-muted-foreground">
+          Unable to load pricing.
+        </p>
       </section>
     );
-
   }
 
 
+  /* ==========================================================================
+     PLANS
+  ========================================================================== */
+
+  const plans = [
+    {
+      id: 'free' as const,
+
+      name: config.planLabels.free,
+
+      price: 0,
+
+      description: 'Get started',
+
+      features: [
+        'Daily free predictions',
+        'Match analysis',
+        'Community access',
+      ],
+    },
+
+    {
+      id: 'regular' as const,
+
+      name: config.planLabels.regular,
+
+      price: prices.regular,
+
+      description: 'More winning opportunities',
+
+      popular: true,
+
+      features: [
+        'More predictions',
+        'More prediction markets',
+        'Reduced ads',
+        'Priority releases',
+      ],
+    },
+
+    {
+      id: 'vip' as const,
+
+      name: config.planLabels.vip,
+
+      price: prices.vip,
+
+      description: 'The complete experience',
+
+      features: [
+        'Unlimited predictions',
+        'Zero advertisements',
+        'Priority support',
+        'Early premium tips',
+        'VIP rewards',
+      ],
+    },
+  ];
 
 
-const plans=[
+  /* ==========================================================================
+     BENEFITS
+  ========================================================================== */
 
-  {
-
-    id:'free',
-
-    name:config.planLabels.free,
-
-    price:0,
-
-    description:
-      'Perfect for getting started with Honest Predict.',
-
-    features:[
-      'Daily free football predictions',
-      'Basic match analysis',
-      'Limited prediction access',
-      'Community support',
-      'Standard advertisements',
-      'Create your prediction history',
-    ],
-
-  },
-
-
-  {
-
-    id:'regular',
-
-    name:config.planLabels.regular,
-
-    price:config.regularPrice,
-
-    description:
-      'For users who want more winning opportunities every day.',
-
-    popular:true,
-
-    features:[
-      'Everything in Free',
-      'Access to Regular Predictions',
-      'More prediction markets',
-      'Reduced advertisements',
-      'Priority prediction releases',
-      'Purchase exclusive predictions',
-      'Faster customer support',
-    ],
-
-  },
-
-
-  {
-
-    id:'vip',
-
-    name:config.planLabels.vip,
-
-    price:config.vipPrice,
-
-    description:
-      'The complete Honest Predict experience with every premium benefit.',
-
-    features:[
-      'Everything in Regular',
-      'Unlimited VIP Predictions',
-      'Highest confidence selections',
-      'VIP Telegram Channel Access',
-      'Zero advertisements',
-      'Priority customer support',
-      'Early access to premium tips',
-      'Exclusive VIP promotions & rewards',
-    ],
-
-  },
-
-];
-
-
+  const benefits = [
+    {
+      icon: TrendingUp,
+      label: 'Premium Predictions',
+    },
+    {
+      icon: ShieldCheck,
+      label: 'Reduced Ads',
+    },
+    {
+      icon: Gift,
+      label: 'VIP Rewards',
+    },
+  ];
 
 
   return (
+    <>
+      <section
+        className="
+          px-4
+          py-8
 
-    <section className="px-6 py-20">
+          sm:px-6
+          sm:py-10
 
+          lg:py-12
+        "
+      >
 
-      <div className="mx-auto max-w-6xl">
+        <div
+          className="
+            mx-auto
+            max-w-5xl
+          "
+        >
 
+          {/* ================================================================
+              COMPACT HEADER
+          ================================================================ */}
 
-<div className="mb-16 text-center">
+          <div className="text-center">
 
-  <div
-    className="
-      inline-flex
-      items-center
-      gap-2
-      rounded-full
-      border
-      border-primary/20
-      bg-primary/10
-      px-5
-      py-2
-      text-sm
-      font-semibold
-      text-primary
-    "
-  >
+            <div
+              className="
+                inline-flex
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-primary/20
+                bg-primary/10
+                px-3
+                py-1.5
+                text-[10px]
+                font-bold
+                uppercase
+                tracking-[0.16em]
+                text-primary
+              "
+            >
+              <Crown className="h-3.5 w-3.5" />
 
-    <Crown size={16}/>
-
-    Premium Membership
-
-  </div>
-
-
-
-  <h1
-className="
-mx-auto
-mt-5
-max-w-4xl
-text-3xl
-font-black
-leading-tight
-sm:text-4xl
-lg:text-6xl
-"
-  >
-
-    Unlock the Full
-    <span className="text-primary">
-      {' '}
-      Honest Predict
-    </span>
-    {' '}
-    Experience
-
-  </h1>
+              Premium Membership
+            </div>
 
 
+            <h1
+              className="
+                mt-3
+                text-2xl
+                font-black
+                tracking-tight
 
-  <p
-    className="
-      mx-auto
-      mt-5
-      max-w-2xl
-      text-base
-      leading-7
-      text-muted-foreground
-      md:text-lg
-    "
-  >
-
-    Choose the membership that fits your football journey.
-    Enjoy premium predictions, fewer advertisements,
-    exclusive VIP privileges, and a smoother experience
-    built for passionate football fans.
-
-  </p>
+                sm:text-3xl
+              "
+            >
+              Choose Your Plan
+            </h1>
 
 
-
-<div
-className="
-mt-8
-flex
-gap-3
-overflow-x-auto
-pb-2
-scrollbar-hide
-md:flex-wrap
-md:justify-center
-"
->
-
-    <div
-className="
-flex
-shrink-0
-items-center
-gap-2
-rounded-full
-border
-bg-card
-px-3
-py-2
-text-xs
-shadow-sm
-sm:px-4
-sm:text-sm
-"
-    >
-
-      <TrendingUp
-        size={16}
-        className="text-primary"
-      />
-
-      Premium Predictions
-
-    </div>
+            <p
+              className="
+                mx-auto
+                mt-2
+                max-w-md
+                text-s
+                text-muted-foreground
+              "
+            >
+              More predictions. Fewer ads. Better access.
+            </p>
 
 
+            {/* Benefits */}
 
-    <div
-className="
-flex
-shrink-0
-items-center
-gap-2
-rounded-full
-border
-bg-card
-px-3
-py-2
-text-xs
-shadow-sm
-sm:px-4
-sm:text-sm
-"
-    >
+            <div
+              className="
+                mt-4
+                flex
+                flex-wrap
+                justify-center
+                gap-2
+              "
+            >
+              {benefits.map(
+                ({ icon: Icon, label }) => (
+                  <div
+                    key={label}
+                    className="
+                      inline-flex
+                      items-center
+                      gap-1.5
+                      rounded-full
+                      border
+                      border-border/60
+                      bg-card/60
+                      px-2.5
+                      py-1
+                      text-[10px]
+                      font-medium
+                      text-muted-foreground
+                    "
+                  >
+                    <Icon
+                      className="
+                        h-3
+                        w-3
+                        text-primary
+                      "
+                    />
 
-      <MessageCircle
-        size={16}
-        className="text-blue-500"
-      />
+                    {label}
+                  </div>
+                ),
+              )}
+            </div>
 
-      VIP Telegram
-
-    </div>
-
-
-
-    <div
-className="
-flex
-shrink-0
-items-center
-gap-2
-rounded-full
-border
-bg-card
-px-3
-py-2
-text-xs
-shadow-sm
-sm:px-4
-sm:text-sm
-"
-    >
-
-      <ShieldCheck
-        size={16}
-        className="text-green-500"
-      />
-
-      Less Ads
-
-    </div>
+          </div>
 
 
+          {/* ================================================================
+              CURRENCY
+          ================================================================ */}
 
-    <div
-className="
-flex
-shrink-0
-items-center
-gap-2
-rounded-full
-border
-bg-card
-px-3
-py-2
-text-xs
-shadow-sm
-sm:px-4
-sm:text-sm
-"
-    >
+          <div
+            className="
+              mt-5
+              flex
+              justify-center
+            "
+          >
+            <div
+              className="
+                rounded-full
+                border
+                border-border/60
+                bg-muted/30
+                px-3
+                py-1
+                text-[10px]
+                text-muted-foreground
+              "
+            >
+              Prices in{' '}
 
-      <Gift
-        size={16}
-        className="text-amber-500"
-      />
-
-      Rewards
-
-    </div>
-
-  </div>
-
-</div>
-
-
-
-
-        <div className="
-          grid
-          gap-6
-          md:grid-cols-3
-        ">
+              <span
+                className="
+                  font-bold
+                  text-foreground
+                "
+              >
+                {currency === 'NGN'
+                  ? '₦ NGN'
+                  : '$ USD'}
+              </span>
+            </div>
+          </div>
 
 
-          {
-            plans.map((plan)=>(
+          {/* ================================================================
+              PRICING CARDS
+          ================================================================ */}
 
+          <div
+            className="
+              mt-6
+              grid
+              gap-4
+
+              md:grid-cols-3
+              md:items-center
+            "
+          >
+            {plans.map((plan) => (
               <PricingCard
-
                 key={plan.id}
+                plan={plan}
+                currency={currency}
+                subscriptionDurationDays={
+                  config.subscriptionDurationDays
+                }
+                onSelect={(id) => {
+                  if (
+                    id === 'regular' ||
+                    id === 'vip'
+                  ) {
+                    if (!user) {
+                      window.location.href =
+                        '/login?redirect=/pricing';
 
-                plan={plan as typeof plan & { id: 'free' | 'regular' | 'vip' }}
-
-                onSelect={(id)=>{
-
-
-                    if(
-                        id === 'regular' ||
-                        id === 'vip'
-                    ){
-
-
-                        if(!user){
-
-                        window.location.href =
-                            `/login?redirect=/pricing`;
-
-
-                        return;
-
-                        }
-
-
-                        setSelectedPlan(id);
-
+                      return;
                     }
 
-
-                    }}
-
+                    setSelectedPlan(id);
+                  }
+                }}
               />
-
-            ))
-          }
-
+            ))}
+          </div>
 
         </div>
 
+      </section>
 
 
-      </div>
+      {/* ======================================================================
+          PAYMENT
+      ======================================================================= */}
 
-
-
-
-{selectedPlan && (
-  <GatewayModal
-    type="subscription"
-    target={selectedPlan}
-    amount={
-      selectedPlan === 'regular'
-        ? config.regularPrice
-        : config.vipPrice
-    }
-    config={config}
-    title={`Complete ${selectedPlan.toUpperCase()} Subscription`}
-    description="Choose your preferred payment gateway to securely complete your subscription."
-    onClose={() => setSelectedPlan(null)}
-  />
-)}
-
-
-
-    </section>
-
+      {selectedPlan && (
+        <GatewayModal
+          type="subscription"
+          target={selectedPlan}
+          amount={
+            selectedPlan === 'regular'
+              ? prices.regular
+              : prices.vip
+          }
+          currency={currency}
+          config={config}
+          title={
+            `Complete ${selectedPlan.toUpperCase()} Subscription`
+          }
+          description={
+            'Choose your preferred payment gateway.'
+          }
+          onClose={() =>
+            setSelectedPlan(null)
+          }
+        />
+      )}
+    </>
   );
-
 }

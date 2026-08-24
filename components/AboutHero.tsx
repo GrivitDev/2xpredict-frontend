@@ -3,22 +3,15 @@
 import Image from 'next/image';
 
 import {
-  motion,
-} from 'framer-motion';
-
-import {
   Trophy,
   TrendingUp,
   ShieldCheck,
   Target,
+  Sparkles,
 } from 'lucide-react';
 
-
 export default function AboutHero() {
-
-
   return (
-
     <section
       className="
         relative
@@ -26,53 +19,36 @@ export default function AboutHero() {
         mx-auto
         max-w-7xl
         overflow-hidden
-        rounded-3xl
+        rounded-2xl
         border
         border-border
-        px-3
-        pb-8
-        pt-8
-        shadow-2xl
+        px-4
+        py-5
+        shadow-xl
         sm:px-6
-        sm:pb-10
-        sm:pt-10
-        lg:px-10
-        lg:pb-12
-        lg:pt-12
+        sm:py-6
+
       "
     >
-
-
       {/* ======================================== */}
-      {/* STADIUM BACKGROUND IMAGE */}
+      {/* TEAM BACKGROUND */}
       {/* ======================================== */}
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-          -z-20
-        "
-      >
-
+      <div className="pointer-events-none absolute inset-0 -z-20">
         <Image
-          src="/hero/stadium-3.webp"
+          src="/images/team.png"
           alt=""
           fill
           priority
           className="
-            object-cover
+            object-contain
             object-center
           "
         />
-
       </div>
 
-
-
       {/* ======================================== */}
-      {/* THEME-AWARE BACKGROUND OVERLAY */}
+      {/* THEME OVERLAY */}
       {/* ======================================== */}
 
       <div
@@ -81,16 +57,12 @@ export default function AboutHero() {
           absolute
           inset-0
           -z-10
-          bg-background/85
-          backdrop-blur-[2px]
-          dark:bg-background/70
+          bg-background/10
         "
       />
 
-
-
       {/* ======================================== */}
-      {/* STADIUM COLOR OVERLAY */}
+      {/* COLOUR / READABILITY OVERLAY */}
       {/* ======================================== */}
 
       <div
@@ -99,86 +71,46 @@ export default function AboutHero() {
           absolute
           inset-0
           -z-10
-          bg-gradient-to-br
-          from-primary/10
-          via-transparent
-          to-primary/5
+          bg-gradient-to-r
+          from-background
+          via-background/35
+          to-primary/10
         "
       />
 
-
-
       {/* ======================================== */}
-      {/* BACKGROUND GLOW */}
+      {/* TEAM CUP HIGHLIGHT */}
       {/* ======================================== */}
 
       <div
         className="
           pointer-events-none
           absolute
-          inset-0
-          -z-10
-          overflow-hidden
+          -right-8
+          bottom-[-15px]
+          -z-5
+          h-[230px]
+          w-[300px]
+          opacity-95
+          sm:right-4
+          sm:h-[280px]
+          sm:w-[360px]
+          sm:opacity-95
+          lg:right-2
+          lg:h-[320px]
+          lg:w-[420px]
         "
       >
-
-        <motion.div
-
-          animate={{
-            x: [-50, 50, -50],
-            y: [0, 40, 0],
-          }}
-
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-
+        <Image
+          src="/images/teamcup.png"
+          alt=""
+          fill
           className="
-            absolute
-            left-1/2
-            top-20
-            h-[500px]
-            w-[500px]
-            -translate-x-1/2
-            rounded-full
-            bg-primary/15
-            blur-[140px]
+            object-contain
+            object-bottom
           "
-
         />
-
-
-        <motion.div
-
-          animate={{
-            x: [40, -40, 40],
-            y: [30, -30, 30],
-          }}
-
-          transition={{
-            duration: 22,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-
-          className="
-            absolute
-            right-0
-            top-40
-            h-[350px]
-            w-[350px]
-            rounded-full
-            bg-primary/10
-            blur-[120px]
-          "
-
-        />
-
       </div>
-
-
 
       {/* ======================================== */}
       {/* HERO CONTENT */}
@@ -189,443 +121,311 @@ export default function AboutHero() {
           relative
           z-10
           grid
+          min-h-[320px]
           items-center
-          gap-6
-          lg:grid-cols-2
+          gap-2
+          md:min-h-[340px]
+          md:grid-cols-[1.15fr_0.85fr]
+          lg:min-h-[355px]
+          lg:grid-cols-[1.2fr_0.8fr]
         "
       >
-
-
-
         {/* ======================================== */}
-        {/* LEFT SIDE */}
-        {/* ======================================== */}
-
-        <div>
-
-
-          {/* EYEBROW */}
-
-          <motion.div
-
-            initial={{
-              opacity: 0,
-              y: -20,
-            }}
-
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-
-            transition={{
-              duration: 0.6,
-            }}
-
-            className="
-              flex
-              w-fit
-              items-center
-              gap-1
-              rounded-full
-              border
-              border-border
-              bg-background/50
-              px-3
-              py-1
-              text-foreground
-              shadow-lg
-              backdrop-blur-xl
-            "
-          >
-
-            <Trophy
-              className="
-                h-4
-                w-4
-                text-primary
-              "
-            />
-
-            Football Intelligence Platform
-
-          </motion.div>
-
-
-
-          {/* TITLE */}
-
-          <motion.h1
-
-            initial={{
-              opacity: 0,
-              y: 30,
-            }}
-
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-
-            transition={{
-              duration: 0.8,
-              delay: 0.2,
-            }}
-
-            className="
-              mt-2
-              text-4xl
-              font-black
-              tracking-tight
-              text-foreground
-              md:text-4xl
-            "
-          >
-
-            <span
-              className="
-                block
-                bg-gradient-to-r
-                from-foreground
-                via-primary
-                to-primary/70
-                bg-[length:200%]
-                bg-clip-text
-                text-transparent
-                animate-gradient
-              "
-            >
-
-              About 1xpredicts
-
-            </span>
-
-          </motion.h1>
-
-
-
-          {/* DESCRIPTION */}
-
-          <motion.p
-
-            initial={{
-              opacity: 0,
-            }}
-
-            animate={{
-              opacity: 1,
-            }}
-
-            transition={{
-              duration: 0.8,
-              delay: 0.5,
-            }}
-
-            className="
-              mt-2
-              max-w-xl
-              text-lg
-              leading-8
-              text-muted-foreground
-            "
-          >
-
-            1xpredicts is a football analysis and prediction platform built
-            for fans who want a deeper understanding of the game.
-
-            We provide carefully researched match insights, predictions and
-            premium football content to help our community follow football
-            with better information.
-
-          </motion.p>
-
-
-
-          {/* FEATURES */}
-
-          <div
-            className="
-              mt-2
-              flex
-              flex-wrap
-              gap-2
-            "
-          >
-
-            <Feature
-              icon={<TrendingUp />}
-              text="Smart Match Analysis"
-            />
-
-
-            <Feature
-              icon={<ShieldCheck />}
-              text="Reliable Insights"
-            />
-
-
-            <Feature
-              icon={<Target />}
-              text="Prediction Accuracy"
-            />
-
-          </div>
-
-
-        </div>
-
-
-
-        {/* ======================================== */}
-        {/* RIGHT IMAGE AREA */}
+        {/* LEFT CONTENT */}
         {/* ======================================== */}
 
         <div
           className="
             relative
-            flex
-            justify-center
+            z-30
+            -mt-2
+            max-w-2xl
+            md:ml-4
+            md:-mt-8
+            lg:ml-8
+            lg:-mt-10
           "
         >
+          {/* CONTENT GLASS */}
 
-
-          {/* FLOATING PREDICTION CARD */}
-
-          <FloatingCard
-            className="
-              left-0
-              top-16
-            "
-            title="Arsenal"
-            value="82%"
-          />
-
-
-          <FloatingCard
-            className="
-              bottom-20
-              right-0
-            "
-            title="BTTS"
-            value="76%"
-          />
-
-
-
-          {/* FOOTBALL */}
-
-          <motion.div
-
-            initial={{
-              opacity: 0,
-              scale: 0.8,
-            }}
-
-            animate={{
-              opacity: 1,
-              scale: 1,
-              y: [0, -15, 0],
-            }}
-
-            transition={{
-              opacity: {
-                duration: 1,
-              },
-
-              scale: {
-                duration: 1,
-              },
-
-              y: {
-                duration: 5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              },
-            }}
-
+          <div
             className="
               relative
-              h-[420px]
-              w-full
-              max-w-md
+              max-w-2xl
+              rounded-2xl
+              border
+              border-border/60
+              bg-background/55
+              p-4
+              shadow-xl
+              backdrop-blur-md
+              sm:p-5
+              lg:p-6
             "
           >
+            {/* SUBTLE INNER GLOW */}
 
             <div
               className="
+                pointer-events-none
                 absolute
                 inset-0
-                rounded-full
-                bg-primary/20
-                blur-3xl
+                rounded-2xl
+                bg-gradient-to-br
+                from-primary/10
+                via-transparent
+                to-transparent
               "
             />
 
+            <div className="relative">
+              {/* EYEBROW */}
 
-            <Image
+              <div
+                className="
+                  inline-flex
+                  items-center
+                  gap-1.5
+                  rounded-full
+                  border
+                  border-primary/20
+                  bg-primary/10
+                  px-3
+                  py-1
+                  text-xs
+                  font-semibold
+                  text-primary
+                "
+              >
+                <Sparkles className="h-3.5 w-3.5" />
 
-              src="/images/ball3.png"
+                Football Intelligence
+              </div>
 
-              alt="Football analysis"
+              {/* TITLE */}
 
-              fill
+              <h1
+                className="
+                  mt-2
+                  text-3xl
+                  font-black
+                  leading-tight
+                  tracking-tight
+                  text-foreground
+                  sm:text-3xl
+                  lg:text-4xl
+                "
+              >
+                <span
+                  className="
+                    bg-gradient-to-r
+                    from-foreground
+                    via-primary
+                    to-primary/60
+                    bg-clip-text
+                    text-transparent
+                  "
+                >
+                  About 2xpredict
+                </span>
+              </h1>
 
-              className="
-                object-contain
-                drop-shadow-2xl
-              "
+              {/* DESCRIPTION */}
 
-              priority
+              <p
+                className="
+                  mt-2
+                  max-w-xl
+                  text-s
+                  leading-6
+                  text-muted-foreground
+                  sm:text-base
+                  sm:leading-7
+                "
+              >
+                A modern football intelligence platform combining match
+                analysis, statistical insights and carefully researched
+                predictions to help fans understand the game beyond the
+                scoreboard.
+              </p>
 
-            />
+              {/* FEATURE CARDS */}
 
-          </motion.div>
+              <div
+                className="
+                  mt-4
+                  grid
+                  grid-cols-3
+                  gap-2
+                  max-w-xl
+                "
+              >
+                <FeatureCard
+                  icon={<TrendingUp />}
+                  value="Smart"
+                  label="Analysis"
+                />
 
+                <FeatureCard
+                  icon={<ShieldCheck />}
+                  value="Trusted"
+                  label="Insights"
+                />
 
+                <FeatureCard
+                  icon={<Target />}
+                  value="Focused"
+                  label="Predictions"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* ======================================== */}
+        {/* PLAYER IMAGE */}
+        {/* ======================================== */}
 
+ {/* PLAYER IMAGE */}
+
+<div
+  className="
+    relative
+    z-20
+    hidden
+    min-h-[340px]
+    items-end
+    justify-end
+    md:flex
+  "
+>
+  {/* PLAYER GLOW */}
+
+  <div
+    className="
+      pointer-events-none
+      absolute
+      bottom-0
+      right-1/4
+      h-48
+      w-48
+      rounded-full
+      bg-primary/25
+      blur-3xl
+      md:right-4
+      lg:right-0
+    "
+  />
+
+  {/* PLAYER */}
+
+  <div
+    className="
+      relative
+      h-[390px]
+      w-[390px]
+      translate-x-8
+      translate-y-8
+      lg:h-[450px]
+      lg:w-[450px]
+      lg:translate-x-12
+      lg:translate-y-10
+      md:right-142
+      lg:right-232
+    "
+  >
+    <Image
+      src="/images/goal.png"
+      alt="Football player celebrating"
+      fill
+      priority
+      className="
+        object-contain
+        object-bottom
+        drop-shadow-2xl
+      "
+    />
+  </div>
+</div>
       </div>
-
-
     </section>
-
   );
-
 }
 
+/* ======================================== */
+/* FEATURE CARD */
+/* ======================================== */
 
-
-/*
- * ========================================
- * FEATURE
- * ========================================
- */
-
-function Feature({
+function FeatureCard({
   icon,
-  text,
+  value,
+  label,
 }: {
   icon: React.ReactNode;
-  text: string;
+  value: string;
+  label: string;
 }) {
-
-
   return (
-
     <div
       className="
-        flex
-        items-center
-        gap-2
-        rounded-full
+        group
+        relative
+        overflow-hidden
+        rounded-xl
         border
-        border-border
-        bg-background/50
-        px-4
+        border-border/70
+        bg-background/65
+        px-2.5
         py-2
-        text-sm
-        text-foreground
-        shadow-md
-        backdrop-blur-xl
+        shadow-sm
+        backdrop-blur-md
+        transition-colors
+        hover:border-primary/40
       "
     >
+      {/* TOP ACCENT */}
 
-      <span
+      <div
         className="
-          text-primary
+          absolute
+          left-0
+          top-0
+          h-[2px]
+          w-full
+          bg-gradient-to-r
+          from-primary
+          to-transparent
+          opacity-70
         "
-      >
+      />
 
-        {icon}
+      <div className="flex items-center gap-2">
+        <div
+          className="
+            flex
+            h-7
+            w-7
+            shrink-0
+            items-center
+            justify-center
+            rounded-lg
+            bg-primary/10
+            text-primary
+          "
+        >
+          {icon}
+        </div>
 
-      </span>
+        <div className="min-w-0">
+          <p className="truncate text-xs font-bold text-foreground">
+            {value}
+          </p>
 
-
-      {text}
-
+          <p className="truncate text-[10px] text-muted-foreground">
+            {label}
+          </p>
+        </div>
+      </div>
     </div>
-
   );
-
-}
-
-
-
-/*
- * ========================================
- * FLOATING CARD
- * ========================================
- */
-
-function FloatingCard({
-  title,
-  value,
-  className,
-}: {
-  title: string;
-  value: string;
-  className: string;
-}) {
-
-
-  return (
-
-    <motion.div
-
-      animate={{
-        y: [0, -15, 0],
-      }}
-
-      transition={{
-        duration: 4,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-
-      className={`
-        absolute
-        z-20
-        rounded-2xl
-        border
-        border-border
-        bg-background/60
-        p-4
-        text-foreground
-        shadow-xl
-        backdrop-blur-xl
-        ${className}
-      `}
-    >
-
-      <p
-        className="
-          text-xs
-          text-muted-foreground
-        "
-      >
-
-        {title}
-
-      </p>
-
-
-      <p
-        className="
-          mt-1
-          text-2xl
-          font-black
-          text-primary
-        "
-      >
-
-        {value}
-
-      </p>
-
-
-    </motion.div>
-
-  );
-
 }

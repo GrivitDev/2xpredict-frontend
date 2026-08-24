@@ -32,18 +32,20 @@ export function InlineAd({
         overflow-hidden
         rounded-2xl
         border
+        border-border/60
+        bg-card
         shadow-lg
         transition-all
-        duration-500
-        hover:border-primary/40
-        hover:shadow-2xl
+        duration-300
+        hover:border-primary/30
+        hover:shadow-xl
       "
     >
 
       <motion.div
         initial={{
           opacity: 0,
-          y: 20,
+          y: 12,
         }}
         whileInView={{
           opacity: 1,
@@ -51,114 +53,144 @@ export function InlineAd({
         }}
         viewport={{
           once: true,
-          amount: .3,
+          amount: .2,
         }}
         transition={{
-          duration: .45,
+          duration: .4,
+          ease: 'easeOut',
         }}
         className="
           grid
-          md:grid-cols-[40%_60%]
+          md:grid-cols-[42%_58%]
         "
       >
 
-        {/* LEFT IMAGE */}
+        {/* IMAGE */}
 
-        {
-          ad.image && (
-<div
-  className="
-    relative
-    flex
-    overflow-hidden
-    min-h-[320px]
-  "
->
+        {ad.image && (
 
-  <motion.div
-    whileHover={{
-      scale: 1.05,
-    }}
-    transition={{
-      duration: .6,
-    }}
-    className="
-      absolute
-      inset-0
-    "
-  >
+          <div
+            className="
+              group/image
+              relative
+              min-h-[220px]
+              overflow-hidden
 
-    <AdImage
-      ad={ad}
-      fill
-      className="
-        object-cover
-        object-center
-      "
-    />
+              sm:min-h-[280px]
+              md:min-h-[340px]
+            "
+          >
 
-  </motion.div>
+            <motion.div
+              initial={{
+                scale: 1,
+              }}
+              whileHover={{
+                scale: 1.04,
+              }}
+              transition={{
+                duration: .7,
+                ease: 'easeOut',
+              }}
+              className="
+                absolute
+                inset-0
+              "
+            >
 
-</div>
+              <AdImage
+                ad={ad}
+                fill
+                className="
+                  object-cover
+                  object-center
+                "
+              />
 
-          )
-        }
+            </motion.div>
 
-        {/* RIGHT CONTENT */}
+            {/* Image edge fade */}
+
+            <div
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                right-0
+                hidden
+                w-24
+                bg-gradient-to-l
+                from-black/20
+                to-transparent
+                md:block
+              "
+            />
+
+          </div>
+
+        )}
+
+        {/* CONTENT */}
 
         <div
           className="
             relative
+            min-h-[340px]
             overflow-hidden
+            bg-black
           "
         >
 
-          {/* Same image as background */}
+          {/* Background Image */}
 
-          {
-            ad.image && (
+          {ad.image && (
 
-              <div
+            <div
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                overflow-hidden
+              "
+            >
+
+              <AdImage
+                ad={ad}
+                fill
                 className="
-                  absolute
-                  inset-0
+                  scale-105
+                  object-cover
+                  object-center
+                  opacity-30
                 "
-              >
+              />
 
-<AdImage
-  ad={ad}
-  fill
-  className="
-    object-cover
-    object-center
-    scale-110
-    opacity-45
-  "
-/>
+            </div>
 
-              </div>
+          )}
 
-            )
-          }
-
-          {/* Dark overlay */}
-
-<div
-  className="
-    absolute
-    inset-0
-    bg-black/70
-    backdrop-blur-[2px]
-  "
-/>
-
-          {/* Soft glow */}
+          {/* Content Overlay */}
 
           <div
             className="
+              pointer-events-none
               absolute
               inset-0
-              bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.08),transparent_35%)]
+              bg-gradient-to-br
+              from-black/80
+              via-black/75
+              to-black/60
+            "
+          />
+
+          {/* Ambient Highlight */}
+
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-0
+              bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.08),transparent_38%)]
             "
           />
 
@@ -171,8 +203,10 @@ export function InlineAd({
               flex
               h-full
               flex-col
-              p-6
-              lg:p-8
+              p-4
+
+              sm:p-5
+              lg:p-6
             "
           >
 
@@ -183,11 +217,16 @@ export function InlineAd({
                 flex
                 items-start
                 justify-between
-                gap-6
+                gap-4
               "
             >
 
-              <div className="flex-1">
+              <div
+                className="
+                  min-w-0
+                  flex-1
+                "
+              >
 
                 <AdTitle
                   ad={ad}
@@ -196,7 +235,11 @@ export function InlineAd({
 
               </div>
 
-              <AdBadge />
+              <div className="shrink-0">
+
+                <AdBadge />
+
+              </div>
 
             </div>
 
@@ -204,16 +247,17 @@ export function InlineAd({
 
             <div
               className="
-                flex-1
                 flex
+                flex-1
                 items-center
-                justify-center
-                py-6
+                py-5
+                sm:py-6
               "
             >
 
               <div
                 className="
+                  w-full
                   max-w-xl
                 "
               >
@@ -227,20 +271,26 @@ export function InlineAd({
 
             </div>
 
-            {/* Bottom */}
+            {/* Footer */}
 
             <div
               className="
                 flex
                 flex-col
                 gap-4
-                lg:flex-row
-                lg:items-end
-                lg:justify-between
+
+                sm:flex-row
+                sm:items-end
+                sm:justify-between
               "
             >
 
-              <div className="max-w-lg">
+              <div
+                className="
+                  min-w-0
+                  max-w-lg
+                "
+              >
 
                 <AdInstructions
                   ad={ad}
@@ -249,9 +299,19 @@ export function InlineAd({
 
               </div>
 
-              <AdActions
-                ad={ad}
-              />
+              <div
+                className="
+                  shrink-0
+                  self-start
+                  sm:self-end
+                "
+              >
+
+                <AdActions
+                  ad={ad}
+                />
+
+              </div>
 
             </div>
 
@@ -260,6 +320,20 @@ export function InlineAd({
         </div>
 
       </motion.div>
+
+      {/* Inner highlight */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          rounded-2xl
+          ring-1
+          ring-inset
+          ring-white/10
+        "
+      />
 
     </AdWrapper>
 

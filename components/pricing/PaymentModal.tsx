@@ -12,30 +12,31 @@ import {
 import api from '@/lib/axios';
 
 import type { PlanConfig } from '@/types/plan-config';
+import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
 import PaymentProofUpload from './PaymentProofUpload';
 
 
 
 interface PaymentModalProps {
-
   type:
     | 'subscription'
     | 'vip_upgrade'
     | 'prediction';
 
-  target:string;
+  target: string;
 
-  amount:number;
+  amount: number;
 
-  config:PlanConfig;
+  currency: PaymentCurrency;
 
-  title?:string;
+  config: PlanConfig;
 
-  description?:string;
+  title?: string;
 
-  onClose:()=>void;
+  description?: string;
 
+  onClose: () => void;
 }
 
 
@@ -44,11 +45,12 @@ export default function PaymentModal({
   type,
   target,
   amount,
+  currency,
   config,
   title,
   description,
   onClose,
-}:PaymentModalProps){
+}: PaymentModalProps) {
 
 
   const [transferReference,setTransferReference] =
@@ -79,7 +81,10 @@ export default function PaymentModal({
     useState(false);
 
 
-
+const bankDetails =
+  currency === 'USD'
+    ? config.bankDetailsUSD
+    : config.bankDetails;
 
   async function submitPayment(){
 
@@ -119,28 +124,28 @@ export default function PaymentModal({
 
 
 
-      await api.post(
-        '/payments',
-        {
+await api.post(
+  '/payments',
+  {
+    type,
 
-          type,
+    target,
 
-          target,
+    currency,
 
-          transferReference:
-            transferReference.trim(),
+    transferReference:
+      transferReference.trim(),
 
-          proofMessage:
-            proofMessage.trim(),
+    proofMessage:
+      proofMessage.trim(),
 
-          proofImageUrl:
-            proof.url,
+    proofImageUrl:
+      proof.url,
 
-          proofPublicId:
-            proof.publicId,
-
-        },
-      );
+    proofPublicId:
+      proof.publicId,
+  },
+);
 
 
 
@@ -381,7 +386,7 @@ export default function PaymentModal({
 
                 <p
                   className="
-                    text-sm
+                    text-s
                     font-semibold
                     text-primary
                   "
@@ -431,7 +436,7 @@ export default function PaymentModal({
                       border-primary/20
                       bg-primary/5
                       p-3
-                      text-sm
+                      text-s
                       text-muted-foreground
                     "
                   >
@@ -462,16 +467,9 @@ export default function PaymentModal({
                 "
               >
 
-                <p
-                  className="
-                    text-sm
-                    text-muted-foreground
-                  "
-                >
-
-                  Amount to pay
-
-                </p>
+                  <p className="text-s text-muted-foreground">
+                    Amount to pay ({currency})
+                  </p>
 
 
 
@@ -484,7 +482,10 @@ export default function PaymentModal({
                   "
                 >
 
-                  ₦{amount.toLocaleString()}
+                  {currency === 'USD'
+                    ? `$${amount.toLocaleString()}`
+                    : `₦${amount.toLocaleString()}`
+                  }
 
                 </p>
 
@@ -497,7 +498,7 @@ export default function PaymentModal({
                     <p
                       className="
                         mt-3
-                        text-sm
+                        text-s
                         text-muted-foreground
                       "
                     >
@@ -548,57 +549,38 @@ export default function PaymentModal({
                   className="
                     mt-5
                     space-y-3
-                    text-sm
+                    text-s
                   "
                 >
 
                   <p>
-
                     Bank:
                     {' '}
-                    {config.bankDetails.bankName}
-
+                    {bankDetails.bankName}
                   </p>
 
-
-
                   <p>
-
                     Account Name:
                     {' '}
-                    {config.bankDetails.accountName}
-
+                    {bankDetails.accountName}
                   </p>
-
-
 
                   <p>
-
                     Account Number:
                     {' '}
-                    {config.bankDetails.accountNumber}
-
+                    {bankDetails.accountNumber}
                   </p>
 
-
-
-
-                  {
-                    config.bankDetails.instructions && (
-
-                      <p
-                        className="
-                          pt-3
-                          text-muted-foreground
-                        "
-                      >
-
-                        {config.bankDetails.instructions}
-
-                      </p>
-
-                    )
-                  }
+                  {bankDetails.instructions && (
+                    <p
+                      className="
+                        pt-3
+                        text-muted-foreground
+                      "
+                    >
+                      {bankDetails.instructions}
+                    </p>
+                  )}
 
 
                 </div>
@@ -726,7 +708,7 @@ export default function PaymentModal({
                       border-red-500/20
                       bg-red-500/10
                       p-4
-                      text-sm
+                      text-s
                       text-red-500
                     "
                   >

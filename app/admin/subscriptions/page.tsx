@@ -77,7 +77,7 @@ export default function AdminSubscriptionsPage() {
 
           <p className="
             mt-2
-            text-sm
+            text-s
             text-muted-foreground
           ">
             Please login again to continue.
@@ -135,7 +135,7 @@ export default function AdminSubscriptionsPage() {
             bg-primary/10
             px-4
             py-2
-            text-sm
+            text-s
             text-primary
           ">
             <Sparkles className="h-4 w-4"/>
@@ -186,7 +186,7 @@ export default function AdminSubscriptionsPage() {
           "/>
 
           <div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-s text-muted-foreground">
               Subscription System
             </p>
 
@@ -241,7 +241,7 @@ export default function AdminSubscriptionsPage() {
             </h3>
 
             <p className="
-              text-sm
+              text-s
               text-muted-foreground
             ">
               Pending payment approvals and configuration
@@ -312,7 +312,7 @@ export default function AdminSubscriptionsPage() {
 
 
               <p className="
-                text-sm
+                text-s
                 text-muted-foreground
               ">
                 {item.title}
@@ -404,7 +404,7 @@ function SectionTitle({
       </h2>
 
       <p className="
-        text-sm
+        text-s
         text-muted-foreground
       ">
         {description}

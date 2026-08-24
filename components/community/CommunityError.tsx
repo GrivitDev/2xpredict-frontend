@@ -77,7 +77,7 @@ export default function CommunityError({
             mx-auto
             mt-2
             max-w-md
-            text-sm
+            text-s
             leading-6
             text-muted-foreground
           "

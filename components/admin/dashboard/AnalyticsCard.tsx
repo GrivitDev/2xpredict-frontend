@@ -1,126 +1,88 @@
 import {
-Card,
-CardContent,
-CardHeader,
-CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 
-
 import {
-LucideIcon,
+  LucideIcon,
 } from 'lucide-react';
 
+import {
+  ReactNode,
+} from 'react';
 
+interface Props {
+  title: string;
 
-interface Props{
+  children: ReactNode;
 
-title:string;
+  description?: string;
 
-value:string|number;
+  icon: LucideIcon;
 
-description?:string;
-
-icon:LucideIcon;
-
-highlight?:boolean;
-
+  highlight?: boolean;
 }
-
-
 
 export default function AnalyticsCard({
+  title,
+  children,
+  description,
+  icon: Icon,
+  highlight,
+}: Props) {
+  return (
+    <Card
+      className={`
+        surface-card
+        transition-all
+        ${
+          highlight
+            ? 'border-primary/40 shadow-sm'
+            : ''
+        }
+      `}
+    >
+      <CardHeader
+        className="
+          flex
+          flex-row
+          items-center
+          justify-between
+          pb-3
+        "
+      >
+        <CardTitle
+          className="
+            text-s
+            font-medium
+            text-muted-foreground
+          "
+        >
+          {title}
+        </CardTitle>
 
-title,
+        <Icon
+          size={20}
+          className="text-primary"
+        />
+      </CardHeader>
 
-value,
+      <CardContent className="space-y-3">
+        {children}
 
-description,
-
-icon:Icon,
-
-highlight,
-
-}:Props){
-
-
-return (
-
-<Card
-className={`
-surface-card
-transition-all
-${highlight?'border-primary/40':''}
-`}
->
-
-
-<CardHeader
-className="
-flex
-flex-row
-items-center
-justify-between
-"
->
-
-<CardTitle
-className="
-text-sm
-text-muted-foreground
-"
->
-
-{title}
-
-</CardTitle>
-
-
-<Icon
-size={20}
-/>
-
-
-</CardHeader>
-
-
-
-<CardContent>
-
-
-<div
-className="
-text-3xl
-font-bold
-"
->
-
-{value}
-
-</div>
-
-
-
-{
-description &&
-<p
-className="
-text-xs
-text-muted-foreground
-mt-1
-"
->
-
-{description}
-
-</p>
-}
-
-
-</CardContent>
-
-
-</Card>
-
-);
-
+        {description && (
+          <p
+            className="
+              text-xs
+              text-muted-foreground
+            "
+          >
+            {description}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }

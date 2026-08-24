@@ -221,7 +221,7 @@ export default function ArticlesPage() {
             bg-primary/10
             px-4
             py-2
-            text-sm
+            text-s
             text-primary
           ">
 
@@ -268,7 +268,7 @@ export default function ArticlesPage() {
 
 
           <p className="
-            text-sm
+            text-s
             text-muted-foreground
           ">
             Total Articles
@@ -489,7 +489,7 @@ export default function ArticlesPage() {
                   bg-primary
                   px-5
                   py-3
-                  text-sm
+                  text-s
                   font-semibold
                   text-primary-foreground
                   transition

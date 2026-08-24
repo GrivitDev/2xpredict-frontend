@@ -144,7 +144,7 @@ export default function PromoRewards({
         {
           rewards.length === 0 ? (
 
-            <p className="text-sm text-muted-foreground">
+            <p className="text-s text-muted-foreground">
 
               No rewards generated yet.
 
@@ -192,7 +192,7 @@ export default function PromoRewards({
 
 
 
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-s text-muted-foreground">
 
                           Claim #{reward.claimNumber}
 

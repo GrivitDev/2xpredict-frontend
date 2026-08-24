@@ -58,28 +58,27 @@ export class GoogleProvider
     const options =
       config?.options ?? {};
 
-    const clientId =
-      typeof options.clientId === 'string'
-        ? options.clientId
-        : '';
+const clientId =
+  typeof options.clientId === 'string'
+    ? options.clientId.trim()
+    : '';
 
-    this.config = {
-      clientId,
+if (!clientId) {
+  throw new Error(
+    'Google AdSense clientId is required.',
+  );
+}
 
-      enabled:
-        config?.enabled ?? true,
-
-      priority:
-        config?.priority ??
-        this.priority,
-
-      autoAds:
-        typeof options.autoAds === 'boolean'
-          ? options.autoAds
-          : false,
-
-      options,
-    };
+this.config = {
+  clientId,
+  enabled: config?.enabled ?? true,
+  priority: config?.priority ?? this.priority,
+  autoAds:
+    typeof options.autoAds === 'boolean'
+      ? options.autoAds
+      : false,
+  options,
+};
 
     await this.adapter.initialize(
       this.config,

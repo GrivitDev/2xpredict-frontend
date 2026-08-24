@@ -7,12 +7,20 @@ import { AdPosition } from '@/constants/ads/ad-position';
 export default function PricingPage() {
   return (
     <main className="min-h-screen">
+        <InternalAds
+          page={AdPage.HOME}
+          position={AdPosition.HERO}
+        />
 
       <PricingSection />
-<InternalAds
-  page={AdPage.HOME}
-  position={AdPosition.POPUP}
-/>
+            <InternalAds
+              page={AdPage.HOME}
+              position={AdPosition.INLINE}
+            />
+            <InternalAds
+              page={AdPage.HOME}
+              position={AdPosition.POPUP}
+            />
     </main>
   );
 }

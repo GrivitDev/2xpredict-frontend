@@ -278,7 +278,7 @@ export default function CreateMediaPostModal({
 
           <p
             className="
-              text-sm
+              text-s
               text-muted-foreground
             "
           >

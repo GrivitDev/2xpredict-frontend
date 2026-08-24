@@ -73,22 +73,6 @@ export default function AdminSidebar({
     },
 
     {
-      title:'Content',
-      items:[
-        {
-          name:'Create Article',
-          href:'/admin/create-article',
-          icon:FileText,
-        },
-        {
-          name:'Manage Articles',
-          href:'/admin/articles',
-          icon:FileText,
-        },
-      ],
-    },
-
-    {
       title:'Management',
       items:[
         {

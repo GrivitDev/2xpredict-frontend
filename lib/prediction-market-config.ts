@@ -39,7 +39,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Over / Under Goals',
+  label:'O/U Goals',
   value:PredictionMarkets.OVER_UNDER,
 
   selections:[
@@ -115,7 +115,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Both Teams To Score',
+  label:'BTTS',
   value:PredictionMarkets.BOTH_TEAMS_TO_SCORE,
 
   selections:[
@@ -170,7 +170,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Draw No Bet',
+  label:'DNB',
   value:PredictionMarkets.DRAW_NO_BET,
 
   selections:[
@@ -234,7 +234,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Team Total Goals',
+  label:'Team Goals',
   value:PredictionMarkets.TEAM_TOTAL_GOALS,
 
   selections:[
@@ -321,7 +321,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Half Time Result',
+  label:'HT Result',
   value:PredictionMarkets.HALF_TIME_RESULT,
 
   selections:[
@@ -353,7 +353,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Half Time / Full Time',
+  label:'HT / FT',
   value:PredictionMarkets.HALF_TIME_FULL_TIME,
 
   selections:[
@@ -423,7 +423,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Second Half Result',
+  label:'2H Result',
   value:PredictionMarkets.SECOND_HALF_RESULT,
 
   selections:[
@@ -983,7 +983,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Anytime Goalscorer',
+  label:'Anytime Scorer',
   value:PredictionMarkets.ANYTIME_GOALSCORER,
 
   selections:[
@@ -1007,7 +1007,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'First Goalscorer',
+  label:'First Scorer',
   value:PredictionMarkets.FIRST_GOALSCORER,
 
   selections:[
@@ -1087,7 +1087,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Player Shots On Target',
+  label:'Player SOT',
   value:PredictionMarkets.PLAYER_SHOTS_ON_TARGET,
 
   selections:[
@@ -1417,7 +1417,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Possession Winner',
+  label:'Possession',
   value:PredictionMarkets.POSSESSION_WINNER,
 
   selections:[
@@ -1475,7 +1475,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Most Shots On Target',
+  label:'Most SOT',
   value:PredictionMarkets.MOST_SHOTS_ON_TARGET,
 
   selections:[
@@ -1507,7 +1507,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'First Half Goals',
+  label:'1H Goals',
   value:PredictionMarkets.FIRST_HALF_GOALS,
 
   selections:[
@@ -1557,7 +1557,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Second Half Goals',
+  label:'2H Goals',
   value:PredictionMarkets.SECOND_HALF_GOALS,
 
   selections:[
@@ -1663,7 +1663,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'First Half Corners',
+  label:'1H Corners',
   value:PredictionMarkets.FIRST_HALF_CORNERS,
 
   selections:[
@@ -1713,11 +1713,10 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'First Half Cards',
+  label:'1H Cards',
   value:PredictionMarkets.FIRST_HALF_CARDS,
 
   selections:[
-
 
     {
       label:'Over 0.5 First Half Cards',
@@ -1999,7 +1998,7 @@ PredictionMarketOption[] = [
 // ==================================================
 
 {
-  label:'Both Teams To Score + Goals',
+  label:'BTTS + Goals',
   value:PredictionMarkets.BTTS_GOALS,
 
   selections:[

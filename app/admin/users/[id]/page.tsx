@@ -176,7 +176,7 @@ export default function UserDetailsPage() {
         </h2>
 
         <p className="
-          text-sm
+          text-s
           text-muted-foreground
         ">
           This user does not exist or cannot be accessed.
@@ -190,7 +190,7 @@ export default function UserDetailsPage() {
             bg-primary
             px-5
             py-2
-            text-sm
+            text-s
             text-primary-foreground
           "
         >
@@ -227,7 +227,7 @@ export default function UserDetailsPage() {
           inline-flex
           items-center
           gap-2
-          text-sm
+          text-s
           text-muted-foreground
           transition
           hover:text-foreground
@@ -313,7 +313,7 @@ export default function UserDetailsPage() {
 
   <p className="
     mt-2
-    text-sm
+    text-s
     text-muted-foreground
   ">
     @{user.user?.username}
@@ -341,7 +341,7 @@ export default function UserDetailsPage() {
       bg-muted/40
       px-4
       py-2
-      text-sm
+      text-s
     ">
 
       <Mail
@@ -372,7 +372,7 @@ export default function UserDetailsPage() {
             bg-green-500/10
             px-4
             py-2
-            text-sm
+            text-s
             text-green-500
             transition
             hover:bg-green-500/20
@@ -411,7 +411,7 @@ export default function UserDetailsPage() {
             bg-emerald-500/10
             px-4
             py-2
-            text-sm
+            text-s
             text-emerald-500
             transition
             hover:bg-emerald-500/20
@@ -544,7 +544,7 @@ export default function UserDetailsPage() {
                 bg-yellow-500/15
                 px-4
                 py-2
-                text-sm
+                text-s
                 text-yellow-500
                 transition
                 hover:bg-yellow-500/25
@@ -566,7 +566,7 @@ export default function UserDetailsPage() {
                 bg-green-500/15
                 px-4
                 py-2
-                text-sm
+                text-s
                 text-green-500
                 transition
                 hover:bg-green-500/25
@@ -591,7 +591,7 @@ export default function UserDetailsPage() {
                 bg-blue-500/15
                 px-4
                 py-2
-                text-sm
+                text-s
                 text-blue-500
                 transition
                 hover:bg-blue-500/25
@@ -614,7 +614,7 @@ export default function UserDetailsPage() {
                 bg-red-500/15
                 px-4
                 py-2
-                text-sm
+                text-s
                 text-red-500
                 transition
                 hover:bg-red-500/25
@@ -716,7 +716,7 @@ export default function UserDetailsPage() {
             <ul className="
               mt-4
               space-y-2
-              text-sm
+              text-s
             ">
 
               {

@@ -147,7 +147,7 @@ export default function PaymentHistoryTable({
               Payment History
             </h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-s text-muted-foreground">
               User financial transactions and payment records.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function PaymentHistoryTable({
             No payment history
           </h3>
 
-          <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 max-w-sm text-s leading-6 text-muted-foreground">
             This user has not made any payments yet.
           </p>
         </div>
@@ -256,7 +256,7 @@ export default function PaymentHistoryTable({
                       </div>
                     </div>
 
-                    <p className="shrink-0 text-sm font-black text-primary">
+                    <p className="shrink-0 text-s font-black text-primary">
                       {money(payment.amount)}
                     </p>
                   </div>
@@ -351,7 +351,7 @@ export default function PaymentHistoryTable({
                           <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
 
                           <div>
-                            <p className="text-sm font-semibold">
+                            <p className="text-s font-semibold">
                               {date.date}
                             </p>
 
@@ -382,7 +382,7 @@ export default function PaymentHistoryTable({
                       </td>
 
                       <td className="px-4 py-4">
-                        <p className="text-sm font-black text-primary">
+                        <p className="text-s font-black text-primary">
                           {money(payment.amount)}
                         </p>
                       </td>
@@ -418,7 +418,7 @@ export default function PaymentHistoryTable({
                             </span>
                           </span>
                         ) : (
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-s text-muted-foreground">
                             —
                           </span>
                         )}

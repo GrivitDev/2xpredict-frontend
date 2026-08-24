@@ -1,18 +1,11 @@
 'use client';
 
 import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-
-import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
   Crown,
   Gift,
-  Sparkles,
   Target,
   Users,
   Wallet,
@@ -20,15 +13,9 @@ import {
 
 import { toast } from 'sonner';
 
+import { Badge } from '@/components/ui/badge';
 
-import {
-  Badge,
-} from '@/components/ui/badge';
-
-import {
-  Button,
-} from '@/components/ui/button';
-
+import { Button } from '@/components/ui/button';
 
 import {
   CardContent,
@@ -36,610 +23,515 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-
 import {
-  DashboardCard,
-} from '@/components/dashboard/shared/DashboardCard';
+  useJoinPromo,
+  useReferralPromos,
+} from '@/hooks/use-promos';
 
 
-import {
-  EmptyState,
-} from '@/components/dashboard/shared/EmptyState';
-
-
-import {
-  LoadingCard,
-} from '@/components/dashboard/shared/LoadingCard';
-
-
-import {
-  SectionTitle,
-} from '@/components/dashboard/shared/SectionTitle';
-
-
-import {
-  getReferralPromos,
-  joinPromo,
-} from '@/services/promos.service';
-
-
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function AvailableCampaigns() {
 
-
-  const queryClient =
-    useQueryClient();
-
-
+  // ==========================================================
+  // REFERRAL CAMPAIGNS
+  // ==========================================================
 
   const {
     data: campaigns = [],
     isLoading,
-  } = useQuery({
-
-    queryKey:[
-      'active-referral-promos',
-    ],
-
-    queryFn:
-      getReferralPromos,
-
-  });
+    isError,
+    error,
+  } = useReferralPromos();
 
 
+  // ==========================================================
+  // JOIN CAMPAIGN
+  // ==========================================================
+
+  const joinMutation = useJoinPromo();
 
 
-  const joinMutation =
-    useMutation({
+  // ==========================================================
+  // DEBUG
+  // ==========================================================
 
-      mutationFn:
-        joinPromo,
+  console.log(
+    'REFERRAL CAMPAIGNS:',
+    campaigns,
+  );
 
-
-      onSuccess(){
-
-        toast.success(
-          'Campaign joined successfully',
-        );
-
-
-        queryClient.invalidateQueries({
-
-          queryKey:[
-            'promo-progress',
-          ],
-
-        });
+  console.log(
+    'REFERRAL ERROR:',
+    error,
+  );
 
 
-        queryClient.invalidateQueries({
+  // ==========================================================
+  // LOADING
+  // ==========================================================
 
-          queryKey:[
-            'active-referral-promos',
-          ],
-
-        });
-
-      },
-
-
-      onError(){
-
-        toast.error(
-          'Unable to join campaign',
-        );
-
-      },
-
-    });
-
-
-
-
-
-  if(isLoading){
+  if (isLoading) {
 
     return (
-
-      <LoadingCard
-        text="Loading available campaigns..."
-      />
-
-    );
-
-  }
-
-
-
-
-
-  if(campaigns.length === 0){
-
-    return (
-
-      <EmptyState
-
-        title="No Campaigns Available"
-
-        description="
-          There are currently no active referral campaigns.
+      <div
+        className="
+          flex
+          min-h-20
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-border/50
+          bg-card
+          text-[11px]
+          text-muted-foreground
         "
-
-        icon={Gift}
-
-      />
-
+      >
+        Loading...
+      </div>
     );
 
   }
 
 
+  // ==========================================================
+  // ERROR
+  // ==========================================================
+
+  if (isError) {
+
+    return (
+      <div
+        className="
+          flex
+          flex-col
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-dashed
+          border-destructive/30
+          bg-destructive/5
+          px-3
+          py-6
+          text-center
+        "
+      >
+
+        <Gift
+          className="
+            mb-1.5
+            h-5
+            w-5
+            text-destructive
+          "
+        />
+
+        <p className="text-xs font-semibold">
+          Unable to load campaigns
+        </p>
+
+        <p
+          className="
+            mt-0.5
+            text-[10px]
+            text-muted-foreground
+          "
+        >
+          Please try again later.
+        </p>
+
+      </div>
+    );
+
+  }
 
 
+  // ==========================================================
+  // EMPTY
+  // ==========================================================
+
+  if (campaigns.length === 0) {
+
+    return (
+      <div
+        className="
+          flex
+          flex-col
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-dashed
+          border-border/60
+          bg-muted/10
+          px-3
+          py-6
+          text-center
+        "
+      >
+
+        <Gift
+          className="
+            mb-1.5
+            h-5
+            w-5
+            text-muted-foreground
+          "
+        />
+
+        <p className="text-xs font-semibold">
+          No Campaigns Available
+        </p>
+
+        <p
+          className="
+            mt-0.5
+            text-[10px]
+            text-muted-foreground
+          "
+        >
+          No active referral campaigns at the moment.
+        </p>
+
+      </div>
+    );
+
+  }
+
+
+  // ==========================================================
+  // CAMPAIGNS
+  // ==========================================================
 
   return (
 
     <div
       className="
-        space-y-6
+        grid
+        gap-2
+        sm:grid-cols-2
       "
     >
 
+      {campaigns.map((campaign) => (
 
-      <SectionTitle
+        <div
+          key={campaign._id}
+          className="
+            overflow-hidden
+            rounded-lg
+            border
+            border-border/60
+            bg-card
+          "
+        >
 
-        title="Available Campaigns"
+          {/* ==================================================
+              HEADER
+          ================================================== */}
 
-        description="
-          Join campaigns and unlock exclusive rewards.
-        "
+          <CardHeader
+            className="
+              border-b
+              border-border/40
+              px-3
+              py-2
+            "
+          >
 
-      />
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-2
+              "
+            >
 
-
-
-
-      <div
-        className="
-          grid
-          gap-6
-          lg:grid-cols-2
-        "
-      >
-
-        {
-          campaigns.map(
-            (campaign:any)=>(
-
-
-              <DashboardCard
-
-                key={
-                  campaign._id
-                }
-
+              <CardTitle
                 className="
-                  group
-                  relative
-                  overflow-hidden
-                  border-border/60
-                  bg-gradient-to-br
-                  from-background
-                  via-background
-                  to-primary/5
-                  transition-all
-                  duration-500
-                  hover:-translate-y-1
-                  hover:shadow-2xl
+                  flex
+                  min-w-0
+                  items-center
+                  gap-1.5
+                  text-xs
                 "
-
               >
-
 
                 <div
                   className="
-                    pointer-events-none
-                    absolute
-                    -right-20
-                    -top-20
-                    h-64
-                    w-64
-                    rounded-full
-                    bg-primary/20
-                    blur-3xl
+                    flex
+                    h-6
+                    w-6
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-md
+                    bg-primary/10
+                    text-primary
                   "
-                />
-
-
-
-                <CardHeader
-
-                  className="
-                    relative
-                    border-b
-                    border-border/50
-                    px-5
-                    py-5
-                    sm:px-6
-                  "
-
                 >
 
-                  <div
-                    className="
-                      flex
-                      flex-col
-                      gap-4
-                      sm:flex-row
-                      sm:items-center
-                      sm:justify-between
-                    "
-                  >
-
-
-                    <CardTitle
-
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                        text-lg
-                      "
-
-                    >
-
-                      <div
-                        className="
-                          flex
-                          h-12
-                          w-12
-                          items-center
-                          justify-center
-                          rounded-2xl
-                          bg-gradient-to-br
-                          from-violet-500/20
-                          to-cyan-500/20
-                          text-primary
-                        "
-                      >
-
-                        <Gift
-                          className="
-                            h-6
-                            w-6
-                          "
-                        />
-
-                      </div>
-
-
-
-                      <span className="truncate">
-
-                        {campaign.name}
-
-                      </span>
-
-
-                    </CardTitle>
-
-
-
-
-
-                    <Badge
-
-                      className="
-                        w-fit
-                        rounded-full
-                        bg-emerald-500/10
-                        px-4
-                        text-emerald-600
-                        dark:text-emerald-400
-                      "
-
-                    >
-
-                      Active
-
-                    </Badge>
-
-
-                  </div>
-
-
-                </CardHeader>
-
-
-
-
-
-
-                <CardContent
-
-                  className="
-                    relative
-                    space-y-6
-                    p-5
-                    sm:p-6
-                  "
-
-                >
-
-
-                  <p
-                    className="
-                      text-sm
-                      leading-relaxed
-                      text-muted-foreground
-                    "
-                  >
-
-                    {campaign.description}
-
-                  </p>
-
-
-
-
-
-                  <div
-                    className="
-                      grid
-                      gap-4
-                      sm:grid-cols-2
-                    "
-                  >
-
-
-                    <CampaignInfo
-
-                      icon={Target}
-
-                      title="Requirement"
-
-                      value={
-                        campaign.targetCount
-                      }
-
-                      description="
-                        referrals needed
-                      "
-
-                    />
-
-
-
-
-                    <CampaignInfo
-
-                      icon={
-                        campaign.rewardType === 'cash'
-                          ? Wallet
-                          : Crown
-                      }
-
-                      title="Reward"
-
-                      value={
-
-                        campaign.rewardType === 'cash'
-
-                          ?
-
-                          new Intl.NumberFormat(
-                            'en-GB',
-                            {
-                              style:'currency',
-                              currency:'NGN',
-                              maximumFractionDigits:0,
-                            },
-                          )
-                          .format(
-                            campaign.rewardAmount,
-                          )
-
-                          :
-
-                          campaign.rewardPlan
-
-                      }
-
-                      description={
-
-                        campaign.rewardType !== 'cash'
-
-                        ?
-
-                        `${campaign.rewardDurationDays} days`
-
-                        :
-
-                        undefined
-
-                      }
-
-                    />
-
-
-                  </div>
-
-
-
-
-
-
-                  <div
-                    className="
-                      space-y-4
-                      rounded-2xl
-                      border
-                      border-border/50
-                      bg-muted/20
-                      p-4
-                    "
-                  >
-
-
-                    <MetaRow
-
-                      icon={Users}
-
-                      label="Maximum Claims"
-
-                      value={
-                        campaign.maxClaims ||
-                        'Unlimited'
-                      }
-
-                    />
-
-
-
-                    <MetaRow
-
-                      icon={CalendarDays}
-
-                      label="Ends"
-
-                      value={
-
-                        new Date(
-                          campaign.endDate,
-                        )
-                        .toLocaleDateString(
-                          'en-GB',
-                          {
-                            day:'2-digit',
-                            month:'short',
-                            year:'numeric',
-                          },
-                        )
-
-                      }
-
-                    />
-
-
-                  </div>
-
-
-
-
-
-
-                  <Button
-
-                    className="
-                      h-12
-                      w-full
-                      rounded-xl
-                      text-base
-                      font-bold
-                    "
-
-                    disabled={
-                      joinMutation.isPending ||
-                      campaign.isJoined
-                    }
-
-                    onClick={() =>
-                      joinMutation.mutate(
-                        campaign._id,
+                  <Gift className="h-3 w-3" />
+
+                </div>
+
+                <span className="truncate">
+                  {campaign.name}
+                </span>
+
+              </CardTitle>
+
+
+              <Badge
+                className="
+                  shrink-0
+                  rounded-full
+                  bg-emerald-500/10
+                  px-1.5
+                  py-0
+                  text-[8px]
+                  text-emerald-600
+                  dark:text-emerald-400
+                "
+              >
+                Active
+              </Badge>
+
+            </div>
+
+          </CardHeader>
+
+
+          {/* ==================================================
+              CONTENT
+          ================================================== */}
+
+          <CardContent
+            className="
+              space-y-2
+              p-3
+            "
+          >
+
+            {/* =================================================
+                DESCRIPTION
+            ================================================= */}
+
+            <p
+              className="
+                line-clamp-1
+                text-[10px]
+                leading-relaxed
+                text-muted-foreground
+              "
+            >
+              {campaign.description}
+            </p>
+
+
+            {/* =================================================
+                REQUIREMENT + REWARD
+            ================================================= */}
+
+            <div
+              className="
+                grid
+                grid-cols-2
+                gap-1.5
+              "
+            >
+
+              <CampaignInfo
+                icon={Target}
+                title="Requirement"
+                value={campaign.targetCount}
+                description="referrals"
+              />
+
+
+              <CampaignInfo
+                icon={
+                  campaign.rewardType === 'cash'
+                    ? Wallet
+                    : Crown
+                }
+                title="Reward"
+                value={
+                  campaign.rewardType === 'cash'
+                    ? new Intl.NumberFormat(
+                        'en-GB',
+                        {
+                          style: 'currency',
+                          currency: 'NGN',
+                          maximumFractionDigits: 0,
+                        },
+                      ).format(
+                        campaign.rewardAmount ?? 0,
                       )
-                    }
+                    : campaign.rewardPlan ?? 'Subscription'
+                }
+                description={
+                  campaign.rewardType !== 'cash'
+                    ? `${campaign.rewardDurationDays ?? 0} days`
+                    : undefined
+                }
+              />
 
-                  >
-
-                    {
-                      campaign.isJoined
-
-                      ?
-
-                      <>
-
-                        <CheckCircle2
-                          className="
-                            mr-2
-                            h-5
-                            w-5
-                          "
-                        />
-
-                        Joined
-
-                      </>
+            </div>
 
 
-                      :
+            {/* =================================================
+                META
+            ================================================= */}
 
-                      <>
+            <div
+              className="
+                divide-y
+                divide-border/40
+                rounded-md
+                border
+                border-border/40
+                bg-muted/15
+                px-2
+              "
+            >
 
-                        Join Campaign
-
-
-                        <ArrowRight
-                          className="
-                            ml-auto
-                            h-5
-                            w-5
-                          "
-                        />
-
-                      </>
-
-                    }
-
-
-                  </Button>
-
-
-
-
-                </CardContent>
-
-
-              </DashboardCard>
+              <MetaRow
+                icon={Users}
+                label="Max claims"
+                value={
+                  campaign.maxClaims === 0
+                    ? 'Unlimited'
+                    : campaign.maxClaims ?? 1
+                }
+              />
 
 
-            ),
-          )
-        }
+              <MetaRow
+                icon={CalendarDays}
+                label="Ends"
+                value={
+                  campaign.endDate
+                    ? new Date(
+                        campaign.endDate,
+                      ).toLocaleDateString(
+                        'en-GB',
+                        {
+                          day: '2-digit',
+                          month: 'short',
+                        },
+                      )
+                    : '—'
+                }
+              />
+
+            </div>
 
 
-      </div>
+            {/* =================================================
+                ACTION
+            ================================================= */}
 
+            <Button
+              className="
+                h-8
+                w-full
+                rounded-md
+                text-[10px]
+                font-semibold
+              "
+              disabled={
+                joinMutation.isPending
+              }
+              onClick={() => {
+
+                if (!campaign._id) {
+                  toast.error(
+                    'Invalid campaign',
+                  );
+
+                  return;
+                }
+
+                joinMutation.mutate(
+                  campaign._id,
+                  {
+                    onSuccess: () => {
+
+                      toast.success(
+                        'Campaign joined successfully',
+                      );
+
+                    },
+
+                    onError: () => {
+
+                      toast.error(
+                        'Unable to join campaign',
+                      );
+
+                    },
+                  },
+                );
+
+              }}
+            >
+
+              {joinMutation.isPending ? (
+
+                <>
+                  Joining...
+                </>
+
+              ) : (
+
+                <>
+                  Join Campaign
+
+                  <ArrowRight
+                    className="
+                      ml-auto
+                      h-3
+                      w-3
+                    "
+                  />
+
+                </>
+
+              )}
+
+            </Button>
+
+          </CardContent>
+
+        </div>
+
+      ))}
 
     </div>
 
   );
-
 }
 
 
-
-
-
-
+// ============================================================
+// META ROW
+// ============================================================
 
 function MetaRow({
-
-  icon:Icon,
-
+  icon: Icon,
   label,
-
   value,
-
-}:{
-
-  icon:any;
-
-  label:string;
-
-  value:string | number;
-
-}){
-
+}: {
+  icon: any;
+  label: string;
+  value: string | number;
+}) {
 
   return (
 
@@ -648,104 +540,84 @@ function MetaRow({
         flex
         items-center
         justify-between
-        gap-3
-        text-sm
+        gap-2
+        py-1
+        text-[9px]
       "
     >
 
       <div
         className="
           flex
+          min-w-0
           items-center
-          gap-2
+          gap-1
           text-muted-foreground
         "
       >
 
         <Icon
           className="
-            h-4
-            w-4
+            h-2.5
+            w-2.5
+            shrink-0
           "
         />
 
-        {label}
+        <span className="truncate">
+          {label}
+        </span>
 
       </div>
 
 
-      <span
-        className="
-          font-semibold
-        "
-      >
-
+      <span className="shrink-0 font-semibold">
         {value}
-
       </span>
-
 
     </div>
 
   );
-
 }
 
 
-
-
-
+// ============================================================
+// CAMPAIGN INFO
+// ============================================================
 
 function CampaignInfo({
-
-  icon:Icon,
-
+  icon: Icon,
   title,
-
   value,
-
   description,
-
-}:{
-
-  icon:any;
-
-  title:string;
-
-  value:string | number;
-
-  description?:string;
-
-}){
-
+}: {
+  icon: any;
+  title: string;
+  value: string | number;
+  description?: string;
+}) {
 
   return (
 
     <div
-
       className="
-        rounded-2xl
+        min-w-0
+        rounded-md
         border
-        border-border/50
-        bg-muted/20
-        p-4
-        transition-all
-        duration-300
-        hover:-translate-y-1
-        hover:shadow-lg
+        border-border/40
+        bg-muted/15
+        p-2
       "
-
     >
-
 
       <div
         className="
           flex
-          h-10
-          w-10
+          h-5
+          w-5
           items-center
           justify-center
-          rounded-xl
+          rounded
           bg-primary/10
           text-primary
         "
@@ -753,68 +625,55 @@ function CampaignInfo({
 
         <Icon
           className="
-            h-5
-            w-5
+            h-2.5
+            w-2.5
           "
         />
 
       </div>
 
 
-
-
-      <p
-        className="
-          mt-3
-          text-sm
-          text-muted-foreground
-        "
-      >
-
-        {title}
-
-      </p>
-
-
-
-
       <p
         className="
           mt-1
-          break-words
-          text-xl
-          font-black
+          truncate
+          text-[8px]
+          font-medium
+          text-muted-foreground
         "
       >
-
-        {value}
-
+        {title}
       </p>
 
 
+      <p
+        className="
+          mt-0.5
+          truncate
+          text-[11px]
+          font-bold
+        "
+      >
+        {value}
+      </p>
 
 
-      {
-        description && (
+      {description && (
 
-          <p
-            className="
-              mt-1
-              text-sm
-              text-muted-foreground
-            "
-          >
+        <p
+          className="
+            mt-0.5
+            truncate
+            text-[8px]
+            text-muted-foreground
+          "
+        >
+          {description}
+        </p>
 
-            {description}
-
-          </p>
-
-        )
-      }
-
+      )}
 
     </div>
 
   );
-
 }

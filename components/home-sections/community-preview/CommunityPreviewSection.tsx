@@ -28,7 +28,6 @@ import {
 import CommunityPreviewCard from './CommunityPreviewCard';
 
 import CommunityPreviewSkeleton from './CommunityPreviewSkeleton';
-import ParticleField from '../features/ParticleField';
 
 
 export default function CommunityPreviewSection() {
@@ -167,7 +166,6 @@ export default function CommunityPreviewSection() {
         "
 
       />
-<ParticleField />
 
       <div
 
@@ -436,7 +434,7 @@ export default function CommunityPreviewSection() {
 
                     mt-1
 
-                    text-sm
+                    text-s
 
                     text-muted-foreground
 
@@ -521,7 +519,7 @@ export default function CommunityPreviewSection() {
 
                     mt-1
 
-                    text-sm
+                    text-s
 
                     text-muted-foreground
 

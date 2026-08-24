@@ -17,18 +17,36 @@ export function AdWrapper({
   children,
   className,
 }: Props) {
+
   const ref =
     useInternalAdImpression(adId);
 
   return (
+
     <article
       ref={ref}
       className={cn(
-        'relative isolate overflow-hidden',
+        `
+          group
+          relative
+          isolate
+          overflow-hidden
+
+          rounded-xl
+
+          transition-all
+          duration-300
+
+          will-change-transform
+        `,
         className,
       )}
     >
+
       {children}
+
     </article>
+
   );
+
 }

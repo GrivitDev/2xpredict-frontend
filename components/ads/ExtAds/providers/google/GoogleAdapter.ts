@@ -17,7 +17,9 @@ import type {
 
 declare global {
   interface Window {
-    adsbygoogle?: unknown[];
+    adsbygoogle?: {
+      push: (params: Record<string, unknown>) => void;
+    };
   }
 }
 
@@ -26,46 +28,46 @@ export class GoogleAdapter {
 
   private initialized = false;
 
-  private scriptPromise: Promise<void> | null = null;
+async initialize(
+  config: GoogleAdSenseConfig,
+  context?: ExternalAdProviderContext,
+): Promise<void> {
 
-  async initialize(
-    config: GoogleAdSenseConfig,
-    context?: ExternalAdProviderContext,
-  ): Promise<void> {
-    this.config = config;
+  if (this.initialized) {
+  return;
+}
 
-    if (!config.clientId) {
-      throw new Error(
-        'Google AdSense clientId is required.',
-      );
-    }
+  this.config = config;
 
-    if (!this.isBrowser()) {
-      return;
-    }
-
-    try {
-      await this.loadScript(config.clientId);
-
-      window.adsbygoogle =
-        window.adsbygoogle || [];
-
-      this.initialized = true;
-
-      context?.logger?.info?.(
-        '[ExternalAds] Google AdSense initialized.',
-      );
-    } catch (error) {
-      this.initialized = false;
-
-      context?.logger?.error?.(
-        '[ExternalAds] Failed to initialize Google AdSense.',
-        error,
-      );
-
-      throw error;
-    }
+  if (!config.clientId) {
+    throw new Error(
+      'Google AdSense clientId is required.',
+    );
   }
+
+  if (!this.isBrowser()) {
+    return;
+  }
+
+  try {
+    await this.waitForAdsense();
+
+    this.initialized = true;
+
+    context?.logger?.info?.(
+      '[ExternalAds] Google AdSense initialized.',
+    );
+  } catch (error) {
+    this.initialized = false;
+
+    context?.logger?.error?.(
+      '[ExternalAds] Failed to initialize Google AdSense.',
+      error,
+    );
+
+    throw error;
+  }
+}
 
   isInitialized(): boolean {
     return this.initialized;
@@ -232,10 +234,25 @@ export class GoogleAdapter {
   async destroyAll(): Promise<void> {
     this.initialized = false;
     this.config = null;
-    this.scriptPromise = null;
   }
 
- // Replace the beginning of mountAd with this
+private async waitForAdsense(
+  timeout = 10000,
+): Promise<void> {
+  const start = Date.now();
+
+  while (!window.adsbygoogle) {
+    if (Date.now() - start >= timeout) {
+      throw new Error(
+        'Google AdSense script failed to load.',
+      );
+    }
+
+    await new Promise((resolve) =>
+      window.setTimeout(resolve, 100),
+    );
+  }
+}
 
 private async mountAd(
   container: HTMLElement,
@@ -310,10 +327,17 @@ private async mountAd(
 
   container.appendChild(element);
 
-  window.adsbygoogle =
-    window.adsbygoogle || [];
+  await this.waitForAdsense();
 
-  window.adsbygoogle.push({});
+  const adsByGoogle = window.adsbygoogle;
+
+  if (!adsByGoogle) {
+    throw new Error(
+      'Google AdSense script is not available.',
+    );
+  }
+
+  adsByGoogle.push({});
 
   await this.waitForRender();
 }
@@ -329,83 +353,13 @@ private async mountAd(
     element?.remove();
   }
 
-  private loadScript(
-    clientId: string,
-  ): Promise<void> {
-    if (!this.isBrowser()) {
-      return Promise.resolve();
-    }
 
-    if (this.scriptPromise) {
-      return this.scriptPromise;
-    }
 
-    const existing =
-      document.querySelector<HTMLScriptElement>(
-        'script[data-external-adsense="true"]',
-      );
-
-    if (existing) {
-      this.scriptPromise =
-        Promise.resolve();
-
-      return this.scriptPromise;
-    }
-
-    this.scriptPromise =
-      new Promise<void>(
-        (resolve, reject) => {
-          const script =
-            document.createElement(
-              'script',
-            );
-
-          script.async = true;
-
-          script.crossOrigin =
-            'anonymous';
-
-          script.src =
-            `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(
-              clientId,
-            )}`;
-
-          script.dataset.externalAdsense =
-            'true';
-
-          script.onload = () => {
-            resolve();
-          };
-
-          script.onerror = () => {
-            this.scriptPromise = null;
-
-            reject(
-              new Error(
-                'Failed to load Google AdSense script.',
-              ),
-            );
-          };
-
-          document.head.appendChild(
-            script,
-          );
-        },
-      );
-
-    return this.scriptPromise;
-  }
-
-  private waitForRender(): Promise<void> {
-    return new Promise(
-      (resolve) => {
-        window.setTimeout(
-          resolve,
-          0,
-        );
-      },
-    );
-  }
+private waitForRender(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+}
 
   private isBrowser(): boolean {
     return (

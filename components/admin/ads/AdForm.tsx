@@ -70,7 +70,7 @@ import {
 import {
   useCreateAd,
   useUpdateAd,
-} from '@/hooks/useAds';
+} from '@/hooks/useAdminAds';
 
 
 

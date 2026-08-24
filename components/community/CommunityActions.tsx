@@ -6,9 +6,7 @@ import {
   Plus,
 } from 'lucide-react';
 
-import {
-  Button,
-} from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 
 import {
   DropdownMenu,
@@ -31,22 +29,33 @@ export default function CommunityActions({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          size="icon"
           variant="outline"
           aria-label="Create a community post"
           className="
-            size-10
+            !flex
+            !size-10
+            shrink-0
+            items-center
+            justify-center
             rounded-full
             border-border
             bg-background
+            text-foreground
             shadow-sm
+            opacity-100
             transition-all
             hover:bg-muted
             active:scale-95
+            sm:size-10
           "
         >
           <Plus
-            className="size-5"
+            className="
+              !size-5
+              shrink-0
+              text-foreground
+            "
+            strokeWidth={2.5}
             aria-hidden="true"
           />
         </Button>
@@ -56,13 +65,14 @@ export default function CommunityActions({
         align="end"
         sideOffset={8}
         className="
+          z-50
           w-56
           rounded-xl
           p-1.5
         "
       >
         <DropdownMenuItem
-          onClick={onDiscussion}
+          onSelect={onDiscussion}
           className="
             cursor-pointer
             gap-2
@@ -72,11 +82,7 @@ export default function CommunityActions({
           "
         >
           <MessageSquare
-            className="
-              size-4
-              text-muted-foreground
-            "
-            aria-hidden="true"
+            className="size-4 text-muted-foreground"
           />
 
           <span>
@@ -85,7 +91,7 @@ export default function CommunityActions({
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={onMedia}
+          onSelect={onMedia}
           className="
             cursor-pointer
             gap-2
@@ -95,15 +101,11 @@ export default function CommunityActions({
           "
         >
           <ImageIcon
-            className="
-              size-4
-              text-muted-foreground
-            "
-            aria-hidden="true"
+            className="size-4 text-muted-foreground"
           />
 
           <span>
-            Share FootBall Moments 
+            Share Football Moments
           </span>
         </DropdownMenuItem>
       </DropdownMenuContent>

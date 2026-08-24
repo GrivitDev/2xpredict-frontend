@@ -8,13 +8,13 @@ import {
 } from 'lucide-react';
 
 import {
-  StatusBadge,
-} from '@/components/dashboard/shared/StatusBadge';
+  Badge,
+} from '@/components/ui/badge';
 
-import {
-  EmptyState,
-} from '@/components/dashboard/shared/EmptyState';
 
+// ============================================================
+// TYPES
+// ============================================================
 
 interface Props {
   loading: boolean;
@@ -22,42 +22,67 @@ interface Props {
 }
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function TransactionTable({
   loading,
   payments,
 }: Props) {
 
-
   if (loading) {
-
     return null;
-
   }
-
 
 
   if (!payments.length) {
-
     return (
-
-      <EmptyState
-        icon={Wallet}
-        title="No transactions yet"
-        description="
-          Your payments will appear here after submission.
+      <div
+        className="
+          flex
+          flex-col
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-dashed
+          border-border/60
+          bg-card
+          px-4
+          py-10
+          text-center
         "
-      />
+      >
+        <div
+          className="
+            mb-2
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-lg
+            bg-primary/10
+            text-primary
+          "
+        >
+          <Wallet className="h-4 w-4" />
+        </div>
 
+        <p className="text-s font-semibold">
+          No transactions yet
+        </p>
+
+        <p className="mt-1 text-xs text-muted-foreground">
+          Your payments will appear here after submission.
+        </p>
+      </div>
     );
-
   }
 
 
-
-  function getType(
-    payment: any,
-  ) {
+  function getType(payment: any) {
 
     switch (payment.type) {
 
@@ -78,31 +103,21 @@ export default function TransactionTable({
   }
 
 
-
-  function getItem(
-    payment: any,
-  ) {
+  function getItem(payment: any) {
 
     switch (payment.type) {
 
       case 'subscription':
-
-        return `${
-          payment.target?.toUpperCase()
-        } Plan`;
-
+        return `${payment.target?.toUpperCase()} Plan`;
 
       case 'prediction':
-
         return (
           payment.prediction?.match ||
           payment.target ||
           'Prediction'
         );
 
-
       default:
-
         return '-';
 
     }
@@ -110,10 +125,7 @@ export default function TransactionTable({
   }
 
 
-
-  function formatAmount(
-    amount:number,
-  ) {
+  function formatAmount(amount: number) {
 
     return new Intl.NumberFormat(
       'en-GB',
@@ -127,10 +139,7 @@ export default function TransactionTable({
   }
 
 
-
-  function formatDate(
-    date:string,
-  ) {
+  function formatDate(date: string) {
 
     return new Date(
       date,
@@ -146,42 +155,64 @@ export default function TransactionTable({
   }
 
 
+  function getIcon(type: string) {
 
-  function getIcon(
-    type:string,
-  ) {
-
-    if (
-      type === 'VIP Upgrade'
-    ) {
-
+    if (type === 'VIP Upgrade') {
       return Crown;
-
     }
 
-
-    if (
-      type === 'Prediction Purchase'
-    ) {
-
+    if (type === 'Prediction Purchase') {
       return ShoppingBag;
-
     }
-
 
     return CreditCard;
 
   }
 
 
+  function getStatusClass(status: string) {
+
+    switch (status) {
+
+      case 'approved':
+        return `
+          border-emerald-500/20
+          bg-emerald-500/10
+          text-emerald-600
+          dark:text-emerald-400
+        `;
+
+      case 'pending':
+        return `
+          border-amber-500/20
+          bg-amber-500/10
+          text-amber-600
+          dark:text-amber-400
+        `;
+
+      case 'rejected':
+        return `
+          border-red-500/20
+          bg-red-500/10
+          text-red-600
+          dark:text-red-400
+        `;
+
+      default:
+        return `
+          border-border/50
+          bg-muted/50
+          text-muted-foreground
+        `;
+
+    }
+
+  }
+
 
   return (
 
-    <div
-      className="
-        space-y-5
-      "
-    >
+    <div className="space-y-3">
 
 
       {/* DESKTOP */}
@@ -190,11 +221,10 @@ export default function TransactionTable({
         className="
           hidden
           overflow-hidden
-          rounded-3xl
+          rounded-xl
           border
           border-border/60
-          bg-card/50
-          backdrop-blur-xl
+          bg-card
           md:block
         "
       >
@@ -202,7 +232,7 @@ export default function TransactionTable({
         <table
           className="
             w-full
-            text-sm
+            text-xs
           "
         >
 
@@ -211,38 +241,36 @@ export default function TransactionTable({
             <tr
               className="
                 border-b
+                border-border/60
                 bg-muted/30
-                text-muted-foreground
               "
             >
 
-              {
-                [
-                  'Type',
-                  'Item',
-                  'Amount',
-                  'Status',
-                  'Date',
-                ].map(
-                  (header) => (
+              {[
+                'Type',
+                'Item',
+                'Amount',
+                'Status',
+                'Date',
+              ].map((header) => (
 
-                    <th
-                      key={header}
-                      className="
-                        px-6
-                        py-5
-                        text-left
-                        font-medium
-                      "
-                    >
+                <th
+                  key={header}
+                  className="
+                    px-4
+                    py-2.5
+                    text-left
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-wide
+                    text-muted-foreground
+                  "
+                >
+                  {header}
+                </th>
 
-                      {header}
-
-                    </th>
-
-                  ),
-                )
-              }
+              ))}
 
             </tr>
 
@@ -251,103 +279,96 @@ export default function TransactionTable({
 
           <tbody>
 
-            {
-              payments.map(
-                (payment) => (
+            {payments.map((payment) => (
 
-                  <tr
-                    key={payment._id}
-                    className="
-                      border-b
-                      transition-all
-                      hover:bg-muted/20
-                    "
+              <tr
+                key={payment._id}
+                className="
+                  border-b
+                  border-border/40
+                  last:border-0
+                  transition-colors
+                  hover:bg-muted/20
+                "
+              >
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    font-semibold
+                  "
+                >
+                  {getType(payment)}
+                </td>
+
+
+                <td
+                  className="
+                    max-w-[240px]
+                    truncate
+                    px-4
+                    py-3
+                    text-muted-foreground
+                  "
+                >
+                  {getItem(payment)}
+                </td>
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    font-bold
+                    tabular-nums
+                  "
+                >
+                  {formatAmount(
+                    payment.amount || 0,
+                  )}
+                </td>
+
+
+                <td className="px-4 py-3">
+
+                  <Badge
+                    variant="outline"
+                    className={`
+                      rounded-full
+                      px-2
+                      py-0.5
+                      text-[9px]
+                      font-medium
+                      capitalize
+                      ${getStatusClass(
+                        payment.status,
+                      )}
+                    `}
                   >
+                    {payment.status}
+                  </Badge>
 
-                    <td
-                      className="
-                        px-6
-                        py-5
-                        font-semibold
-                      "
-                    >
-
-                      {getType(payment)}
-
-                    </td>
+                </td>
 
 
-                    <td
-                      className="
-                        px-6
-                        py-5
-                        text-muted-foreground
-                      "
-                    >
+                <td
+                  className="
+                    px-4
+                    py-3
+                    text-muted-foreground
+                  "
+                >
+                  {formatDate(
+                    payment.createdAt,
+                  )}
+                </td>
 
-                      {getItem(payment)}
+              </tr>
 
-                    </td>
-
-
-                    <td
-                      className="
-                        px-6
-                        py-5
-                        font-bold
-                      "
-                    >
-
-                      {
-                        formatAmount(
-                          payment.amount || 0,
-                        )
-                      }
-
-                    </td>
-
-
-                    <td
-                      className="
-                        px-6
-                        py-5
-                      "
-                    >
-
-                      <StatusBadge
-                        status={
-                          payment.status
-                        }
-                      />
-
-                    </td>
-
-
-                    <td
-                      className="
-                        px-6
-                        py-5
-                        text-muted-foreground
-                      "
-                    >
-
-                      {
-                        formatDate(
-                          payment.createdAt,
-                        )
-                      }
-
-                    </td>
-
-
-                  </tr>
-
-                ),
-              )
-            }
+            ))}
 
           </tbody>
-
 
         </table>
 
@@ -355,243 +376,224 @@ export default function TransactionTable({
 
 
 
-
-
       {/* MOBILE */}
 
       <div
         className="
-          space-y-4
+          space-y-2
           md:hidden
         "
       >
 
-        {
-          payments.map(
-            (payment) => {
+        {payments.map((payment) => {
 
-              const Icon =
-                getIcon(
-                  getType(payment),
-                );
+          const Icon =
+            getIcon(
+              getType(payment),
+            );
 
 
-              return (
+          return (
+
+            <div
+              key={payment._id}
+              className="
+                relative
+                overflow-hidden
+                rounded-xl
+                border
+                border-border/60
+                bg-card
+                p-3
+                transition-colors
+                hover:bg-muted/20
+              "
+            >
+
+              <div
+                className="
+                  pointer-events-none
+                  absolute
+                  -right-10
+                  -top-10
+                  h-24
+                  w-24
+                  rounded-full
+                  bg-primary/10
+                  blur-2xl
+                "
+              />
+
+
+              <div className="relative">
+
+
+                {/* Top */}
 
                 <div
-                  key={payment._id}
                   className="
-                    group
-                    relative
-                    overflow-hidden
-                    rounded-3xl
-                    border
-                    border-border/60
-                    bg-gradient-to-br
-                    from-primary/10
-                    via-background
-                    to-background
-                    p-5
-                    transition-all
-                    duration-300
-                    hover:-translate-y-1
-                    hover:shadow-xl
-                    mb-8
+                    flex
+                    items-center
+                    justify-between
+                    gap-2
                   "
                 >
 
                   <div
                     className="
-                      absolute
-                      -right-10
-                      -top-10
-                      h-32
-                      w-32
-                      rounded-full
-                      bg-primary/20
-                      blur-3xl
-                    "
-                  />
-
-
-                  <div
-                    className="
-                      relative
-                      space-y-5
+                      flex
+                      min-w-0
+                      items-center
+                      gap-2.5
                     "
                   >
 
                     <div
                       className="
                         flex
+                        h-8
+                        w-8
+                        shrink-0
                         items-center
-                        justify-between
+                        justify-center
+                        rounded-lg
+                        bg-primary/10
+                        text-primary
                       "
                     >
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-3
-                        "
-                      >
-
-                        <div
-                          className="
-                            flex
-                            h-11
-                            w-11
-                            items-center
-                            justify-center
-                            rounded-xl
-                            bg-primary/10
-                            text-primary
-                          "
-                        >
-
-                          <Icon
-                            className="
-                              h-5
-                              w-5
-                            "
-                          />
-
-                        </div>
-
-
-                        <div>
-
-                          <p
-                            className="
-                              font-bold
-                            "
-                          >
-
-                            {getType(payment)}
-
-                          </p>
-
-                          <p
-                            className="
-                              text-xs
-                              text-muted-foreground
-                            "
-                          >
-
-                            {getItem(payment)}
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-                      <StatusBadge
-                        status={
-                          payment.status
-                        }
-                      />
-
-
+                      <Icon className="h-3.5 w-3.5" />
                     </div>
 
 
+                    <div className="min-w-0">
 
-                    <div
-                      className="
-                        flex
-                        items-end
-                        justify-between
-                      "
-                    >
-
-                      <div>
-
-                        <p
-                          className="
-                            text-xs
-                            text-muted-foreground
-                          "
-                        >
-
-                          Amount
-
-                        </p>
-
-
-                        <p
-                          className="
-                            mt-1
-                            text-2xl
-                            font-black
-                          "
-                        >
-
-                          {
-                            formatAmount(
-                              payment.amount || 0,
-                            )
-                          }
-
-                        </p>
-
-                      </div>
-
-
-                      <div
+                      <p
                         className="
-                          text-right
+                          truncate
+                          text-xs
+                          font-semibold
                         "
                       >
+                        {getType(payment)}
+                      </p>
 
-                        <p
-                          className="
-                            text-xs
-                            text-muted-foreground
-                          "
-                        >
-
-                          Date
-
-                        </p>
-
-
-                        <p
-                          className="
-                            mt-1
-                            font-medium
-                          "
-                        >
-
-                          {
-                            formatDate(
-                              payment.createdAt,
-                            )
-                          }
-
-                        </p>
-
-                      </div>
-
+                      <p
+                        className="
+                          truncate
+                          text-[10px]
+                          text-muted-foreground
+                        "
+                      >
+                        {getItem(payment)}
+                      </p>
 
                     </div>
-
 
                   </div>
 
 
+                  <Badge
+                    variant="outline"
+                    className={`
+                      shrink-0
+                      rounded-full
+                      px-2
+                      py-0.5
+                      text-[9px]
+                      capitalize
+                      ${getStatusClass(
+                        payment.status,
+                      )}
+                    `}
+                  >
+                    {payment.status}
+                  </Badge>
+
                 </div>
 
-              );
 
-            },
-          )
-        }
+
+                {/* Bottom */}
+
+                <div
+                  className="
+                    mt-3
+                    flex
+                    items-end
+                    justify-between
+                    border-t
+                    border-border/40
+                    pt-2.5
+                  "
+                >
+
+                  <div>
+
+                    <p
+                      className="
+                        text-[9px]
+                        uppercase
+                        tracking-wide
+                        text-muted-foreground
+                      "
+                    >
+                      Amount
+                    </p>
+
+                    <p
+                      className="
+                        mt-0.5
+                        text-base
+                        font-bold
+                        tabular-nums
+                      "
+                    >
+                      {formatAmount(
+                        payment.amount || 0,
+                      )}
+                    </p>
+
+                  </div>
+
+
+                  <div className="text-right">
+
+                    <p
+                      className="
+                        text-[9px]
+                        uppercase
+                        tracking-wide
+                        text-muted-foreground
+                      "
+                    >
+                      Date
+                    </p>
+
+                    <p
+                      className="
+                        mt-0.5
+                        text-[10px]
+                        font-medium
+                      "
+                    >
+                      {formatDate(
+                        payment.createdAt,
+                      )}
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          );
+
+        })}
 
       </div>
-
 
     </div>
 

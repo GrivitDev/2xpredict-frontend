@@ -2,24 +2,28 @@
 
 import {
   AlertTriangle,
+  ShieldAlert,
   Trash2,
 } from 'lucide-react';
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 import { Button } from '@/components/ui/button';
 
 import { useProfile } from '@/hooks/useProfile';
+
+
+// ============================================================
+// DELETE ACCOUNT DIALOG
+// ============================================================
 
 export default function DeleteAccountDialog() {
 
@@ -28,33 +32,43 @@ export default function DeleteAccountDialog() {
     deleting,
   } = useProfile();
 
+
   async function handleDelete() {
     await deleteAccount();
   }
 
+
   return (
 
-    <AlertDialog>
+    <Sheet>
 
-      <AlertDialogTrigger asChild>
+      {/* ======================================================
+          TRIGGER
+          ====================================================== */}
+
+      <SheetTrigger asChild>
 
         <Button
           variant="outline"
           className="
-            h-11
+            h-10
             w-full
-            justify-start
-            rounded-xl
-            border-red-500/30
-            bg-red-500/5
+            justify-center
+            rounded-lg
+            border-red-500/20
+            bg-red-500/[0.04]
+            px-4
+            text-s
+            font-semibold
             text-red-600
-            shadow-sm
+            shadow-none
             transition-all
-            duration-300
-            hover:border-red-500/50
-            hover:bg-red-500/10
+            duration-200
+            hover:border-red-500/35
+            hover:bg-red-500/[0.08]
             hover:text-red-600
             dark:text-red-400
+            dark:hover:text-red-400
           "
         >
 
@@ -64,53 +78,75 @@ export default function DeleteAccountDialog() {
 
         </Button>
 
-      </AlertDialogTrigger>
+      </SheetTrigger>
 
-      <AlertDialogContent
+
+      {/* ======================================================
+          SHEET
+          ====================================================== */}
+
+      <SheetContent
+        side="bottom"
         className="
+          mx-auto
+          w-full
+          max-w-lg
           overflow-hidden
-          border-border/60
-          bg-background/95
+          rounded-t-2xl
+          border-border/70
+          bg-background
           p-0
-          backdrop-blur-2xl
-          sm:max-w-lg
+          shadow-2xl
         "
       >
 
+        {/* ====================================================
+            AMBIENT ACCENTS
+            ==================================================== */}
+
         <div
           className="
+            pointer-events-none
             absolute
-            -left-16
-            -top-16
-            h-44
-            w-44
+            -right-20
+            -top-20
+            h-48
+            w-48
             rounded-full
-            bg-red-500/20
+            bg-red-500/10
             blur-3xl
           "
         />
 
         <div
           className="
+            pointer-events-none
             absolute
-            -bottom-16
-            -right-16
-            h-44
-            w-44
+            -bottom-20
+            -left-20
+            h-48
+            w-48
             rounded-full
-            bg-orange-500/15
+            bg-orange-500/[0.06]
             blur-3xl
           "
         />
+
 
         <div className="relative">
 
-          <AlertDialogHeader
+
+          {/* ==================================================
+              HEADER
+              ================================================== */}
+
+          <SheetHeader
             className="
               border-b
               border-border/50
               px-6
-              py-6
+              py-5
+              text-left
             "
           >
 
@@ -118,133 +154,202 @@ export default function DeleteAccountDialog() {
               className="
                 mb-4
                 flex
-                h-16
-                w-16
+                h-11
+                w-11
                 items-center
                 justify-center
-                rounded-2xl
-                bg-gradient-to-br
-                from-red-500
-                via-red-600
-                to-orange-500
-                text-white
-                shadow-lg
+                rounded-xl
+                border
+                border-red-500/20
+                bg-red-500/10
+                text-red-500
               "
             >
 
-              <AlertTriangle className="h-8 w-8" />
+              <AlertTriangle className="h-5 w-5" />
 
             </div>
 
-            <AlertDialogTitle
+
+            <SheetTitle
               className="
-                text-2xl
+                text-lg
                 font-bold
+                tracking-tight
               "
             >
+              Delete your account?
+            </SheetTitle>
 
-              Delete Account
 
-            </AlertDialogTitle>
-
-            <AlertDialogDescription
+            <SheetDescription
               className="
-                mt-2
-                space-y-3
-                text-sm
+                mt-1.5
+                text-s
                 leading-relaxed
               "
             >
+              This action is permanent and cannot be
+              undone. Your account and associated data
+              will be permanently removed.
+            </SheetDescription>
 
-              <p>
-                This action is
-                <span className="font-semibold text-foreground">
-                  {' '}permanent
-                </span>
-                {' '}and cannot be undone.
-              </p>
+          </SheetHeader>
+
+
+          {/* ==================================================
+              WARNING
+              ================================================== */}
+
+          <div className="px-6 py-4">
+
+            <div
+              className="
+                rounded-xl
+                border
+                border-red-500/15
+                bg-red-500/[0.035]
+                p-4
+              "
+            >
 
               <div
                 className="
-                  rounded-xl
-                  border
-                  border-red-500/20
-                  bg-red-500/5
-                  p-4
+                  flex
+                  items-start
+                  gap-3
                 "
               >
 
-                <p className="font-medium text-red-600 dark:text-red-400">
-
-                  Deleting your account will permanently remove:
-
-                </p>
-
-                <ul
+                <div
                   className="
-                    mt-3
-                    list-disc
-                    space-y-1
-                    pl-5
-                    text-muted-foreground
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
+                    bg-red-500/10
+                    text-red-500
                   "
                 >
 
-                  <li>Your profile information</li>
+                  <ShieldAlert className="h-4 w-4" />
 
-                  <li>Your prediction history</li>
+                </div>
 
-                  <li>Your purchases and subscriptions</li>
 
-                  <li>Your referral and reward records</li>
+                <div className="min-w-0">
 
-                </ul>
+                  <p
+                    className="
+                      text-s
+                      font-semibold
+                    "
+                  >
+                    The following data will be deleted
+                  </p>
+
+
+                  <ul
+                    className="
+                      mt-2.5
+                      space-y-1.5
+                      text-s
+                      leading-relaxed
+                      text-muted-foreground
+                    "
+                  >
+
+                    <li>
+                      • Your profile information
+                    </li>
+
+                    <li>
+                      • Your prediction history
+                    </li>
+
+                    <li>
+                      • Your purchases and subscriptions
+                    </li>
+
+                    <li>
+                      • Your referral and reward records
+                    </li>
+
+                  </ul>
+
+                </div>
 
               </div>
 
-            </AlertDialogDescription>
+            </div>
 
-          </AlertDialogHeader>
+          </div>
 
-          <AlertDialogFooter
+
+          {/* ==================================================
+              ACTIONS
+              ================================================== */}
+
+          <SheetFooter
             className="
+              flex
               flex-col-reverse
-              gap-3
+              gap-2
+              border-t
+              border-border/50
               px-6
-              py-5
+              py-4
               sm:flex-row
               sm:justify-end
             "
           >
 
-            <AlertDialogCancel
+            <Button
+              type="button"
+              variant="outline"
               className="
-                h-11
-                rounded-xl
+                h-10
+                rounded-lg
+                border-border/60
+                px-5
+                text-s
+                font-medium
+                shadow-none
               "
-            >
-
-              Cancel
-
-            </AlertDialogCancel>
-
-            <AlertDialogAction
-              onClick={handleDelete}
               disabled={deleting}
+              onClick={() => {
+                document.dispatchEvent(
+                  new KeyboardEvent('keydown', {
+                    key: 'Escape',
+                  }),
+                );
+              }}
+            >
+              Cancel
+            </Button>
+
+
+            <Button
+              type="button"
+              disabled={deleting}
+              onClick={handleDelete}
               className="
-                h-11
-                rounded-xl
-                bg-gradient-to-r
-                from-red-600
-                via-red-500
-                to-orange-500
+                h-10
+                rounded-lg
+                bg-red-600
+                px-5
+                text-s
+                font-semibold
                 text-white
-                shadow-lg
+                shadow-sm
                 transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:shadow-red-500/30
-                disabled:opacity-70
+                hover:bg-red-700
+                hover:shadow-red-500/20
+                disabled:pointer-events-none
+                disabled:opacity-60
               "
             >
 
@@ -254,16 +359,14 @@ export default function DeleteAccountDialog() {
                 ? 'Deleting...'
                 : 'Delete Account'}
 
-            </AlertDialogAction>
+            </Button>
 
-          </AlertDialogFooter>
+          </SheetFooter>
 
         </div>
 
-      </AlertDialogContent>
+      </SheetContent>
 
-    </AlertDialog>
-
+    </Sheet>
   );
-
 }

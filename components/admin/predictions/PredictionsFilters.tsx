@@ -91,7 +91,7 @@ export default function PredictionsFilters({
             Filter Predictions
           </h2>
 
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-s text-muted-foreground">
             Find fixtures by team, status, access level, or league.
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function PredictionsFilters({
               border-input
               bg-background
               pl-10
-              text-sm
+              text-s
               shadow-none
               focus-visible:ring-primary/30
             "
@@ -148,7 +148,7 @@ export default function PredictionsFilters({
               rounded-xl
               border-input
               bg-background
-              text-sm
+              text-s
               shadow-none
               focus:ring-primary/30
             "
@@ -193,7 +193,7 @@ export default function PredictionsFilters({
               rounded-xl
               border-input
               bg-background
-              text-sm
+              text-s
               shadow-none
               focus:ring-primary/30
             "
@@ -234,7 +234,7 @@ export default function PredictionsFilters({
               rounded-xl
               border-input
               bg-background
-              text-sm
+              text-s
               shadow-none
               focus:ring-primary/30
             "

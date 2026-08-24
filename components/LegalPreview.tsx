@@ -187,7 +187,7 @@ export default function LegalPreview() {
                     mt-2
                     flex
                     items-center
-                    text-sm
+                    text-s
                     font-semibold
                     text-primary
                   "

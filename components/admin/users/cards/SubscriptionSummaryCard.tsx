@@ -180,7 +180,7 @@ export default function SubscriptionSummaryCard({
 
 
           <p className="
-            text-sm
+            text-s
             text-muted-foreground
           ">
             Current Plan
@@ -357,7 +357,7 @@ function Stat({
 
       <p className="
         mt-2
-        text-sm
+        text-s
         font-semibold
       ">
         {value}

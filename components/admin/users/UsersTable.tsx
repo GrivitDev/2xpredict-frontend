@@ -150,7 +150,7 @@ export default function UsersTable({
           No users found
         </h3>
 
-        <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+        <p className="mt-2 max-w-sm text-s leading-6 text-muted-foreground">
           Try changing your filters or search terms to find
           the users you need.
         </p>
@@ -196,7 +196,7 @@ export default function UsersTable({
                         {user.fullName}
                       </p>
 
-                      <p className="mt-1 truncate text-sm text-muted-foreground">
+                      <p className="mt-1 truncate text-s text-muted-foreground">
                         {user.email}
                       </p>
                     </div>
@@ -355,7 +355,7 @@ export default function UsersTable({
                           {user.fullName}
                         </p>
 
-                        <p className="mt-1 truncate text-sm text-muted-foreground">
+                        <p className="mt-1 truncate text-s text-muted-foreground">
                           {user.email}
                         </p>
                       </div>
@@ -435,7 +435,7 @@ export default function UsersTable({
                         inline-flex
                         items-center
                         gap-2
-                        text-sm
+                        text-s
                         font-semibold
                         ${role.classes}
                       `}

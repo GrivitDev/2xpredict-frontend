@@ -28,7 +28,7 @@ export default function LegalBreadcrumb({
           bg-background/70
           px-4
           py-2.5
-          text-sm
+          text-s
           text-muted-foreground
           shadow-sm
           backdrop-blur-md

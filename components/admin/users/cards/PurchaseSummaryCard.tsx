@@ -148,7 +148,7 @@ export default function PurchaseSummaryCard({
 
 
           <p className="
-            text-sm
+            text-s
             text-muted-foreground
           ">
             Purchased Predictions
@@ -304,7 +304,7 @@ function Stat({
 
       <p className="
         mt-1
-        text-sm
+        text-s
         font-semibold
       ">
         {value}

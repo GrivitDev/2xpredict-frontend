@@ -7,20 +7,23 @@ import {
 } from 'lucide-react';
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 import { Button } from '@/components/ui/button';
 
 import { useSessions } from '@/hooks/useSessions';
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function LogoutDialog() {
 
@@ -29,35 +32,41 @@ export default function LogoutDialog() {
     loggingOut,
   } = useSessions();
 
+
   async function handleLogout() {
-
     await logoutCurrent();
-
   }
+
 
   return (
 
-    <AlertDialog>
+    <Sheet>
 
-      <AlertDialogTrigger asChild>
+      {/* ======================================================
+          TRIGGER
+          ====================================================== */}
+
+      <SheetTrigger asChild>
 
         <Button
           variant="outline"
           className="
-            h-11
-            w-full
-            justify-start
-            rounded-xl
-            border-amber-500/30
-            bg-amber-500/5
+            h-9
+            rounded-lg
+            border-amber-500/20
+            bg-amber-500/[0.04]
+            px-3
+            text-s
+            font-semibold
             text-amber-600
-            shadow-sm
+            shadow-none
             transition-all
-            duration-300
-            hover:border-amber-500/50
-            hover:bg-amber-500/10
+            duration-200
+            hover:border-amber-500/35
+            hover:bg-amber-500/[0.08]
             hover:text-amber-600
             dark:text-amber-400
+            dark:hover:text-amber-300
           "
         >
 
@@ -67,53 +76,73 @@ export default function LogoutDialog() {
 
         </Button>
 
-      </AlertDialogTrigger>
+      </SheetTrigger>
 
-      <AlertDialogContent
+
+      {/* ======================================================
+          SHEET
+          ====================================================== */}
+
+      <SheetContent
+        side="bottom"
         className="
+          mx-auto
+          w-full
+          max-w-lg
           overflow-hidden
-          border-border/60
-          bg-background/95
+          rounded-t-2xl
+          border-border/70
+          bg-background
           p-0
-          backdrop-blur-2xl
-          sm:max-w-lg
+          shadow-2xl
         "
       >
 
+        {/* Ambient accents */}
+
         <div
           className="
+            pointer-events-none
             absolute
             -left-20
             -top-20
-            h-52
-            w-52
+            h-48
+            w-48
             rounded-full
-            bg-amber-500/20
+            bg-amber-500/10
             blur-3xl
           "
         />
 
         <div
           className="
+            pointer-events-none
             absolute
-            -bottom-20
+            -bottom-24
             -right-20
             h-52
             w-52
             rounded-full
-            bg-orange-500/15
+            bg-orange-500/[0.07]
             blur-3xl
           "
         />
 
+
         <div className="relative">
 
-          <AlertDialogHeader
+
+          {/* ==================================================
+              HEADER
+              ================================================== */}
+
+          <SheetHeader
             className="
               border-b
               border-border/50
               px-6
-              py-6
+              py-5
+              text-left
             "
           >
 
@@ -121,142 +150,180 @@ export default function LogoutDialog() {
               className="
                 mb-4
                 flex
-                h-16
-                w-16
+                h-11
+                w-11
                 items-center
                 justify-center
-                rounded-2xl
-                bg-gradient-to-br
-                from-amber-500
-                via-orange-500
-                to-yellow-500
-                text-white
-                shadow-xl
+                rounded-xl
+                border
+                border-amber-500/20
+                bg-amber-500/10
+                text-amber-500
               "
             >
 
-              <DoorOpen className="h-8 w-8" />
+              <DoorOpen className="h-5 w-5" />
 
             </div>
 
-            <AlertDialogTitle
+
+            <SheetTitle
               className="
-                text-2xl
+                text-lg
                 font-bold
+                tracking-tight
               "
             >
+              Sign out of your account?
+            </SheetTitle>
 
-              Logout
 
-            </AlertDialogTitle>
-
-            <AlertDialogDescription
+            <SheetDescription
               className="
-                mt-2
-                space-y-3
-                text-sm
+                mt-1.5
+                max-w-sm
+                text-s
                 leading-relaxed
               "
             >
+              You will be signed out of your current
+              session on this device. Your account and
+              data will remain intact.
+            </SheetDescription>
 
-              <p>
+          </SheetHeader>
 
-                You're about to sign out of your
-                account on this device.
 
-              </p>
+          {/* ==================================================
+              SECURITY NOTE
+              ================================================== */}
+
+          <div className="px-6 py-4">
+
+            <div
+              className="
+                flex
+                items-start
+                gap-3
+                rounded-xl
+                border
+                border-amber-500/15
+                bg-amber-500/[0.04]
+                px-3.5
+                py-3
+              "
+            >
 
               <div
                 className="
-                  rounded-xl
-                  border
-                  border-amber-500/20
-                  bg-amber-500/5
-                  p-4
+                  flex
+                  h-8
+                  w-8
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-amber-500/10
+                  text-amber-500
                 "
               >
 
-                <div className="flex items-start gap-3">
-
-                  <ShieldCheck
-                    className="
-                      mt-0.5
-                      h-5
-                      w-5
-                      text-amber-500
-                    "
-                  />
-
-                  <div>
-
-                    <p className="font-medium text-foreground">
-
-                      Your account remains safe.
-
-                    </p>
-
-                    <p
-                      className="
-                        mt-1
-                        text-muted-foreground
-                      "
-                    >
-
-                      You can sign in again at any
-                      time using your email and
-                      password.
-
-                    </p>
-
-                  </div>
-
-                </div>
+                <ShieldCheck className="h-4 w-4" />
 
               </div>
 
-            </AlertDialogDescription>
 
-          </AlertDialogHeader>
+              <div className="min-w-0">
 
-          <AlertDialogFooter
+                <p
+                  className="
+                    text-s
+                    font-semibold
+                  "
+                >
+                  Your account remains secure
+                </p>
+
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    leading-relaxed
+                    text-muted-foreground
+                  "
+                >
+                  You can sign in again whenever you
+                  need using your account credentials.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* ==================================================
+              ACTIONS
+              ================================================== */}
+
+          <SheetFooter
             className="
+              flex
               flex-col-reverse
-              gap-3
+              gap-2
+              border-t
+              border-border/50
               px-6
-              py-5
+              py-4
               sm:flex-row
               sm:justify-end
             "
           >
 
-            <AlertDialogCancel
+            <Button
+              type="button"
+              variant="outline"
               className="
-                h-11
-                rounded-xl
+                h-10
+                rounded-lg
+                border-border/60
+                px-4
+                text-s
+                font-medium
+                shadow-none
               "
+              onClick={() => {
+                document.dispatchEvent(
+                  new KeyboardEvent('keydown', {
+                    key: 'Escape',
+                  }),
+                );
+              }}
             >
-
               Stay Logged In
+            </Button>
 
-            </AlertDialogCancel>
 
-            <AlertDialogAction
-              onClick={handleLogout}
+            <Button
+              type="button"
               disabled={loggingOut}
+              onClick={handleLogout}
               className="
-                h-11
-                rounded-xl
-                bg-gradient-to-r
-                from-amber-500
-                via-orange-500
-                to-yellow-500
+                h-10
+                rounded-lg
+                bg-amber-500
+                px-4
+                text-s
+                font-semibold
                 text-white
-                shadow-lg
+                shadow-sm
                 transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:shadow-amber-500/30
-                disabled:opacity-70
+                hover:bg-amber-600
+                hover:shadow-md
+                disabled:pointer-events-none
+                disabled:opacity-60
               "
             >
 
@@ -266,16 +333,14 @@ export default function LogoutDialog() {
                 ? 'Logging out...'
                 : 'Logout'}
 
-            </AlertDialogAction>
+            </Button>
 
-          </AlertDialogFooter>
+          </SheetFooter>
 
         </div>
 
-      </AlertDialogContent>
+      </SheetContent>
 
-    </AlertDialog>
-
+    </Sheet>
   );
-
 }

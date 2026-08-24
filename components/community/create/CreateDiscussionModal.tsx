@@ -138,7 +138,7 @@ export default function CreateDiscussionModal({
 
           <DialogDescription
             className="
-              text-sm
+              text-s
               leading-6
               text-muted-foreground
             "

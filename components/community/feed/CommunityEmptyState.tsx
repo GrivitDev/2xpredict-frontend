@@ -105,7 +105,7 @@ export default function CommunityEmptyState() {
           className="
             mt-3
             max-w-sm
-            text-sm
+            text-s
             leading-7
             text-muted-foreground
             sm:max-w-md

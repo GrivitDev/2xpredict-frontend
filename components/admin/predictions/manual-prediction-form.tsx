@@ -120,7 +120,7 @@ export default function ManualPredictionForm({
                 Manual Prediction
               </h2>
 
-              <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
+              <p className="mt-1 max-w-xl text-s leading-6 text-muted-foreground">
                 Create a fixture manually when it is unavailable
                 through the football API.
               </p>
@@ -161,7 +161,7 @@ export default function ManualPredictionForm({
               border-destructive/25
               bg-destructive/10
               p-4
-              text-sm
+              text-s
               text-destructive
             "
           >
@@ -177,7 +177,7 @@ export default function ManualPredictionForm({
               Fixture Details
             </h3>
 
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-s text-muted-foreground">
               Enter the teams, competition, and scheduled kick-off.
             </p>
           </div>
@@ -212,7 +212,7 @@ export default function ManualPredictionForm({
                   border-input
                   bg-background
                   px-4
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -252,7 +252,7 @@ export default function ManualPredictionForm({
                   border-input
                   bg-background
                   px-4
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -290,7 +290,7 @@ export default function ManualPredictionForm({
                   border-input
                   bg-background
                   px-4
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -345,7 +345,7 @@ export default function ManualPredictionForm({
                   border-input
                   bg-background
                   px-4
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -407,7 +407,7 @@ export default function ManualPredictionForm({
             "
           >
             <div className="min-w-0 text-right">
-              <p className="truncate text-sm font-bold sm:text-base">
+              <p className="truncate text-s font-bold sm:text-base">
                 {homeTeam.trim() || 'Home Team'}
               </p>
 
@@ -436,7 +436,7 @@ export default function ManualPredictionForm({
             </span>
 
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold sm:text-base">
+              <p className="truncate text-s font-bold sm:text-base">
                 {awayTeam.trim() || 'Away Team'}
               </p>
 
@@ -479,7 +479,7 @@ export default function ManualPredictionForm({
             rounded-xl
             bg-primary
             px-5
-            text-sm
+            text-s
             font-semibold
             text-primary-foreground
             shadow-sm

@@ -26,7 +26,7 @@ export default function PostMessageInput({
         bg-background/60
         px-4
         py-3
-        text-sm
+        text-s
         leading-6
         shadow-sm
         transition-colors

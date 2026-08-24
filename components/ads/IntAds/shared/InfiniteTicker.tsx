@@ -23,8 +23,10 @@ export function InfiniteTicker({
         `
           group
           relative
+          w-full
           overflow-hidden
           whitespace-nowrap
+          select-none
         `,
         className,
       )}
@@ -36,13 +38,13 @@ export function InfiniteTicker({
         className="
           pointer-events-none
           absolute
+          inset-y-0
           left-0
-          top-0
-          z-10
-          h-full
-          w-8
+          z-20
+          w-10
           bg-gradient-to-r
           from-background
+          via-background/80
           to-transparent
         "
       />
@@ -53,13 +55,13 @@ export function InfiniteTicker({
         className="
           pointer-events-none
           absolute
+          inset-y-0
           right-0
-          top-0
-          z-10
-          h-full
-          w-8
+          z-20
+          w-10
           bg-gradient-to-l
           from-background
+          via-background/80
           to-transparent
         "
       />
@@ -69,20 +71,27 @@ export function InfiniteTicker({
           flex
           w-max
           items-center
+          animate-ticker
           will-change-transform
+          [transform:translate3d(0,0,0)]
           group-hover:[animation-play-state:paused]
           motion-reduce:animate-none
-          animate-ticker
         "
         style={{
           animationDuration: `${speed}s`,
         }}
       >
-              <div
+
+        <div
           className="
             flex
             items-center
-            gap-12
+            gap-8
+            sm:gap-10
+            lg:gap-12
+            pr-8
+            sm:pr-10
+            lg:pr-12
           "
         >
 
@@ -95,8 +104,9 @@ export function InfiniteTicker({
           className="
             flex
             items-center
-            gap-12
-            pl-12
+            gap-8
+            sm:gap-10
+            lg:gap-12
           "
         >
 

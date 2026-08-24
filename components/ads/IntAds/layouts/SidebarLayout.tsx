@@ -19,11 +19,13 @@ export function SidebarLayout({
   return (
 
     <aside
+      aria-label="Sponsored content"
       className="
         hidden
-        xl:block
         w-full
         max-w-sm
+        shrink-0
+        xl:block
       "
     >
 

@@ -30,25 +30,32 @@ export function TickerAd({
         group
         relative
         overflow-hidden
-        rounded-full
+
+        rounded-xl
+
         border
-        border-primary/15
-        bg-gradient-to-r
-        from-background
-        via-primary/5
-        to-background
+        border-border/60
+
+        bg-card
+
         shadow-sm
+
+        transition-all
+        duration-300
+
+        hover:border-primary/25
+        hover:shadow-md
       "
     >
 
-      {/* Moving shine */}
+      {/* Subtle Moving Highlight */}
 
       <motion.div
         animate={{
-          x: ['-100%', '250%'],
+          x: ['-120%', '220%'],
         }}
         transition={{
-          duration: 7,
+          duration: 9,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -56,76 +63,93 @@ export function TickerAd({
           pointer-events-none
           absolute
           inset-y-0
-          w-32
+          z-10
+          w-24
+
           bg-gradient-to-r
           from-transparent
-          via-white/10
+          via-primary/10
           to-transparent
+
+          opacity-70
         "
       />
 
       <InfiniteTicker
         className="
-          py-2.5
-          group-hover:[animation-play-state:paused]
+          py-2
+          sm:py-2.5
         "
-        speed={28}
+        speed={30}
       >
 
-        {ads.map(ad => (
+        {ads.map((ad) => (
 
           <div
             key={ad._id}
             className="
-              mx-8
+              mx-6
               inline-flex
               items-center
-              gap-3
+              gap-2.5
+              sm:mx-8
             "
           >
 
-            {/* Sponsored Pill */}
+            {/* Sponsored */}
 
             <span
               className="
                 inline-flex
+                shrink-0
                 items-center
-                gap-1
+                gap-1.5
+
                 rounded-full
-                bg-primary
-                px-3
+
+                border
+                border-primary/20
+
+                bg-primary/10
+
+                px-2.5
                 py-1
 
                 text-[10px]
-                font-bold
+                font-semibold
                 uppercase
-                tracking-[0.18em]
+                tracking-[0.16em]
 
-                text-primary-foreground
-                shadow
+                text-primary
               "
             >
 
-              <motion.div
+              <motion.span
                 animate={{
-                  rotate: [0, -12, 12, 0],
+                  rotate: [0, -8, 8, 0],
                 }}
                 transition={{
-                  duration: 2.5,
+                  duration: 3,
                   repeat: Infinity,
+                  ease: 'easeInOut',
                 }}
               >
 
                 <Megaphone className="h-3 w-3" />
 
-              </motion.div>
+              </motion.span>
 
               Sponsored
 
             </span>
 
+            {/* Title */}
+
             <span
               className="
+                max-w-[220px]
+                truncate
+
                 text-sm
                 font-semibold
                 tracking-tight
@@ -137,6 +161,8 @@ export function TickerAd({
 
             </span>
 
+            {/* Subtitle */}
+
             {ad.subTitle && (
 
               <>
@@ -145,12 +171,16 @@ export function TickerAd({
                   className="
                     h-3.5
                     w-3.5
-                    text-primary
+                    shrink-0
+                    text-primary/80
                   "
                 />
 
                 <span
                   className="
+                    max-w-[240px]
+                    truncate
+
                     text-sm
                     text-muted-foreground
                   "
@@ -164,6 +194,8 @@ export function TickerAd({
 
             )}
 
+            {/* Description */}
+
             {ad.description && (
 
               <>
@@ -172,15 +204,17 @@ export function TickerAd({
                   className="
                     h-1
                     w-1
+                    shrink-0
                     rounded-full
-                    bg-primary/60
+                    bg-primary/50
                   "
                 />
 
                 <span
                   className="
-                    max-w-xl
+                    max-w-[280px]
                     truncate
+
                     text-sm
                     text-muted-foreground
                   "
@@ -200,7 +234,7 @@ export function TickerAd({
 
       </InfiniteTicker>
 
-      {/* Edge Fade */}
+      {/* Edge Fades */}
 
       <div
         className="
@@ -208,9 +242,11 @@ export function TickerAd({
           absolute
           inset-y-0
           left-0
-          w-10
+          z-20
+          w-8
+
           bg-gradient-to-r
-          from-background
+          from-card
           to-transparent
         "
       />
@@ -221,9 +257,11 @@ export function TickerAd({
           absolute
           inset-y-0
           right-0
-          w-10
+          z-20
+          w-8
+
           bg-gradient-to-l
-          from-background
+          from-card
           to-transparent
         "
       />

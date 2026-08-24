@@ -18,44 +18,20 @@ import VerifyOtpModal from '@/components/VerifyOtpModal';
 
 export default function VerifyEmailClient() {
   const router = useRouter();
-
   const searchParams = useSearchParams();
 
-  const email =
-    searchParams.get('email') || '';
+  const email = searchParams.get('email') || '';
 
   useEffect(() => {
     if (!email) {
       router.replace('/register');
     }
-  }, [
-    email,
-    router,
-  ]);
+  }, [email, router]);
 
   if (!email) {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-          text-foreground
-        "
-      >
-        <div
-          className="
-            h-10
-            w-10
-            animate-spin
-            rounded-full
-            border-4
-            border-primary
-            border-t-transparent
-          "
-        />
+      <main className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </main>
     );
   }
@@ -67,37 +43,24 @@ export default function VerifyEmailClient() {
         min-h-screen
         overflow-hidden
         bg-background
-        py-8
-        sm:py-10
-        lg:py-12
+        py-4
         text-foreground
+        sm:py-6
       "
     >
       {/* BACKGROUND */}
-      <div
-        className="
-          absolute
-          inset-0
-          overflow-hidden
-        "
-      >
+
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="
             absolute
             -left-28
             -top-28
-            h-[280px]
-            w-[280px]
+            h-64
+            w-64
             rounded-full
             bg-primary/20
-            blur-[120px]
-            sm:-left-40
-            sm:-top-40
-            sm:h-[420px]
-            sm:w-[420px]
-            lg:h-[500px]
-            lg:w-[500px]
-            lg:blur-[180px]
+            blur-[110px]
           "
         />
 
@@ -106,38 +69,11 @@ export default function VerifyEmailClient() {
             absolute
             -bottom-28
             -right-28
-            h-[320px]
-            w-[320px]
+            h-64
+            w-64
             rounded-full
             bg-cyan-500/15
-            blur-[120px]
-            sm:-bottom-40
-            sm:-right-40
-            sm:h-[480px]
-            sm:w-[480px]
-            lg:h-[600px]
-            lg:w-[600px]
-            lg:blur-[180px]
-          "
-        />
-
-        <div
-          className="
-            absolute
-            left-1/2
-            top-1/2
-            h-[420px]
-            w-[420px]
-            -translate-x-1/2
-            -translate-y-1/2
-            rounded-full
-            bg-foreground/5
-            blur-[140px]
-            sm:h-[550px]
-            sm:w-[550px]
-            lg:h-[700px]
-            lg:w-[700px]
-            lg:blur-[220px]
+            blur-[110px]
           "
         />
 
@@ -147,11 +83,13 @@ export default function VerifyEmailClient() {
             inset-0
             bg-gradient-to-b
             from-transparent
-            via-background/40
+            via-background/30
             to-background
           "
         />
       </div>
+
+      {/* CONTENT */}
 
       <div
         className="
@@ -160,75 +98,74 @@ export default function VerifyEmailClient() {
           mx-auto
           flex
           min-h-screen
-          max-w-7xl
+          max-w-6xl
           flex-col
           items-center
           justify-center
-          gap-10
+          gap-6
           px-4
           sm:px-6
           lg:flex-row
-          lg:items-center
-          lg:gap-16
+          lg:gap-10
         "
       >
         {/* LEFT BRAND AREA */}
+
         <div
           className="
             order-2
             w-full
             flex-1
             lg:order-1
-            lg:block
           "
         >
           <div
             className="
               mx-auto
-              max-w-xl
+              max-w-lg
               text-center
               lg:mx-0
               lg:text-left
             "
           >
+            {/* LOGO */}
+
             <div
               className="
-                mb-5
+                mb-3
                 flex
                 justify-center
                 lg:justify-start
               "
             >
               <Image
-                src="/images/ball5.png"
+                src="/images/teamcup.png"
                 alt="Football Predictions"
                 width={560}
                 height={170}
                 className="
                   h-auto
                   w-full
-                  max-w-[320px]
+                  max-w-[240px]
                   object-contain
-                  sm:max-w-[420px]
-                  lg:max-w-full
+                  sm:max-w-[300px]
+                  lg:max-w-[380px]
                 "
                 priority
               />
             </div>
 
+            {/* HEADING */}
+
             <h1
               className="
-                mt-6
                 text-3xl
                 font-black
                 leading-tight
                 sm:text-4xl
-                lg:mt-8
-                lg:text-5xl
               "
             >
               Verify
-
               <br />
 
               <span
@@ -241,65 +178,66 @@ export default function VerifyEmailClient() {
                   text-4xl
                   text-transparent
                   sm:text-5xl
-                  lg:text-6xl
                 "
               >
                 Your Account.
               </span>
             </h1>
 
+            {/* DESCRIPTION */}
+
             <p
               className="
-                mt-6
-                text-base
-                leading-7
+                mt-3
+                max-w-md
+                text-s
+                leading-5
                 text-muted-foreground
-                sm:text-lg
-                sm:leading-8
+                sm:text-base
               "
             >
-              Confirm your email address to
-              activate your 1xpredicts account
-              and start accessing football
-              predictions, statistics, and features.
+              Confirm your email address to activate
+              your 2xpredict account and access
+              football predictions and statistics.
             </p>
+
+            {/* FEATURES */}
 
             <div
               className="
-                mt-10
+                mt-5
                 grid
-                grid-cols-1
-                gap-4
-                sm:grid-cols-3
-                sm:gap-5
-                lg:mt-12
+                grid-cols-3
+                gap-2
               "
             >
+              {/* SECURE */}
+
               <div
                 className="
-                  rounded-2xl
+                  rounded-xl
                   border
                   border-border
-                  bg-card/70
-                  p-5
-                  shadow-lg
+                  bg-card/60
+                  p-2.5
                   backdrop-blur-xl
+                  sm:p-3
                 "
               >
                 <ShieldCheck
                   className="
-                    mb-3
-                    h-7
-                    w-7
+                    mb-1.5
+                    h-5
+                    w-5
                     text-primary
                   "
                 />
 
                 <h3
                   className="
-                    text-lg
+                    text-xs
                     font-bold
-                    sm:text-xl
+                    sm:text-s
                   "
                 >
                   Secure
@@ -307,39 +245,42 @@ export default function VerifyEmailClient() {
 
                 <p
                   className="
-                    text-sm
+                    text-[10px]
                     text-muted-foreground
+                    sm:text-xs
                   "
                 >
                   Verification
                 </p>
               </div>
 
+              {/* FAST */}
+
               <div
                 className="
-                  rounded-2xl
+                  rounded-xl
                   border
                   border-border
-                  bg-card/70
-                  p-5
-                  shadow-lg
+                  bg-card/60
+                  p-2.5
                   backdrop-blur-xl
+                  sm:p-3
                 "
               >
                 <TrendingUp
                   className="
-                    mb-3
-                    h-7
-                    w-7
+                    mb-1.5
+                    h-5
+                    w-5
                     text-cyan-500
                   "
                 />
 
                 <h3
                   className="
-                    text-lg
+                    text-xs
                     font-bold
-                    sm:text-xl
+                    sm:text-s
                   "
                 >
                   Fast
@@ -347,39 +288,42 @@ export default function VerifyEmailClient() {
 
                 <p
                   className="
-                    text-sm
+                    text-[10px]
                     text-muted-foreground
+                    sm:text-xs
                   "
                 >
                   Activation
                 </p>
               </div>
 
+              {/* READY */}
+
               <div
                 className="
-                  rounded-2xl
+                  rounded-xl
                   border
                   border-border
-                  bg-card/70
-                  p-5
-                  shadow-lg
+                  bg-card/60
+                  p-2.5
                   backdrop-blur-xl
+                  sm:p-3
                 "
               >
                 <Trophy
                   className="
-                    mb-3
-                    h-7
-                    w-7
+                    mb-1.5
+                    h-5
+                    w-5
                     text-yellow-500
                   "
                 />
 
                 <h3
                   className="
-                    text-lg
+                    text-xs
                     font-bold
-                    sm:text-xl
+                    sm:text-s
                   "
                 >
                   Ready
@@ -387,8 +331,9 @@ export default function VerifyEmailClient() {
 
                 <p
                   className="
-                    text-sm
+                    text-[10px]
                     text-muted-foreground
+                    sm:text-xs
                   "
                 >
                   Predict
@@ -398,7 +343,8 @@ export default function VerifyEmailClient() {
           </div>
         </div>
 
-        {/* OTP MODAL */}
+        {/* OTP */}
+
         <div
           className="
             order-1
@@ -410,12 +356,10 @@ export default function VerifyEmailClient() {
             lg:justify-end
           "
         >
-          <div className="w-full max-w-md">
-            <VerifyOtpModal
-              email={email}
-              onClose={() => {}}
-            />
-          </div>
+          <VerifyOtpModal
+            email={email}
+            onClose={() => {}}
+          />
         </div>
       </div>
     </main>

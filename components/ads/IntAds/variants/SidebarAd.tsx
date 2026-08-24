@@ -23,14 +23,15 @@ export function SidebarAd({
     <motion.div
       initial={{
         opacity: 0,
-        x: 20,
+        x: 12,
       }}
       animate={{
         opacity: 1,
         x: 0,
       }}
       transition={{
-        duration: .45,
+        duration: .4,
+        ease: 'easeOut',
       }}
     >
 
@@ -40,37 +41,42 @@ export function SidebarAd({
           group
           relative
           overflow-hidden
-          rounded-3xl
+
+          rounded-2xl
+
           border
-          bg-gradient-to-br
-          from-background
-          via-background
-          to-primary/5
+          border-border/60
+
+          bg-card
 
           shadow-md
 
           transition-all
-          duration-500
+          duration-300
 
-          hover:-translate-y-1
+          hover:-translate-y-0.5
+          hover:border-primary/25
           hover:shadow-xl
         "
       >
 
-        {/* Decorative Glow */}
+        {/* Ambient Glow */}
 
         <div
           className="
+            pointer-events-none
             absolute
-            -right-16
-            -top-16
-            h-40
-            w-40
+            -right-20
+            -top-20
+            h-44
+            w-44
             rounded-full
             bg-primary/10
             blur-3xl
           "
         />
+
+        {/* Image */}
 
         {ad.image && (
 
@@ -83,33 +89,61 @@ export function SidebarAd({
           >
 
             <motion.div
+              initial={{
+                scale: 1,
+              }}
               whileHover={{
-                scale: 1.05,
+                scale: 1.04,
               }}
               transition={{
-                duration: .4,
+                duration: .6,
+                ease: 'easeOut',
               }}
-              className="h-full"
+              className="
+                h-full
+                w-full
+              "
             >
 
               <AdImage
                 ad={ad}
-                className="h-full object-cover"
+                className="
+                  h-full
+                  w-full
+                  rounded-none
+                  border-0
+                  object-cover
+                "
               />
 
             </motion.div>
 
-            {/* Bottom Fade */}
+            {/* Image Fade */}
 
             <div
               className="
+                pointer-events-none
                 absolute
                 inset-x-0
                 bottom-0
                 h-16
                 bg-gradient-to-t
-                from-background
+                from-card
+                via-card/30
                 to-transparent
+              "
+            />
+
+            {/* Image Highlight */}
+
+            <div
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                ring-1
+                ring-inset
+                ring-white/10
               "
             />
 
@@ -117,21 +151,39 @@ export function SidebarAd({
 
         )}
 
+        {/* Content */}
+
         <div
           className="
             relative
-            space-y-3
+            z-10
+
+            space-y-3.5
+
             p-4
+            sm:p-5
           "
         >
 
+          {/* Badge */}
+
           <AdBadge />
+
+          {/* Content */}
 
           <AdContent
             ad={ad}
           />
 
-          <div className="pt-1">
+          {/* Action */}
+
+          <div
+            className="
+              border-t
+              border-border/50
+              pt-3
+            "
+          >
 
             <AdActions
               ad={ad}
@@ -140,6 +192,20 @@ export function SidebarAd({
           </div>
 
         </div>
+
+        {/* Inner Highlight */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            rounded-2xl
+            ring-1
+            ring-inset
+            ring-white/10
+          "
+        />
 
       </AdWrapper>
 

@@ -224,7 +224,7 @@ const FormMessage =
         <p
           ref={ref}
           className={cn(
-            'text-sm font-medium text-destructive',
+            'text-s font-medium text-destructive',
             className,
           )}
           {...props}

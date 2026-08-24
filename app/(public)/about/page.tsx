@@ -6,221 +6,274 @@ import {
   ArrowRight,
   Mail,
   Phone,
+  ShieldCheck,
+  Trophy,
+  BarChart3,
 } from 'lucide-react';
 
-import {
-  FaFacebook,
-  FaInstagram,
-  FaYoutube,
-  FaXTwitter,
-  FaTelegram,
-  FaWhatsapp,
-} from 'react-icons/fa6';
+import { FaWhatsapp } from 'react-icons/fa6';
 
-import LegalPreview from '@/components/LegalPreview';
 import AboutHero from '@/components/AboutHero';
 import { InternalAds } from '@/components/ads/IntAds/InternalAds';
-import { AdPage } from '@/constants/ads/ad-page';
-import { AdPosition } from '@/constants/ads/ad-position';
 import { AboutAds } from '@/components/ads/ExtAds/positions/AboutAds';
 
-
-
-const communities = [
-  {
-    icon: <FaTelegram />,
-    name: 'Telegram Channel',
-    text: 'Daily predictions and announcements',
-    link: process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL || '#',
-  },
-  {
-    icon: <FaWhatsapp />,
-    name: 'WhatsApp Channel',
-    text: 'Follow football updates and insights',
-    link: process.env.NEXT_PUBLIC_WHATSAPP_CHANNEL || '#',
-  },
-  {
-    icon: <FaWhatsapp />,
-    name: 'WhatsApp Group',
-    text: 'Discuss matches with other football fans',
-    link: process.env.NEXT_PUBLIC_WHATSAPP_GROUP || '#',
-  },
-  {
-    icon: <FaFacebook />,
-    name: 'Facebook Page',
-    text: 'News and community updates',
-    link: process.env.NEXT_PUBLIC_FACEBOOK || '#',
-  },
-  {
-    icon: <FaXTwitter />,
-    name: 'X (Twitter)',
-    text: 'Football opinions and updates',
-    link: process.env.NEXT_PUBLIC_TWITTER || '#',
-  },
-  {
-    icon: <FaInstagram />,
-    name: 'Instagram',
-    text: 'Football content and highlights',
-    link: process.env.NEXT_PUBLIC_INSTAGRAM || '#',
-  },
-  {
-    icon: <FaYoutube />,
-    name: 'YouTube',
-    text: 'Football analysis videos',
-    link: process.env.NEXT_PUBLIC_YOUTUBE || '#',
-  },
-];
-
-
+import { AdPage } from '@/constants/ads/ad-page';
+import { AdPosition } from '@/constants/ads/ad-position';
 
 export default function AboutPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-hidden bg-background">
+
+      {/* Background */}
 
       <div className="absolute inset-0 -z-20 bg-background" />
 
-
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-
-        <div className="
-          absolute left-1/2 top-[-250px]
-          h-[650px] w-[950px]
-          -translate-x-1/2
-          rounded-full
-          bg-gradient-to-r
-          from-indigo-500/20
-          via-cyan-500/15
-          to-emerald-500/20
-          blur-3xl
-          animate-ambient
-        "/>
-
-
-        <div className="
-          absolute bottom-[-200px] right-[-150px]
-          h-[420px] w-[420px]
-          rounded-full
-          bg-purple-500/10
-          blur-3xl
-          animate-float-slow
-        "/>
-
+        <div
+          className="
+            absolute
+            left-1/2
+            top-[-240px]
+            h-[620px]
+            w-[900px]
+            -translate-x-1/2
+            rounded-full
+            bg-gradient-to-r
+            from-cyan-500/15
+            via-indigo-500/10
+            to-emerald-500/15
+            blur-3xl
+          "
+        />
       </div>
 
-<AboutHero />
+      {/* Hero */}
 
+      <AboutHero />
 
-        <InternalAds
-          page={AdPage.HOME}
-          position={AdPosition.HERO}
-        />
+      {/* Hero Advertisement */}
 
-        {/* COMMUNITY */}
+      <InternalAds
+        page={AdPage.HOME}
+        position={AdPosition.HERO}
+      />
 
-        <section className="mt-8 px-8">
+      {/* WHY CHOOSE US */}
 
-          <h2 className="text-center text-3xl font-black">
-            Connect With us on our Social Media Platforms 
+      <section
+        className="
+          mx-auto
+          max-w-5xl
+          border-t
+          border-border/50
+          px-5
+          py-8
+        "
+      >
+        <div className="mb-5 text-center">
+
+          <h2 className="text-2xl font-bold">
+            Why Choose 2xPredict
           </h2>
 
+          <p className="mt-1.5 text-s text-muted-foreground">
+            Designed to deliver reliable football predictions,
+            match insights and a fast experience across every device.
+          </p>
 
-          <div
-            className="
-              mt-12
-              grid
-              grid-cols-2
-              gap-4
-              md:grid-cols-3
-              lg:grid-cols-4
-            "
-          >
+        </div>
 
-            {communities.map((item) => (
-              <SocialCard key={item.name} {...item} />
-            ))}
+        <div className="grid gap-3 md:grid-cols-3">
 
-          </div>
+          <FeatureCard
+            icon={<BarChart3 className="h-6 w-6" />}
+            title="Smart Match Analysis"
+            description="Comprehensive match statistics, trends and performance insights to help you understand every fixture."
+          />
 
-        </section>
+          <FeatureCard
+            icon={<Trophy className="h-6 w-6" />}
+            title="Reliable Predictions"
+            description="Daily football predictions generated through structured research and analytical models."
+          />
 
+          <FeatureCard
+            icon={<ShieldCheck className="h-6 w-6" />}
+            title="Modern Experience"
+            description="Responsive layouts, fast loading pages and a clean interface built for every football fan."
+          />
 
-        {/* CONTACT */}
+        </div>
+      </section>
 
-        <section className="mt-8 px-12">
+      {/* External Advertisement */}
 
-          <h2 className="text-center text-4xl font-black">
+      <AboutAds />
+
+      {/* Inline Advertisement */}
+
+      <InternalAds
+        page={AdPage.HOME}
+        position={AdPosition.INLINE}
+      />
+
+      {/* CONTACT */}
+
+      <section
+        className="
+          mx-auto
+          max-w-5xl
+          border-t
+          border-border/50
+          px-5
+          py-8
+        "
+      >
+        <div className="mb-5 text-center">
+
+          <h2 className="text-2xl font-bold">
             Contact Us
           </h2>
 
-          <div className="mt-4 grid gap-6 md:grid-cols-3">
+          <p className="mt-1.5 text-s text-muted-foreground">
+            Need help or have a question? We'd love to hear from you.
+          </p>
 
-            <ContactCard
-              icon={<Mail />}
-              title="Email"
-              value={process.env.NEXT_PUBLIC_SUPPORT_EMAIL || ''}
-              href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}
-            />
+        </div>
 
-            <ContactCard
-              icon={<Phone />}
-              title="Phone"
-              value={process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''}
-              href={`tel:${process.env.NEXT_PUBLIC_SUPPORT_PHONE}`}
-            />
+        <div className="grid gap-3 md:grid-cols-3">
 
-            <ContactCard
-              icon={<FaWhatsapp />}
-              title="WhatsApp Chat"
-              value="Chat with us"
-              href={process.env.NEXT_PUBLIC_WHATSAPP_CHAT || '#'}
-            />
+          <ContactCard
+            icon={<Mail className="h-6 w-6" />}
+            title="Email"
+            value={process.env.NEXT_PUBLIC_SUPPORT_EMAIL || ''}
+            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}
+          />
+
+          <ContactCard
+            icon={<Phone className="h-6 w-6" />}
+            title="Phone"
+            value={process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''}
+            href={`tel:${process.env.NEXT_PUBLIC_SUPPORT_PHONE}`}
+          />
+
+          <ContactCard
+            icon={<FaWhatsapp className="h-6 w-6" />}
+            title="WhatsApp"
+            value="Start a conversation"
+            href={process.env.NEXT_PUBLIC_WHATSAPP_CHAT || '#'}
+          />
+
+        </div>
+      </section>
+
+      {/* LEGAL */}
+
+      <section
+        className="
+          mx-auto
+          max-w-5xl
+          border-t
+          border-border/50
+          px-5
+          py-8
+        "
+      >
+        <Link
+          href="/privacy-policy"
+          className="
+            group
+            flex
+            items-center
+            justify-between
+            rounded-2xl
+            border
+            border-border
+            bg-card
+            p-4
+            shadow-sm
+            transition-all
+            duration-300
+            hover:-translate-y-1
+            hover:border-cyan-500/40
+            hover:shadow-lg
+          "
+        >
+          <div>
+
+            <h3 className="text-lg font-semibold">
+              Legal & Policies
+            </h3>
+
+            <p className="mt-1.5 text-s leading-6 text-muted-foreground">
+              Read our Privacy Policy, Terms of Service, Disclaimer and
+              other legal documents that govern the use of 2xPredict.
+            </p>
 
           </div>
 
-        </section>
+          <ArrowRight
+            className="
+              h-5
+              w-5
+              shrink-0
+              transition-transform
+              group-hover:translate-x-1
+            "
+          />
+        </Link>
+      </section>
 
-<AboutAds />
-                    <InternalAds
-  page={AdPage.HOME}
-  position={AdPosition.INLINE}
-/>
-<InternalAds
-  page={AdPage.HOME}
-  position={AdPosition.POPUP}
-/>
-<section className=" px-8">
+      {/* Popup Advertisement */}
 
-      <LegalPreview/> 
-</section>
+      <InternalAds
+        page={AdPage.HOME}
+        position={AdPosition.POPUP}
+      />
 
+      {/* CTA */}
 
-<section className="mb-4 px-16">
+      <section className="px-5 py-8">
 
-        <div className="mt-8 flex justify-start">
+        <div className="flex justify-center">
 
           <Link
             href="/"
             className="
-              group flex gap-3
-              rounded-full border border-border
-              bg-muted/40 px-8 py-4
-              font-semibold backdrop-blur-xl
-              transition
-              hover:border-cyan-500/50
+              group
+              inline-flex
+              items-center
+              gap-2
+              rounded-full
+              bg-primary
+              px-5
+              py-2.5
+              text-s
+              font-semibold
+              text-primary-foreground
+              transition-all
+              duration-300
+              hover:scale-[1.02]
             "
           >
+            Explore Predictions
 
-            Explore 1xpredicts
-
-            <ArrowRight className="
-         h-4 w-4 transition
-              group-hover:translate-x-1
-            "/>
+            <ArrowRight
+              className="
+                h-4
+                w-4
+                transition-transform
+                group-hover:translate-x-1
+              "
+            />
 
           </Link>
 
         </div>
-
+            <InternalAds
+              page={AdPage.HOME}
+              position={AdPosition.BOTTOM}
+            />
 
       </section>
 
@@ -228,103 +281,73 @@ export default function AboutPage() {
   );
 }
 
-
-
-
-
-
-
-
-function SocialCard({
-  icon,
-  name,
-  text,
-  link,
-}: {
+interface FeatureCardProps {
   icon: React.ReactNode;
-  name: string;
-  text: string;
-  link: string;
-}) {
+  title: string;
+  description: string;
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: FeatureCardProps) {
   return (
-    <Link
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       className="
         group
         rounded-2xl
         border
         border-border
-        bg-muted/30
+        bg-card
         p-4
-        backdrop-blur-xl
-        text-center
+        shadow-sm
         transition-all
         duration-300
-        hover:-translate-y-2
+        hover:-translate-y-1
         hover:border-cyan-500/40
-        sm:p-5
-        lg:p-6
+        hover:shadow-lg
       "
     >
       <div
         className="
           mb-3
-          flex
-          justify-center
-          text-2xl
+          inline-flex
+          rounded-xl
+          bg-cyan-500/10
+          p-2.5
           text-cyan-500
           transition-transform
           group-hover:scale-110
-          sm:text-3xl
         "
       >
         {icon}
       </div>
 
-      <h3
-        className="
-          text-sm
-          font-bold
-          sm:text-base
-        "
-      >
-        {name}
+      <h3 className="text-base font-semibold">
+        {title}
       </h3>
 
-      <p
-        className="
-          mt-2
-          hidden
-          text-sm
-          text-muted-foreground
-          md:block
-        "
-      >
-        {text}
+      <p className="mt-1.5 text-s leading-6 text-muted-foreground">
+        {description}
       </p>
-    </Link>
+    </div>
   );
 }
 
-
-
-
-
-
+interface ContactCardProps {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  href: string;
+}
 
 function ContactCard({
   icon,
   title,
   value,
   href,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  value: string;
-  href: string;
-}) {
+}: ContactCardProps) {
   const isExternal = href.startsWith('http');
 
   return (
@@ -337,25 +360,36 @@ function ContactCard({
         rounded-2xl
         border
         border-border
-        bg-muted/30
-        p-6
-        backdrop-blur-xl
+        bg-card
+        p-4
+        shadow-sm
         transition-all
         duration-300
-        hover:-translate-y-2
+        hover:-translate-y-1
         hover:border-cyan-500/40
-        hover:bg-muted/50
+        hover:shadow-lg
       "
     >
-      <div className="mb-4 text-cyan-500 transition-transform group-hover:scale-110">
+      <div
+        className="
+          mb-3
+          inline-flex
+          rounded-xl
+          bg-cyan-500/10
+          p-2.5
+          text-cyan-500
+          transition-transform
+          group-hover:scale-110
+        "
+      >
         {icon}
       </div>
 
-      <h3 className="text-xl font-bold">
+      <h3 className="text-base font-semibold">
         {title}
       </h3>
 
-      <p className="mt-3 text-muted-foreground break-all">
+      <p className="mt-1.5 break-all text-s leading-6 text-muted-foreground">
         {value}
       </p>
     </Link>

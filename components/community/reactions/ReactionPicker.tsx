@@ -54,7 +54,7 @@ export default function ReactionPicker({
                 bg-background
                 px-3
                 py-2
-                text-sm
+                text-s
                 font-medium
                 text-foreground
                 shadow-sm

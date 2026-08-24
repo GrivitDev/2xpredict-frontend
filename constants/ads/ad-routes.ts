@@ -3,20 +3,37 @@ import {
 } from './ad-page';
 
 
+// ============================================================
+// AD ROUTES
+// ============================================================
+
 export const AD_ROUTES = {
 
-  [AdPage.HOME]: '/',
+  [AdPage.HOME]:
+    '/',
 
-  [AdPage.DASHBOARD]: '/dashboard',
+  [AdPage.DASHBOARD]:
+    '/dashboard',
 
-  [AdPage.LIVE_SCORES]: '/livescores',
+  [AdPage.PRICING]:
+    '/pricing',
 
-  [AdPage.PREDICTIONS]: '/predictions',
+  [AdPage.PREDICTIONS]:
+    '/predictions',
 
-  [AdPage.ARTICLES]: '/articles',
+  [AdPage.COMMUNITY]:
+    '/community',
 
-  [AdPage.ABOUT]: '/about',
+  [AdPage.ABOUT]:
+    '/about',
 
-  [AdPage.PAYMENTS]: '/payments',
+  [AdPage.PURCHASES]:
+    '/dashboard/purchases',
+
+  [AdPage.SUBSCRIPTIONS]:
+    '/dashboard/subscriptions',
+
+  [AdPage.REFFERALS]:
+    '/dashboard/referrals',
 
 } as const;

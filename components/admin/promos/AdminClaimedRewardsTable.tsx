@@ -77,7 +77,7 @@ All Claimed Rewards
 <div className="overflow-x-auto">
 
 
-<table className="w-full text-sm">
+<table className="w-full text-s">
 
 
 <thead>

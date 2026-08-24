@@ -138,7 +138,7 @@ export function AdTable({
                   {
                     ad.subTitle && (
 
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-s text-muted-foreground">
 
                         {ad.subTitle}
 
@@ -153,7 +153,7 @@ export function AdTable({
                   <div className="
                     flex
                     gap-5
-                    text-sm
+                    text-s
                     text-muted-foreground
                   ">
 

@@ -65,7 +65,7 @@ export default function PredictionPagination({
           border
           px-4
           py-2
-          text-sm
+          text-s
           disabled:opacity-40
           transition
           hover:bg-muted
@@ -110,7 +110,7 @@ export default function PredictionPagination({
                 h-9
                 w-9
                 rounded-xl
-                text-sm
+                text-s
                 transition
 
                 ${
@@ -164,7 +164,7 @@ export default function PredictionPagination({
           border
           px-4
           py-2
-          text-sm
+          text-s
           disabled:opacity-40
           transition
           hover:bg-muted

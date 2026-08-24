@@ -25,82 +25,96 @@ export default function MarketingSection({
 }: Props) {
   return (
     <section className="space-y-6">
-
       <div>
-
         <h2 className="text-xl font-semibold">
           Marketing
         </h2>
-
-        <p className="text-sm text-muted-foreground">
-          Ads and promotional campaign performance
-        </p>
-
       </div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-
         <AnalyticsCard
           title="Total Ads"
-          value={ads.totalAds}
           description="Created advertisements"
           icon={Megaphone}
-        />
+        >
+          <p className="text-3xl font-bold">
+            {ads.totalAds.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Active Ads"
-          value={ads.activeAds}
           description="Currently running"
           icon={Megaphone}
           highlight
-        />
+        >
+          <p className="text-3xl font-bold">
+            {ads.activeAds.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Impressions"
-          value={ads.impressions.toLocaleString()}
           description="Total views"
           icon={Eye}
-        />
+        >
+          <p className="text-3xl font-bold">
+            {ads.impressions.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Clicks"
-          value={ads.clicks.toLocaleString()}
           description="User clicks"
           icon={MousePointerClick}
-        />
+        >
+          <p className="text-3xl font-bold">
+            {ads.clicks.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="CTR"
-          value={`${ads.ctr}%`}
           description="Click-through rate"
           icon={MousePointerClick}
           highlight
-        />
+        >
+          <p className="text-3xl font-bold">
+            {ads.ctr.toFixed(2)}%
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Total Promos"
-          value={promos.totalPromos}
           description="Created promotions"
           icon={Gift}
-        />
+        >
+          <p className="text-3xl font-bold">
+            {promos.totalPromos.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Active Promos"
-          value={promos.activePromos}
           description="Currently active"
           icon={CheckCircle}
           highlight
-        />
+        >
+          <p className="text-3xl font-bold">
+            {promos.activePromos.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Expired Promos"
-          value={promos.expiredPromos}
           description="Completed campaigns"
           icon={Clock}
-        />
-
+        >
+          <p className="text-3xl font-bold">
+            {promos.expiredPromos.toLocaleString()}
+          </p>
+        </AnalyticsCard>
       </div>
-
     </section>
   );
 }

@@ -23,6 +23,7 @@ export function AdTitle({
   centered = false,
   light = false,
 }: Props) {
+
   const containerRef =
     useRef<HTMLDivElement>(null);
 
@@ -30,9 +31,10 @@ export function AdTitle({
     useRef<HTMLHeadingElement>(null);
 
   const [fontSize, setFontSize] =
-    useState(32);
+    useState(30);
 
   useEffect(() => {
+
     const container =
       containerRef.current;
 
@@ -44,20 +46,22 @@ export function AdTitle({
     }
 
     const calculateFontSize = () => {
-      const availableWidth =
+
+      const width =
         container.clientWidth;
 
-      if (!availableWidth) {
+      if (!width) {
         return;
       }
 
-      let size = 32;
+      let size = 30;
 
       text.style.fontSize = `${size}px`;
 
       while (
-        text.scrollWidth > availableWidth &&
-        size > 16
+        text.scrollHeight >
+          size * 2.6 &&
+        size > 20
       ) {
         size -= 1;
 
@@ -66,6 +70,7 @@ export function AdTitle({
       }
 
       setFontSize(size);
+
     };
 
     calculateFontSize();
@@ -77,12 +82,15 @@ export function AdTitle({
 
     observer.observe(container);
 
-    return () => {
+    return () =>
       observer.disconnect();
-    };
-  }, [ad.title]);
+
+  }, [
+    ad.title,
+  ]);
 
   return (
+
     <motion.div
       ref={containerRef}
       initial={{
@@ -94,80 +102,102 @@ export function AdTitle({
         y: 0,
       }}
       transition={{
-        duration: 0.4,
+        duration: .35,
       }}
       className={cn(
         'w-full space-y-2',
         centered && 'text-center',
       )}
     >
+
       <motion.h2
         ref={textRef}
+        style={{
+          fontSize,
+        }}
         initial={{
           opacity: 0,
-          y: 10,
+          y: 8,
         }}
         animate={{
           opacity: 1,
           y: 0,
         }}
         transition={{
-          delay: 0.05,
-          duration: 0.4,
-        }}
-        style={{
-          fontSize: `${fontSize}px`,
+          delay: .05,
         }}
         className={cn(
           `
-            w-full
-
-            whitespace-nowrap
-
             font-display
+
+            font-bold
+
             uppercase
 
-            leading-none
-            tracking-[0.04em]
+            leading-[1.05]
+
+            tracking-[0.02em]
+
+            text-balance
+
+            break-words
+
+            transition-all
+
+            duration-300
           `,
           light
             ? 'text-white'
             : 'text-foreground',
         )}
       >
-        {ad.title.toUpperCase()}
+
+        {ad.title}
+
       </motion.h2>
 
       {ad.subTitle && (
+
         <motion.p
           initial={{
             opacity: 0,
+            y: 4,
           }}
           animate={{
             opacity: 1,
+            y: 0,
           }}
           transition={{
-            delay: 0.15,
+            delay: .12,
           }}
           className={cn(
             `
               mx-auto
               max-w-2xl
 
-              text-[clamp(0.75rem,2.5vw,0.95rem)]
+              text-sm
+              sm:text-[15px]
 
-              font-semibold
-              leading-snug
-              tracking-tight
+              leading-6
+
+              font-medium
+
+              text-pretty
             `,
             light
-              ? 'text-white/90'
+              ? 'text-white/85'
               : 'text-muted-foreground',
           )}
         >
+
           {ad.subTitle}
+
         </motion.p>
+
       )}
+
     </motion.div>
+
   );
+
 }

@@ -194,7 +194,7 @@ export default function UsersPage() {
                 className="
                   mt-2
                   max-w-2xl
-                  text-sm
+                  text-s
                   leading-6
                   text-muted-foreground
                   sm:text-base
@@ -246,7 +246,7 @@ export default function UsersPage() {
                   bg-destructive/10
                   px-4
                   py-3
-                  text-sm
+                  text-s
                   text-destructive
                 "
               >
@@ -325,7 +325,7 @@ export default function UsersPage() {
                 Filter Directory
               </h2>
 
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-s text-muted-foreground">
                 Search users by name, email, role, or account status.
               </p>
             </div>
@@ -412,7 +412,7 @@ export default function UsersPage() {
                   bg-background
                   pl-10
                   pr-4
-                  text-sm
+                  text-s
                   outline-none
                   transition
                   placeholder:text-muted-foreground
@@ -468,7 +468,7 @@ export default function UsersPage() {
                   bg-background
                   pl-10
                   pr-4
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -540,7 +540,7 @@ export default function UsersPage() {
                   bg-background
                   pl-10
                   pr-4
-                  text-sm
+                  text-s
                   font-medium
                   outline-none
                   transition
@@ -605,7 +605,7 @@ export default function UsersPage() {
               User Directory
             </h2>
 
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-s text-muted-foreground">
               {loading
                 ? 'Loading users...'
                 : `${users.length} user${
@@ -654,7 +654,7 @@ export default function UsersPage() {
           sm:justify-between
         "
       >
-        <p className="text-center text-sm text-muted-foreground sm:text-left">
+        <p className="text-center text-s text-muted-foreground sm:text-left">
           Page{' '}
           <span className="font-semibold text-foreground">
             {page}
@@ -684,7 +684,7 @@ export default function UsersPage() {
               border
               border-border
               px-4
-              text-sm
+              text-s
               font-semibold
               transition
               hover:bg-muted
@@ -719,7 +719,7 @@ export default function UsersPage() {
               border
               border-border
               px-4
-              text-sm
+              text-s
               font-semibold
               transition
               hover:bg-muted

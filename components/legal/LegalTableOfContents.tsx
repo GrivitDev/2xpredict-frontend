@@ -183,7 +183,7 @@ export default function LegalTableOfContents({
                     rounded-xl
                     px-3
                     py-2.5
-                    text-sm
+                    text-s
                     font-semibold
                     transition-all
                     duration-200
@@ -263,7 +263,7 @@ export default function LegalTableOfContents({
                             rounded-xl
                             px-3
                             py-2
-                            text-sm
+                            text-s
                             transition-all
                             duration-200
 

@@ -116,7 +116,7 @@ export default function ReplyForm({
           flex-1
           rounded-xl
           bg-background
-          text-sm
+          text-s
           shadow-sm
           placeholder:text-muted-foreground
           focus-visible:ring-2

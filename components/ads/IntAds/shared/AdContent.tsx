@@ -1,6 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { InternalAd } from '@/types/internal-ad';
 
@@ -19,11 +23,15 @@ export function AdContent({
   centered = false,
   light = false,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const [contentScale, setContentScale] = useState(1);
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const [contentScale, setContentScale] =
+    useState(1);
 
   useEffect(() => {
+
     const element = containerRef.current;
 
     if (!element) {
@@ -31,51 +39,53 @@ export function AdContent({
     }
 
     const updateScale = () => {
-      const height = element.scrollHeight;
-      const width = element.clientWidth;
+
+      const height =
+        element.scrollHeight;
+
+      const width =
+        element.clientWidth;
 
       if (!height || !width) {
         return;
       }
 
       /*
-       * Short content:
-       *   larger typography
+       * Compact responsive scaling.
        *
-       * Long content:
-       *   progressively smaller typography
-       *
-       * The scale is intentionally bounded so text
-       * never becomes too large or too small.
+       * Short content stays slightly larger.
+       * Long content scales down gracefully.
        */
 
-      const idealHeight = width < 400 ? 300 : 340;
+      const idealHeight =
+        width < 640
+          ? 280
+          : 330;
 
       const calculatedScale =
         idealHeight / height;
 
       const scale = Math.min(
-        1.12,
+        1.08,
         Math.max(
-          0.78,
+          0.82,
           calculatedScale,
         ),
       );
 
       setContentScale(scale);
+
     };
 
     updateScale();
 
-    const observer = new ResizeObserver(
-      updateScale,
-    );
+    const observer =
+      new ResizeObserver(updateScale);
 
     observer.observe(element);
 
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
+
   }, [
     ad.title,
     ad.subTitle,
@@ -84,17 +94,23 @@ export function AdContent({
   ]);
 
   return (
+
     <div
       ref={containerRef}
-      className={
-        centered
-          ? 'space-y-3 text-center'
-          : 'space-y-3'
-      }
       style={{
         '--ad-content-scale': contentScale,
       } as React.CSSProperties}
+      className={[
+        'relative',
+        'space-y-2.5',
+        'transition-all',
+        'duration-300',
+        centered
+          ? 'text-center'
+          : 'text-left',
+      ].join(' ')}
     >
+
       <AdTitle
         ad={ad}
         centered={centered}
@@ -110,6 +126,9 @@ export function AdContent({
         ad={ad}
         light={light}
       />
+
     </div>
+
   );
+
 }

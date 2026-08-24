@@ -5,11 +5,8 @@ import Image from 'next/image';
 import {
   CalendarDays,
   ShieldCheck,
+  TrendingUp,
 } from 'lucide-react';
-
-import {
-  DashboardCard,
-} from '@/components/dashboard/shared/DashboardCard';
 
 import {
   formatMatchTime,
@@ -20,6 +17,9 @@ import type {
 } from './dashboard.types';
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function TopPredictionsCard({
   items = [],
@@ -27,308 +27,486 @@ export function TopPredictionsCard({
   items?: PredictionItem[];
 }) {
 
-
   if (!items.length) {
     return (
       <div
         className="
-          rounded-3xl
+          flex
+          min-h-[110px]
+          items-center
+          justify-center
+          rounded-2xl
           border
           border-dashed
-          border-border
-          bg-background/40
-          p-6
-          text-sm
-          text-muted-foreground
+          border-border/60
+          bg-muted/10
+          px-4
+          py-5
+          text-center
         "
       >
-        No predictions available today.
+
+        <div className="space-y-1">
+
+          <TrendingUp
+            className="
+              mx-auto
+              h-5
+              w-5
+              text-muted-foreground/60
+            "
+          />
+
+          <p
+            className="
+              text-xs
+              font-medium
+              text-muted-foreground
+            "
+          >
+            No predictions available today.
+          </p>
+
+        </div>
+
       </div>
     );
   }
-
 
 
   return (
     <div
       className="
         grid
-        gap-5
+        gap-2.5
         sm:grid-cols-2
         xl:grid-cols-3
       "
     >
 
-      {
-        items.map((item,index)=>{
+      {items.map((item, index) => {
+
+        const home =
+          item.homeTeam || 'Home';
+
+        const away =
+          item.awayTeam || 'Away';
+
+        const confidence =
+          Number(item.confidence || 0);
 
 
-          const home =
-            item.homeTeam ||
-            'Home';
+        return (
+          <div
+            key={
+              item._id ||
+              `${home}-${away}-${index}`
+            }
+            className="
+              group
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-border/60
+              bg-card
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:border-primary/25
+              hover:shadow-md
+            "
+          >
 
+            {/* ==================================================
+                PREMIUM ACCENT
+                ================================================== */}
 
-
-          const away =
-            item.awayTeam ||
-            'Away';
-
-
-
-          return (
-
-            <DashboardCard
-              key={
-                item._id ||
-                `${home}-${away}-${index}`
-              }
-
+            <div
               className="
-                group
-                p-0
+                pointer-events-none
+                absolute
+                inset-x-0
+                top-0
+                h-px
+                bg-gradient-to-r
+                from-transparent
+                via-primary/70
+                to-transparent
+              "
+            />
+
+
+            {/* ==================================================
+                LEAGUE HEADER
+                ================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-2.5
+                border-b
+                border-border/50
+                bg-muted/[0.025]
+                px-4
+                py-2.5
               "
             >
 
+              {/* League emblem */}
 
-              <div
+              {item.league?.emblem && (
+                <div
+                  className="
+                    flex
+                    h-7
+                    w-7
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
+                    border
+                    border-border/50
+                    bg-background/70
+                    p-1
+                  "
+                >
+
+                  <Image
+                    src={item.league.emblem}
+                    alt={
+                      item.league.name ||
+                      'League'
+                    }
+                    width={20}
+                    height={20}
+                    className="
+                      h-full
+                      w-full
+                      object-contain
+                    "
+                  />
+
+                </div>
+              )}
+
+
+              {/* League */}
+
+              <p
                 className="
-                  relative
-                  overflow-hidden
-                  p-4
-                  sm:p-5
+                  min-w-0
+                  flex-1
+                  truncate
+                  text-xs
+                  font-medium
+                  text-muted-foreground
+                "
+              >
+                {
+                  item.league?.name ||
+                  'Football League'
+                }
+              </p>
+
+
+              {/* Top badge */}
+
+              <span
+                className="
+                  flex
+                  shrink-0
+                  items-center
+                  gap-1
+                  rounded-full
+                  border
+                  border-primary/20
+                  bg-primary/10
+                  px-2
+                  py-1
+                  text-[10px]
+                  font-semibold
+                  uppercase
+                  tracking-wide
+                  text-primary
                 "
               >
 
-
-                {/* TOP GLOW */}
-
-                <div
+                <TrendingUp
                   className="
-                    pointer-events-none
-                    absolute
-                    inset-x-0
-                    top-0
-                    h-24
-                    bg-gradient-to-b
-                    from-primary/20
-                    to-transparent
+                    h-3
+                    w-3
                   "
                 />
 
+                Top
+
+              </span>
+
+            </div>
 
 
-                {/* LEAGUE */}
+            {/* ==================================================
+                MATCH
+                ================================================== */}
+
+            <div
+              className="
+                px-4
+                pb-3.5
+                pt-4
+              "
+            >
+
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-2
+                "
+              >
+
+                <TeamMini
+                  name={home}
+                  badge={item.homeTeamBadge}
+                />
+
+
+                {/* VS */}
 
                 <div
                   className="
-                    relative
                     flex
+                    h-7
+                    w-7
+                    shrink-0
                     items-center
                     justify-center
-                    gap-3
+                    rounded-full
+                    border
+                    border-border/60
+                    bg-muted/20
                   "
                 >
 
-                  {
-                    item.league?.emblem && (
-
-                      <Image
-                        src={
-                          item.league.emblem
-                        }
-                        alt={
-                          item.league.name ||
-                          'League'
-                        }
-                        width={42}
-                        height={42}
-                        className="
-                          object-contain
-                        "
-                      />
-
-                    )
-                  }
-
-
-
-                  <div
+                  <span
                     className="
-                      text-center
-                    "
-                  >
-
-                    <p
-                      className="
-                        text-xs
-                        font-semibold
-                      "
-                    >
-
-                      {
-                        item.league?.name ||
-                        'Football League'
-                      }
-
-                    </p>
-
-
-                    {
-                      item.league?.country && (
-
-                        <p
-                          className="
-                            text-[11px]
-                            text-muted-foreground
-                          "
-                        >
-                          {
-                            item.league.country
-                          }
-                        </p>
-
-                      )
-                    }
-
-                  </div>
-
-                </div>
-
-
-
-
-
-                {/* MATCH */}
-
-                <div
-                  className="
-                    mt-6
-                    flex
-                    items-center
-                    justify-between
-                    gap-3
-                  "
-                >
-
-                  <TeamMini
-                    name={home}
-                    badge={
-                      item.homeTeamBadge
-                    }
-                  />
-
-
-
-                  <div
-                    className="
-                      flex
-                      h-9
-                      w-9
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-full
-                      border
-                      border-border
-                      bg-muted
-                      text-[11px]
-                      font-bold
+                      text-[10px]
+                      font-semibold
+                      uppercase
+                      tracking-wide
                       text-muted-foreground
                     "
                   >
                     VS
-                  </div>
-
-
-
-                  <TeamMini
-                    name={away}
-                    badge={
-                      item.awayTeamBadge
-                    }
-                  />
+                  </span>
 
                 </div>
 
 
-
-
-
-                {/* INFORMATION */}
-
-                <div
-                  className="
-                    mt-5
-                    space-y-3
-                  "
-                >
-
-                    <InfoCard
-                    icon={
-                        <CalendarDays
-                        className="
-                            h-3.5
-                            w-3.5
-                        "
-                        />
-                    }
-                    label="Kickoff"
-                    value={
-                        item.matchDate
-                        ? formatMatchTime(item.matchDate)
-                        : 'TBA'
-                    }
-                    />
-
-
-
-                  <ConfidenceCard
-                    confidence={
-                      Number(
-                        item.confidence || 0
-                      )
-                    }
-                  />
-
-                </div>
-
+                <TeamMini
+                  name={away}
+                  badge={item.awayTeamBadge}
+                  align="right"
+                />
 
               </div>
 
 
-            </DashboardCard>
+              {/* ==================================================
+                  MATCH META
+                  ================================================== */}
 
-          );
+              <div
+                className="
+                  mt-3
+                  flex
+                  items-center
+                  justify-between
+                  gap-3
+                  border-t
+                  border-border/40
+                  pt-3
+                "
+              >
 
-        })
-      }
+                {/* Match time */}
+
+                <div
+                  className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-1.5
+                  "
+                >
+
+                  <CalendarDays
+                    className="
+                      h-3.5
+                      w-3.5
+                      shrink-0
+                      text-primary
+                    "
+                  />
+
+                  <span
+                    className="
+                      truncate
+                      text-xs
+                      font-medium
+                      text-muted-foreground
+                    "
+                  >
+                    {
+                      item.matchDate
+                        ? formatMatchTime(
+                            item.matchDate,
+                          )
+                        : 'TBA'
+                    }
+                  </span>
+
+                </div>
+
+
+                {/* Confidence */}
+
+                <Confidence
+                  confidence={confidence}
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+        );
+      })}
 
     </div>
   );
 }
 
 
-
-
-
+// ============================================================
+// TEAM
+// ============================================================
 
 function TeamMini({
   name,
   badge,
-}:{
-  name:string;
-  badge?:string;
+  align = 'left',
+}: {
+  name: string;
+  badge?: string;
+  align?: 'left' | 'right';
 }) {
+
+  const isRight =
+    align === 'right';
 
 
   return (
-
     <div
-      className="
+      className={`
         flex
         min-w-0
         flex-1
-        flex-col
+        items-center
+        gap-2
+        ${isRight ? 'flex-row-reverse' : ''}
+      `}
+    >
+
+      {/* Team badge */}
+
+      <div
+        className="
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-border/50
+          bg-muted/10
+          p-1
+        "
+      >
+
+        {badge ? (
+          <Image
+            src={badge}
+            alt={name}
+            width={28}
+            height={28}
+            className="
+              h-full
+              w-full
+              object-contain
+            "
+          />
+        ) : (
+          <ShieldCheck
+            className="
+              h-4
+              w-4
+              text-muted-foreground
+            "
+          />
+        )}
+
+      </div>
+
+
+      {/* Team name */}
+
+      <p
+        className={`
+          min-w-0
+          flex-1
+          truncate
+          text-xs
+          font-semibold
+          leading-snug
+          ${isRight ? 'text-right' : 'text-left'}
+        `}
+      >
+        {name}
+      </p>
+
+    </div>
+  );
+}
+
+
+// ============================================================
+// CONFIDENCE
+// ============================================================
+
+function Confidence({
+  confidence,
+}: {
+  confidence: number;
+}) {
+
+  const value =
+    Math.min(
+      100,
+      Math.max(0, confidence),
+    );
+
+
+  return (
+    <div
+      className="
+        flex
+        shrink-0
         items-center
         gap-2
       "
@@ -336,141 +514,12 @@ function TeamMini({
 
       <div
         className="
-          flex
-          h-12
-          w-12
-          items-center
-          justify-center
-          rounded-2xl
-          border
-          border-border
-          bg-background
-        "
-      >
-
-        {
-          badge ? (
-
-            <Image
-              src={badge}
-              alt={name}
-              width={36}
-              height={36}
-              className="
-                object-contain
-              "
-            />
-
-          ) : (
-
-            <ShieldCheck
-              className="
-                h-5
-                w-5
-                text-muted-foreground
-              "
-            />
-
-          )
-        }
-
-      </div>
-
-
-
-      <p
-        className="
-          max-w-[90px]
-          truncate
-          text-center
-          text-xs
-          font-semibold
-        "
-      >
-        {name}
-      </p>
-
-
-    </div>
-
-  );
-}
-
-
-
-
-
-
-
-function ConfidenceCard({
-  confidence,
-}:{
-  confidence:number;
-}) {
-
-
-  const value =
-    Math.min(
-      100,
-      Math.max(
-        0,
-        confidence,
-      ),
-    );
-
-
-
-  return (
-
-    <div
-      className="
-        rounded-2xl
-        border
-        border-border
-        bg-muted/30
-        p-3
-      "
-    >
-
-      <div
-        className="
-          mb-2
-          flex
-          items-center
-          justify-between
-        "
-      >
-
-        <span
-          className="
-            text-xs
-            text-muted-foreground
-          "
-        >
-          Confidence
-        </span>
-
-
-        <span
-          className="
-            text-xs
-            font-bold
-            text-emerald-500
-          "
-        >
-          {value}%
-        </span>
-
-      </div>
-
-
-
-      <div
-        className="
-          h-2
+          h-1.5
+          w-10
           overflow-hidden
           rounded-full
           bg-muted
+          sm:w-12
         "
       >
 
@@ -478,91 +527,29 @@ function ConfidenceCard({
           className="
             h-full
             rounded-full
-            bg-emerald-500
+            bg-primary
             transition-all
-            duration-700
+            duration-500
           "
           style={{
-            width:`${value}%`,
+            width: `${value}%`,
           }}
         />
 
       </div>
 
-    </div>
 
-  );
-}
-
-
-
-
-
-
-
-function InfoCard({
-  icon,
-  label,
-  value,
-}:{
-  icon:React.ReactNode;
-  label:string;
-  value:string;
-}) {
-
-
-  return (
-
-    <div
-      className="
-        flex
-        items-center
-        gap-3
-        rounded-2xl
-        border
-        border-border
-        bg-background/60
-        p-3
-      "
-    >
-
-      <div
+      <span
         className="
-          rounded-xl
-          bg-primary/10
-          p-2
+          text-xs
+          font-semibold
+          tabular-nums
           text-primary
         "
       >
-        {icon}
-      </div>
-
-
-      <div>
-
-        <p
-          className="
-            text-[11px]
-            text-muted-foreground
-          "
-        >
-          {label}
-        </p>
-
-
-        <p
-          className="
-            text-xs
-            font-semibold
-          "
-        >
-          {value}
-        </p>
-
-      </div>
-
+        {value}%
+      </span>
 
     </div>
-
   );
 }

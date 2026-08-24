@@ -26,7 +26,7 @@ export default function PostSubmitButton({
         rounded-xl
         bg-primary
         px-5
-        text-sm
+        text-s
         font-semibold
         text-primary-foreground
         shadow-sm

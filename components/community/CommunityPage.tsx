@@ -267,7 +267,7 @@ export default function CommunityPage() {
               flex
               items-center
               gap-3
-              text-sm
+              text-s
               text-muted-foreground
             "
           >
@@ -391,7 +391,7 @@ export default function CommunityPage() {
                 mx-auto
                 mt-4
                 max-w-md
-                text-sm
+                text-s
                 leading-6
                 text-muted-foreground
                 sm:text-base
@@ -427,7 +427,7 @@ export default function CommunityPage() {
                 bg-primary
                 px-5
                 py-3
-                text-sm
+                text-s
                 font-semibold
                 text-primary-foreground
                 shadow-lg

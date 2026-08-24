@@ -168,7 +168,7 @@ export function AdDisplayBuilder({
           </h3>
 
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-s text-muted-foreground">
 
             Choose where this advertisement appears.
 

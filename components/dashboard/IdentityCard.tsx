@@ -3,104 +3,14 @@ import {
   Crown,
   Mail,
   Phone,
-  UserRound,
   Sparkles,
+  UserRound,
 } from 'lucide-react';
 
-import {
-  type ElementType,
-  type ReactNode,
-} from 'react';
 
-
-
-function MiniStat({
-  icon: Icon,
-  label,
-  value,
-}:{
-  icon:ElementType;
-  label:string;
-  value:ReactNode;
-}) {
-
-  return (
-
-    <div
-      className="
-        rounded-2xl
-        border
-        border-border
-        bg-background/60
-        p-4
-      "
-    >
-
-      <div
-        className="
-          flex
-          items-start
-          gap-3
-        "
-      >
-
-        <div
-          className="
-            rounded-2xl
-            border
-            border-border
-            bg-muted/40
-            p-2.5
-          "
-        >
-
-          <Icon
-            className="
-              h-4
-              w-4
-              text-foreground
-            "
-          />
-
-        </div>
-
-
-        <div className="min-w-0">
-
-          <p
-            className="
-              text-xs
-              text-muted-foreground
-            "
-          >
-            {label}
-          </p>
-
-
-          <p
-            className="
-              mt-1
-              truncate
-              text-base
-              font-semibold
-              tracking-tight
-            "
-          >
-            {value}
-          </p>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  );
-
-}
-
-
-
+// ============================================================
+// IDENTITY CARD
+// ============================================================
 
 export function IdentityCard({
   name,
@@ -116,180 +26,163 @@ export function IdentityCard({
   plan?: string | null;
 }) {
 
-
   const currentPlan =
     plan?.toLowerCase() || 'free';
 
 
-
-  const membership = {
-
-    vip:{
-      label:'VIP',
-      icon:Crown,
-      className:
-        `
-          bg-gradient-to-br
-          from-amber-400
-          to-yellow-600
-          text-white
-          shadow-amber-500/30
-        `,
-      badgeClass:
-        `
-          bg-amber-500/10
-          text-amber-500
-        `,
-    },
-
-
-    regular:{
-      label:'Regular',
-      icon:BadgeCheck,
-      className:
-        `
-          bg-primary
-          text-primary-foreground
-          shadow-primary/30
-        `,
-      badgeClass:
-        `
-          bg-primary/10
-          text-primary
-        `,
-    },
-
-
-    free:{
-      label:'FREE',
-      icon:Sparkles,
-      className:
-        `
-          bg-muted
-          text-muted-foreground
-        `,
-      badgeClass:
-        `
-          bg-muted
-          text-muted-foreground
-        `,
-    },
-
-  }[currentPlan] || {
-
-    label:'FREE',
-    icon:Sparkles,
-    className:
-      `
-        bg-muted
-        text-muted-foreground
-      `,
-    badgeClass:
-      `
-        bg-muted
-        text-muted-foreground
-      `,
-
-  };
-
+  const membership =
+    currentPlan === 'vip'
+      ? {
+          label: 'VIP',
+          icon: Crown,
+          iconClass: 'text-amber-500',
+          badgeClass:
+            'border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400',
+          avatarClass:
+            'border-amber-500/25 bg-amber-500/10',
+        }
+      : currentPlan === 'regular'
+        ? {
+            label: 'Regular',
+            icon: BadgeCheck,
+            iconClass: 'text-primary',
+            badgeClass:
+              'border-primary/25 bg-primary/10 text-primary',
+            avatarClass:
+              'border-primary/25 bg-primary/10',
+          }
+        : {
+            label: 'Free',
+            icon: Sparkles,
+            iconClass: 'text-muted-foreground',
+            badgeClass:
+              'border-border bg-muted/40 text-muted-foreground',
+            avatarClass:
+              'border-border/70 bg-muted/30',
+          };
 
 
   const MembershipIcon =
     membership.icon;
 
 
-
   return (
-
     <div
       className="
-        rounded-3xl
+        relative
+        overflow-hidden
+        rounded-2xl
         border
-        border-border
+        border-border/60
         bg-card
-        p-4
         shadow-sm
       "
     >
 
+      {/* ======================================================
+          PREMIUM ACCENT
+          ====================================================== */}
 
       <div
         className="
-          mb-4
+          absolute
+          inset-x-0
+          top-0
+          h-px
+          bg-gradient-to-r
+          from-transparent
+          via-primary/70
+          to-transparent
+        "
+      />
+
+
+      {/* ======================================================
+          PROFILE
+          ====================================================== */}
+
+      <div
+        className="
           flex
           items-center
           gap-3
+          px-4
+          py-3.5
         "
       >
 
+        {/* Avatar */}
 
         <div
-          className="
+          className={`
             relative
             flex
-            h-14
-            w-14
+            h-11
+            w-11
             shrink-0
             items-center
             justify-center
-            rounded-2xl
+            rounded-xl
             border
-            border-border
-            bg-muted/40
-          "
+            ${membership.avatarClass}
+          `}
         >
 
           <UserRound
             className="
-              h-6
-              w-6
+              h-5
+              w-5
+              text-muted-foreground
             "
           />
 
 
+          {/* Membership indicator */}
 
           <div
             className={`
               absolute
-              -right-2
-              -top-2
+              -right-1.5
+              -top-1.5
               flex
-              h-7
-              w-7
+              h-5
+              w-5
               items-center
               justify-center
               rounded-full
-              shadow-lg
-              ${membership.className}
+              border
+              bg-card
+              shadow-sm
+              ${membership.badgeClass}
             `}
           >
 
             <MembershipIcon
-              className="
-                h-4
-                w-4
-              "
+              className={`
+                h-3
+                w-3
+                ${membership.iconClass}
+              `}
             />
 
           </div>
 
-
         </div>
 
 
-
-
+        {/* Identity */}
 
         <div
           className="
             min-w-0
+            flex-1
           "
         >
 
           <div
             className="
               flex
-              flex-wrap
+              min-w-0
               items-center
               gap-2
             "
@@ -297,25 +190,27 @@ export function IdentityCard({
 
             <h3
               className="
+                min-w-0
                 truncate
-                text-base
+                text-sm
                 font-semibold
+                leading-tight
                 tracking-tight
-                sm:text-lg
               "
             >
               {name || 'User'}
             </h3>
 
 
-
             <span
               className={`
+                shrink-0
                 rounded-full
-                px-2.5
-                py-1
+                border
+                px-2
+                py-0.5
                 text-[10px]
-                font-bold
+                font-semibold
                 uppercase
                 tracking-wide
                 ${membership.badgeClass}
@@ -324,61 +219,178 @@ export function IdentityCard({
               {membership.label}
             </span>
 
-
           </div>
-
 
 
           <p
             className="
+              mt-1
               truncate
-              text-sm
+              text-xs
               text-muted-foreground
             "
           >
-            {
-              username
+            {username
               ? `@${username}`
-              : 'No username'
-            }
+              : 'No username'}
           </p>
 
-
         </div>
-
 
       </div>
 
 
-
+      {/* ======================================================
+          CONTACT INFORMATION
+          ====================================================== */}
 
       <div
         className="
           grid
-          gap-3
-          sm:grid-cols-2
+          grid-cols-2
+          border-t
+          border-border/50
+          bg-muted/[0.025]
         "
       >
 
-        <MiniStat
-          icon={Mail}
-          label="Email"
-          value={email || '—'}
-        />
+        {/* Email */}
+
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-2.5
+            px-4
+            py-3
+          "
+        >
+
+          <div
+            className="
+              flex
+              h-7
+              w-7
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              border
+              border-primary/10
+              bg-primary/10
+              text-primary
+            "
+          >
+            <Mail className="h-3.5 w-3.5" />
+          </div>
 
 
-        <MiniStat
-          icon={Phone}
-          label="Phone"
-          value={phoneNumber || '—'}
-        />
+          <div
+            className="
+              min-w-0
+              flex-1
+            "
+          >
 
+            <p
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-wider
+                text-muted-foreground
+              "
+            >
+              Email
+            </p>
+
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-xs
+                font-medium
+              "
+            >
+              {email || 'Not provided'}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* Phone */}
+
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-2.5
+            border-l
+            border-border/50
+            px-4
+            py-3
+          "
+        >
+
+          <div
+            className="
+              flex
+              h-7
+              w-7
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              border
+              border-primary/10
+              bg-primary/10
+              text-primary
+            "
+          >
+            <Phone className="h-3.5 w-3.5" />
+          </div>
+
+
+          <div
+            className="
+              min-w-0
+              flex-1
+            "
+          >
+
+            <p
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-wider
+                text-muted-foreground
+              "
+            >
+              Phone
+            </p>
+
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-xs
+                font-medium
+              "
+            >
+              {phoneNumber || 'Not provided'}
+            </p>
+
+          </div>
+
+        </div>
 
       </div>
 
-
     </div>
-
   );
-
 }

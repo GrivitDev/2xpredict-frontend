@@ -161,7 +161,7 @@ export default function CommunityMediaCard({
               className="
                 whitespace-pre-wrap
                 break-words
-                text-sm
+                text-s
                 leading-7
                 text-foreground
                 sm:text-base
@@ -188,7 +188,7 @@ export default function CommunityMediaCard({
               text-xs
               font-medium
               text-muted-foreground
-              sm:text-sm
+              sm:text-s
             "
           >
             @{post.username}

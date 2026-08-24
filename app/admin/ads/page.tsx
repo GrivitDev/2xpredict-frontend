@@ -20,11 +20,11 @@ import {
 
 
 import {
-  useAds,
-  useAdAnalytics,
+  useAdminAds,
+  useAdminAdAnalytics,
   useDeleteAd,
   useToggleAd,
-} from '@/hooks/useAds';
+} from '@/hooks/useAdminAds';
 
 
 
@@ -47,18 +47,25 @@ export default function AdsPage(){
 
 
 
-  const {
-    data:ads = [],
-    isLoading:adsLoading,
-  } = useAds();
+const {
+  data: ads = [],
+  isLoading: adsLoading,
+  isError: adsError,
+  error: adsRequestError,
+} = useAdminAds();
 
+const {
+  data: analytics,
+  isLoading: analyticsLoading,
+  isError: analyticsError,
+  error: analyticsRequestError,
+} = useAdminAdAnalytics();
 
+console.log('ADS DATA:', ads);
+console.log('ADS ERROR:', adsRequestError);
 
-
-  const {
-    data:analytics,
-    isLoading:analyticsLoading,
-  } = useAdAnalytics();
+console.log('ANALYTICS DATA:', analytics);
+console.log('ANALYTICS ERROR:', analyticsRequestError);
 
 
 
@@ -139,7 +146,8 @@ export default function AdsPage(){
 
 
 
-
+console.log('Ads:', ads);
+console.log('Ads length:', ads.length);
 
   return (
 

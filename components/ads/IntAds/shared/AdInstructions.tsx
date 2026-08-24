@@ -17,80 +17,119 @@ export function AdInstructions({
   ad,
   light = false,
 }: Props) {
+
   if (!ad.instructions.length) {
     return null;
   }
 
   return (
+
     <motion.div
       initial={{
         opacity: 0,
-        y: 10,
+        y: 8,
       }}
       animate={{
         opacity: 1,
         y: 0,
       }}
       transition={{
-        delay: 0.35,
+        duration: .35,
+        delay: .25,
       }}
-      className="space-y-2.5"
+      className="space-y-3"
     >
+
       <h4
         className="
-          text-[clamp(0.65rem,2vw,0.75rem)]
+          text-[11px]
           font-semibold
           uppercase
-          tracking-[0.18em]
+          tracking-[0.22em]
           text-primary
         "
       >
         Instructions
       </h4>
 
-      <ul className="space-y-1.5">
-        {ad.instructions.map((instruction) => (
+      <ul className="space-y-2">
+
+        {ad.instructions.map((
+          instruction,
+          index,
+        ) => (
+
           <motion.li
             key={instruction}
             initial={{
               opacity: 0,
-              x: -10,
+              x: -8,
             }}
             animate={{
               opacity: 1,
               x: 0,
             }}
+            transition={{
+              delay: .05 * index,
+            }}
             className="
               flex
-              items-center
-              gap-2
+              items-start
+              gap-2.5
             "
           >
-            <CheckCircle2
+
+            <div
               className="
-                h-3.5
-                w-3.5
+                mt-0.5
+                flex
+                h-5
+                w-5
                 shrink-0
-                text-primary
+                items-center
+                justify-center
+                rounded-full
+                bg-primary/10
+                ring-1
+                ring-primary/15
               "
-            />
+            >
+
+              <CheckCircle2
+                className="
+                  h-3
+                  w-3
+                  text-primary
+                "
+              />
+
+            </div>
 
             <span
               className={cn(
                 `
-                  text-[clamp(0.7rem,2.2vw,0.875rem)]
-                  leading-relaxed
+                  text-sm
+                  leading-6
+                  text-pretty
                 `,
                 light
                   ? 'text-white/90'
                   : 'text-muted-foreground',
               )}
             >
+
               {instruction}
+
             </span>
+
           </motion.li>
+
         ))}
+
       </ul>
+
     </motion.div>
+
   );
+
 }

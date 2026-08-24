@@ -318,7 +318,7 @@ export default function ReplyCard({
               mt-1.5
               whitespace-pre-wrap
               break-words
-              text-sm
+              text-s
               leading-5
               text-foreground/85
             "

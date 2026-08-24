@@ -17,48 +17,47 @@ interface Props {
 export default function ReferralSection({
   referrals,
 }: Props) {
-
   return (
-
     <section className="space-y-6">
-
       <div>
-
         <h2 className="text-xl font-semibold">
           Referral Program
         </h2>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-s text-muted-foreground">
           Referral growth and reward tracking
         </p>
-
       </div>
 
       <div className="grid gap-5 md:grid-cols-3">
-
         <AnalyticsCard
           title="Total Referrals"
-          value={referrals.totalReferrals}
           icon={UserPlus}
           highlight
-        />
+        >
+          <p className="text-3xl font-bold">
+            {referrals.totalReferrals.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Rewarded"
-          value={referrals.rewardedReferrals}
           icon={Gift}
-        />
+        >
+          <p className="text-3xl font-bold">
+            {referrals.rewardedReferrals.toLocaleString()}
+          </p>
+        </AnalyticsCard>
 
         <AnalyticsCard
           title="Pending Rewards"
-          value={referrals.pendingRewards}
           icon={Clock}
-        />
-
+        >
+          <p className="text-3xl font-bold">
+            {referrals.pendingRewards.toLocaleString()}
+          </p>
+        </AnalyticsCard>
       </div>
-
     </section>
-
   );
-
 }

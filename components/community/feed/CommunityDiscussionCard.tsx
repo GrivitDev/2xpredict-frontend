@@ -104,7 +104,7 @@ export default function CommunityDiscussionCard({
               justify-center
               rounded-full
               bg-primary/10
-              text-sm
+              text-s
               font-semibold
               text-primary
               ring-1
@@ -127,7 +127,7 @@ export default function CommunityDiscussionCard({
             <p
               className="
                 truncate
-                text-sm
+                text-s
                 font-semibold
                 text-foreground
               "
@@ -184,7 +184,7 @@ export default function CommunityDiscussionCard({
             className="
               whitespace-pre-wrap
               break-words
-              text-sm
+              text-s
               leading-7
               text-foreground
               sm:text-base

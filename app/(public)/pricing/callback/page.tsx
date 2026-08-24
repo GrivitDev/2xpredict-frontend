@@ -326,7 +326,7 @@ export default function PaymentCallbackPage() {
               mx-auto
               mt-4
               max-w-md
-              text-sm
+              text-s
               leading-6
               text-muted-foreground
               sm:text-base
@@ -342,7 +342,7 @@ export default function PaymentCallbackPage() {
               items-center
               justify-center
               gap-2
-              text-sm
+              text-s
               text-muted-foreground
             "
           >
@@ -436,7 +436,7 @@ export default function PaymentCallbackPage() {
               mx-auto
               mt-4
               max-w-md
-              text-sm
+              text-s
               leading-6
               text-muted-foreground
               sm:text-base
@@ -471,7 +471,7 @@ export default function PaymentCallbackPage() {
                   mt-1
                   break-all
                   font-mono
-                  text-sm
+                  text-s
                   font-semibold
                 "
               >
@@ -506,7 +506,7 @@ export default function PaymentCallbackPage() {
                   mt-1
                   break-all
                   font-mono
-                  text-sm
+                  text-s
                   font-semibold
                 "
               >
@@ -607,7 +607,7 @@ export default function PaymentCallbackPage() {
               mx-auto
               mt-4
               max-w-md
-              text-sm
+              text-s
               leading-6
               text-muted-foreground
               sm:text-base
@@ -642,7 +642,7 @@ export default function PaymentCallbackPage() {
                   mt-1
                   break-all
                   font-mono
-                  text-sm
+                  text-s
                   font-semibold
                 "
               >
@@ -773,7 +773,7 @@ export default function PaymentCallbackPage() {
             mx-auto
             mt-4
             max-w-md
-            text-sm
+            text-s
             leading-6
             text-muted-foreground
             sm:text-base
@@ -808,7 +808,7 @@ export default function PaymentCallbackPage() {
                 mt-1
                 break-all
                 font-mono
-                text-sm
+                text-s
                 font-semibold
               "
             >
@@ -882,7 +882,7 @@ export default function PaymentCallbackPage() {
               rounded-xl
               px-6
               py-3
-              text-sm
+              text-s
               font-medium
               text-muted-foreground
               transition

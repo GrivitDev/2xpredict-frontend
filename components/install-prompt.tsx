@@ -78,8 +78,8 @@ export default function InstallPrompt() {
             Install App
           </h2>
 
-          <p className="text-white/80 text-sm mt-1">
-            Install 1xpredicts
+          <p className="text-white/80 text-s mt-1">
+            Install 2xpredict
             Pro on your device.
           </p>
         </div>

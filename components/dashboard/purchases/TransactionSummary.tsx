@@ -1,245 +1,274 @@
 'use client';
 
 import {
-  Wallet,
   CheckCircle2,
   Clock3,
+  Wallet,
 } from 'lucide-react';
 
-import {
-  StatCard,
-} from '@/components/dashboard/shared/StatCard';
 
+// ============================================================
+// TYPES
+// ============================================================
 
 interface Props {
   payments: any[];
+  currency: 'NGN' | 'USD';
 }
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function TransactionSummary({
   payments = [],
+  currency = 'NGN',
 }: Props) {
 
 
-  const total =
-    payments.reduce(
-      (
-        sum,
-        payment,
-      ) =>
-        sum +
-        Number(
-          payment.amount || 0,
-        ),
+  // ----------------------------------------------------------
+  // TOTAL
+  // ----------------------------------------------------------
 
-      0,
-    );
+  const total = payments.reduce(
+    (sum, payment) =>
+      sum + Number(payment.amount || 0),
+    0,
+  );
 
 
-  const approved =
-    payments.filter(
-      (payment) =>
-        payment.status === 'approved',
-    ).length;
+  // ----------------------------------------------------------
+  // STATUS
+  // ----------------------------------------------------------
+
+  const approved = payments.filter(
+    (payment) =>
+      payment.status === 'approved',
+  ).length;
 
 
-  const pending =
-    payments.filter(
-      (payment) =>
-        payment.status === 'pending',
-    ).length;
+  const pending = payments.filter(
+    (payment) =>
+      payment.status === 'pending',
+  ).length;
 
 
+  // ----------------------------------------------------------
+  // CURRENCY FORMATTER
+  // ----------------------------------------------------------
+
+  const formattedTotal =
+    new Intl.NumberFormat(
+      currency === 'NGN'
+        ? 'en-NG'
+        : 'en-US',
+      {
+        style: 'currency',
+        currency,
+        maximumFractionDigits: 0,
+      },
+    ).format(total);
+
+
+  // ----------------------------------------------------------
+  // CARDS
+  // ----------------------------------------------------------
 
   const cards = [
 
     {
-      title:
-        'Total Spent',
+      title: 'Total Spent',
 
-      value:
-        new Intl.NumberFormat(
-          'en-NG',
-          {
-            style: 'currency',
-            currency: 'NGN',
-            maximumFractionDigits: 0,
-          },
-        ).format(total),
+      value: formattedTotal,
 
-      icon:
-        Wallet,
+      description: 'Lifetime payments',
 
-      description:
-        'Lifetime payments',
-
-      className:
-        `
-          border-violet-500/20
-          bg-gradient-to-br
-          from-violet-500/15
-          via-background
-          to-background
-        `,
+      icon: Wallet,
 
       iconClass:
-        'text-violet-500',
+        'bg-primary/10 text-primary',
+
+      accent:
+        'bg-primary',
     },
 
 
     {
-      title:
-        'Approved',
+      title: 'Approved',
 
-      value:
-        approved,
+      value: approved.toLocaleString(),
 
-      icon:
-        CheckCircle2,
+      description: 'Successful payments',
 
-      description:
-        'Successful payments',
-
-      className:
-        `
-          border-emerald-500/20
-          bg-gradient-to-br
-          from-emerald-500/15
-          via-background
-          to-background
-        `,
+      icon: CheckCircle2,
 
       iconClass:
-        'text-emerald-500',
+        'bg-emerald-500/10 text-emerald-500',
+
+      accent:
+        'bg-emerald-500',
     },
 
 
     {
-      title:
-        'Pending',
+      title: 'Pending',
 
-      value:
-        pending,
+      value: pending.toLocaleString(),
 
-      icon:
-        Clock3,
+      description: 'Awaiting approval',
 
-      description:
-        'Awaiting approval',
-
-      className:
-        `
-          border-amber-500/20
-          bg-gradient-to-br
-          from-amber-500/15
-          via-background
-          to-background
-        `,
+      icon: Clock3,
 
       iconClass:
-        'text-amber-500',
+        'bg-amber-500/10 text-amber-500',
+
+      accent:
+        'bg-amber-500',
     },
 
   ];
 
 
+  // ----------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------
 
   return (
 
     <div
       className="
-        relative
         grid
-        gap-5
-        md:grid-cols-3
+        gap-2.5
+        sm:grid-cols-3
       "
     >
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -right-20
-          -top-20
-          h-64
-          w-64
-          rounded-full
-          bg-primary/20
-          blur-3xl
-        "
-      />
+      {cards.map((card) => {
+
+        const Icon = card.icon;
 
 
-      {
-        cards.map(
-          (card) => (
+        return (
+
+          <div
+            key={card.title}
+            className="
+              relative
+              overflow-hidden
+              rounded-xl
+              border
+              border-border/60
+              bg-card
+              px-3.5
+              py-3
+              transition-colors
+              hover:bg-muted/10
+            "
+          >
+
+            {/* Accent */}
 
             <div
-              key={card.title}
               className={`
-                group
-                relative
-                overflow-hidden
-                rounded-3xl
-                border
-                ${card.className}
-                p-1
-                transition-all
-                duration-500
-                hover:-translate-y-1
-                hover:shadow-xl
+                absolute
+                bottom-0
+                left-0
+                top-0
+                w-0.5
+                ${card.accent}
               `}
+            />
+
+
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-3
+              "
             >
+
+              {/* Text */}
 
               <div
                 className="
-                  pointer-events-none
-                  absolute
-                  inset-0
-                  bg-gradient-to-r
-                  from-transparent
-                  via-white/10
-                  to-transparent
-                  opacity-0
-                  transition-opacity
-                  duration-500
-                  group-hover:opacity-100
-                  dark:via-white/5
+                  min-w-0
                 "
-              />
+              >
+
+                <p
+                  className="
+                    text-[10px]
+                    font-medium
+                    uppercase
+                    tracking-wide
+                    text-muted-foreground
+                  "
+                >
+                  {card.title}
+                </p>
 
 
-              <div className="relative">
+                <p
+                  className="
+                    mt-0.5
+                    truncate
+                    text-lg
+                    font-bold
+                    tracking-tight
+                  "
+                >
+                  {card.value}
+                </p>
 
-                <StatCard
 
-                  title={
-                    card.title
-                  }
-
-                  value={
-                    card.value
-                  }
-
-                  icon={
-                    card.icon
-                  }
-
-                  description={
-                    card.description
-                  }
-
-                />
+                <p
+                  className="
+                    mt-0.5
+                    truncate
+                    text-[9px]
+                    text-muted-foreground
+                  "
+                >
+                  {card.description}
+                </p>
 
               </div>
 
 
+              {/* Icon */}
+
+              <div
+                className={`
+                  flex
+                  h-8
+                  w-8
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-lg
+                  ${card.iconClass}
+                `}
+              >
+
+                <Icon
+                  className="
+                    h-4
+                    w-4
+                  "
+                />
+
+              </div>
+
             </div>
 
-          ),
-        )
-      }
+          </div>
 
+        );
+
+      })}
 
     </div>
 

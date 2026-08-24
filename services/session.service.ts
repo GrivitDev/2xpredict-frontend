@@ -1,41 +1,43 @@
 import api from '@/lib/axios';
 
-
-export const sessionService={
-
- async getMySessions(){
-
-  const response =
-   await api.get(
-    '/sessions/me',
-   );
-
-  return response.data;
-
- },
+import type { UserSession } from '@/types/session';
 
 
- async logoutAll(){
+export const sessionService = {
 
-  const response =
-   await api.patch(
-    '/sessions/logout-all',
-   );
+  async getMySessions(): Promise<UserSession[]> {
 
-  return response.data;
+    const response =
+      await api.get<UserSession[]>(
+        '/sessions/me',
+      );
 
- },
+    return response.data;
+
+  },
 
 
- async logoutCurrent(){
+  async logoutAll() {
 
-  const response =
-   await api.patch(
-    '/sessions/current/logout',
-   );
+    const response =
+      await api.patch(
+        '/sessions/logout-all',
+      );
 
-  return response.data;
+    return response.data;
 
- },
+  },
+
+
+  async logoutCurrent() {
+
+    const response =
+      await api.patch(
+        '/sessions/current/logout',
+      );
+
+    return response.data;
+
+  },
 
 };

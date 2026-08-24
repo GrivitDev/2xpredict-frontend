@@ -39,8 +39,8 @@ import {
 
 
 import {
-  useAd,
-} from '@/hooks/useAds';
+  useAdminAd,
+} from '@/hooks/useAdminAds';
 
 
 
@@ -73,7 +73,7 @@ export default function EditAdPage(){
 
     isError,
 
-  } = useAd(id);
+  } = useAdminAd(id);
 
 
 

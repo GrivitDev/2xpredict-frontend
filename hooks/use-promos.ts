@@ -7,95 +7,161 @@ import {
 } from '@tanstack/react-query';
 
 import {
+  getReferralPromos,
+  joinPromo,
   getMyPromoProgress,
+  getMyRewards,
+  getPromoStatus,
 } from '@/services/promos.service';
 
 
-import {
-  getPromos,
-  createPromo,
-  updatePromo,
-  deactivatePromo,
-} from '@/services/admin-promos.service';
-import { PromoProgress } from '@/types/promo';
+// ============================================================
+// ACTIVE REFERRAL PROMOS
+// ============================================================
 
-export function usePromos() {
+export function useReferralPromos() {
+
   return useQuery({
-    queryKey: ['promos'],
-    queryFn: getPromos,
+
+    queryKey: [
+      'referral-promos',
+    ],
+
+    queryFn:
+      getReferralPromos,
+
+    staleTime:
+      1000 * 60 * 5,
+
   });
+
 }
 
 
-export function useCreatePromo() {
-  const queryClient = useQueryClient();
+// ============================================================
+// JOIN PROMO
+// ============================================================
+
+export function useJoinPromo() {
+
+  const queryClient =
+    useQueryClient();
 
   return useMutation({
-    mutationFn: createPromo,
 
-    onSuccess() {
+    mutationFn: (
+      promoId: string,
+    ) =>
+      joinPromo(promoId),
+
+    onSuccess: (
+      _data,
+      promoId,
+    ) => {
+
       queryClient.invalidateQueries({
-        queryKey: ['promos'],
+        queryKey: [
+          'referral-promos',
+        ],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ['active-promos'],
+        queryKey: [
+          'promo-progress',
+        ],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          'promo-status',
+          promoId,
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          'my-rewards',
+        ],
+      });
+
     },
+
   });
+
 }
 
-export function useUpdatePromo() {
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({
-      id,
-      dto,
-    }: {
-      id: string;
-      dto: any;
-    }) => updatePromo(id, dto),
-
-    onSuccess() {
-      queryClient.invalidateQueries({
-        queryKey: ['promos'],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['active-promos'],
-      });
-    },
-  });
-}
-
-export function useDeactivatePromo() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: deactivatePromo,
-
-    onSuccess() {
-      queryClient.invalidateQueries({
-        queryKey: ['promos'],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['active-promos'],
-      });
-    },
-  });
-}
+// ============================================================
+// MY PROMO PROGRESS
+// ============================================================
 
 export function useMyPromoProgress() {
 
-  return useQuery<PromoProgress[]>({
+  return useQuery({
 
-    queryKey:[
+    queryKey: [
       'promo-progress',
     ],
 
-    queryFn:getMyPromoProgress,
+    queryFn:
+      getMyPromoProgress,
+
+    staleTime:
+      1000 * 60 * 5,
+
+  });
+
+}
+
+
+// ============================================================
+// MY REWARDS
+// ============================================================
+
+export function useMyRewards() {
+
+  return useQuery({
+
+    queryKey: [
+      'my-rewards',
+    ],
+
+    queryFn:
+      getMyRewards,
+
+    staleTime:
+      1000 * 60 * 5,
+
+  });
+
+}
+
+
+// ============================================================
+// PROMO STATUS
+// ============================================================
+
+export function usePromoStatus(
+  promoId?: string,
+) {
+
+  return useQuery({
+
+    queryKey: [
+      'promo-status',
+      promoId,
+    ],
+
+    queryFn: () =>
+      getPromoStatus(
+        promoId!,
+      ),
+
+    enabled:
+      Boolean(promoId),
+
+    staleTime:
+      1000 * 60 * 5,
 
   });
 

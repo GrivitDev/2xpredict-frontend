@@ -204,7 +204,7 @@ export default function SessionDetailsModal({
               <div>
 
                 <p className="
-                  text-sm
+                  text-s
                   font-medium
                 ">
                   Session Status
@@ -482,7 +482,7 @@ function InfoSection({
         flex
         items-center
         gap-2
-        text-sm
+        text-s
         font-semibold
       ">
 
@@ -532,7 +532,7 @@ function Row({
       sm:flex-row
       sm:justify-between
       sm:gap-5
-      text-sm
+      text-s
     ">
 
 

@@ -1,26 +1,12 @@
 'use client';
 
-
-import {
-  useQuery,
-} from '@tanstack/react-query';
-
-
-import {
-  getPromos,
-} from '@/services/admin-promos.service';
-
-
-import {
+import type {
   Promo,
 } from '@/types/promo';
-
 
 import PromoStatusBadge from './PromoStatusBadge';
 
 import PromoActions from './PromoActions';
-
-
 
 import {
   Card,
@@ -28,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
 
 import {
   Table,
@@ -39,90 +24,53 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-
-import {
-  Skeleton,
-} from '@/components/ui/skeleton';
-
-
-
 import {
   PROMO_REQUIREMENT_LABELS,
   PROMO_CAMPAIGN_LABELS,
-  REWARD_TYPE_LABELS,
 } from '@/constants/promo';
 
 
 
 
 
-export default function PromoTable(){
+interface Props {
 
+  promos:Promo[];
 
-  const {
-    data:promos = [],
-    isLoading,
-  } = useQuery({
-
-    queryKey:[
-      'admin-promos',
-    ],
-
-    queryFn:getPromos,
-
-  });
+}
 
 
 
+
+
+export default function PromoTable({
+  promos,
+}:Props) {
 
 
   function rewardText(
     promo:Promo,
-  ){
+  ) {
 
-    if(
+    if (
       promo.rewardType === 'subscription'
-    ){
+    ) {
 
-      return `${promo.rewardPlan?.toUpperCase()} ${promo.rewardDurationDays} Days`;
+      return [
+        promo.rewardPlan?.toUpperCase(),
+        promo.rewardDurationDays
+          ? `${promo.rewardDurationDays} Days`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' ');
 
     }
 
 
-    return `₦${promo.rewardAmount}`;
-
-  }
-
-
-
-
-
-  if(isLoading){
-
-    return (
-
-      <Card>
-
-        <CardContent className="space-y-4 p-6">
-
-          {
-            [1,2,3,4].map(
-              item=>(
-
-                <Skeleton
-                  key={item}
-                  className="h-12 w-full"
-                />
-
-              )
-            )
-          }
-
-        </CardContent>
-
-      </Card>
-
-    );
+    return `₦${(
+      promo.rewardAmount ?? 0
+    ).toLocaleString()}`;
 
   }
 
@@ -138,18 +86,14 @@ export default function PromoTable(){
       <CardHeader>
 
         <CardTitle>
-
           Promo Campaigns
-
         </CardTitle>
-
 
       </CardHeader>
 
 
 
       <CardContent>
-
 
         <div className="overflow-x-auto">
 
@@ -199,7 +143,6 @@ export default function PromoTable(){
 
               </TableRow>
 
-
             </TableHeader>
 
 
@@ -207,48 +150,58 @@ export default function PromoTable(){
             <TableBody>
 
 
+              {promos.length === 0 ? (
 
-              {
+                <TableRow>
+
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+
+                    No promo campaigns found.
+
+                  </TableCell>
+
+                </TableRow>
+
+              ) : (
+
                 promos.map(
-                  (promo)=>(
-                    
+                  promo => (
+
                     <TableRow
                       key={promo._id}
                     >
 
+
+                      {/* NAME */}
 
                       <TableCell>
 
                         <div>
 
                           <p className="font-medium">
-
                             {promo.name}
-
                           </p>
 
 
-                          {
-                            promo.promoCode && (
+                          {promo.promoCode && (
 
-                              <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
+                              {promo.promoCode}
+                            </p>
 
-                                {promo.promoCode}
-
-                              </p>
-
-                            )
-                          }
-
+                          )}
 
                         </div>
-
 
                       </TableCell>
 
 
 
 
+                      {/* CAMPAIGN */}
 
                       <TableCell>
 
@@ -258,12 +211,12 @@ export default function PromoTable(){
                           ]
                         }
 
-
                       </TableCell>
 
 
 
 
+                      {/* REQUIREMENT */}
 
                       <TableCell>
 
@@ -273,12 +226,12 @@ export default function PromoTable(){
                           ]
                         }
 
-
                       </TableCell>
 
 
 
 
+                      {/* REWARD */}
 
                       <TableCell>
 
@@ -289,44 +242,38 @@ export default function PromoTable(){
 
 
 
+                      {/* DURATION */}
 
                       <TableCell>
 
-                        <div className="text-sm">
+                        <div className="text-s">
 
                           <p>
-
                             {new Date(
-                              promo.startDate
+                              promo.startDate,
                             ).toLocaleDateString()}
-
                           </p>
 
 
                           <p className="text-muted-foreground">
-
                             to
-
                           </p>
 
 
                           <p>
-
                             {new Date(
-                              promo.endDate
+                              promo.endDate,
                             ).toLocaleDateString()}
-
                           </p>
 
-
                         </div>
-
 
                       </TableCell>
 
 
 
 
+                      {/* STATUS */}
 
                       <TableCell>
 
@@ -339,6 +286,7 @@ export default function PromoTable(){
 
 
 
+                      {/* ACTIONS */}
 
                       <TableCell>
 
@@ -349,13 +297,12 @@ export default function PromoTable(){
                       </TableCell>
 
 
-
                     </TableRow>
 
-                  )
+                  ),
                 )
-              }
 
+              )}
 
 
             </TableBody>

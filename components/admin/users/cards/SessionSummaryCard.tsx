@@ -205,7 +205,7 @@ export default function SessionSummaryCard({
 
           <p className="
             mt-2
-            text-sm
+            text-s
             font-semibold
           ">
 

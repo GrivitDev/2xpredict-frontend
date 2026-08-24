@@ -93,7 +93,7 @@ Cash Rewards Waiting Payment
 <CardContent>
 
 
-<table className="w-full text-sm">
+<table className="w-full text-s">
 
 
 <thead>

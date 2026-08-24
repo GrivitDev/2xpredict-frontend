@@ -155,7 +155,7 @@ export default function PaymentSummaryCard({
         ">
 
           <p className="
-            text-sm
+            text-s
             text-muted-foreground
           ">
             Total Revenue
@@ -347,7 +347,7 @@ function Stat({
 
       <p className="
         mt-1
-        text-sm
+        text-s
         font-semibold
       ">
         {value}

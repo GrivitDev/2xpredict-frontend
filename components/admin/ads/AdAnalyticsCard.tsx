@@ -70,7 +70,7 @@ export function AdAnalyticsCard({
 
         <CardTitle
           className="
-            text-sm
+            text-s
             font-medium
           "
         >

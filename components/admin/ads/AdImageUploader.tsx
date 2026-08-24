@@ -323,7 +323,7 @@ const response =
 
 
 
-            <span className="text-sm">
+            <span className="text-s">
 
               {
                 uploading

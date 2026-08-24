@@ -6,6 +6,12 @@ export interface User {
   role: string;
 
   sessionId: string;
+
+  country: string;
+
+  countryCode: string;
+
+  currency: 'NGN' | 'USD';
 }
 
 export interface AuthContextType {

@@ -116,7 +116,7 @@ export default function SessionHistoryTable({
               </p>
 
               <p className="
-                text-sm
+                text-s
                 text-muted-foreground
               ">
                 No login activity recorded.
@@ -134,7 +134,7 @@ export default function SessionHistoryTable({
 
               <table className="
                 w-full
-                text-sm
+                text-s
               ">
 
 

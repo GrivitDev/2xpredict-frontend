@@ -6,8 +6,8 @@ import {
   Crown,
 } from 'lucide-react';
 
-import {
-  type PromoItem,
+import type {
+  PromoItem,
 } from './dashboard.types';
 
 import {
@@ -16,6 +16,9 @@ import {
 } from './dashboard.utils';
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function PromosCard({
   items = [],
@@ -23,349 +26,375 @@ export function PromosCard({
   items?: PromoItem[];
 }) {
 
+  if (!items.length) {
+    return (
+      <div
+        className="
+          flex
+          min-h-[96px]
+          items-center
+          justify-center
+          rounded-2xl
+          border
+          border-dashed
+          border-border/60
+          bg-muted/20
+          px-4
+          py-5
+          text-center
+        "
+      >
+        <div className="space-y-1">
+
+          <Gift
+            className="
+              mx-auto
+              h-5
+              w-5
+              text-muted-foreground/60
+            "
+          />
+
+          <p
+            className="
+              text-xs
+              font-medium
+              text-muted-foreground
+            "
+          >
+            No active promos right now.
+          </p>
+
+        </div>
+      </div>
+    );
+  }
+
 
   return (
+    <div className="space-y-2.5">
 
-    <div
-      className="
-        space-y-4
-      "
-    >
+      {items.slice(0, 3).map((item, index) => {
 
-      {
-        items
-          .slice(0, 3)
-          .map((item, index) => {
+        const left =
+          daysLeft(item.endDate);
 
+        const isCash =
+          item.rewardType === 'cash';
 
-            const left =
-              daysLeft(
-                item.endDate,
-              );
+        const reward =
+          isCash
+            ? `₦${item.rewardAmount?.toLocaleString('en-NG') || 0}`
+            : item.rewardPlan || 'Subscription';
 
 
+        return (
+          <div
+            key={
+              item._id ||
+              `${item.name}-${index}`
+            }
+            className="
+              group
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-border/60
+              bg-card
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:border-primary/25
+              hover:shadow-md
+            "
+          >
 
-            const isCash =
-              item.rewardType === 'cash';
+            {/* ==================================================
+                PREMIUM ACCENT
+                ================================================== */}
+
+            <div
+              className="
+                absolute
+                inset-y-0
+                left-0
+                w-0.5
+                bg-gradient-to-b
+                from-primary
+                via-primary/60
+                to-transparent
+              "
+            />
 
 
+            {/* Subtle background glow */}
 
-            return (
+            <div
+              className="
+                pointer-events-none
+                absolute
+                -right-10
+                -top-10
+                h-24
+                w-24
+                rounded-full
+                bg-primary/10
+                blur-3xl
+              "
+            />
+
+
+            <div
+              className="
+                relative
+                flex
+                min-w-0
+                items-start
+                gap-3
+                px-4
+                py-3.5
+              "
+            >
+
+              {/* ==================================================
+                  ICON
+                  ================================================== */}
 
               <div
-                key={
-                  item._id ||
-                  `${item.name}-${index}`
-                }
                 className="
-                  group
-                  relative
-                  overflow-hidden
-                  rounded-3xl
+                  flex
+                  h-10
+                  w-10
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
                   border
-                  border-border
-                  bg-card
-                  p-4
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:shadow-xl
-                  sm:p-5
+                  border-primary/20
+                  bg-primary/10
+                  text-primary
+                  shadow-sm
+                "
+              >
+                <Gift className="h-5 w-5" />
+              </div>
+
+
+              {/* ==================================================
+                  CONTENT
+                  ================================================== */}
+
+              <div
+                className="
+                  min-w-0
+                  flex-1
                 "
               >
 
-
-                {/* Glow */}
-
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    -right-10
-                    -top-10
-                    h-32
-                    w-32
-                    rounded-full
-                    bg-primary/10
-                    blur-3xl
-                  "
-                />
-
-
-
+                {/* Title */}
 
                 <div
                   className="
-                    relative
                     flex
-                    items-start
-                    justify-between
-                    gap-4
+                    min-w-0
+                    items-center
+                    gap-1.5
                   "
                 >
 
-
-                  <div
+                  <p
                     className="
                       min-w-0
+                      truncate
+                      text-sm
+                      font-semibold
+                      tracking-tight
                     "
                   >
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-2
-                      "
-                    >
-
-                      <h3
-                        className="
-                          truncate
-                          text-sm
-                          font-bold
-                          sm:text-base
-                        "
-                      >
-                        {item.name || 'Promotion'}
-                      </h3>
+                    {item.name || 'Promotion'}
+                  </p>
 
 
-                      <Sparkles
-                        className="
-                          h-4
-                          w-4
-                          shrink-0
-                          text-primary
-                        "
-                      />
+                  <Sparkles
+                    className="
+                      h-3.5
+                      w-3.5
+                      shrink-0
+                      text-primary
+                    "
+                  />
 
-                    </div>
-
-
-
-                    <p
-                      className="
-                        mt-1
-                        line-clamp-2
-                        text-sm
-                        text-muted-foreground
-                      "
-                    >
-                      {
-                        item.description ||
-                        'Available promotion'
-                      }
-                    </p>
+                </div>
 
 
-                  </div>
+                {/* Description */}
+
+                <p
+                  className="
+                    mt-1
+                    line-clamp-1
+                    text-xs
+                    leading-relaxed
+                    text-muted-foreground
+                  "
+                >
+                  {item.description ||
+                    'Available promotion'}
+                </p>
 
 
+                {/* ==================================================
+                    META
+                    ================================================== */}
 
+                <div
+                  className="
+                    mt-2.5
+                    flex
+                    flex-wrap
+                    items-center
+                    gap-2
+                  "
+                >
 
+                  {/* Reward */}
 
                   <div
                     className="
                       flex
-                      h-11
-                      w-11
-                      shrink-0
+                      min-w-0
                       items-center
-                      justify-center
-                      rounded-2xl
+                      gap-1.5
+                      rounded-lg
                       border
-                      border-primary/20
-                      bg-primary/10
+                      border-primary/15
+                      bg-primary/5
+                      px-2
+                      py-1
                     "
                   >
 
-                    <Gift
+                    {isCash ? (
+                      <Wallet
+                        className="
+                          h-3.5
+                          w-3.5
+                          shrink-0
+                          text-emerald-500
+                        "
+                      />
+                    ) : (
+                      <Crown
+                        className="
+                          h-3.5
+                          w-3.5
+                          shrink-0
+                          text-amber-500
+                        "
+                      />
+                    )}
+
+                    <span
                       className="
-                        h-5
-                        w-5
-                        text-primary
+                        truncate
+                        text-xs
+                        font-semibold
+                      "
+                    >
+                      {reward}
+                    </span>
+
+                  </div>
+
+
+                  {/* Expiry */}
+
+                  <div
+                    className="
+                      flex
+                      min-w-0
+                      items-center
+                      gap-1.5
+                      text-xs
+                      text-muted-foreground
+                    "
+                  >
+
+                    <Clock
+                      className="
+                        h-3.5
+                        w-3.5
+                        shrink-0
                       "
                     />
 
-                  </div>
+                    <span className="truncate">
 
+                      {left === null
+                        ? fmtDate(item.endDate)
+                        : `${left} day${
+                            left === 1
+                              ? ''
+                              : 's'
+                          } left`}
+
+                    </span>
+
+                  </div>
 
                 </div>
-
-
-
-
-
-                {/* Reward */}
-
-                <div
-                  className="
-                    mt-5
-                    grid
-                    gap-3
-                    sm:grid-cols-2
-                  "
-                >
-
-                  <div
-                    className="
-                      rounded-2xl
-                      border
-                      border-border
-                      bg-background/60
-                      p-3
-                    "
-                  >
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-2
-                        text-xs
-                        text-muted-foreground
-                      "
-                    >
-
-                      {
-                        isCash
-                        ?
-                        <Wallet className="h-4 w-4"/>
-                        :
-                        <Crown className="h-4 w-4"/>
-                      }
-
-
-                      Reward
-
-                    </div>
-
-
-
-                    <p
-                      className="
-                        mt-1
-                        font-bold
-                      "
-                    >
-
-                      {
-                        isCash
-                        ?
-                        `₦${item.rewardAmount?.toLocaleString('en-GB') || 0}`
-                        :
-                        item.rewardPlan || 'Subscription'
-                      }
-
-                    </p>
-
-
-                  </div>
-
-
-
-
-
-                  <div
-                    className="
-                      rounded-2xl
-                      border
-                      border-border
-                      bg-background/60
-                      p-3
-                    "
-                  >
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-2
-                        text-xs
-                        text-muted-foreground
-                      "
-                    >
-
-                      <Clock
-                        className="
-                          h-4
-                          w-4
-                        "
-                      />
-
-                      Expiry
-
-                    </div>
-
-
-
-                    <p
-                      className="
-                        mt-1
-                        font-bold
-                      "
-                    >
-
-                      {
-                        left === null
-                        ?
-                        fmtDate(item.endDate)
-                        :
-                        `${left} day${left === 1 ? '' : 's'} left`
-                      }
-
-                    </p>
-
-
-                  </div>
-
-
-                </div>
-
-
-
-
 
               </div>
 
-            );
+
+              {/* ==================================================
+                  DESKTOP REWARD
+                  ================================================== */}
+
+              <div
+                className="
+                  hidden
+                  shrink-0
+                  text-right
+                  sm:block
+                "
+              >
+
+                <p
+                  className="
+                    text-[10px]
+                    font-medium
+                    uppercase
+                    tracking-wider
+                    text-muted-foreground
+                  "
+                >
+                  Reward
+                </p>
 
 
-          })
-      }
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    font-semibold
+                    text-primary
+                  "
+                >
+                  {reward}
+                </p>
 
+              </div>
 
-
-
-
-      {
-        !items.length && (
-
-          <div
-            className="
-              rounded-3xl
-              border
-              border-dashed
-              border-border
-              bg-muted/20
-              p-6
-              text-center
-              text-sm
-              text-muted-foreground
-            "
-          >
-
-            No active promos right now.
+            </div>
 
           </div>
+        );
 
-        )
-      }
-
+      })}
 
     </div>
-
   );
-
 }

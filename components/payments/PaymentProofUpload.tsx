@@ -310,7 +310,7 @@ const result =
               className="
                 max-w-full
                 truncate
-                text-sm
+                text-s
                 font-medium
               "
 
@@ -431,7 +431,7 @@ const result =
 
               className="
                 mb-2
-                text-sm
+                text-s
                 font-semibold
               "
 
@@ -472,7 +472,7 @@ const result =
                 border
                 px-5
                 py-2
-                text-sm
+                text-s
                 transition
                 hover:bg-muted
               "

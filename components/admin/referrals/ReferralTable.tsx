@@ -31,7 +31,7 @@ export default function ReferralTable({
       <div className="overflow-x-auto">
 
 
-        <table className="w-full text-sm">
+        <table className="w-full text-s">
 
 
           <thead className="border-b bg-muted/40">

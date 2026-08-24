@@ -7,564 +7,473 @@ import {
   Crown,
   Gift,
   Wallet,
-  Sparkles,
 } from 'lucide-react';
 
-import {
-  Badge,
-} from '@/components/ui/badge';
-
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
-import {
-  DashboardCard,
-} from '@/components/dashboard/shared/DashboardCard';
-
-import {
-  EmptyState,
-} from '@/components/dashboard/shared/EmptyState';
-
-import {
-  LoadingCard,
-} from '@/components/dashboard/shared/LoadingCard';
-
-import {
-  SectionTitle,
-} from '@/components/dashboard/shared/SectionTitle';
-
-import {
-  getMyRewards,
-} from '@/services/promos.service';
+import { getMyRewards } from '@/services/promos.service';
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function RewardHistory() {
-
 
   const {
     data: rewards = [],
     isLoading,
   } = useQuery({
-
-    queryKey:[
-      'my-rewards',
-    ],
-
-    queryFn:
-      getMyRewards,
-
+    queryKey: ['my-rewards'],
+    queryFn: getMyRewards,
   });
 
 
+  // ==========================================================
+  // LOADING
+  // ==========================================================
 
-
-
-  if(isLoading){
-
+  if (isLoading) {
     return (
-
-      <LoadingCard
-        text="Loading reward history..."
-      />
-
-    );
-
-  }
-
-
-
-
-
-  if(rewards.length === 0){
-
-    return (
-
-      <EmptyState
-
-        title="No Rewards Yet"
-
-        description="
-          Complete referral campaigns to start earning rewards.
+      <div
+        className="
+          flex
+          min-h-20
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-border/50
+          bg-card
+          text-[10px]
+          text-muted-foreground
         "
-
-        icon={Gift}
-
-      />
-
+      >
+        Loading rewards...
+      </div>
     );
-
   }
 
 
+  // ==========================================================
+  // EMPTY
+  // ==========================================================
+
+  if (rewards.length === 0) {
+    return (
+      <div
+        className="
+          flex
+          flex-col
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-dashed
+          border-border/60
+          bg-muted/[0.03]
+          px-4
+          py-7
+          text-center
+        "
+      >
+
+        <div
+          className="
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-primary/15
+            bg-primary/10
+            text-primary
+          "
+        >
+          <Gift className="h-4 w-4" />
+        </div>
 
 
+        <p
+          className="
+            mt-2.5
+            text-xs
+            font-semibold
+          "
+        >
+          No Rewards Yet
+        </p>
+
+
+        <p
+          className="
+            mt-1
+            max-w-xs
+            text-[10px]
+            leading-relaxed
+            text-muted-foreground
+          "
+        >
+          Complete referral campaigns to start
+          earning rewards.
+        </p>
+
+      </div>
+    );
+  }
+
+
+  // ==========================================================
+  // CONTENT
+  // ==========================================================
 
   return (
-
     <div
       className="
-        space-y-5
-        sm:space-y-6
+        overflow-hidden
+        rounded-xl
+        border
+        border-border/60
+        bg-card
       "
     >
 
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
 
-      <SectionTitle
-
-        title="Reward History"
-
-        description="
-          Track all rewards unlocked from your referral activity.
-        "
-
-      />
-
-
-
-
-
-      <DashboardCard
-
+      <div
         className="
-          relative
-          overflow-hidden
+          flex
+          items-center
+          justify-between
+          gap-3
+          border-b
+          border-border/50
+          bg-muted/[0.02]
+          px-3
+          py-2.5
         "
-
       >
 
-
         <div
-
           className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-            h-60
-            w-60
-            rounded-full
-            bg-primary/20
-            blur-3xl
+            flex
+            min-w-0
+            items-center
+            gap-2
           "
-
-        />
-
-
-
-
-
-        <CardHeader
-
-          className="
-            relative
-            border-b
-            border-border/50
-            bg-muted/20
-            px-5
-            py-5
-            sm:px-6
-          "
-
         >
 
-          <CardTitle
-
+          <div
             className="
               flex
+              h-7
+              w-7
+              shrink-0
               items-center
-              gap-3
-              text-base
-              sm:text-lg
+              justify-center
+              rounded-lg
+              border
+              border-primary/15
+              bg-primary/10
+              text-primary
             "
-
           >
+            <Gift className="h-3.5 w-3.5" />
+          </div>
 
-            <div
 
+          <div className="min-w-0">
+
+            <p
               className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-2xl
-                bg-primary/10
+                text-xs
+                font-semibold
+                tracking-tight
               "
+            >
+              Reward History
+            </p>
 
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-[9px]
+                text-muted-foreground
+              "
+            >
+              Your earned rewards
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <span
+          className="
+            shrink-0
+            rounded-full
+            border
+            border-primary/15
+            bg-primary/5
+            px-2
+            py-0.5
+            text-[8px]
+            font-semibold
+            text-primary
+          "
+        >
+          {rewards.length}
+          {rewards.length === 1
+            ? ' reward'
+            : ' rewards'}
+        </span>
+
+      </div>
+
+
+      {/* ======================================================
+          REWARDS
+      ====================================================== */}
+
+      <div className="divide-y divide-border/40">
+
+        {rewards.map((reward: any) => {
+
+          const isCash =
+            reward.type === 'cash';
+
+
+          const date =
+            new Date(
+              reward.createdAt,
+            ).toLocaleDateString(
+              'en-GB',
+              {
+                day: '2-digit',
+                month: 'short',
+              },
+            );
+
+
+          return (
+            <div
+              key={reward._id}
+              className="
+                group
+                flex
+                items-center
+                justify-between
+                gap-3
+                px-3
+                py-2.5
+                transition-colors
+                hover:bg-muted/[0.03]
+              "
             >
 
-              <Gift
+              {/* =================================================
+                  REWARD INFO
+              ================================================= */}
 
+              <div
                 className="
-                  h-5
-                  w-5
-                  text-primary
+                  flex
+                  min-w-0
+                  items-center
+                  gap-2.5
                 "
+              >
 
-              />
-
-            </div>
-
-
-            My Rewards
-
-
-            <Sparkles
-
-              className="
-                ml-auto
-                h-5
-                w-5
-                text-primary
-                opacity-70
-              "
-
-            />
-
-          </CardTitle>
-
-
-        </CardHeader>
-
-
-
-
-
-
-
-        <CardContent
-
-          className="
-            relative
-            space-y-4
-            p-5
-            sm:p-6
-          "
-
-        >
-
-
-          {
-            rewards.map((reward:any)=>{
-
-
-              const isCash =
-                reward.type === 'cash';
-
-
-
-              return (
+                {/* Icon */}
 
                 <div
-
-                  key={reward._id}
-
                   className={`
-                    group
-                    relative
-                    overflow-hidden
-                    rounded-3xl
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
                     border
-                    border-border/50
-                    bg-gradient-to-br
                     ${
                       isCash
-                      ? 'from-emerald-500/10'
-                      : 'from-primary/10'
+                        ? `
+                          border-emerald-500/15
+                          bg-emerald-500/10
+                          text-emerald-500
+                        `
+                        : `
+                          border-primary/15
+                          bg-primary/10
+                          text-primary
+                        `
                     }
-                    via-background
-                    to-background
-                    p-4
-                    transition-all
-                    duration-300
-                    hover:-translate-y-1
-                    hover:shadow-xl
-                    sm:p-5
                   `}
-
                 >
 
+                  {isCash ? (
+                    <Wallet className="h-3.5 w-3.5" />
+                  ) : (
+                    <Crown className="h-3.5 w-3.5" />
+                  )}
 
-                  <div
+                </div>
 
+
+                {/* Details */}
+
+                <div className="min-w-0">
+
+                  <p
                     className="
-                      pointer-events-none
-                      absolute
-                      -right-8
-                      -top-8
-                      h-32
-                      w-32
-                      rounded-full
-                      bg-primary/10
-                      blur-3xl
-                      opacity-0
-                      transition-opacity
-                      duration-500
-                      group-hover:opacity-100
+                      truncate
+                      text-[10px]
+                      font-semibold
                     "
-
-                  />
-
-
-
+                  >
+                    {reward.promoId?.name ??
+                      'Referral Reward'}
+                  </p>
 
 
                   <div
-
                     className="
-                      relative
+                      mt-0.5
                       flex
-                      flex-col
-                      gap-5
-                      md:flex-row
-                      md:items-center
-                      md:justify-between
+                      min-w-0
+                      items-center
+                      gap-1.5
                     "
-
                   >
 
-
-
-                    <div
-
-                      className="
-                        flex
-                        min-w-0
-                        items-start
-                        gap-4
-                      "
-
-                    >
-
-
-                      <div
-
-                        className={`
-                          flex
-                          h-12
-                          w-12
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-2xl
-                          border
-                          shadow-lg
-                          ${
-                            isCash
-                            ?
-                            'border-emerald-500/30 bg-emerald-500/10'
-                            :
-                            'border-primary/30 bg-primary/10'
-                          }
-                        `}
-
-                      >
-
-                        {
+                    <p
+                      className={`
+                        truncate
+                        text-[10px]
+                        font-bold
+                        ${
                           isCash
-                          ?
-
-                          <Wallet
-
-                            className="
-                              h-6
-                              w-6
-                              text-emerald-500
-                            "
-
-                          />
-
-                          :
-
-                          <Crown
-
-                            className="
-                              h-6
-                              w-6
-                              text-primary
-                            "
-
-                          />
-
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-primary'
                         }
-
-
-                      </div>
-
-
-
-
-
-                      <div className="min-w-0">
-
-
-                        <h3
-
-                          className="
-                            truncate
-                            font-bold
-                          "
-
-                        >
-
-                          {
-                            reward.promoId?.name ??
-                            'Referral Reward'
-                          }
-
-                        </h3>
-
-
-
-
-                        <p
-
-                          className="
-                            mt-1
-                            text-lg
-                            font-black
-                          "
-
-                        >
-
-                          {
-                            isCash
-                            ?
-                            `₦${reward.amount?.toLocaleString('en-GB')}`
-                            :
-                            `${reward.plan} Subscription`
-                          }
-
-                        </p>
-
-
-
-
-
-                        {
-                          !isCash && (
-
-                            <p
-
-                              className="
-                                text-sm
-                                text-muted-foreground
-                              "
-
-                            >
-
-                              {reward.durationDays} days access
-
-                            </p>
-
-                          )
-                        }
-
-
-
-
-
-                        <p
-
-                          className="
-                            mt-2
-                            text-xs
-                            text-muted-foreground
-                          "
-
-                        >
-
-                          {
-                            new Date(
-                              reward.createdAt,
-                            ).toLocaleDateString()
-                          }
-
-                        </p>
-
-
-
-                      </div>
-
-
-
-                    </div>
-
-
-
-
-
-
-                    <div
-
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                      "
-
+                      `}
                     >
+                      {isCash
+                        ? `₦${Number(
+                            reward.amount ?? 0,
+                          ).toLocaleString('en-GB')}`
+                        : `${reward.plan} Subscription`}
+                    </p>
 
 
-                      <Badge
-
-                        variant="secondary"
-
-                        className="
-                          rounded-full
-                          px-3
-                        "
-
-                      >
-
-                        Completed
-
-                      </Badge>
+                    <span
+                      className="
+                        shrink-0
+                        text-[8px]
+                        text-muted-foreground/60
+                      "
+                    >
+                      •
+                    </span>
 
 
-
-
-                      <CheckCircle2
-
-                        className="
-                          h-5
-                          w-5
-                          text-primary
-                        "
-
-                      />
-
-
-                    </div>
-
-
-
+                    <span
+                      className="
+                        shrink-0
+                        text-[8px]
+                        text-muted-foreground
+                      "
+                    >
+                      {isCash
+                        ? date
+                        : `${reward.durationDays} days`}
+                    </span>
 
                   </div>
 
 
+                  {!isCash && (
+                    <p
+                      className="
+                        mt-0.5
+                        flex
+                        items-center
+                        gap-1
+                        text-[8px]
+                        text-muted-foreground
+                      "
+                    >
+                      <span>
+                        Earned
+                      </span>
+
+                      <span>
+                        •
+                      </span>
+
+                      <span>
+                        {date}
+                      </span>
+                    </p>
+                  )}
 
                 </div>
 
-              );
+              </div>
 
 
-            })
-          }
+              {/* =================================================
+                  STATUS
+              ================================================= */}
 
+              <div
+                className="
+                  flex
+                  shrink-0
+                  items-center
+                  gap-1
+                  rounded-full
+                  border
+                  border-emerald-500/15
+                  bg-emerald-500/5
+                  px-1.5
+                  py-0.5
+                "
+              >
 
-        </CardContent>
+                <CheckCircle2
+                  className="
+                    h-2.5
+                    w-2.5
+                    text-emerald-500
+                  "
+                />
 
+                <span
+                  className="
+                    text-[8px]
+                    font-semibold
+                    text-emerald-600
+                    dark:text-emerald-400
+                  "
+                >
+                  Completed
+                </span>
 
-      </DashboardCard>
+              </div>
 
+            </div>
+          );
+
+        })}
+
+      </div>
 
     </div>
-
   );
-
 }

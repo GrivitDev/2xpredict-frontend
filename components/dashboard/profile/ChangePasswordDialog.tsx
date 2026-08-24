@@ -9,24 +9,32 @@ import {
 } from 'lucide-react';
 
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+
+import {
+  useForm,
+  type Control,
+} from 'react-hook-form';
+
+import {
+  zodResolver,
+} from '@hookform/resolvers/zod';
 
 import { toast } from 'sonner';
 
-import { changePassword } from '@/services/auth.service';
+import {
+  changePassword,
+} from '@/services/auth.service';
 
 import { Button } from '@/components/ui/button';
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 import {
   Form,
@@ -38,6 +46,11 @@ import {
 } from '@/components/ui/form';
 
 import { Input } from '@/components/ui/input';
+
+
+// ============================================================
+// VALIDATION
+// ============================================================
 
 const schema = z
   .object({
@@ -56,42 +69,156 @@ const schema = z
         'Password must be at least 6 characters',
       ),
 
-    confirmPassword: z.string(),
+    confirmPassword: z
+      .string()
+      .min(
+        1,
+        'Please confirm your password',
+      ),
 
   })
   .refine(
     (data) =>
-      data.newPassword ===
-      data.confirmPassword,
+      data.newPassword === data.confirmPassword,
     {
       path: ['confirmPassword'],
-      message:
-        'Passwords do not match',
+      message: 'Passwords do not match',
     },
   );
 
-type FormValues =
-  z.infer<typeof schema>;
+
+type FormValues = z.infer<typeof schema>;
+
+
+// ============================================================
+// PASSWORD FIELD
+// ============================================================
+
+function PasswordField({
+  control,
+  name,
+  label,
+  placeholder,
+  autoComplete,
+}: {
+  control: Control<FormValues>;
+
+  name:
+    | 'currentPassword'
+    | 'newPassword'
+    | 'confirmPassword';
+
+  label: string;
+
+  placeholder: string;
+
+  autoComplete: string;
+}) {
+
+  return (
+
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+
+        <FormItem className="space-y-1.5">
+
+          <FormLabel
+            className="
+              text-s
+              font-medium
+            "
+          >
+            {label}
+          </FormLabel>
+
+
+          <FormControl>
+
+            <div className="relative">
+
+              <Lock
+                className="
+                  pointer-events-none
+                  absolute
+                  left-3.5
+                  top-1/2
+                  h-4
+                  w-4
+                  -translate-y-1/2
+                  text-muted-foreground
+                "
+              />
+
+
+              <Input
+                {...field}
+                type="password"
+                placeholder={placeholder}
+                autoComplete={autoComplete}
+                className="
+                  h-10
+                  rounded-lg
+                  border-border/60
+                  bg-muted/20
+                  pl-10
+                  text-s
+                  shadow-none
+                  placeholder:text-muted-foreground/50
+                  focus-visible:border-primary/40
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/10
+                "
+              />
+
+            </div>
+
+          </FormControl>
+
+
+          <FormMessage
+            className="text-xs"
+          />
+
+        </FormItem>
+
+      )}
+    />
+
+  );
+}
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function ChangePasswordDialog() {
 
-  const [open, setOpen] =
-    useState(false);
+  const [open, setOpen] = useState(false);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const form =
-    useForm<FormValues>({
-      resolver:
-        zodResolver(schema),
 
-      defaultValues: {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      },
-    });
+  const form = useForm<FormValues>({
+
+    resolver: zodResolver(schema),
+
+    defaultValues: {
+
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+
+    },
+
+  });
+
+
+  // ==========================================================
+  // SUBMIT
+  // ==========================================================
 
   async function onSubmit(
     values: FormValues,
@@ -100,6 +227,7 @@ export default function ChangePasswordDialog() {
     try {
 
       setLoading(true);
+
 
       const response =
         await changePassword({
@@ -112,10 +240,12 @@ export default function ChangePasswordDialog() {
 
         });
 
+
       toast.success(
         response.message ??
           'Password changed successfully.',
       );
+
 
       form.reset();
 
@@ -124,8 +254,7 @@ export default function ChangePasswordDialog() {
     } catch (error: any) {
 
       toast.error(
-        error?.response?.data
-          ?.message ??
+        error?.response?.data?.message ??
           'Failed to change password.',
       );
 
@@ -137,335 +266,371 @@ export default function ChangePasswordDialog() {
 
   }
 
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
 
-    <Dialog
+    <Sheet
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(value) => {
+
+        setOpen(value);
+
+        if (!value) {
+          form.reset();
+        }
+
+      }}
     >
 
-      <DialogTrigger asChild>
+      {/* ====================================================
+          TRIGGER
+          ==================================================== */}
+
+      <SheetTrigger asChild>
 
         <Button
+          variant="outline"
           className="
-            h-11
-            rounded-xl
-            bg-gradient-to-r
-            from-violet-600
-            via-indigo-600
-            to-cyan-600
-            text-white
-            shadow-lg
-            transition-all
-            duration-300
-            hover:scale-[1.02]
-            hover:shadow-cyan-500/30
-            active:scale-[0.98]
+            h-9
+            rounded-lg
+            border-primary/20
+            bg-primary/[0.04]
+            px-3
+            text-s
+            font-semibold
+            text-primary
+            shadow-none
+            transition-colors
+            hover:border-primary/35
+            hover:bg-primary/[0.08]
+            hover:text-primary
           "
         >
 
-          <KeyRound className="mr-2 h-4 w-4" />
+          <KeyRound
+            className="
+              mr-2
+              h-4
+              w-4
+            "
+          />
 
           Change Password
 
         </Button>
 
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent
+
+      {/* ====================================================
+          SHEET
+          ==================================================== */}
+
+      <SheetContent
+        side="right"
         className="
-          overflow-hidden
-          border-border/60
-          bg-background/95
+          w-full
+          border-l
+          border-border/70
+          bg-background
           p-0
-          backdrop-blur-2xl
-          sm:max-w-lg
+          shadow-2xl
+          sm:max-w-md
         "
       >
 
+        {/* Ambient accent */}
+
         <div
           className="
+            pointer-events-none
             absolute
-            -left-20
+            -right-20
             -top-20
             h-48
             w-48
             rounded-full
-            bg-violet-500/20
+            bg-primary/10
             blur-3xl
           "
         />
 
         <div
           className="
+            pointer-events-none
             absolute
             -bottom-20
-            -right-20
+            -left-20
             h-48
             w-48
             rounded-full
-            bg-cyan-500/20
+            bg-blue-500/[0.06]
             blur-3xl
           "
         />
 
-        <div className="relative">
 
-          <DialogHeader
+        <div
+          className="
+            relative
+            flex
+            h-full
+            flex-col
+          "
+        >
+
+          {/* ==================================================
+              HEADER
+              ================================================== */}
+
+          <SheetHeader
             className="
               border-b
               border-border/50
-              px-6
-              py-6
+              px-5
+              py-5
+              pr-14
+              text-left
             "
           >
 
             <div
               className="
-                mb-4
+                mb-3
                 flex
-                h-14
-                w-14
+                h-10
+                w-10
                 items-center
                 justify-center
-                rounded-2xl
-                bg-gradient-to-br
-                from-violet-500
-                via-indigo-500
-                to-cyan-500
-                text-white
-                shadow-lg
+                rounded-xl
+                border
+                border-primary/20
+                bg-primary/10
+                text-primary
               "
             >
 
-              <ShieldCheck className="h-7 w-7" />
+              <ShieldCheck
+                className="h-5 w-5"
+              />
 
             </div>
 
-            <DialogTitle
+
+            <SheetTitle
               className="
-                text-2xl
+                text-lg
                 font-bold
+                tracking-tight
               "
             >
-
               Change Password
+            </SheetTitle>
 
-            </DialogTitle>
 
-            <DialogDescription
+            <SheetDescription
               className="
-                max-w-sm
-                text-sm
+                mt-1
+                text-s
                 leading-relaxed
               "
             >
+              Enter your current password and choose
+              a new one.
+            </SheetDescription>
 
-              Secure your account by verifying
-              your current password before
-              choosing a stronger new password.
+          </SheetHeader>
 
-            </DialogDescription>
 
-          </DialogHeader>
+          {/* ==================================================
+              FORM
+              ================================================== */}
 
           <Form {...form}>
 
             <form
-              onSubmit={form.handleSubmit(
-                onSubmit,
-              )}
+              onSubmit={form.handleSubmit(onSubmit)}
               className="
-                space-y-6
-                px-6
-                py-6
+                flex
+                min-h-0
+                flex-1
+                flex-col
               "
             >
 
-              <FormField
-                control={form.control}
-                name="currentPassword"
-                render={({ field }) => (
+              {/* Scrollable content */}
 
-                  <FormItem>
+              <div
+                className="
+                  flex-1
+                  overflow-y-auto
+                  px-5
+                  py-5
+                "
+              >
 
-                    <FormLabel>
-                      Current Password
-                    </FormLabel>
+                <div
+                  className="
+                    space-y-4
+                  "
+                >
 
-                    <FormControl>
+                  <PasswordField
+                    control={form.control}
+                    name="currentPassword"
+                    label="Current Password"
+                    placeholder="Enter current password"
+                    autoComplete="current-password"
+                  />
 
-                      <div className="relative">
 
-                        <Lock
-                          className="
-                            absolute
-                            left-3
-                            top-1/2
-                            h-4
-                            w-4
-                            -translate-y-1/2
-                            text-muted-foreground
-                          "
-                        />
+                  {/* Divider */}
 
-                        <Input
-                          type="password"
-                          {...field}
-                          className="
-                            h-12
-                            rounded-xl
-                            border-border/60
-                            bg-muted/40
-                            pl-10
-                            backdrop-blur
-                            transition-all
-                            focus-visible:ring-2
-                            focus-visible:ring-violet-500
-                          "
-                        />
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-3
+                      pt-1
+                    "
+                  >
 
-                      </div>
+                    <div
+                      className="
+                        h-px
+                        flex-1
+                        bg-border/50
+                      "
+                    />
 
-                    </FormControl>
+                    <span
+                      className="
+                        text-xs
+                        font-medium
+                        text-muted-foreground
+                      "
+                    >
+                      New password
+                    </span>
 
-                    <FormMessage />
+                    <div
+                      className="
+                        h-px
+                        flex-1
+                        bg-border/50
+                      "
+                    />
 
-                  </FormItem>
+                  </div>
 
-                )}
-              />
 
-              <FormField
-                control={form.control}
-                name="newPassword"
-                render={({ field }) => (
+                  <PasswordField
+                    control={form.control}
+                    name="newPassword"
+                    label="New Password"
+                    placeholder="Enter new password"
+                    autoComplete="new-password"
+                  />
 
-                  <FormItem>
 
-                    <FormLabel>
-                      New Password
-                    </FormLabel>
+                  <PasswordField
+                    control={form.control}
+                    name="confirmPassword"
+                    label="Confirm New Password"
+                    placeholder="Repeat new password"
+                    autoComplete="new-password"
+                  />
 
-                    <FormControl>
 
-                      <div className="relative">
+                  {/* Security note */}
 
-                        <Lock
-                          className="
-                            absolute
-                            left-3
-                            top-1/2
-                            h-4
-                            w-4
-                            -translate-y-1/2
-                            text-muted-foreground
-                          "
-                        />
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-3
+                      rounded-xl
+                      border
+                      border-emerald-500/15
+                      bg-emerald-500/[0.04]
+                      px-3
+                      py-2.5
+                    "
+                  >
 
-                        <Input
-                          type="password"
-                          {...field}
-                          className="
-                            h-12
-                            rounded-xl
-                            border-border/60
-                            bg-muted/40
-                            pl-10
-                            backdrop-blur
-                            transition-all
-                            focus-visible:ring-2
-                            focus-visible:ring-violet-500
-                          "
-                        />
+                    <ShieldCheck
+                      className="
+                        h-4
+                        w-4
+                        shrink-0
+                        text-emerald-500
+                      "
+                    />
 
-                      </div>
+                    <p
+                      className="
+                        text-xs
+                        leading-relaxed
+                        text-muted-foreground
+                      "
+                    >
+                      Use a strong password you do not use
+                      elsewhere.
+                    </p>
 
-                    </FormControl>
+                  </div>
 
-                    <FormMessage />
+                </div>
 
-                  </FormItem>
+              </div>
 
-                )}
-              />
 
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
+              {/* =================================================
+                  FOOTER
+                  ================================================= */}
 
-                  <FormItem>
-
-                    <FormLabel>
-                      Confirm Password
-                    </FormLabel>
-
-                    <FormControl>
-
-                      <div className="relative">
-
-                        <Lock
-                          className="
-                            absolute
-                            left-3
-                            top-1/2
-                            h-4
-                            w-4
-                            -translate-y-1/2
-                            text-muted-foreground
-                          "
-                        />
-
-                        <Input
-                          type="password"
-                          {...field}
-                          className="
-                            h-12
-                            rounded-xl
-                            border-border/60
-                            bg-muted/40
-                            pl-10
-                            backdrop-blur
-                            transition-all
-                            focus-visible:ring-2
-                            focus-visible:ring-violet-500
-                          "
-                        />
-
-                      </div>
-
-                    </FormControl>
-
-                    <FormMessage />
-
-                  </FormItem>
-
-                )}
-              />
-
-              <DialogFooter>
+              <div
+                className="
+                  shrink-0
+                  border-t
+                  border-border/50
+                  bg-background
+                  px-5
+                  py-4
+                "
+              >
 
                 <Button
                   type="submit"
                   disabled={loading}
                   className="
-                    h-12
+                    h-10
                     w-full
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-violet-600
-                    via-indigo-600
-                    to-cyan-600
-                    text-white
-                    shadow-lg
+                    rounded-lg
+                    bg-primary
+                    px-5
+                    text-s
+                    font-semibold
+                    text-primary-foreground
+                    shadow-sm
                     transition-all
-                    duration-300
-                    hover:scale-[1.01]
-                    hover:shadow-cyan-500/30
-                    sm:w-auto
+                    hover:bg-primary/90
+                    disabled:pointer-events-none
+                    disabled:opacity-60
                   "
                 >
+
+                  <KeyRound
+                    className="
+                      mr-2
+                      h-4
+                      w-4
+                    "
+                  />
 
                   {loading
                     ? 'Updating...'
@@ -473,7 +638,7 @@ export default function ChangePasswordDialog() {
 
                 </Button>
 
-              </DialogFooter>
+              </div>
 
             </form>
 
@@ -481,10 +646,9 @@ export default function ChangePasswordDialog() {
 
         </div>
 
-      </DialogContent>
+      </SheetContent>
 
-    </Dialog>
+    </Sheet>
 
   );
-
 }

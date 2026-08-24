@@ -1,8 +1,6 @@
 'use client';
 
-import {
-  useState,
-} from 'react';
+import { useMemo, useState } from 'react';
 
 import LeaderboardTable from './LeaderboardTable';
 
@@ -10,11 +8,9 @@ import {
   AnalyticsLeaderboards,
 } from '@/types/analytics.types';
 
-
 interface Props {
   leaderboards: AnalyticsLeaderboards;
 }
-
 
 type LeaderboardType =
   | 'subscribers'
@@ -23,213 +19,124 @@ type LeaderboardType =
   | 'buyers'
   | 'referrals';
 
-
-
 export default function LeaderboardSection({
   leaderboards,
 }: Props) {
+  const [
+    activeLeaderboard,
+    setActiveLeaderboard,
+  ] = useState<LeaderboardType>('subscribers');
 
+  const tabs = [
+    {
+      label: 'Subscribers',
+      value: 'subscribers',
+    },
+    {
+      label: 'VIP',
+      value: 'vip',
+    },
+    {
+      label: 'Regular',
+      value: 'regular',
+    },
+    {
+      label: 'Buyers',
+      value: 'buyers',
+    },
+    {
+      label: 'Referrals',
+      value: 'referrals',
+    },
+  ] as const;
 
-const [
- activeLeaderboard,
- setActiveLeaderboard,
-]=useState<LeaderboardType>('subscribers');
+  const table = useMemo(() => {
+    switch (activeLeaderboard) {
+      case 'vip':
+        return {
+          title: 'Top VIP Subscribers',
+          users: leaderboards.topVipSubscribers,
+          metric: 'totalVipSubscriptions' as const,
+        };
 
+      case 'regular':
+        return {
+          title: 'Top Regular Subscribers',
+          users: leaderboards.topRegularSubscribers,
+          metric: 'totalRegularSubscriptions' as const,
+        };
 
+      case 'buyers':
+        return {
+          title: 'Top Prediction Buyers',
+          users: leaderboards.topPredictionBuyers,
+          metric: 'totalPurchases' as const,
+        };
 
-const tabs = [
+      case 'referrals':
+        return {
+          title: 'Top Referrers',
+          users: leaderboards.topReferrers,
+          metric: 'successfulReferrals' as const,
+        };
 
-{
- label:'Subscribers',
- value:'subscribers',
-},
+      default:
+        return {
+          title: 'Top Subscribers',
+          users: leaderboards.topSubscribers,
+          metric: 'totalSubscriptions' as const,
+        };
+    }
+  }, [activeLeaderboard, leaderboards]);
 
-{
- label:'VIP',
- value:'vip',
-},
-
-{
- label:'Regular',
- value:'regular',
-},
-
-{
- label:'Buyers',
- value:'buyers',
-},
-
-{
- label:'Referrals',
- value:'referrals',
-},
-
-] as const;
-
-
-
-const renderTable = () => {
-
-
-switch(activeLeaderboard){
-
-
-case 'vip':
-
-return (
-
-<LeaderboardTable
- title="Top VIP Subscribers"
- users={leaderboards.topVipSubscribers}
- metric="totalVipSubscriptions"
-/>
-
-);
-
-
-
-case 'regular':
-
-return (
-
-<LeaderboardTable
- title="Top Regular Subscribers"
- users={leaderboards.topRegularSubscribers}
- metric="totalRegularSubscriptions"
-/>
-
-);
-
-
-
-case 'buyers':
-
-return (
-
-<LeaderboardTable
- title="Top Prediction Buyers"
- users={leaderboards.topPredictionBuyers}
- metric="totalPurchases"
-/>
-
-);
-
-
-
-case 'referrals':
-
-return (
-
-<LeaderboardTable
- title="Top Referrers"
- users={leaderboards.topReferrers}
- metric="successfulReferrals"
-/>
-
-);
-
-
-
-default:
-
-return (
-
-<LeaderboardTable
- title="Top Subscribers"
- users={leaderboards.topSubscribers}
- metric="totalSubscriptions"
-/>
-
-);
-
-
-}
-
-
-};
-
-
-
-return (
-
-<section className="space-y-6">
-
-
-<div>
-
-<h2 className="text-xl font-semibold">
-Leaderboards
-</h2>
-
-<p className="text-sm text-muted-foreground">
-Highest-performing users across the platform
-</p>
-
-</div>
-
-
-
-{/* Selector */}
+  return (
+    <section className="space-y-1">
 
 <div
-className="
-flex
-gap-2
-rounded-lg
-border
-bg-muted/50
-p-1
-w-fit
-"
+  className="
+    flex
+    w-full
+    flex-wrap
+    items-center
+    rounded-lg
+    border
+    bg-muted/50
+    p-1
+    gap-1
+  "
 >
-
-
-{
-tabs.map((tab)=>(
-
-<button
-key={tab.value}
-onClick={()=>setActiveLeaderboard(tab.value)}
-className={`
-rounded-md
-px-4
-py-2
-text-sm
-font-medium
-transition
-${
-activeLeaderboard === tab.value
-? 'bg-background shadow'
-: 'text-muted-foreground hover:text-foreground'
-}
-`}
->
-
-{tab.label}
-
-</button>
-
-))
-
-}
-
-
+  {tabs.map((tab) => (
+    <button
+      key={tab.value}
+      onClick={() => setActiveLeaderboard(tab.value)}
+      className={`
+        flex-1
+        min-w-[120px]
+        rounded-md
+        px-4
+        py-1
+        text-s
+        font-medium
+        text-center
+        transition-all
+        duration-200
+        ${
+          activeLeaderboard === tab.value
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-muted-foreground hover:bg-background hover:text-foreground'
+        }
+      `}
+    >
+      {tab.label}
+    </button>
+  ))}
 </div>
 
-
-
-{/* Table */}
-
-<div>
-
-{renderTable()}
-
-</div>
-
-
-
-</section>
-
-);
-
+      <LeaderboardTable
+        title={table.title}
+        users={table.users}
+        metric={table.metric}
+      />
+    </section>
+  );
 }

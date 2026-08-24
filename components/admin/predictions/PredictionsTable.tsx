@@ -132,7 +132,7 @@ export default function PredictionsTable({
           No predictions found
         </p>
 
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-s text-muted-foreground">
           Create a prediction or adjust the active filters.
         </p>
       </div>
@@ -194,7 +194,7 @@ export default function PredictionsTable({
                       />
                     )}
 
-                    <p className="truncate text-sm font-bold">
+                    <p className="truncate text-s font-bold">
                       {leagueName}
                     </p>
                   </div>
@@ -229,7 +229,7 @@ export default function PredictionsTable({
                 "
               >
                 <div className="flex min-w-0 items-center justify-end gap-2">
-                  <span className="truncate text-right text-sm font-semibold">
+                  <span className="truncate text-right text-s font-semibold">
                     {prediction.homeTeam}
                   </span>
 
@@ -274,7 +274,7 @@ export default function PredictionsTable({
                     />
                   )}
 
-                  <span className="truncate text-sm font-semibold">
+                  <span className="truncate text-s font-semibold">
                     {prediction.awayTeam}
                   </span>
                 </div>
@@ -306,7 +306,7 @@ export default function PredictionsTable({
                       />
                     )}
 
-                    <p className="truncate text-sm font-bold">
+                    <p className="truncate text-s font-bold">
                       {predictionHero.title}
                     </p>
                   </div>
@@ -385,11 +385,11 @@ export default function PredictionsTable({
                   "
                 >
                   <td className="px-5 py-4">
-                    <div className="text-sm font-semibold">
+                    <div className="text-s font-semibold">
                       {date.day}
                     </div>
 
-                    <div className="mt-1 text-sm text-muted-foreground">
+                    <div className="mt-1 text-s text-muted-foreground">
                       {date.date}
                     </div>
 
@@ -429,7 +429,7 @@ export default function PredictionsTable({
                         )}
                       </div>
 
-                      <span className="truncate text-sm font-semibold">
+                      <span className="truncate text-s font-semibold">
                         {leagueName}
                       </span>
                     </div>
@@ -496,7 +496,7 @@ export default function PredictionsTable({
                       </div>
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-primary">
+                        <p className="truncate text-s font-bold text-primary">
                           {predictionHero.title}
                         </p>
 
@@ -614,7 +614,7 @@ function TeamRow({
         )}
       </div>
 
-      <span className="truncate text-sm font-medium">
+      <span className="truncate text-s font-medium">
         {name}
       </span>
     </div>

@@ -310,7 +310,7 @@ export default function PredictionDetailsModal({
                       {leagueName}
                     </p>
 
-                    <p className="mt-1 truncate text-sm text-muted-foreground">
+                    <p className="mt-1 truncate text-s text-muted-foreground">
                       Match command centre
                     </p>
                   </div>
@@ -321,7 +321,7 @@ export default function PredictionDetailsModal({
                     inline-flex
                     items-center
                     gap-2
-                    text-sm
+                    text-s
                     text-muted-foreground
                   "
                 >
@@ -396,7 +396,7 @@ export default function PredictionDetailsModal({
                       className="
                         mt-3
                         line-clamp-2
-                        text-sm
+                        text-s
                         font-bold
                         sm:text-lg
                       "
@@ -475,7 +475,7 @@ export default function PredictionDetailsModal({
                       className="
                         mt-3
                         line-clamp-2
-                        text-sm
+                        text-s
                         font-bold
                         sm:text-lg
                       "
@@ -560,7 +560,7 @@ export default function PredictionDetailsModal({
                           {predictionHero.title}
                         </h3>
 
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-s text-muted-foreground">
                           {predictionHero.description}
                         </p>
                       </div>
@@ -572,7 +572,7 @@ export default function PredictionDetailsModal({
                           Confidence
                         </span>
 
-                        <span className="text-sm font-bold text-primary">
+                        <span className="text-s font-bold text-primary">
                           {confidence}%
                         </span>
                       </div>
@@ -709,7 +709,7 @@ export default function PredictionDetailsModal({
                                 border-input
                                 bg-background
                                 px-3
-                                text-sm
+                                text-s
                                 font-medium
                                 outline-none
                                 transition
@@ -791,7 +791,7 @@ export default function PredictionDetailsModal({
                         Probability total
                       </p>
 
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="mt-1 text-s text-muted-foreground">
                         Keep the three outcomes balanced.
                       </p>
                     </div>
@@ -842,7 +842,7 @@ export default function PredictionDetailsModal({
                           p-3
                         "
                       >
-                        <span className="min-w-0 truncate text-sm font-medium">
+                        <span className="min-w-0 truncate text-s font-medium">
                           {item.label}
                         </span>
 
@@ -873,7 +873,7 @@ export default function PredictionDetailsModal({
                               px-3
                               pr-7
                               text-right
-                              text-sm
+                              text-s
                               font-semibold
                               outline-none
                               focus-visible:ring-2
@@ -916,7 +916,7 @@ export default function PredictionDetailsModal({
                         border-amber-500/30
                         bg-amber-500/10
                         p-4
-                        text-sm
+                        text-s
                         text-amber-700
                       "
                     >
@@ -958,7 +958,7 @@ export default function PredictionDetailsModal({
                         border-input
                         bg-background
                         px-4
-                        text-sm
+                        text-s
                         font-medium
                         outline-none
                         focus-visible:ring-2
@@ -1033,7 +1033,7 @@ export default function PredictionDetailsModal({
                   border
                   border-destructive/30
                   px-4
-                  text-sm
+                  text-s
                   font-semibold
                   text-destructive
                   transition
@@ -1058,7 +1058,7 @@ export default function PredictionDetailsModal({
                   rounded-xl
                   bg-primary
                   px-5
-                  text-sm
+                  text-s
                   font-semibold
                   text-primary-foreground
                   shadow-sm
@@ -1127,7 +1127,7 @@ function Section({
             {title}
           </h3>
 
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-s text-muted-foreground">
             {description}
           </p>
         </div>
@@ -1179,7 +1179,7 @@ function Info({
         className={`
           mt-2
           truncate
-          text-sm
+          text-s
           font-semibold
           ${
             highlight
@@ -1209,7 +1209,7 @@ function EmptyState({
         bg-muted/20
         p-6
         text-center
-        text-sm
+        text-s
         text-muted-foreground
       "
     >

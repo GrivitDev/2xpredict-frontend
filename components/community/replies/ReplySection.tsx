@@ -180,7 +180,7 @@ export default function ReplySection({
 
                 <p
                   className="
-                    text-sm
+                    text-s
                     font-medium
                     text-foreground
                   "
@@ -191,7 +191,7 @@ export default function ReplySection({
                 <p
                   className="
                     mt-1
-                    text-sm
+                    text-s
                     text-muted-foreground
                   "
                 >
@@ -222,7 +222,7 @@ export default function ReplySection({
               handleExpand
             }
             className="
-              text-sm
+              text-s
               font-semibold
               text-emerald-500
               transition
@@ -246,7 +246,7 @@ export default function ReplySection({
               setExpanded(false)
             )}
             className="
-              text-sm
+              text-s
               font-semibold
               text-muted-foreground
               transition

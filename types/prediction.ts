@@ -1,5 +1,5 @@
 export interface PredictionAccess {
-  id: string;
+  _id: string;
 
   homeTeam: string;
   awayTeam: string;

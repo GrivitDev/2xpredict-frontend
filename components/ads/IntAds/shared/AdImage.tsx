@@ -33,16 +33,20 @@ export function AdImage({
       <motion.div
         initial={{
           opacity: 0,
-          scale: 1.03,
+          scale: 1.02,
         }}
         animate={{
           opacity: 1,
           scale: 1,
         }}
         transition={{
-          duration: 0.5,
+          duration: .45,
         }}
-        className="absolute inset-0 overflow-hidden"
+        className="
+          absolute
+          inset-0
+          overflow-hidden
+        "
       >
 
         <Image
@@ -57,11 +61,13 @@ export function AdImage({
               transition-transform
               duration-700
               ease-out
-              group-hover:scale-105
+              group-hover:scale-[1.04]
             `,
             className,
           )}
         />
+
+        {/* Premium cinematic overlay */}
 
         <div
           className="
@@ -69,9 +75,22 @@ export function AdImage({
             absolute
             inset-0
             bg-gradient-to-t
-            from-black/35
-            via-transparent
-            to-transparent
+            from-black/45
+            via-black/10
+            to-black/5
+          "
+        />
+
+        {/* Soft vignette */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            ring-1
+            ring-inset
+            ring-white/10
           "
         />
 
@@ -86,20 +105,27 @@ export function AdImage({
     <motion.div
       initial={{
         opacity: 0,
-        scale: 0.98,
+        y: 8,
       }}
       animate={{
         opacity: 1,
-        scale: 1,
+        y: 0,
       }}
       transition={{
-        duration: 0.45,
+        duration: .4,
       }}
       className="
         group
         relative
         overflow-hidden
-        rounded-2xl
+        rounded-xl
+        border
+        border-border/60
+        bg-muted/20
+        shadow-sm
+        transition-all
+        duration-300
+        hover:shadow-lg
       "
     >
 
@@ -122,11 +148,13 @@ export function AdImage({
             transition-transform
             duration-700
             ease-out
-            group-hover:scale-105
+            group-hover:scale-[1.04]
           `,
           className,
         )}
       />
+
+      {/* Premium overlay */}
 
       <div
         className="
@@ -134,9 +162,23 @@ export function AdImage({
           absolute
           inset-0
           bg-gradient-to-t
-          from-black/10
+          from-black/20
           via-transparent
           to-transparent
+        "
+      />
+
+      {/* Soft border highlight */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          rounded-xl
+          ring-1
+          ring-inset
+          ring-white/10
         "
       />
 

@@ -287,7 +287,7 @@ export default function PaymentsReviewPanel({
 
 
             <p className="
-              text-sm
+              text-s
               text-muted-foreground
             ">
               Review and approve subscription payments.
@@ -311,7 +311,7 @@ export default function PaymentsReviewPanel({
           bg-orange-500/10
           px-4
           py-2
-          text-sm
+          text-s
           text-orange-600
         ">
 
@@ -369,7 +369,7 @@ export default function PaymentsReviewPanel({
 
           <p className="
             mt-2
-            text-sm
+            text-s
             text-muted-foreground
           ">
             No pending payments require attention.
@@ -444,7 +444,7 @@ export default function PaymentsReviewPanel({
 
 
                   <span className="
-                    text-sm
+                    text-s
                     font-medium
                   ">
                     Awaiting Approval
@@ -558,7 +558,7 @@ export default function PaymentsReviewPanel({
                   bg-green-600
                   px-5
                   py-2.5
-                  text-sm
+                  text-s
                   font-medium
                   text-white
                   transition
@@ -593,7 +593,7 @@ export default function PaymentsReviewPanel({
                   bg-destructive
                   px-5
                   py-2.5
-                  text-sm
+                  text-s
                   font-medium
                   text-white
                   transition

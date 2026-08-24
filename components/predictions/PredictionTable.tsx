@@ -1,514 +1,190 @@
 'use client';
 
-import { formatMatchTime } from '@/lib/formatMatchTime';
+import {
+  useCallback,
+} from 'react';
 
-import ConfidenceBadge from './ConfidenceBadge';
-import AccessBadge from './AccessBadge';
+import clsx from 'clsx';
+
+import PredictionRow, {
+  SubscriptionRequiredData,
+} from './PredictionRow';
 
 
+/* =========================================================
+   PROPS
+========================================================= */
 
 interface Props {
+  predictions: any[];
 
-  predictions:any[];
+  highlightedId?: string | null;
 
-  onSelect:(prediction:any)=>void;
-
+  onSubscriptionRequired: (
+    params: SubscriptionRequiredData,
+  ) => void;
 }
 
 
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function PredictionTable({
-
   predictions,
+  highlightedId,
+  onSubscriptionRequired,
+}: Props) {
 
-  onSelect,
+  /* =======================================================
+     SUBSCRIPTION HANDLER
+  ======================================================= */
 
-}:Props){
+  const handleSubscriptionRequired =
+    useCallback(
+      (
+        params: SubscriptionRequiredData,
+      ) => {
+
+        onSubscriptionRequired(
+          params,
+        );
+
+      },
+      [
+        onSubscriptionRequired,
+      ],
+    );
 
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
 
     <div
-
       className="
         hidden
-        lg:block
+        w-full
         overflow-hidden
-        rounded-3xl
+        rounded-2xl
         border
         border-border
-        bg-card/70
-        backdrop-blur-xl
+        bg-card
+        xl:block
       "
-
     >
 
-
-      <div
+      <table
         className="
-          overflow-x-auto
+          w-full
+          table-fixed
+          border-collapse
+          text-xs
         "
       >
 
+        <colgroup>
 
-        <table
+          <col className="w-[8%]" />
 
+          <col className="w-[12%]" />
+
+          <col className="w-[20%]" />
+
+          <col className="w-[22%]" />
+
+          <col className="w-[22%]" />
+
+          <col className="w-[20%]" />
+
+        </colgroup>
+
+
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
+        <thead
           className="
-            w-full
-            text-sm
+            border-b
+            border-border
+            bg-muted/40
           "
-
         >
 
+          <tr>
+
+            <Header>
+              Date & Time
+            </Header>
+
+            <Header>
+              League
+            </Header>
+
+            <Header>
+              Match
+            </Header>
+
+            <Header>
+              Prediction
+            </Header>
+
+            <Header>
+              Probability
+            </Header>
+
+            <Header>
+              Markets
+            </Header>
+
+          </tr>
+
+        </thead>
 
 
-          <thead
+        {/* =================================================
+            BODY
+        ================================================= */}
 
-            className="
-              border-b
-              border-border
-              bg-muted/30
-            "
+        <tbody>
 
-          >
+          {predictions.map(
+            (prediction) => {
 
-            <tr>
-
-
-              <th
-                className="
-                  p-5
-                  text-left
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-
-                League
-
-              </th>
+              const id =
+                String(
+                  prediction._id ??
+                  prediction.id ??
+                  '',
+                );
 
 
+              return (
 
-              <th
-                className="
-                  p-5
-                  text-left
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-
-                Match
-
-              </th>
-
-
-
-              <th
-                className="
-                  p-5
-                  text-left
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-
-                Date
-
-              </th>
-
-
-
-              <th
-                className="
-                  p-5
-                  text-left
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-
-                Confidence
-
-              </th>
-
-
-
-
-              <th
-                className="
-                  p-5
-                  text-left
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-
-                Access
-
-              </th>
-
-
-
-            </tr>
-
-
-          </thead>
-
-
-
-
-
-
-
-          <tbody>
-
-
-            {
-              predictions.map((prediction)=>(
-
-
-                <tr
-
-
-                  key={
-                    prediction._id ??
-                    prediction.id
+                <PredictionRow
+                  key={id}
+                  prediction={
+                    prediction
                   }
-
-
-                  onClick={()=>
-                    onSelect(prediction)
+                  highlighted={
+                    highlightedId === id
                   }
+                  onSubscriptionRequired={
+                    handleSubscriptionRequired
+                  }
+                />
 
+              );
 
-                  className="
-                    group
-                    cursor-pointer
-                    border-b
-                    border-border
-                    transition
-                    hover:bg-muted/40
-                  "
+            },
+          )}
 
+        </tbody>
 
-                >
-
-
-
-
-
-
-
-                  {/* LEAGUE */}
-
-
-                  <td
-                    className="
-                      p-5
-                    "
-                  >
-
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                      "
-                    >
-
-
-
-                      {
-                        prediction.league?.emblem && (
-
-                          <img
-
-                            src={
-                              prediction.league.emblem
-                            }
-
-                            alt=""
-                            
-                            className="
-                              h-10
-                              w-10
-                              rounded-xl
-                              bg-muted
-                              p-1
-                              object-contain
-                            "
-
-                          />
-
-                        )
-                      }
-
-
-
-
-                      <div>
-
-
-                        <p
-                          className="
-                            font-semibold
-                          "
-                        >
-
-                          {
-                            prediction.league?.name ??
-                            prediction.leagueCode
-                          }
-
-                        </p>
-
-
-
-                        <p
-                          className="
-                            text-xs
-                            text-muted-foreground
-                          "
-                        >
-
-                          {
-                            prediction.league?.country
-                          }
-
-                        </p>
-
-
-                      </div>
-
-
-                    </div>
-
-
-                  </td>
-
-
-
-
-
-
-
-
-
-                  {/* MATCH */}
-
-
-                  <td
-                    className="
-                      p-5
-                    "
-                  >
-
-
-                    <div
-                      className="
-                        space-y-3
-                      "
-                    >
-
-
-
-                      <TeamRow
-
-                        badge={
-                          prediction.homeTeamBadge
-                        }
-
-                        name={
-                          prediction.homeTeam
-                        }
-
-                      />
-
-
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-3
-                        "
-                      >
-
-                        <div
-                          className="
-                            h-px
-                            flex-1
-                            bg-border
-                          "
-                        />
-
-
-                        <span
-                          className="
-                            text-xs
-                            font-bold
-                            text-muted-foreground
-                          "
-                        >
-
-                          VS
-
-                        </span>
-
-
-                        <div
-                          className="
-                            h-px
-                            flex-1
-                            bg-border
-                          "
-                        />
-
-                      </div>
-
-
-
-
-
-                      <TeamRow
-
-                        badge={
-                          prediction.awayTeamBadge
-                        }
-
-                        name={
-                          prediction.awayTeam
-                        }
-
-                      />
-
-
-
-
-                    </div>
-
-
-                  </td>
-
-
-
-
-
-
-
-
-
-                  {/* DATE */}
-
-
-
-                  <td
-                    className="
-                      p-5
-                      text-muted-foreground
-                    "
-                  >
-
-                    {
-                      formatMatchTime(
-                        prediction.matchDate
-                      )
-                    }
-
-                  </td>
-
-
-
-
-
-
-
-
-
-                  {/* CONFIDENCE */}
-
-
-
-                  <td
-                    className="
-                      p-5
-                      min-w-[180px]
-                    "
-                  >
-
-                    <ConfidenceBadge
-
-                      confidence={
-                        prediction.confidence
-                      }
-
-                    />
-
-                  </td>
-
-
-
-
-
-
-
-
-
-                  {/* ACCESS */}
-
-
-
-                  <td
-                    className="
-                      p-5
-                    "
-                  >
-
-                    <AccessBadge
-
-                      accessType={
-                        prediction.accessType
-                      }
-
-                    />
-
-
-                  </td>
-
-
-
-
-                </tr>
-
-
-              ))
-            }
-
-
-
-          </tbody>
-
-
-
-        </table>
-
-
-      </div>
-
+      </table>
 
     </div>
 
@@ -517,73 +193,39 @@ export default function PredictionTable({
 }
 
 
+/* =========================================================
+   HEADER
+========================================================= */
 
+function Header({
+  children,
+  align = 'left',
+}: {
+  children: React.ReactNode;
 
-
-
-
-function TeamRow({
-
-  badge,
-
-  name,
-
-}:{
-
-  badge?:string;
-
-  name:string;
-
-}){
-
+  align?: 'left' | 'center';
+}) {
 
   return (
 
-    <div
+    <th
+      className={clsx(
+        `
+          px-2
+          py-1.5
+          text-[9px]
+          font-bold
+          uppercase
+          tracking-wider
+          text-muted-foreground
+        `,
 
-      className="
-        flex
-        items-center
-        gap-3
-      "
-
+        align === 'center' &&
+          'text-center',
+      )}
     >
-
-
-      {
-        badge && (
-
-          <img
-
-            src={badge}
-
-            alt={name}
-
-            className="
-              h-7
-              w-7
-              object-contain
-            "
-
-          />
-
-        )
-      }
-
-
-
-      <span
-        className="
-          font-medium
-        "
-      >
-
-        {name}
-
-      </span>
-
-
-    </div>
+      {children}
+    </th>
 
   );
 

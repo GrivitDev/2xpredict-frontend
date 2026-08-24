@@ -386,7 +386,7 @@ export default function MediaUploader({
           rounded-xl
           border-border
           bg-background/60
-          text-sm
+          text-s
           font-medium
           shadow-sm
           transition-colors

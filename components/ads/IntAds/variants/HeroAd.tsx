@@ -28,100 +28,112 @@ export function HeroAd({
         group
         relative
         overflow-hidden
-        rounded-3xl
+        rounded-2xl
         border
-        shadow-xl
-        min-h-[220px]
-        sm:min-h-[270px]
+        border-border/60
+        bg-card
+        shadow-lg
+        transition-all
+        duration-300
+        hover:shadow-2xl
+
+        min-h-[230px]
+        sm:min-h-[280px]
         lg:min-h-[320px]
       "
     >
 
-      {
-        ad.image && (
+      {ad.image && (
 
-          <>
+        <>
 
-            {/* Background */}
+          {/* Background */}
 
-            <motion.div
-              initial={{
-                scale: 1,
-              }}
-              animate={{
-                scale: 1.08,
-              }}
-              transition={{
-                duration: 18,
-                repeat: Infinity,
-                repeatType: 'reverse',
-                ease: 'linear',
-              }}
-              className="absolute inset-0"
-            >
+          <motion.div
+            initial={{
+              scale: 1,
+            }}
+            animate={{
+              scale: 1.04,
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              repeatType: 'reverse',
+              ease: 'linear',
+            }}
+            className="
+              absolute
+              inset-0
+              overflow-hidden
+            "
+          >
 
-              <AdImage
-                ad={ad}
-                fill
-                priority
-              />
-
-            </motion.div>
-
-            {/* Overlay */}
-
-            <div
-              className="
-                absolute
-                inset-0
-                bg-gradient-to-r
-                from-black/90
-                via-black/65
-                to-black/45
-              "
+            <AdImage
+              ad={ad}
+              fill
+              priority
             />
 
-            <div
-              className="
-                absolute
-                inset-0
-                bg-gradient-to-t
-                from-black/70
-                via-black/15
-                to-black/30
-              "
-            />
+          </motion.div>
 
-            {/* Glow */}
+          {/* Main Overlay */}
 
-            <div
-              className="
-                absolute
-                inset-0
-                bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,.08),transparent_40%)]
-              "
-            />
+          <div
+            className="
+              absolute
+              inset-0
+              bg-gradient-to-r
+              from-black/85
+              via-black/60
+              to-black/35
+            "
+          />
 
-          </>
+          {/* Bottom Contrast */}
 
-        )
-      }
+          <div
+            className="
+              absolute
+              inset-0
+              bg-gradient-to-t
+              from-black/65
+              via-transparent
+              to-black/10
+            "
+          />
+
+          {/* Soft Highlight */}
+
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-0
+              bg-[radial-gradient(circle_at_15%_15%,rgba(255,255,255,.09),transparent_42%)]
+            "
+          />
+
+        </>
+
+      )}
 
       <div
         className="
           relative
           z-10
+
           flex
-          min-h-[220px]
-          sm:min-h-[270px]
+          min-h-[230px]
+          sm:min-h-[280px]
           lg:min-h-[320px]
+
           flex-col
           justify-between
-          px-3
-          py-3
-          sm:px-4
-          sm:py-3
-          lg:px-5
+
+          p-4
+          sm:p-5
+          lg:p-6
         "
       >
 
@@ -130,11 +142,14 @@ export function HeroAd({
         <motion.div
           initial={{
             opacity: 0,
-            y: -10,
+            y: -8,
           }}
           animate={{
             opacity: 1,
             y: 0,
+          }}
+          transition={{
+            duration: .3,
           }}
         >
 
@@ -142,28 +157,30 @@ export function HeroAd({
 
         </motion.div>
 
-        {/* Center Content */}
+        {/* Main Content */}
 
         <motion.div
           initial={{
             opacity: 0,
-            y: 18,
+            y: 14,
           }}
           animate={{
             opacity: 1,
             y: 0,
           }}
           transition={{
-            duration: .45,
+            duration: .4,
+            delay: .05,
           }}
           className="
             mx-auto
             flex
             w-full
-            max-w-5xl
+            max-w-4xl
             flex-col
             items-center
             justify-center
+            gap-2
             text-center
           "
         >
@@ -174,46 +191,47 @@ export function HeroAd({
             light
           />
 
-          <div className="mt-1 max-w-3xl">
-
-            <AdDescription
-              ad={ad}
-              light
-            />
-
-          </div>
+          <AdDescription
+            ad={ad}
+            light
+          />
 
         </motion.div>
 
-        {/* Bottom */}
+        {/* Footer */}
 
         <motion.div
           initial={{
             opacity: 0,
-            y: 20,
+            y: 14,
           }}
           animate={{
             opacity: 1,
             y: 0,
           }}
           transition={{
-            delay: .25,
+            duration: .4,
+            delay: .2,
           }}
           className="
-            mt-2
+            mt-4
+
             flex
             flex-col
-            gap-2
+            gap-4
+
             sm:flex-row
             sm:items-end
             sm:justify-between
           "
         >
 
+          {/* Instructions */}
+
           <div
             className="
-              max-w-md
-              px-8
+              w-full
+              max-w-lg
             "
           >
 
@@ -224,10 +242,16 @@ export function HeroAd({
 
           </div>
 
+          {/* Action */}
+
           <div
             className="
-              self-start
-              sm:self-end
+              flex
+              w-full
+              justify-center
+
+              sm:w-auto
+              sm:justify-end
             "
           >
 
@@ -241,29 +265,45 @@ export function HeroAd({
 
       </div>
 
-      {/* Decorative Glow */}
+      {/* Ambient Glow */}
 
       <motion.div
         animate={{
           y: [
             0,
-            -15,
+            -12,
             0,
           ],
         }}
         transition={{
+          duration: 7,
           repeat: Infinity,
-          duration: 6,
+          ease: 'easeInOut',
         }}
         className="
+          pointer-events-none
           absolute
-          -right-28
-          -top-28
-          h-80
-          w-80
+          -right-32
+          -top-32
+          h-72
+          w-72
           rounded-full
           bg-primary/10
           blur-3xl
+        "
+      />
+
+      {/* Inner Highlight */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          rounded-2xl
+          ring-1
+          ring-inset
+          ring-white/10
         "
       />
 

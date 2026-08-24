@@ -9,35 +9,38 @@ export function AdBadge() {
     <motion.div
       initial={{
         opacity: 0,
-        x: -12,
+        x: -8,
       }}
       animate={{
         opacity: 1,
         x: 0,
       }}
       transition={{
-        duration: .35,
+        duration: .3,
       }}
       className="
         inline-flex
         items-center
         rounded-full
         border
-        border-white/20
-        bg-black/30
-        px-4
-        py-2
-        backdrop-blur-md
+        border-border/60
+        bg-background/80
+        px-3
+        py-1.5
+        shadow-sm
+        backdrop-blur-xl
+        supports-[backdrop-filter]:bg-background/70
       "
     >
 
       <span
         className="
-          text-[11px]
-          font-bold
+          text-[10px]
+          font-semibold
           uppercase
-          tracking-[0.35em]
+          tracking-[0.28em]
           text-primary
+          whitespace-nowrap
         "
       >
         Sponsored

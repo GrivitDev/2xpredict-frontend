@@ -1,29 +1,34 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Pencil,
   User2,
   Phone,
-  Sparkles,
+  Save,
 } from 'lucide-react';
 
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+
+import {
+  useForm,
+} from 'react-hook-form';
+
+import {
+  zodResolver,
+} from '@hookform/resolvers/zod';
 
 import { Button } from '@/components/ui/button';
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 import {
   Form,
@@ -40,28 +45,47 @@ import { useProfile } from '@/hooks/useProfile';
 
 import type { User } from '@/types/user';
 
+
+// ============================================================
+// VALIDATION
+// ============================================================
+
 const schema = z.object({
 
-  fullName:
-    z.string().min(
+  fullName: z
+    .string()
+    .trim()
+    .min(
       3,
-      'Full name is required',
+      'Full name must be at least 3 characters.',
     ),
 
-  phoneNumber:
-    z.string().min(
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(
       11,
-      'Phone number is invalid',
+      'Phone number is invalid.',
     ),
 
 });
 
-type FormValues =
-  z.infer<typeof schema>;
+
+type FormValues = z.infer<typeof schema>;
+
+
+// ============================================================
+// PROPS
+// ============================================================
 
 interface Props {
   user: User;
 }
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function EditProfileDialog({
   user,
@@ -72,26 +96,37 @@ export default function EditProfileDialog({
     updating,
   } = useProfile();
 
-  const form =
-    useForm<FormValues>({
-      resolver:
-        zodResolver(schema),
 
-      defaultValues: {
-        fullName:
-          user.fullName,
+  const [open, setOpen] = useState(false);
 
-        phoneNumber:
-          user.phoneNumber || '',
-      },
-    });
+
+  const form = useForm<FormValues>({
+
+    resolver: zodResolver(schema),
+
+    defaultValues: {
+
+      fullName:
+        user.fullName || '',
+
+      phoneNumber:
+        user.phoneNumber || '',
+
+    },
+
+  });
+
+
+  // ==========================================================
+  // SYNC USER DATA
+  // ==========================================================
 
   useEffect(() => {
 
     form.reset({
 
       fullName:
-        user.fullName,
+        user.fullName || '',
 
       phoneNumber:
         user.phoneNumber || '',
@@ -100,300 +135,482 @@ export default function EditProfileDialog({
 
   }, [user, form]);
 
+
+  // ==========================================================
+  // SUBMIT
+  // ==========================================================
+
   async function onSubmit(
     values: FormValues,
   ) {
 
     await updateProfile(values);
 
+    /*
+     * If updateProfile already handles the success state,
+     * this simply closes the sheet after completion.
+     */
+    setOpen(false);
+
   }
+
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
 
-    <Dialog>
+    <Sheet
+      open={open}
+      onOpenChange={(value) => {
 
-      <DialogTrigger asChild>
+        setOpen(value);
+
+        if (!value) {
+          form.reset();
+        }
+
+      }}
+    >
+
+      {/* ====================================================
+          TRIGGER
+          ==================================================== */}
+
+      <SheetTrigger asChild>
 
         <Button
+          variant="outline"
           className="
-            h-11
-            rounded-xl
-            bg-gradient-to-r
-            from-blue-600
-            via-indigo-600
-            to-violet-600
-            text-white
-            shadow-lg
-            transition-all
-            duration-300
-            hover:scale-[1.02]
-            hover:shadow-blue-500/30
-            active:scale-[0.98]
+            h-9
+            rounded-lg
+            border-primary/25
+            bg-primary/[0.05]
+            px-3.5
+            text-s
+            font-semibold
+            text-primary
+            shadow-none
+            transition-colors
+            hover:border-primary/40
+            hover:bg-primary/10
+            hover:text-primary
           "
         >
 
-          <Pencil className="mr-2 h-4 w-4" />
+          <Pencil
+            className="
+              mr-2
+              h-4
+              w-4
+            "
+          />
 
           Edit Profile
 
         </Button>
 
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent
+
+      {/* ====================================================
+          SHEET
+          ==================================================== */}
+
+      <SheetContent
+        side="right"
         className="
-          overflow-hidden
-          border-border/60
-          bg-background/95
+          w-full
+          border-l
+          border-border/70
+          bg-background
           p-0
-          backdrop-blur-2xl
-          sm:max-w-lg
+          shadow-2xl
+          sm:max-w-md
         "
       >
 
+        {/* ==================================================
+            AMBIENT ACCENT
+            ================================================== */}
+
         <div
           className="
+            pointer-events-none
             absolute
-            -left-20
+            -right-20
             -top-20
-            h-52
-            w-52
+            h-48
+            w-48
             rounded-full
-            bg-blue-500/20
+            bg-primary/10
             blur-3xl
           "
         />
 
         <div
           className="
+            pointer-events-none
             absolute
             -bottom-20
-            -right-20
-            h-52
-            w-52
+            -left-20
+            h-48
+            w-48
             rounded-full
-            bg-violet-500/20
+            bg-blue-500/[0.06]
             blur-3xl
           "
         />
 
-        <div className="relative">
 
-          <DialogHeader
+        <div
+          className="
+            relative
+            flex
+            h-full
+            flex-col
+          "
+        >
+
+          {/* ==================================================
+              HEADER
+              ================================================== */}
+
+          <SheetHeader
             className="
               border-b
               border-border/50
-              px-6
-              py-6
+              px-5
+              py-5
+              pr-14
+              text-left
             "
           >
 
             <div
               className="
-                mb-4
+                mb-3
                 flex
-                h-16
-                w-16
+                h-10
+                w-10
                 items-center
                 justify-center
-                rounded-2xl
-                bg-gradient-to-br
-                from-blue-500
-                via-indigo-500
-                to-violet-500
-                text-white
-                shadow-xl
+                rounded-xl
+                border
+                border-primary/20
+                bg-primary/10
+                text-primary
               "
             >
 
-              <Sparkles className="h-7 w-7" />
+              <Pencil
+                className="h-5 w-5"
+              />
 
             </div>
 
-            <DialogTitle
+
+            <SheetTitle
               className="
-                text-2xl
+                text-lg
                 font-bold
+                tracking-tight
               "
             >
-
               Edit Profile
+            </SheetTitle>
 
-            </DialogTitle>
 
-            <DialogDescription
+            <SheetDescription
               className="
-                max-w-md
-                text-sm
+                mt-1
+                text-s
                 leading-relaxed
               "
             >
+              Update your name and phone number.
+            </SheetDescription>
 
-              Keep your account information
-              up to date. Changes are saved
-              immediately after submission.
+          </SheetHeader>
 
-            </DialogDescription>
 
-          </DialogHeader>
+          {/* ==================================================
+              FORM
+              ================================================== */}
 
           <Form {...form}>
 
             <form
-              onSubmit={form.handleSubmit(
-                onSubmit,
-              )}
+              onSubmit={form.handleSubmit(onSubmit)}
               className="
-                space-y-6
-                px-6
-                py-6
+                flex
+                min-h-0
+                flex-1
+                flex-col
               "
             >
 
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
+              {/* =================================================
+                  SCROLLABLE CONTENT
+                  ================================================= */}
 
-                  <FormItem>
-
-                    <FormLabel>
-                      Full Name
-                    </FormLabel>
-
-                    <FormControl>
-
-                      <div className="relative">
-
-                        <User2
-                          className="
-                            absolute
-                            left-3
-                            top-1/2
-                            h-4
-                            w-4
-                            -translate-y-1/2
-                            text-muted-foreground
-                          "
-                        />
-
-                        <Input
-                          {...field}
-                          placeholder="John Doe"
-                          className="
-                            h-12
-                            rounded-xl
-                            border-border/60
-                            bg-muted/40
-                            pl-10
-                            transition-all
-                            backdrop-blur
-                            focus-visible:ring-2
-                            focus-visible:ring-blue-500
-                          "
-                        />
-
-                      </div>
-
-                    </FormControl>
-
-                    <FormMessage />
-
-                  </FormItem>
-
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-
-                  <FormItem>
-
-                    <FormLabel>
-                      Phone Number
-                    </FormLabel>
-
-                    <FormControl>
-
-                      <div className="relative">
-
-                        <Phone
-                          className="
-                            absolute
-                            left-3
-                            top-1/2
-                            h-4
-                            w-4
-                            -translate-y-1/2
-                            text-muted-foreground
-                          "
-                        />
-
-                        <Input
-                          {...field}
-                          placeholder="+234..."
-                          className="
-                            h-12
-                            rounded-xl
-                            border-border/60
-                            bg-muted/40
-                            pl-10
-                            transition-all
-                            backdrop-blur
-                            focus-visible:ring-2
-                            focus-visible:ring-blue-500
-                          "
-                        />
-
-                      </div>
-
-                    </FormControl>
-
-                    <FormMessage />
-
-                  </FormItem>
-
-                )}
-              />
-
-              <DialogFooter
+              <div
                 className="
-                  pt-2
+                  flex-1
+                  overflow-y-auto
+                  px-5
+                  py-5
                 "
               >
 
-                <Button
-                  type="submit"
-                  disabled={updating}
+                <div
                   className="
-                    h-12
-                    w-full
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-blue-600
-                    via-indigo-600
-                    to-violet-600
-                    text-white
-                    shadow-lg
-                    transition-all
-                    duration-300
-                    hover:scale-[1.01]
-                    hover:shadow-blue-500/30
-                    sm:w-auto
+                    space-y-4
                   "
                 >
 
-                  <Pencil className="mr-2 h-4 w-4" />
+                  {/* =============================================
+                      FULL NAME
+                      ============================================= */}
 
-                  {updating
-                    ? 'Saving...'
-                    : 'Save Changes'}
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
 
-                </Button>
+                      <FormItem>
 
-              </DialogFooter>
+                        <FormLabel
+                          className="
+                            text-s
+                            font-semibold
+                          "
+                        >
+                          Full Name
+                        </FormLabel>
+
+
+                        <FormControl>
+
+                          <div
+                            className="
+                              relative
+                            "
+                          >
+
+                            <User2
+                              className="
+                                pointer-events-none
+                                absolute
+                                left-3.5
+                                top-1/2
+                                h-4
+                                w-4
+                                -translate-y-1/2
+                                text-muted-foreground
+                              "
+                            />
+
+
+                            <Input
+                              {...field}
+                              placeholder="John Doe"
+                              autoComplete="name"
+                              className="
+                                h-10
+                                rounded-lg
+                                border-border/60
+                                bg-muted/[0.22]
+                                pl-10
+                                text-s
+                                shadow-none
+                                placeholder:text-muted-foreground/50
+                                focus-visible:border-primary/40
+                                focus-visible:ring-1
+                                focus-visible:ring-primary/30
+                              "
+                            />
+
+                          </div>
+
+                        </FormControl>
+
+
+                        <FormMessage
+                          className="text-xs"
+                        />
+
+                      </FormItem>
+
+                    )}
+                  />
+
+
+                  {/* =============================================
+                      PHONE
+                      ============================================= */}
+
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+
+                      <FormItem>
+
+                        <FormLabel
+                          className="
+                            text-s
+                            font-semibold
+                          "
+                        >
+                          Phone Number
+                        </FormLabel>
+
+
+                        <FormControl>
+
+                          <div
+                            className="
+                              relative
+                            "
+                          >
+
+                            <Phone
+                              className="
+                                pointer-events-none
+                                absolute
+                                left-3.5
+                                top-1/2
+                                h-4
+                                w-4
+                                -translate-y-1/2
+                                text-muted-foreground
+                              "
+                            />
+
+
+                            <Input
+                              {...field}
+                              placeholder="+234 800 000 0000"
+                              autoComplete="tel"
+                              className="
+                                h-10
+                                rounded-lg
+                                border-border/60
+                                bg-muted/[0.22]
+                                pl-10
+                                text-s
+                                shadow-none
+                                placeholder:text-muted-foreground/50
+                                focus-visible:border-primary/40
+                                focus-visible:ring-1
+                                focus-visible:ring-primary/30
+                              "
+                            />
+
+                          </div>
+
+                        </FormControl>
+
+
+                        <FormMessage
+                          className="text-xs"
+                        />
+
+                      </FormItem>
+
+                    )}
+                  />
+
+                </div>
+
+              </div>
+
+
+              {/* =================================================
+                  FOOTER
+                  ================================================= */}
+
+              <div
+                className="
+                  shrink-0
+                  border-t
+                  border-border/50
+                  bg-background
+                  px-5
+                  py-4
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    justify-end
+                    gap-2
+                  "
+                >
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="
+                      h-9
+                      rounded-lg
+                      border-border/60
+                      px-4
+                      text-s
+                      font-semibold
+                      shadow-none
+                    "
+                    onClick={() => {
+
+                      form.reset();
+
+                      setOpen(false);
+
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+
+                  <Button
+                    type="submit"
+                    disabled={updating}
+                    className="
+                      h-9
+                      rounded-lg
+                      bg-primary
+                      px-4
+                      text-s
+                      font-semibold
+                      text-primary-foreground
+                      shadow-sm
+                      transition-colors
+                      hover:bg-primary/90
+                      disabled:pointer-events-none
+                      disabled:opacity-60
+                    "
+                  >
+
+                    <Save
+                      className="
+                        mr-2
+                        h-4
+                        w-4
+                      "
+                    />
+
+                    {updating
+                      ? 'Saving...'
+                      : 'Save Changes'}
+
+                  </Button>
+
+                </div>
+
+              </div>
 
             </form>
 
@@ -401,10 +618,9 @@ export default function EditProfileDialog({
 
         </div>
 
-      </DialogContent>
+      </SheetContent>
 
-    </Dialog>
+    </Sheet>
 
   );
-
 }

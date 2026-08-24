@@ -372,7 +372,7 @@ export default function PredictionModal({
                     Create Prediction
                   </h2>
 
-                  <p className="mt-0.5 text-sm text-muted-foreground">
+                  <p className="mt-0.5 text-s text-muted-foreground">
                     Configure markets, probabilities, access, and price.
                   </p>
                 </div>
@@ -428,7 +428,7 @@ export default function PredictionModal({
                   border-destructive/25
                   bg-destructive/10
                   p-4
-                  text-sm
+                  text-s
                   text-destructive
                 "
               >
@@ -611,7 +611,7 @@ export default function PredictionModal({
                           {predictionHero.title}
                         </h3>
 
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-s text-muted-foreground">
                           {predictionHero.description}
                         </p>
                       </div>
@@ -625,7 +625,7 @@ export default function PredictionModal({
 
                         <span
                           className={`
-                            text-sm
+                            text-s
                             font-bold
                             ${
                               total === 100
@@ -695,7 +695,7 @@ export default function PredictionModal({
                         Probability Total
                       </p>
 
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="mt-1 text-s text-muted-foreground">
                         {total === 100
                           ? 'Ready to create this prediction.'
                           : 'Adjust the values until the total is 100%.'}
@@ -780,11 +780,11 @@ export default function PredictionModal({
                     >
                       <Target className="mx-auto h-6 w-6 text-muted-foreground" />
 
-                      <p className="mt-3 text-sm font-semibold">
+                      <p className="mt-3 text-s font-semibold">
                         No markets added yet
                       </p>
 
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="mt-1 text-s text-muted-foreground">
                         Add a market to build this prediction.
                       </p>
                     </div>
@@ -885,7 +885,7 @@ export default function PredictionModal({
                                     border-input
                                     bg-background
                                     px-3
-                                    text-sm
+                                    text-s
                                     outline-none
                                     focus-visible:ring-2
                                     focus-visible:ring-primary/30
@@ -939,7 +939,7 @@ export default function PredictionModal({
                                     border-input
                                     bg-background
                                     px-3
-                                    text-sm
+                                    text-s
                                     outline-none
                                     focus-visible:ring-2
                                     focus-visible:ring-primary/30
@@ -1001,7 +1001,7 @@ export default function PredictionModal({
                                       border-input
                                       bg-background
                                       px-3
-                                      text-sm
+                                      text-s
                                       outline-none
                                       placeholder:text-muted-foreground
                                       focus-visible:ring-2
@@ -1044,7 +1044,7 @@ export default function PredictionModal({
                                       border-input
                                       bg-background
                                       px-3
-                                      text-sm
+                                      text-s
                                       outline-none
                                       placeholder:text-muted-foreground
                                       focus-visible:ring-2
@@ -1127,7 +1127,7 @@ export default function PredictionModal({
                             {option.label}
                           </p>
 
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <p className="mt-1 text-s text-muted-foreground">
                             {option.description}
                           </p>
                         </div>
@@ -1156,7 +1156,7 @@ export default function PredictionModal({
                           left-4
                           top-1/2
                           -translate-y-1/2
-                          text-sm
+                          text-s
                           font-semibold
                           text-muted-foreground
                         "
@@ -1190,7 +1190,7 @@ export default function PredictionModal({
                           bg-background
                           pl-8
                           pr-4
-                          text-sm
+                          text-s
                           font-semibold
                           outline-none
                           focus-visible:ring-2
@@ -1298,7 +1298,7 @@ export default function PredictionModal({
                   border
                   border-border
                   px-5
-                  text-sm
+                  text-s
                   font-semibold
                   transition
                   hover:bg-muted
@@ -1321,7 +1321,7 @@ export default function PredictionModal({
                   rounded-xl
                   bg-primary
                   px-5
-                  text-sm
+                  text-s
                   font-semibold
                   text-primary-foreground
                   shadow-sm
@@ -1376,7 +1376,7 @@ function TeamDisplay({
     >
       {isRight && (
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold sm:text-base">
+          <p className="truncate text-s font-bold sm:text-base">
             {name}
           </p>
 
@@ -1416,7 +1416,7 @@ function TeamDisplay({
 
       {!isRight && (
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold sm:text-base">
+          <p className="truncate text-s font-bold sm:text-base">
             {name}
           </p>
 
@@ -1452,7 +1452,7 @@ function ProbabilityInput({
         p-3
       "
     >
-      <span className="min-w-0 truncate text-sm font-semibold">
+      <span className="min-w-0 truncate text-s font-semibold">
         {label}
       </span>
 
@@ -1476,7 +1476,7 @@ function ProbabilityInput({
             px-3
             pr-7
             text-right
-            text-sm
+            text-s
             font-bold
             outline-none
             focus-visible:ring-2
@@ -1550,7 +1550,7 @@ function SectionCard({
               {title}
             </h3>
 
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            <p className="mt-1 text-s leading-6 text-muted-foreground">
               {description}
             </p>
           </div>
@@ -1595,7 +1595,7 @@ function SummaryRow({
         }
       `}
     >
-      <span className="text-sm text-muted-foreground">
+      <span className="text-s text-muted-foreground">
         {label}
       </span>
 
@@ -1604,7 +1604,7 @@ function SummaryRow({
           max-w-[60%]
           truncate
           text-right
-          text-sm
+          text-s
           font-semibold
           ${
             highlighted

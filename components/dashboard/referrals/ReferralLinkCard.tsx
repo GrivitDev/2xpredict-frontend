@@ -6,558 +6,470 @@ import {
   Copy,
   Link2,
   Share2,
-  Sparkles,
   Users,
 } from 'lucide-react';
 
-import {
-  toast,
-} from 'sonner';
+import { toast } from 'sonner';
 
-import {
-  Button,
-} from '@/components/ui/button';
-
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
-import {
-  DashboardCard,
-} from '@/components/dashboard/shared/DashboardCard';
+import { Button } from '@/components/ui/button';
 
 import {
   getMyReferralLink,
 } from '@/services/referrals.service';
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export function ReferralLinkCard() {
-
 
   const {
     data,
     isLoading,
   } = useQuery({
-
-    queryKey:[
-      'my-referral-link',
-    ],
-
-    queryFn:
-      getMyReferralLink,
-
+    queryKey: ['my-referral-link'],
+    queryFn: getMyReferralLink,
   });
 
 
+  // ==========================================================
+  // COPY
+  // ==========================================================
 
+  async function copyLink() {
 
-
-  async function copyLink(){
-
-    if(!data?.referralUrl){
-
+    if (!data?.referralLink) {
       return;
-
     }
 
+    try {
 
-    await navigator.clipboard.writeText(
-      data.referralUrl,
-    );
+      await navigator.clipboard.writeText(
+        data.referralLink,
+      );
 
+      toast.success(
+        'Referral link copied',
+      );
 
-    toast.success(
-      'Referral link copied',
-    );
+    } catch {
+
+      toast.error(
+        'Unable to copy referral link',
+      );
+
+    }
 
   }
 
 
+  // ==========================================================
+  // SHARE
+  // ==========================================================
 
+  async function shareLink() {
 
-
-  async function shareLink(){
-
-    if(!data?.referralUrl){
-
+    if (!data?.referralLink) {
       return;
-
     }
 
-
-
-    if(
+    if (
+      typeof navigator !== 'undefined' &&
       navigator.share
-    ){
+    ) {
 
-      await navigator.share({
+      try {
 
-        title:
-          'Join Football Prediction Platform',
+        await navigator.share({
+          title:
+            'Join Football Prediction Platform',
 
-        text:
-          'Join using my referral link and earn rewards.',
+          text:
+            'Join using my referral link and earn rewards.',
 
-        url:
-          data.referralUrl,
+          url:
+            data.referralLink,
+        });
 
-      });
-
+      } catch {
+        // User cancelled native share.
+      }
 
       return;
-
     }
 
-
-
-    copyLink();
+    await copyLink();
 
   }
 
 
+  // ==========================================================
+  // LOADING
+  // ==========================================================
 
-
-
-  if(isLoading){
+  if (isLoading) {
 
     return (
 
-      <DashboardCard>
+      <div
+        className="
+          animate-pulse
+          rounded-xl
+          border
+          border-primary/10
+          bg-primary/[0.02]
+          p-3
+        "
+      >
 
-        <CardContent
-
+        <div
           className="
+            mb-2.5
             flex
-            min-h-52
             items-center
-            justify-center
-            text-sm
-            text-muted-foreground
+            gap-2
           "
-
         >
 
-          Loading referral link...
+          <div
+            className="
+              h-7
+              w-7
+              rounded-lg
+              bg-muted/40
+            "
+          />
 
-        </CardContent>
+          <div
+            className="
+              h-3
+              w-24
+              rounded
+              bg-muted/40
+            "
+          />
 
-      </DashboardCard>
+        </div>
+
+
+        <div
+          className="
+            grid
+            gap-2
+            sm:grid-cols-[auto_1fr_auto]
+            sm:items-center
+          "
+        >
+
+          <div
+            className="
+              h-8
+              rounded-lg
+              bg-muted/30
+            "
+          />
+
+          <div
+            className="
+              h-8
+              min-w-0
+              rounded-lg
+              bg-muted/30
+            "
+          />
+
+          <div
+            className="
+              grid
+              grid-cols-2
+              gap-1.5
+            "
+          >
+
+            <div
+              className="
+                h-8
+                w-full
+                rounded-lg
+                bg-muted/30
+              "
+            />
+
+            <div
+              className="
+                h-8
+                w-full
+                rounded-lg
+                bg-muted/30
+              "
+            />
+
+          </div>
+
+        </div>
+
+      </div>
 
     );
 
   }
 
 
-
-
+  // ==========================================================
+  // CONTENT
+  // ==========================================================
 
   return (
 
-    <DashboardCard
-
+    <div
       className="
         relative
         overflow-hidden
-        border-primary/20
-        bg-gradient-to-br
-        from-primary/15
-        via-background
-        to-background
+        rounded-xl
+        border
+        border-primary/15
+        bg-primary/[0.03]
+        p-3
       "
-
     >
 
+      {/* Premium accent */}
 
       <div
-
         className="
           pointer-events-none
           absolute
-          -right-24
-          -top-24
-          h-72
-          w-72
-          rounded-full
-          bg-primary/25
-          blur-3xl
+          inset-x-0
+          top-0
+          h-px
+          bg-gradient-to-r
+          from-transparent
+          via-primary/60
+          to-transparent
         "
-
       />
 
 
+      {/* Header */}
 
       <div
-
-        className="
-          pointer-events-none
-          absolute
-          bottom-0
-          left-0
-          h-32
-          w-32
-          rounded-full
-          bg-cyan-500/10
-          blur-3xl
-        "
-
-      />
-
-
-
-
-
-      <CardHeader
-
         className="
           relative
-          px-5
-          sm:px-6
+          mb-2.5
+          flex
+          items-center
+          gap-2
         "
-
       >
 
-        <CardTitle
-
+        <div
           className="
             flex
+            h-7
+            w-7
+            shrink-0
             items-center
-            gap-3
-            text-lg
-          "
-
-        >
-
-          <div
-
-            className="
-              flex
-              h-12
-              w-12
-              items-center
-              justify-center
-              rounded-2xl
-              bg-primary/10
-              text-primary
-            "
-
-          >
-
-            <Link2
-
-              className="
-                h-6
-                w-6
-              "
-
-            />
-
-          </div>
-
-
-
-
-          <div>
-
-            <p className="font-black">
-
-              My Referral Link
-
-            </p>
-
-
-            <p
-
-              className="
-                text-sm
-                font-normal
-                text-muted-foreground
-              "
-
-            >
-
-              Invite users and earn rewards
-
-            </p>
-
-
-          </div>
-
-
-        </CardTitle>
-
-
-      </CardHeader>
-
-
-
-
-
-
-      <CardContent
-
-        className="
-          relative
-          space-y-6
-          p-5
-          sm:p-6
-        "
-
-      >
-
-
-
-
-        <div
-
-          className="
-            rounded-3xl
+            justify-center
+            rounded-lg
             border
-            border-primary/20
-            bg-primary/5
-            p-5
+            border-primary/15
+            bg-primary/10
+            text-primary
           "
-
         >
+          <Link2 className="h-3.5 w-3.5" />
+        </div>
 
-          <div
 
+        <div className="min-w-0">
+
+          <span
             className="
-              flex
-              items-center
-              justify-between
-              gap-3
+              text-xs
+              font-semibold
             "
-
           >
-
-            <p
-
-              className="
-                text-sm
-                text-muted-foreground
-              "
-
-            >
-
-              Referral Code
-
-            </p>
-
-
-
-            <Sparkles
-
-              className="
-                h-5
-                w-5
-                text-primary
-              "
-
-            />
-
-
-          </div>
-
-
-
+            Referral Link
+          </span>
 
           <p
-
             className="
-              mt-4
-              break-all
-              text-2xl
-              font-black
-              tracking-[0.25em]
+              text-[9px]
+              text-muted-foreground
             "
-
           >
-
-            {data?.referralCode}
-
-
+            Invite users and earn rewards
           </p>
 
-
         </div>
 
+      </div>
 
 
+      {/* Details */}
 
+      <div
+        className="
+          relative
+          grid
+          gap-2
+          sm:grid-cols-[auto_1fr_auto]
+          sm:items-center
+        "
+      >
 
-
-
-        <div>
-
-          <div
-
-            className="
-              mb-3
-              flex
-              items-center
-              gap-2
-            "
-
-          >
-
-            <Users
-
-              className="
-                h-4
-                w-4
-                text-primary
-              "
-
-            />
-
-
-            <p
-
-              className="
-                text-sm
-                text-muted-foreground
-              "
-
-            >
-
-              Your invitation URL
-
-            </p>
-
-
-          </div>
-
-
-
-
-
-          <div
-
-            className="
-              overflow-hidden
-              rounded-2xl
-              border
-              border-border/50
-              bg-muted/20
-              p-4
-            "
-
-          >
-
-            <p
-
-              className="
-                break-all
-                text-sm
-                leading-relaxed
-              "
-
-            >
-
-              {data?.referralUrl}
-
-            </p>
-
-
-          </div>
-
-
-        </div>
-
-
-
-
-
+        {/* Code */}
 
         <div
-
           className="
-            grid
-            gap-3
-            sm:grid-cols-2
+            flex
+            min-w-0
+            items-center
+            gap-2
+            rounded-lg
+            border
+            border-border/50
+            bg-muted/20
+            px-2.5
+            py-1.5
           "
-
         >
 
-
-          <Button
-
-            onClick={copyLink}
-
+          <Users
             className="
-              h-12
-              rounded-xl
-              font-bold
+              h-3.5
+              w-3.5
+              shrink-0
+              text-primary
             "
+          />
 
-          >
-
-            <Copy
-
-              className="
-                mr-2
-                h-5
-                w-5
-              "
-
-            />
-
-
-            Copy Link
-
-
-          </Button>
-
-
-
-
-
-          <Button
-
-            variant="outline"
-
-            onClick={shareLink}
-
+          <span
             className="
-              h-12
-              rounded-xl
-              font-bold
+              text-[10px]
+              text-muted-foreground
             "
-
           >
+            Code
+          </span>
 
-            <Share2
-
-              className="
-                mr-2
-                h-5
-                w-5
-              "
-
-            />
-
-
-            Share
-
-
-          </Button>
-
+          <span
+            className="
+              truncate
+              text-xs
+              font-bold
+              tracking-wider
+            "
+          >
+            {data?.referralCode || '—'}
+          </span>
 
         </div>
 
 
+        {/* URL */}
+
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-2
+            rounded-lg
+            border
+            border-border/50
+            bg-muted/20
+            px-2.5
+            py-1.5
+          "
+        >
+
+          <span
+            className="
+              shrink-0
+              text-[10px]
+              text-muted-foreground
+            "
+          >
+            Link
+          </span>
+
+          <span
+            className="
+              min-w-0
+              flex-1
+              truncate
+              text-[11px]
+            "
+          >
+            {data?.referralLink || '—'}
+          </span>
+
+        </div>
 
 
+        {/* Actions */}
 
-      </CardContent>
+        <div
+          className="
+            grid
+            grid-cols-2
+            gap-1.5
+          "
+        >
+
+          <Button
+            type="button"
+            onClick={copyLink}
+            disabled={!data?.referralLink}
+            className="
+              h-8
+              rounded-lg
+              px-3
+              text-[11px]
+            "
+          >
+            <Copy
+              className="
+                mr-1.5
+                h-3.5
+                w-3.5
+              "
+            />
+
+            Copy
+          </Button>
 
 
+          <Button
+            type="button"
+            variant="outline"
+            onClick={shareLink}
+            disabled={!data?.referralLink}
+            className="
+              h-8
+              rounded-lg
+              px-3
+              text-[11px]
+            "
+          >
+            <Share2
+              className="
+                mr-1.5
+                h-3.5
+                w-3.5
+              "
+            />
 
-    </DashboardCard>
+            Share
+          </Button>
+
+        </div>
+
+      </div>
+
+    </div>
 
   );
-
 }

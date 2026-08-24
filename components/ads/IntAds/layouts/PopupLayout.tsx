@@ -25,6 +25,7 @@ interface Props {
 export function PopupLayout({
   ads,
 }: Props) {
+
   const [open, setOpen] = useState(true);
 
   const popupAd = useMemo(
@@ -45,25 +46,71 @@ export function PopupLayout({
   }
 
   return (
+
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Sponsored content"
       className="
         fixed
         inset-0
         z-50
+
         flex
         items-center
         justify-center
-        overflow-hidden
-        bg-black/40
-        p-4
-        sm:p-6
+
+        overflow-y-auto
+
+        bg-background/70
+        p-3
+        backdrop-blur-sm
+
+        sm:p-5
       "
     >
-      <InternalAdRenderer
-        ad={popupAd}
-        variant="popup"
-        onClose={() => setOpen(false)}
+
+      {/* Subtle Ambient Light */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-1/2
+          h-[min(80vw,28rem)]
+          w-[min(80vw,28rem)]
+          -translate-x-1/2
+          -translate-y-1/2
+
+          rounded-full
+
+          bg-primary/10
+
+          blur-3xl
+        "
       />
+
+      {/* Advertisement */}
+
+      <div
+        className="
+          relative
+          z-10
+          w-full
+        "
+      >
+
+        <InternalAdRenderer
+          ad={popupAd}
+          variant="popup"
+          onClose={() => setOpen(false)}
+        />
+
+      </div>
+
     </div>
+
   );
+
 }

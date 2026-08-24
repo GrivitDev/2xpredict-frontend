@@ -446,7 +446,7 @@ export function AdActionBuilder({
 
                   <p
                     className="
-                      text-sm
+                      text-s
                       opacity-70
                     "
                   >
