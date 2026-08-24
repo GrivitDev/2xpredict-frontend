@@ -840,7 +840,7 @@ export default function HomePage() {
       >
 
         <Image
-          src="/images/banner.png"
+          src="/banner.png"
           alt="Live Scores"
           fill
           priority

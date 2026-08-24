@@ -4,9 +4,9 @@ export const SEO = {
   description:
     'Professional football prediction platform offering Intelligent football predictions, VIP predictions, live scores, fixtures, standings, football statistics, and expert betting analysis.',
 
-  url: 'https://2xpredict.com/',
+  url: 'https://2xpredict.vercel.app/',
 
-  image: 'https://2xpredict.com/og-image.png',
+  image: 'https://2xpredict.vercel.app//og-image.png',
 
   keywords: [
     'football prediction',
