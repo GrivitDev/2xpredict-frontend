@@ -1,10 +1,10 @@
 'use client';
 
 import {
+  CheckCircle,
   CreditCard,
   TrendingUp,
   Clock,
-  CheckCircle,
   XCircle,
 } from 'lucide-react';
 
@@ -20,397 +20,266 @@ type Props = {
   };
 };
 
-
-const money = (amount:number) =>
-  new Intl.NumberFormat('en-NG',{
-    style:'currency',
-    currency:'NGN',
-    maximumFractionDigits:0,
+const money = (amount: number) =>
+  new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 0,
   }).format(amount);
-
-
 
 export default function PaymentSummaryCard({
   summary,
-}:Props){
-
-
-  const approvalRate =
-    summary.totalPayments
-      ?
-      Math.round(
-        (
-          summary.approvedPayments /
-          summary.totalPayments
-        ) * 100
+}: Props) {
+  const approvalRate = summary.totalPayments
+    ? Math.round(
+        (summary.approvedPayments /
+          summary.totalPayments) *
+          100,
       )
-      :
-      0;
-
-
+    : 0;
 
   return (
+    <section
+      aria-labelledby="payment-summary-title"
+      className="
+        overflow-hidden
+        rounded-lg
+        border
+        border-border/60
+        bg-card
+      "
+    >
+      {/* Header */}
 
-    <div className="
-      group
-      relative
-      overflow-hidden
-      rounded-3xl
-      border
-      bg-card/60
-      p-6
-      shadow-xl
-      backdrop-blur-xl
-      transition
-      hover:-translate-y-1
-    ">
-
-
-      {/* BACKGROUND GLOW */}
-
-      <div className="
-        absolute
-        inset-0
-        bg-gradient-to-br
-        from-primary/10
-        via-transparent
-        to-transparent
-        opacity-70
-      "/>
-
-
-
-      <div className="
-        relative
-        space-y-6
-      ">
-
-
-        {/* HEADER */}
-
-        <div className="
+      <header
+        className="
           flex
           items-center
-          justify-between
-        ">
-
-
-          <div className="
+          gap-2.5
+          border-b
+          border-border/60
+          px-4
+          py-3
+        "
+      >
+        <div
+          className="
             flex
+            h-8
+            w-8
+            shrink-0
             items-center
-            gap-3
-          ">
-
-            <div className="
-              flex
-              h-11
-              w-11
-              items-center
-              justify-center
-              rounded-2xl
-              bg-primary/10
-              text-primary
-            ">
-
-              <CreditCard size={22}/>
-
-            </div>
-
-
-            <div>
-
-              <h2 className="
-                font-semibold
-              ">
-                Payments
-              </h2>
-
-
-              <p className="
-                text-xs
-                text-muted-foreground
-              ">
-                Financial overview
-              </p>
-
-            </div>
-
-          </div>
-
+            justify-center
+            rounded-md
+            bg-primary/10
+            text-primary
+          "
+        >
+          <CreditCard
+            aria-hidden="true"
+            className="h-4 w-4"
+          />
         </div>
 
+        <div>
+          <h2
+            id="payment-summary-title"
+            className="
+              text-sm
+              font-semibold
+              tracking-tight
+            "
+          >
+            Payments
+          </h2>
 
+          <p className="text-[10px] text-muted-foreground">
+            Financial overview
+          </p>
+        </div>
+      </header>
 
+      <div className="p-3">
+        {/* Revenue */}
 
-
-
-
-        {/* MAIN REVENUE */}
-
-        <div className="
-          rounded-2xl
-          border
-          bg-background/40
-          p-4
-        ">
-
-          <p className="
-            text-s
-            text-muted-foreground
-          ">
+        <div
+          className="
+            rounded-md
+            border
+            border-border/50
+            bg-background/40
+            px-3
+            py-2.5
+          "
+        >
+          <p className="text-[10px] text-muted-foreground">
             Total Revenue
           </p>
 
-
-          <div className="
-            mt-1
-            flex
-            items-center
-            gap-2
-          ">
-
-            <p className="
-              text-2xl
-              font-bold
-            ">
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <p className="text-lg font-bold tracking-tight">
               {money(summary.totalRevenue)}
             </p>
 
-
             <TrendingUp
-              size={18}
-              className="text-green-500"
+              aria-hidden="true"
+              className="h-3.5 w-3.5 text-emerald-500"
             />
-
           </div>
-
-
         </div>
 
+        {/* Revenue / payment stats */}
 
-
-
-
-
-
-        {/* STATS */}
-
-        <div className="
-          grid
-          grid-cols-2
-          gap-4
-        ">
-
-
+        <div
+          className="
+            mt-2
+            grid
+            grid-cols-2
+            gap-px
+            overflow-hidden
+            rounded-md
+            border
+            border-border/50
+            bg-border/50
+            sm:grid-cols-4
+          "
+        >
           <Stat
             label="Subscriptions"
-            value={
-              money(
-                summary.subscriptionRevenue
-              )
-            }
+            value={money(
+              summary.subscriptionRevenue,
+            )}
           />
-
 
           <Stat
             label="Predictions"
-            value={
-              money(
-                summary.predictionRevenue
-              )
-            }
+            value={money(
+              summary.predictionRevenue,
+            )}
           />
-
 
           <Stat
             label="Payments"
-            value={
-              summary.totalPayments
-            }
+            value={summary.totalPayments}
           />
-
 
           <Stat
             label="Approval"
-            value={
-              `${approvalRate}%`
-            }
+            value={`${approvalRate}%`}
           />
-
-
         </div>
 
+        {/* Status */}
 
-
-
-
-
-
-
-        {/* PAYMENT STATUS */}
-
-        <div className="
-          grid
-          grid-cols-3
-          gap-3
-        ">
-
-
+        <div
+          className="
+            mt-2
+            grid
+            grid-cols-3
+            gap-2
+          "
+        >
           <Status
             icon={
-              <CheckCircle size={14}/>
+              <CheckCircle
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
             }
             label="Approved"
-            value={
-              summary.approvedPayments
-            }
+            value={summary.approvedPayments}
             className="
-              text-green-500
-              bg-green-500/10
+              text-emerald-600
+              dark:text-emerald-400
+              bg-emerald-500/10
             "
           />
 
-
-
           <Status
             icon={
-              <Clock size={14}/>
+              <Clock
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
             }
             label="Pending"
-            value={
-              summary.pendingPayments
-            }
+            value={summary.pendingPayments}
             className="
-              text-yellow-500
-              bg-yellow-500/10
+              text-amber-600
+              dark:text-amber-400
+              bg-amber-500/10
             "
           />
 
-
-
           <Status
             icon={
-              <XCircle size={14}/>
+              <XCircle
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
             }
             label="Rejected"
-            value={
-              summary.rejectedPayments
-            }
+            value={summary.rejectedPayments}
             className="
-              text-red-500
+              text-red-600
+              dark:text-red-400
               bg-red-500/10
             "
           />
-
-
         </div>
-
-
-
       </div>
-
-
-    </div>
-
+    </section>
   );
 }
-
-
-
-
-
 
 function Stat({
   label,
   value,
-}:{
-  label:string;
-  value:string|number;
-}){
-
+}: {
+  label: string;
+  value: string | number;
+}) {
   return (
-
-    <div className="
-      rounded-xl
-      border
-      bg-background/30
-      p-3
-    ">
-
-      <p className="
-        text-xs
-        text-muted-foreground
-      ">
+    <div className="bg-card px-3 py-2.5">
+      <p className="text-[10px] text-muted-foreground">
         {label}
       </p>
 
-
-      <p className="
-        mt-1
-        text-s
-        font-semibold
-      ">
+      <p className="mt-0.5 truncate text-xs font-semibold">
         {value}
       </p>
-
     </div>
-
   );
-
 }
-
-
-
-
-
 
 function Status({
   icon,
   label,
   value,
   className,
-}:{
-  icon:React.ReactNode;
-  label:string;
-  value:number;
-  className:string;
-}){
-
-
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  className: string;
+}) {
   return (
-
-    <div className={`
-      rounded-xl
-      p-3
-      ${className}
-    `}>
-
-
-      <div className="
-        flex
-        items-center
-        gap-2
-        text-xs
-      ">
-
+    <div
+      className={`
+        rounded-md
+        px-2.5
+        py-2
+        ${className}
+      `}
+    >
+      <div className="flex items-center gap-1.5 text-[10px] font-medium">
         {icon}
-
-        {label}
-
+        <span>{label}</span>
       </div>
 
-
-      <p className="
-        mt-2
-        text-lg
-        font-bold
-      ">
+      <p className="mt-0.5 text-sm font-bold">
         {value}
       </p>
-
-
     </div>
-
   );
-
 }

@@ -1,54 +1,51 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
 
 import { AdDevice } from '@/constants/ads/ad-device';
 
-export function useAdDevice() {
+function getAdDevice(): AdDevice {
+  const width =
+    window.innerWidth;
 
+  if (width < 768) {
+    return AdDevice.MOBILE;
+  }
+
+  if (width < 1024) {
+    return AdDevice.TABLET;
+  }
+
+  return AdDevice.DESKTOP;
+}
+
+export function useAdDevice() {
   const [device, setDevice] =
     useState<AdDevice>(
       AdDevice.DESKTOP,
     );
 
   useEffect(() => {
+    const updateDevice = () => {
+      const nextDevice =
+        getAdDevice();
 
-    function updateDevice() {
-
-      const width =
-        window.innerWidth;
-
-      if (width < 768) {
-
-        setDevice(
-          AdDevice.MOBILE,
-        );
-
-        return;
-
-      }
-
-      if (width < 1024) {
-
-        setDevice(
-          AdDevice.TABLET,
-        );
-
-        return;
-
-      }
-
-      setDevice(
-        AdDevice.DESKTOP,
+      setDevice((current) =>
+        current === nextDevice
+          ? current
+          : nextDevice,
       );
-
-    }
+    };
 
     updateDevice();
 
     window.addEventListener(
       'resize',
       updateDevice,
+      { passive: true },
     );
 
     return () =>
@@ -56,9 +53,7 @@ export function useAdDevice() {
         'resize',
         updateDevice,
       );
-
   }, []);
 
   return device;
-
 }

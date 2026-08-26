@@ -8,7 +8,6 @@ export function useWeightedAds(
   ads: InternalAd[],
 ) {
   return useMemo(() => {
-
     if (!ads.length) {
       return [];
     }
@@ -16,11 +15,14 @@ export function useWeightedAds(
     const weighted: InternalAd[] = [];
 
     ads.forEach((ad) => {
-
-      const weight = Math.max(
-        1,
-        ad.priority,
-      );
+      const weight =
+        Math.min(
+          20,
+          Math.max(
+            1,
+            ad.priority ?? 1,
+          ),
+        );
 
       for (
         let i = 0;
@@ -29,10 +31,8 @@ export function useWeightedAds(
       ) {
         weighted.push(ad);
       }
-
     });
 
     return weighted;
-
   }, [ads]);
 }

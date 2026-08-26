@@ -17,67 +17,79 @@ import type {
 } from '@/services/sports.service';
 
 
+// ============================================================
+// TYPES
+// ============================================================
+
 interface Props {
   fixtures: Match[];
 }
 
 
+// ============================================================
+// CONSTANTS
+// ============================================================
+
+const MAX_VISIBLE_FIXTURES = 10;
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function UpcomingFixtures({
   fixtures,
 }: Props) {
 
-  const [expanded, setExpanded] = useState(false);
+  const [
+    expanded,
+    setExpanded,
+  ] = useState(false);
+
+
+  // ==========================================================
+  // VISIBLE FIXTURES
+  // ==========================================================
 
   const visibleFixtures = expanded
     ? fixtures
-    : fixtures.slice(0, 10);
+    : fixtures.slice(
+        0,
+        MAX_VISIBLE_FIXTURES,
+      );
 
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
 
     <section
       className="
-        relative
         overflow-hidden
-        rounded-3xl
+        rounded-2xl
         border
         border-border
-        bg-card/60
-        p-3
-        shadow-xl
-        backdrop-blur-xl
-        sm:p-6
+        bg-card
+        sm:rounded-3xl
       "
     >
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -right-20
-          -top-20
-          h-56
-          w-56
-          rounded-full
-          bg-green-500/10
-          blur-3xl
-        "
-      />
-
-
-      {/* ======================================================
+      {/* ====================================================
           HEADER
-      ====================================================== */}
+      ==================================================== */}
 
       <div
         className="
-          relative
-          mb-4
           flex
           items-center
           gap-2.5
-          sm:mb-6
+          border-b
+          border-border
+          p-3
           sm:gap-3
+          sm:p-5
         "
       >
 
@@ -92,18 +104,13 @@ export default function UpcomingFixtures({
             rounded-xl
             bg-green-500/10
             text-green-500
-            sm:h-11
-            sm:w-11
-            sm:rounded-2xl
+            sm:h-10
+            sm:w-10
           "
         >
 
           <CalendarClock
             size={19}
-            className="
-              sm:h-[22px]
-              sm:w-[22px]
-            "
           />
 
         </div>
@@ -115,10 +122,11 @@ export default function UpcomingFixtures({
             className="
               text-base
               font-bold
+              text-foreground
               sm:text-lg
             "
           >
-            Upcoming Fixtures
+            Match Fixtures
           </h2>
 
 
@@ -137,23 +145,19 @@ export default function UpcomingFixtures({
       </div>
 
 
-      {/* ======================================================
-          EMPTY STATE
-      ====================================================== */}
+      {/* ====================================================
+          CONTENT
+      ==================================================== */}
 
       {fixtures.length === 0 ? (
 
         <div
           className="
-            rounded-2xl
-            border
-            border-border
-            bg-background/40
-            p-5
+            p-6
             text-center
-            text-s
+            text-xs
             text-muted-foreground
-            sm:p-6
+            sm:p-8
           "
         >
           No upcoming fixtures
@@ -161,376 +165,362 @@ export default function UpcomingFixtures({
 
       ) : (
 
-        /* ====================================================
-           TABLE
-        ==================================================== */
+        <>
 
-        <div
-          className="
-            overflow-x-auto
-            rounded-xl
-            border
-            border-border
-            sm:rounded-2xl
-          "
-        >
+          {/* ==================================================
+              TABLE
+          ================================================== */}
 
-          <table
+          <div
             className="
-              w-full
-              min-w-[500px]
-              text-[11px]
-              sm:min-w-[700px]
-              sm:text-s
+              overflow-x-auto
             "
           >
 
-            <thead>
+            <table
+              className="
+                w-full
+                min-w-[500px]
+                text-[11px]
+                sm:text-xs
+              "
+            >
 
-              <tr
-                className="
-                  border-b
-                  border-border
-                  text-[9px]
-                  uppercase
-                  text-muted-foreground
-                  sm:text-xs
-                "
-              >
+              <thead>
 
-                {/* DATE */}
-
-                <th
+                <tr
                   className="
-                    w-[60px]
-                    bg-background/40
-                    px-1
-                    py-1.5
+                    border-b
+                    border-border
                     text-left
-                    sm:w-auto
-                    sm:px-2
-                    sm:py-2
+                    text-[9px]
+                    uppercase
+                    tracking-wide
+                    text-muted-foreground
+                    sm:text-[10px]
                   "
                 >
-                  Date
-                </th>
 
-
-                {/* TIME */}
-
-                <th
-                  className="
-                    w-[65px]
-                    bg-muted/30
-                    px-2
-                    py-2.5
-                    text-left
-                    sm:w-auto
-                    sm:px-2
-                    sm:py-2
-                  "
-                >
-                  Time
-                </th>
-
-
-                {/* HOME */}
-
-                <th
-                  className="
-                    w-[165px]
-                    bg-background/40
-                    px-1.5
-                    py-2
-                    text-left
-                    sm:w-auto
-                    sm:px-2
-                    sm:py-2
-                  "
-                >
-                  Home
-                </th>
-
-
-                {/* AWAY */}
-
-                <th
-                  className="
-                    w-[165px]
-                    bg-muted/30
-                    px-1.5
-                    py-2
-                    text-left
-                    sm:w-auto
-                    sm:px-2
-                    sm:py-2
-                  "
-                >
-                  Away
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              {visibleFixtures.map(
-                (match, index) => (
-
-                  <tr
-                    key={match.id}
-                    className={`
-                      border-b
-                      border-border/50
-                      transition
-                      hover:bg-primary/5
-                      ${
-                        index % 2 === 0
-                          ? 'bg-background/60'
-                          : 'bg-muted/20'
-                      }
-                    `}
+                  <th
+                    className="
+                      px-2
+                      py-2.5
+                      font-medium
+                      sm:px-4
+                      sm:py-3
+                    "
                   >
+                    Date
+                  </th>
 
-                    {/* ========================================
-                        DATE
-                    ======================================== */}
 
-                    <td
+                  <th
+                    className="
+                      px-2
+                      py-2.5
+                      font-medium
+                      sm:px-4
+                      sm:py-3
+                    "
+                  >
+                    Time
+                  </th>
+
+
+                  <th
+                    className="
+                      px-2
+                      py-2.5
+                      font-medium
+                      sm:px-4
+                      sm:py-3
+                    "
+                  >
+                    Home
+                  </th>
+
+
+                  <th
+                    className="
+                      px-2
+                      py-2.5
+                      font-medium
+                      sm:px-4
+                      sm:py-3
+                    "
+                  >
+                    Away
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {visibleFixtures.map(
+                  (match) => (
+
+                    <tr
+                      key={match.id}
                       className="
-                        bg-background/40
-                        px-1
-                        py-1.5
-                        font-medium
-                        sm:px-2
-                        sm:py-2
+                        border-b
+                        border-border/50
+                        last:border-0
+                        hover:bg-muted/30
                       "
                     >
 
-                      {new Date(
-                        match.date
-                      ).toLocaleDateString(
-                        'en-NG',
-                        {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        }
-                      )}
+                      {/* DATE */}
 
-                    </td>
-
-
-                    {/* ========================================
-                        TIME
-                    ======================================== */}
-
-                    <td
-                      className="
-                        bg-muted/30
-                        px-2
-                        py-2.5
-                        font-semibold
-                        sm:px-2
-                        sm:py-2
-                      "
-                    >
-
-                      {match.time}
-
-                    </td>
-
-
-                    {/* ========================================
-                        HOME
-                    ======================================== */}
-
-                    <td
-                      className="
-                        w-[165px]
-                        bg-background/40
-                        px-1.5
-                        py-2
-                        sm:w-auto
-                        sm:px-2
-                        sm:py-2
-                      "
-                    >
-
-                      <div
+                      <td
                         className="
-                          flex
-                          min-w-0
-                          items-center
-                          gap-1.5
-                          sm:gap-1
+                          whitespace-nowrap
+                          px-2
+                          py-2.5
+                          font-medium
+                          text-foreground
+                          sm:px-4
+                          sm:py-3
                         "
                       >
 
-                        {match.homeTeamBadge && (
-
-                          <Image
-                            src={match.homeTeamBadge}
-                            alt={match.homeTeam}
-                            width={32}
-                            height={32}
-                            className="
-                              h-6
-                              w-6
-                              shrink-0
-                              object-contain
-                              sm:h-8
-                              sm:w-8
-                            "
-                          />
-
+                        {new Date(
+                          match.date,
+                        ).toLocaleDateString(
+                          'en-NG',
+                          {
+                            day: 'numeric',
+                            month: 'short',
+                          },
                         )}
 
-
-                        <span
-                          className="
-                            min-w-0
-                            max-w-[115px]
-                            truncate
-                            font-semibold
-                            sm:max-w-none
-                          "
-                        >
-                          {match.homeTeam}
-                        </span>
-
-                      </div>
-
-                    </td>
+                      </td>
 
 
-                    {/* ========================================
-                        AWAY
-                    ======================================== */}
+                      {/* TIME */}
 
-                    <td
-                      className="
-                        w-[165px]
-                        bg-muted/30
-                        px-1.5
-                        py-2
-                        sm:w-auto
-                        sm:px-2
-                        sm:py-2
-                      "
-                    >
-
-                      <div
+                      <td
                         className="
-                          flex
-                          min-w-0
-                          items-center
-                          gap-1.5
-                          sm:gap-1
+                          whitespace-nowrap
+                          px-2
+                          py-2.5
+                          font-semibold
+                          text-foreground
+                          sm:px-4
+                          sm:py-3
                         "
                       >
 
-                        {match.awayTeamBadge && (
+                        {match.time}
 
-                          <Image
-                            src={match.awayTeamBadge}
-                            alt={match.awayTeam}
-                            width={32}
-                            height={32}
-                            className="
-                              h-6
-                              w-6
-                              shrink-0
-                              object-contain
-                              sm:h-8
-                              sm:w-8
-                            "
-                          />
-
-                        )}
+                      </td>
 
 
-                        <span
+                      {/* HOME */}
+
+                      <td
+                        className="
+                          px-2
+                          py-2.5
+                          sm:px-4
+                          sm:py-3
+                        "
+                      >
+
+                        <div
                           className="
+                            flex
                             min-w-0
-                            max-w-[115px]
-                            truncate
-                            font-semibold
-                            sm:max-w-none
+                            items-center
+                            gap-2
                           "
                         >
-                          {match.awayTeam}
-                        </span>
 
-                      </div>
+                          {match.homeTeamBadge ? (
 
-                    </td>
+                            <Image
+                              src={
+                                match.homeTeamBadge
+                              }
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="
+                                h-6
+                                w-6
+                                shrink-0
+                                object-contain
+                              "
+                            />
 
-                  </tr>
+                          ) : (
 
+                            <div
+                              className="
+                                h-6
+                                w-6
+                                shrink-0
+                                rounded-full
+                                bg-muted
+                              "
+                            />
+
+                          )}
+
+
+                          <span
+                            className="
+                              min-w-0
+                              max-w-[130px]
+                              truncate
+                              font-medium
+                              text-foreground
+                              sm:max-w-none
+                            "
+                          >
+                            {match.homeTeam}
+                          </span>
+
+                        </div>
+
+                      </td>
+
+
+                      {/* AWAY */}
+
+                      <td
+                        className="
+                          px-2
+                          py-2.5
+                          sm:px-4
+                          sm:py-3
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            min-w-0
+                            items-center
+                            gap-2
+                          "
+                        >
+
+                          {match.awayTeamBadge ? (
+
+                            <Image
+                              src={
+                                match.awayTeamBadge
+                              }
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="
+                                h-6
+                                w-6
+                                shrink-0
+                                object-contain
+                              "
+                            />
+
+                          ) : (
+
+                            <div
+                              className="
+                                h-6
+                                w-6
+                                shrink-0
+                                rounded-full
+                                bg-muted
+                              "
+                            />
+
+                          )}
+
+
+                          <span
+                            className="
+                              min-w-0
+                              max-w-[130px]
+                              truncate
+                              font-medium
+                              text-foreground
+                              sm:max-w-none
+                            "
+                          >
+                            {match.awayTeam}
+                          </span>
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+
+                  ),
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+
+          {/* ==================================================
+              SHOW MORE
+          ================================================== */}
+
+          {fixtures.length >
+            MAX_VISIBLE_FIXTURES && (
+
+            <button
+              type="button"
+              onClick={() =>
+                setExpanded(
+                  current => !current,
                 )
+              }
+              className="
+                flex
+                w-full
+                items-center
+                justify-center
+                gap-2
+                border-t
+                border-border
+                py-2.5
+                text-xs
+                font-semibold
+                text-foreground
+                hover:bg-muted/30
+                sm:py-3
+              "
+            >
+
+              {expanded ? (
+
+                <>
+                  Show Less
+                  <ChevronUp size={15} />
+                </>
+
+              ) : (
+
+                <>
+                  Show All Fixtures
+                  <ChevronDown size={15} />
+                </>
+
               )}
 
-            </tbody>
-
-          </table>
-
-        </div>
-
-      )}
-
-
-      {/* ======================================================
-          SHOW ALL
-      ====================================================== */}
-
-      {fixtures.length > 10 && (
-
-        <button
-          onClick={() =>
-            setExpanded(!expanded)
-          }
-          className="
-            mt-4
-            flex
-            w-full
-            items-center
-            justify-center
-            gap-2
-            rounded-xl
-            border
-            border-border
-            bg-background/40
-            py-2.5
-            text-xs
-            font-semibold
-            transition
-            hover:bg-muted/40
-            sm:mt-5
-            sm:py-3
-            sm:text-s
-          "
-        >
-
-          {expanded ? (
-
-            <>
-              Show Less
-              <ChevronUp size={15} />
-            </>
-
-          ) : (
-
-            <>
-              Show All Fixtures
-              <ChevronDown size={15} />
-            </>
+            </button>
 
           )}
 
-        </button>
+        </>
 
       )}
 

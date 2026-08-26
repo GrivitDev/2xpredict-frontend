@@ -34,9 +34,6 @@ export default function AutoPlayVideo({
   const containerRef =
     useRef<HTMLDivElement | null>(null);
 
-  const observerRef =
-    useRef<IntersectionObserver | null>(null);
-
   const generatedPosterRef =
     useRef<string | null>(null);
 
@@ -46,11 +43,6 @@ export default function AutoPlayVideo({
   ] = useState<string | undefined>(
     poster,
   );
-
-  const [
-    loaded,
-    setLoaded,
-  ] = useState(false);
 
   const [
     playing,
@@ -65,18 +57,16 @@ export default function AutoPlayVideo({
   const [
     generatingThumbnail,
     setGeneratingThumbnail,
-  ] = useState(
-    !poster,
-  );
+  ] = useState(!poster);
 
   /*
-   * Generate a thumbnail directly from the video.
-   *
-   * This happens entirely in the browser.
-   * Nothing is sent to the backend.
+   * Generate a lightweight thumbnail
+   * entirely in the browser.
    */
   useEffect(() => {
     if (poster) {
+      setThumbnail(poster);
+      setGeneratingThumbnail(false);
       return;
     }
 
@@ -99,55 +89,44 @@ export default function AutoPlayVideo({
       try {
         setGeneratingThumbnail(true);
 
-        /*
-         * Wait for enough metadata to know
-         * the video dimensions and duration.
-         */
         await new Promise<void>(
           (resolve, reject) => {
-            const handleLoadedMetadata =
-              () => {
-                cleanupListeners();
-                resolve();
-              };
+            const onMetadata = () => {
+              cleanupListeners();
+              resolve();
+            };
 
-            const handleError =
-              () => {
-                cleanupListeners();
-                reject(
-                  new Error(
-                    'Unable to load video metadata',
-                  ),
-                );
-              };
+            const onError = () => {
+              cleanupListeners();
+              reject(
+                new Error(
+                  'Unable to load video metadata',
+                ),
+              );
+            };
 
-            const cleanupListeners =
-              () => {
-                video.removeEventListener(
-                  'loadedmetadata',
-                  handleLoadedMetadata,
-                );
+            const cleanupListeners = () => {
+              video.removeEventListener(
+                'loadedmetadata',
+                onMetadata,
+              );
 
-                video.removeEventListener(
-                  'error',
-                  handleError,
-                );
-              };
+              video.removeEventListener(
+                'error',
+                onError,
+              );
+            };
 
             video.addEventListener(
               'loadedmetadata',
-              handleLoadedMetadata,
-              {
-                once: true,
-              },
+              onMetadata,
+              { once: true },
             );
 
             video.addEventListener(
               'error',
-              handleError,
-              {
-                once: true,
-              },
+              onError,
+              { once: true },
             );
 
             video.src = src;
@@ -162,11 +141,6 @@ export default function AutoPlayVideo({
           return;
         }
 
-        /*
-         * Pick a frame slightly after the beginning.
-         *
-         * This avoids black first frames on many videos.
-         */
         const duration =
           Number.isFinite(video.duration)
             ? video.duration
@@ -188,22 +162,14 @@ export default function AutoPlayVideo({
 
         await new Promise<void>(
           (resolve) => {
-            const handleSeeked =
-              () => {
-                video.removeEventListener(
-                  'seeked',
-                  handleSeeked,
-                );
-
-                resolve();
-              };
+            const onSeeked = () => {
+              resolve();
+            };
 
             video.addEventListener(
               'seeked',
-              handleSeeked,
-              {
-                once: true,
-              },
+              onSeeked,
+              { once: true },
             );
 
             try {
@@ -212,7 +178,7 @@ export default function AutoPlayVideo({
             } catch {
               video.removeEventListener(
                 'seeked',
-                handleSeeked,
+                onSeeked,
               );
 
               resolve();
@@ -224,42 +190,30 @@ export default function AutoPlayVideo({
           return;
         }
 
-        const canvas =
-          document.createElement(
-            'canvas',
-          );
-
         /*
-         * Limit the generated thumbnail
-         * to a reasonable size.
-         *
-         * This keeps mobile memory usage low.
+         * Smaller thumbnail keeps mobile
+         * memory and canvas usage low.
          */
-        const maxWidth = 1280;
+        const maxWidth = 960;
 
-        const scale =
-          Math.min(
-            1,
-            maxWidth /
-              video.videoWidth,
-          );
+        const scale = Math.min(
+          1,
+          maxWidth / video.videoWidth,
+        );
 
-        canvas.width =
-          Math.round(
-            video.videoWidth *
-              scale,
-          );
+        const canvas =
+          document.createElement('canvas');
 
-        canvas.height =
-          Math.round(
-            video.videoHeight *
-              scale,
-          );
+        canvas.width = Math.round(
+          video.videoWidth * scale,
+        );
+
+        canvas.height = Math.round(
+          video.videoHeight * scale,
+        );
 
         const context =
-          canvas.getContext(
-            '2d',
-          );
+          canvas.getContext('2d');
 
         if (!context) {
           return;
@@ -279,19 +233,16 @@ export default function AutoPlayVideo({
           >((resolve) => {
             canvas.toBlob(
               (blob) => {
-                if (!blob) {
-                  resolve(null);
-                  return;
-                }
-
                 resolve(
-                  URL.createObjectURL(
-                    blob,
-                  ),
+                  blob
+                    ? URL.createObjectURL(
+                        blob,
+                      )
+                    : null,
                 );
               },
               'image/jpeg',
-              0.82,
+              0.78,
             );
           });
 
@@ -315,15 +266,10 @@ export default function AutoPlayVideo({
           thumbnailUrl,
         );
       } catch {
-        /*
-         * If thumbnail generation fails,
-         * the video still works normally.
-         */
+        // Video remains functional.
       } finally {
         if (!cancelled) {
-          setGeneratingThumbnail(
-            false,
-          );
+          setGeneratingThumbnail(false);
         }
       }
     };
@@ -340,31 +286,34 @@ export default function AutoPlayVideo({
           generatedPosterRef.current,
         );
 
-        generatedPosterRef.current =
-          null;
+        generatedPosterRef.current = null;
       }
 
       cleanup();
     };
   }, [src, poster]);
 
+  /*
+   * Keep only one community video playing.
+   */
   const pauseOtherVideos =
     useCallback(() => {
-      const videos =
-        document.querySelectorAll<HTMLVideoElement>(
-          VIDEO_SELECTOR,
-        );
+      const currentVideo =
+        videoRef.current;
 
-      videos.forEach(
-        (video) => {
-          if (
-            video !==
-            videoRef.current
-          ) {
+      if (!currentVideo) {
+        return;
+      }
+
+      document
+        .querySelectorAll<HTMLVideoElement>(
+          VIDEO_SELECTOR,
+        )
+        .forEach((video) => {
+          if (video !== currentVideo) {
             video.pause();
           }
-        },
-      );
+        });
     }, []);
 
   const playVideo =
@@ -399,7 +348,6 @@ export default function AutoPlayVideo({
       }
 
       video.pause();
-
       setPlaying(false);
     }, []);
 
@@ -414,7 +362,6 @@ export default function AutoPlayVideo({
 
       if (video.paused) {
         setShowOverlay(false);
-
         await playVideo();
       } else {
         pauseVideo();
@@ -425,7 +372,7 @@ export default function AutoPlayVideo({
     ]);
 
   /*
-   * Autoplay when the video becomes visible.
+   * Lightweight visibility detection.
    */
   useEffect(() => {
     const element =
@@ -437,9 +384,10 @@ export default function AutoPlayVideo({
 
     const observer =
       new IntersectionObserver(
-        (entries) => {
-          const entry =
-            entries[0];
+        ([entry]) => {
+          if (!entry) {
+            return;
+          }
 
           if (
             entry.intersectionRatio >=
@@ -451,19 +399,10 @@ export default function AutoPlayVideo({
           }
         },
         {
-          threshold: [
-            0,
-            0.25,
-            0.5,
+          threshold:
             autoPlayThreshold,
-            0.75,
-            1,
-          ],
         },
       );
-
-    observerRef.current =
-      observer;
 
     observer.observe(element);
 
@@ -478,7 +417,7 @@ export default function AutoPlayVideo({
   ]);
 
   /*
-   * Video events.
+   * Synchronize playback state.
    */
   useEffect(() => {
     const video =
@@ -488,31 +427,14 @@ export default function AutoPlayVideo({
       return;
     }
 
-    const onPlay =
-      () => {
-        setPlaying(true);
-        setShowOverlay(false);
-      };
+    const onPlay = () => {
+      setPlaying(true);
+      setShowOverlay(false);
+    };
 
-    const onPause =
-      () => {
-        setPlaying(false);
-      };
-
-    const onLoaded =
-      () => {
-        setLoaded(true);
-      };
-
-    const onWaiting =
-      () => {
-        setLoaded(false);
-      };
-
-    const onCanPlay =
-      () => {
-        setLoaded(true);
-      };
+    const onPause = () => {
+      setPlaying(false);
+    };
 
     video.addEventListener(
       'play',
@@ -522,21 +444,6 @@ export default function AutoPlayVideo({
     video.addEventListener(
       'pause',
       onPause,
-    );
-
-    video.addEventListener(
-      'loadeddata',
-      onLoaded,
-    );
-
-    video.addEventListener(
-      'waiting',
-      onWaiting,
-    );
-
-    video.addEventListener(
-      'canplay',
-      onCanPlay,
     );
 
     return () => {
@@ -549,21 +456,6 @@ export default function AutoPlayVideo({
         'pause',
         onPause,
       );
-
-      video.removeEventListener(
-        'loadeddata',
-        onLoaded,
-      );
-
-      video.removeEventListener(
-        'waiting',
-        onWaiting,
-      );
-
-      video.removeEventListener(
-        'canplay',
-        onCanPlay,
-      );
     };
   }, []);
 
@@ -575,6 +467,7 @@ export default function AutoPlayVideo({
         relative
         w-full
         overflow-hidden
+        rounded-lg
         bg-muted
         ${className}
       `}
@@ -587,12 +480,6 @@ export default function AutoPlayVideo({
           bg-black
         "
       >
-        {/*
-         * Thumbnail layer.
-         *
-         * This is especially useful on mobile
-         * before the video starts playing.
-         */}
         {thumbnail &&
           !playing && (
             <img
@@ -606,8 +493,8 @@ export default function AutoPlayVideo({
                 z-0
                 h-full
                 w-full
-                object-contain
                 bg-black
+                object-contain
               "
             />
           )}
@@ -635,16 +522,8 @@ export default function AutoPlayVideo({
           "
         />
 
-        {/*
-         * Only show the loading indicator when
-         * there is no thumbnail available.
-         *
-         * This prevents the mobile blank/spinner
-         * experience.
-         */}
         {!thumbnail &&
-          generatingThumbnail &&
-          !loaded && (
+          generatingThumbnail && (
             <div
               className="
                 absolute
@@ -653,14 +532,13 @@ export default function AutoPlayVideo({
                 flex
                 items-center
                 justify-center
-                bg-background/70
-                backdrop-blur-sm
+                bg-background/60
               "
             >
               <Loader2
                 className="
-                  h-8
-                  w-8
+                  h-6
+                  w-6
                   animate-spin
                   text-primary
                 "
@@ -668,17 +546,11 @@ export default function AutoPlayVideo({
             </div>
           )}
 
-        {/*
-         * Manual play button when autoplay
-         * is blocked by the browser.
-         */}
         {showOverlay &&
           !playing && (
             <button
               type="button"
-              onClick={
-                togglePlayback
-              }
+              onClick={togglePlayback}
               className="
                 absolute
                 inset-0
@@ -686,30 +558,30 @@ export default function AutoPlayVideo({
                 flex
                 items-center
                 justify-center
-                bg-black/30
-                transition
-                hover:bg-black/40
+                bg-black/25
+                transition-colors
+                hover:bg-black/35
               "
               aria-label="Play video"
             >
               <span
                 className="
                   flex
-                  h-16
-                  w-16
+                  h-12
+                  w-12
                   items-center
                   justify-center
                   rounded-full
                   bg-background/90
-                  shadow-lg
+                  shadow-md
                   backdrop-blur
                 "
               >
                 <Play
                   className="
-                    ml-1
-                    h-8
-                    w-8
+                    ml-0.5
+                    h-6
+                    w-6
                     fill-current
                     text-primary
                   "

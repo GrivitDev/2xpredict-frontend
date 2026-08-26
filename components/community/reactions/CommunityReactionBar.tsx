@@ -7,91 +7,56 @@ import {
 } from './reaction.constants';
 
 interface Props {
-
-  reactions?: Record<
-    string,
-    number
-  >;
-
+  reactions?: Record<string, number>;
   userReaction?: string | null;
-
   onReact: (
     reaction: string,
   ) => void;
-
 }
 
 export default function CommunityReactionBar({
-
   reactions = {},
-
   userReaction = null,
-
   onReact,
-
 }: Props) {
-
   return (
-
     <div
       className="
-        mt-3
+        border-t
+        border-border/60
+        px-3
+        py-1.5
+        sm:px-4
       "
-      aria-label="
-        Post reactions
-      "
+      aria-label="Post reactions"
     >
-
       <div
         className="
           flex
           flex-wrap
           items-center
-          gap-0.5
+          gap-0
         "
       >
-
-        {
-          communityReactions.map(
-            reaction => (
-
-              <ReactionButton
-
-                key={
-                  reaction.id
-                }
-
-                reaction={
-                  reaction
-                }
-
-                count={
-                  reactions[
-                    reaction.id
-                  ] ?? 0
-                }
-
-                active={
-                  reaction.id ===
-                  userReaction
-                }
-
-                onClick={() => (
-                  onReact(
-                    reaction.id,
-                  )
-                )}
-
-              />
-
-            ),
-          )
-        }
-
+        {communityReactions.map(
+          (reaction) => (
+            <ReactionButton
+              key={reaction.id}
+              reaction={reaction}
+              count={
+                reactions[reaction.id] ?? 0
+              }
+              active={
+                reaction.id ===
+                userReaction
+              }
+              onClick={() =>
+                onReact(reaction.id)
+              }
+            />
+          ),
+        )}
       </div>
-
     </div>
-
   );
-
 }

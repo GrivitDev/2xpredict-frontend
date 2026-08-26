@@ -2,6 +2,7 @@
 
 import {
   useState,
+  type ReactNode,
 } from 'react';
 
 import Image from 'next/image';
@@ -69,22 +70,16 @@ const getAutoPrediction = (
 ) => {
   const highest = Math.max(home, draw, away);
 
-  if (highest === draw) {
-    return 'DRAW';
-  }
-
-  if (highest === home) {
-    return 'HOME';
-  }
+  if (highest === draw) return 'DRAW';
+  if (highest === home) return 'HOME';
 
   return 'AWAY';
 };
 
-const getMarketConfig = (market: string) => {
-  return PredictionMarketOptions.find(
+const getMarketConfig = (market: string) =>
+  PredictionMarketOptions.find(
     (item) => item.value === market,
   );
-};
 
 const dynamicPlayerMarkets: string[] = [
   PredictionMarkets.ANYTIME_GOALSCORER,
@@ -94,9 +89,8 @@ const dynamicPlayerMarkets: string[] = [
   PredictionMarkets.PLAYER_ASSISTS,
 ];
 
-const isDynamicPlayerMarket = (market: string) => {
-  return dynamicPlayerMarkets.includes(market);
-};
+const isDynamicPlayerMarket = (market: string) =>
+  dynamicPlayerMarkets.includes(market);
 
 export default function PredictionModal({
   match,
@@ -138,8 +132,7 @@ export default function PredictionModal({
       return {
         badge: undefined,
         title: 'Waiting for probabilities',
-        description:
-          'Enter probability values to generate a prediction.',
+        description: 'Enter probabilities to generate a prediction.',
       };
     }
 
@@ -168,8 +161,8 @@ export default function PredictionModal({
   })();
 
   const addMarket = () => {
-    setMarkets((currentMarkets) => [
-      ...currentMarkets,
+    setMarkets((current) => [
+      ...current,
       {
         market: '',
         selection: '',
@@ -181,8 +174,8 @@ export default function PredictionModal({
     index: number,
     updates: Partial<MarketItem>,
   ) => {
-    setMarkets((currentMarkets) =>
-      currentMarkets.map((market, marketIndex) =>
+    setMarkets((current) =>
+      current.map((market, marketIndex) =>
         marketIndex === index
           ? {
               ...market,
@@ -194,8 +187,8 @@ export default function PredictionModal({
   };
 
   const removeMarket = (index: number) => {
-    setMarkets((currentMarkets) =>
-      currentMarkets.filter(
+    setMarkets((current) =>
+      current.filter(
         (_, marketIndex) => marketIndex !== index,
       ),
     );
@@ -223,21 +216,18 @@ export default function PredictionModal({
       setError(
         'The home, draw, and away probabilities must equal exactly 100%.',
       );
-
       return;
     }
 
     const incompleteMarket = markets.some(
       (market) =>
-        market.market &&
-        !market.selection,
+        market.market && !market.selection,
     );
 
     if (incompleteMarket) {
       setError(
         'Please select a prediction for every market you add.',
       );
-
       return;
     }
 
@@ -250,7 +240,6 @@ export default function PredictionModal({
       setError(
         'Enter a valid price for Regular or VIP predictions.',
       );
-
       return;
     }
 
@@ -302,21 +291,7 @@ export default function PredictionModal({
   };
 
   return (
-    <div
-      className="
-        fixed
-        inset-0
-        z-50
-        flex
-        items-end
-        justify-center
-        bg-slate-950/70
-        p-0
-        backdrop-blur-md
-        sm:items-center
-        sm:p-4
-      "
-    >
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:p-4">
       <div
         role="dialog"
         aria-modal="true"
@@ -325,7 +300,7 @@ export default function PredictionModal({
           flex
           h-[100dvh]
           w-full
-          max-w-6xl
+          max-w-5xl
           flex-col
           overflow-hidden
           border
@@ -334,177 +309,93 @@ export default function PredictionModal({
           shadow-2xl
           sm:h-auto
           sm:max-h-[92vh]
-          sm:rounded-3xl
+          sm:rounded-2xl
         "
       >
-        <header
-          className="
-            shrink-0
-            border-b
-            border-border
-            bg-background/95
-            px-4
-            py-3
-            backdrop-blur-xl
-            sm:px-6
-          "
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-xl
-                    bg-primary/10
-                    text-primary
-                  "
-                >
-                  <Target className="h-5 w-5" />
-                </div>
-
-                <div>
-                  <h2 className="text-base font-bold sm:text-lg">
-                    Create Prediction
-                  </h2>
-
-                  <p className="mt-0.5 text-s text-muted-foreground">
-                    Configure markets, probabilities, access, and price.
-                  </p>
-                </div>
-              </div>
+        {/* Header */}
+        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4 py-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Target className="h-4.5 w-4.5" />
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              aria-label="Close prediction modal"
-              className="
-                inline-flex
-                h-10
-                w-10
-                shrink-0
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-border
-                text-muted-foreground
-                transition
-                hover:bg-muted
-                hover:text-foreground
-                disabled:opacity-50
-              "
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="min-w-0">
+              <h2 className="text-base font-bold tracking-tight">
+                Create Prediction
+              </h2>
+
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                Configure probabilities, markets, access and price.
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            aria-label="Close prediction modal"
+            className="
+              inline-flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              border
+              border-border
+              text-muted-foreground
+              transition-colors
+              hover:bg-muted
+              hover:text-foreground
+              disabled:opacity-50
+            "
+          >
+            <X className="h-4 w-4" />
+          </button>
         </header>
 
-        <main
-          className="
-            min-h-0
-            flex-1
-            overflow-x-hidden
-            overflow-y-auto
-            scrollbar-hide
-          "
-        >
-          <div className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
+        {/* Content */}
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="mx-auto w-full max-w-5xl space-y-4 p-4 sm:p-5">
             {error && (
               <div
                 role="alert"
                 className="
                   flex
                   items-start
-                  gap-3
-                  rounded-2xl
+                  gap-2.5
+                  rounded-xl
                   border
-                  border-destructive/25
-                  bg-destructive/10
-                  p-4
-                  text-s
+                  border-destructive/20
+                  bg-destructive/5
+                  px-3.5
+                  py-3
+                  text-xs
                   text-destructive
                 "
               >
-                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>{error}</p>
               </div>
             )}
 
-            {/* Match hero */}
-
-            <section
-              className="
-                overflow-hidden
-                rounded-3xl
-                border
-                border-border
-                bg-gradient-to-br
-                from-primary/[0.10]
-                via-background
-                to-background
-              "
-            >
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  border-b
-                  border-border/70
-                  px-4
-                  py-3
-                  sm:px-6
-                "
-              >
-                <span
-                  className="
-                    inline-flex
-                    items-center
-                    gap-2
-                    text-xs
-                    font-bold
-                    uppercase
-                    tracking-[0.16em]
-                    text-primary
-                  "
-                >
-                  <Trophy className="h-4 w-4" />
+            {/* Match Hero */}
+            <section className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+                  <Trophy className="h-3.5 w-3.5" />
                   Match Prediction
-                </span>
+                </div>
 
-                <span
-                  className="
-                    rounded-full
-                    bg-muted
-                    px-3
-                    py-1
-                    text-xs
-                    font-semibold
-                    text-muted-foreground
-                  "
-                >
+                <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Draft
                 </span>
               </div>
 
-              <div className="p-5 sm:p-7">
-                <div
-                  className="
-                    grid
-                    grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
-                    items-center
-                    gap-3
-                    sm:gap-6
-                  "
-                >
+              <div className="p-4 sm:p-5">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
                   <TeamDisplay
                     name={match.homeTeam}
                     badge={match.homeTeamBadge}
@@ -512,26 +403,9 @@ export default function PredictionModal({
                     align="right"
                   />
 
-                  <span
-                    className="
-                      flex
-                      h-12
-                      w-12
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-full
-                      border
-                      border-primary/30
-                      bg-primary/10
-                      text-xs
-                      font-black
-                      tracking-wider
-                      text-primary
-                    "
-                  >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-[10px] font-black tracking-wider text-primary">
                     VS
-                  </span>
+                  </div>
 
                   <TeamDisplay
                     name={match.awayTeam}
@@ -541,121 +415,59 @@ export default function PredictionModal({
                   />
                 </div>
 
-                <div
-                  className="
-                    mx-auto
-                    mt-7
-                    max-w-2xl
-                    rounded-2xl
-                    border
-                    border-primary/20
-                    bg-primary/[0.06]
-                    p-4
-                  "
-                >
-                  <div className="flex items-center gap-2 text-primary">
-                    <Target className="h-4 w-4" />
-
-                    <span
-                      className="
-                        text-xs
-                        font-bold
-                        uppercase
-                        tracking-[0.16em]
-                      "
-                    >
-                      Auto prediction
-                    </span>
+                <div className="mx-auto mt-4 max-w-2xl rounded-xl border border-border bg-muted/30 p-3">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
+                    <Target className="h-3.5 w-3.5" />
+                    Auto Prediction
                   </div>
 
-                  <div
-                    className="
-                      mt-4
-                      flex
-                      flex-col
-                      gap-4
-                      sm:flex-row
-                      sm:items-center
-                      sm:justify-between
-                    "
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div
-                        className="
-                          flex
-                          h-12
-                          w-12
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-xl
-                          bg-background
-                          shadow-sm
-                        "
-                      >
+                  <div className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
                         {predictionHero.badge ? (
                           <Image
                             src={predictionHero.badge}
                             alt={predictionHero.title}
-                            width={34}
-                            height={34}
+                            width={28}
+                            height={28}
                             className="object-contain"
                           />
                         ) : (
-                          <Target className="h-5 w-5 text-primary" />
+                          <Target className="h-4 w-4 text-primary" />
                         )}
                       </div>
 
                       <div className="min-w-0">
-                        <h3 className="truncate font-bold">
+                        <h3 className="truncate text-sm font-bold">
                           {predictionHero.title}
                         </h3>
 
-                        <p className="mt-1 text-s text-muted-foreground">
+                        <p className="mt-0.5 text-xs text-muted-foreground">
                           {predictionHero.description}
                         </p>
                       </div>
                     </div>
 
-                    <div className="min-w-[150px]">
+                    <div className="w-full sm:w-40">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] font-medium text-muted-foreground">
                           Confidence
                         </span>
 
                         <span
-                          className={`
-                            text-s
-                            font-bold
-                            ${
-                              total === 100
-                                ? 'text-primary'
-                                : 'text-muted-foreground'
-                            }
-                          `}
+                          className={`text-xs font-bold ${
+                            total === 100
+                              ? 'text-primary'
+                              : 'text-muted-foreground'
+                          }`}
                         >
                           {confidence}%
                         </span>
                       </div>
 
-                      <div
-                        className="
-                          mt-2
-                          h-2
-                          overflow-hidden
-                          rounded-full
-                          bg-primary/15
-                        "
-                      >
+                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
                         <div
-                          className="
-                            h-full
-                            rounded-full
-                            bg-gradient-to-r
-                            from-primary
-                            to-cyan-400
-                            transition-all
-                          "
+                          className="h-full rounded-full bg-primary transition-[width]"
                           style={{
                             width: `${confidence}%`,
                           }}
@@ -667,57 +479,46 @@ export default function PredictionModal({
               </div>
             </section>
 
-            <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-              <div className="space-y-6">
+            {/* Main Grid */}
+            <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+              <div className="space-y-4">
+                {/* Probability */}
                 <SectionCard
                   title="Probability Engine"
-                  description="Set the expected outcome probabilities. Their total must equal 100%."
-                  icon={<BarChart3 className="h-5 w-5" />}
+                  description="Set outcome probabilities. Total must equal 100%."
+                  icon={<BarChart3 className="h-4 w-4" />}
                 >
                   <div
-                    className={`
-                      mb-4
-                      flex
-                      items-center
-                      justify-between
-                      rounded-2xl
-                      border
-                      p-4
-                      ${
-                        total === 100
-                          ? 'border-emerald-500/20 bg-emerald-500/5'
-                          : 'border-destructive/20 bg-destructive/5'
-                      }
-                    `}
+                    className={`mb-3 flex items-center justify-between rounded-xl border px-3 py-2.5 ${
+                      total === 100
+                        ? 'border-emerald-500/20 bg-emerald-500/5'
+                        : 'border-destructive/15 bg-destructive/5'
+                    }`}
                   >
-                    <div>
-                      <p className="font-semibold">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold">
                         Probability Total
                       </p>
 
-                      <p className="mt-1 text-s text-muted-foreground">
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
                         {total === 100
-                          ? 'Ready to create this prediction.'
-                          : 'Adjust the values until the total is 100%.'}
+                          ? 'Ready to create prediction.'
+                          : 'Adjust values to reach 100%.'}
                       </p>
                     </div>
 
                     <span
-                      className={`
-                        text-2xl
-                        font-black
-                        ${
-                          total === 100
-                            ? 'text-emerald-600'
-                            : 'text-destructive'
-                        }
-                      `}
+                      className={`ml-3 text-xl font-black ${
+                        total === 100
+                          ? 'text-emerald-600'
+                          : 'text-destructive'
+                      }`}
                     >
                       {total}%
                     </span>
                   </div>
 
-                  <div className="grid gap-3">
+                  <div className="space-y-2">
                     <ProbabilityInput
                       label={`${match.homeTeam} Win`}
                       value={homeProb}
@@ -738,62 +539,52 @@ export default function PredictionModal({
                   </div>
                 </SectionCard>
 
+                {/* Markets */}
                 <SectionCard
                   title="Markets"
-                  description="Add the betting markets included in this prediction."
-                  icon={<Target className="h-5 w-5" />}
+                  description="Add the markets included in this prediction."
+                  icon={<Target className="h-4 w-4" />}
                   action={
                     <button
                       type="button"
                       onClick={addMarket}
                       className="
                         inline-flex
-                        h-9
+                        h-8
                         items-center
-                        gap-2
-                        rounded-xl
+                        gap-1.5
+                        rounded-lg
                         bg-primary/10
-                        px-3
-                        text-xs
+                        px-2.5
+                        text-[11px]
                         font-semibold
                         text-primary
-                        transition
+                        transition-colors
                         hover:bg-primary/15
                       "
                     >
-                      <Plus className="h-4 w-4" />
-                      Add Market
+                      <Plus className="h-3.5 w-3.5" />
+                      Add
                     </button>
                   }
                 >
                   {markets.length === 0 ? (
-                    <div
-                      className="
-                        rounded-2xl
-                        border
-                        border-dashed
-                        border-border
-                        bg-muted/20
-                        p-7
-                        text-center
-                      "
-                    >
-                      <Target className="mx-auto h-6 w-6 text-muted-foreground" />
+                    <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center">
+                      <Target className="mx-auto h-5 w-5 text-muted-foreground" />
 
-                      <p className="mt-3 text-s font-semibold">
-                        No markets added yet
+                      <p className="mt-2 text-xs font-semibold">
+                        No markets added
                       </p>
 
-                      <p className="mt-1 text-s text-muted-foreground">
+                      <p className="mt-1 text-[11px] text-muted-foreground">
                         Add a market to build this prediction.
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2.5">
                       {markets.map((market, index) => {
-                        const marketConfig = getMarketConfig(
-                          market.market,
-                        );
+                        const marketConfig =
+                          getMarketConfig(market.market);
 
                         const isPlayerMarket =
                           isDynamicPlayerMarket(
@@ -803,30 +594,10 @@ export default function PredictionModal({
                         return (
                           <div
                             key={index}
-                            className="
-                              rounded-2xl
-                              border
-                              border-border
-                              bg-muted/20
-                              p-4
-                            "
+                            className="rounded-xl border border-border bg-muted/20 p-3"
                           >
-                            <div className="mb-4 flex items-center justify-between gap-3">
-                              <span
-                                className="
-                                  flex
-                                  h-7
-                                  w-7
-                                  shrink-0
-                                  items-center
-                                  justify-center
-                                  rounded-full
-                                  bg-primary/10
-                                  text-xs
-                                  font-bold
-                                  text-primary
-                                "
-                              >
+                            <div className="mb-2.5 flex items-center justify-between">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">
                                 {index + 1}
                               </span>
 
@@ -835,223 +606,72 @@ export default function PredictionModal({
                                 onClick={() =>
                                   removeMarket(index)
                                 }
-                                className="
-                                  inline-flex
-                                  items-center
-                                  gap-2
-                                  text-xs
-                                  font-semibold
-                                  text-destructive
-                                  transition
-                                  hover:underline
-                                "
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-destructive hover:underline"
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="h-3 w-3" />
                                 Remove
                               </button>
                             </div>
 
-                            <div className="grid gap-3 sm:grid-cols-2">
-                              <label className="block">
-                                <span
-                                  className="
-                                    text-xs
-                                    font-semibold
-                                    uppercase
-                                    tracking-wider
-                                    text-muted-foreground
-                                  "
-                                >
-                                  Market
-                                </span>
+                            <div className="grid gap-2.5 sm:grid-cols-2">
+                              <SelectField
+                                label="Market"
+                                value={market.market}
+                                onChange={(value) =>
+                                  updateMarket(index, {
+                                    market: value,
+                                    selection: '',
+                                    playerName: '',
+                                    customValue: '',
+                                  })
+                                }
+                                options={PredictionMarketOptions}
+                                placeholder="Select market"
+                              />
 
-                                <select
-                                  value={market.market}
-                                  onChange={(event) =>
-                                    updateMarket(index, {
-                                      market:
-                                        event.target.value,
-                                      selection: '',
-                                      playerName: '',
-                                      customValue: '',
-                                    })
-                                  }
-                                  className="
-                                    mt-2
-                                    h-11
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-input
-                                    bg-background
-                                    px-3
-                                    text-s
-                                    outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-primary/30
-                                  "
-                                >
-                                  <option value="">
-                                    Select market
-                                  </option>
-
-                                  {PredictionMarketOptions.map(
-                                    (item) => (
-                                      <option
-                                        key={item.value}
-                                        value={item.value}
-                                      >
-                                        {item.label}
-                                      </option>
-                                    ),
-                                  )}
-                                </select>
-                              </label>
-
-                              <label className="block">
-                                <span
-                                  className="
-                                    text-xs
-                                    font-semibold
-                                    uppercase
-                                    tracking-wider
-                                    text-muted-foreground
-                                  "
-                                >
-                                  Selection
-                                </span>
-
-                                <select
-                                  value={market.selection}
-                                  disabled={!market.market}
-                                  onChange={(event) =>
-                                    updateMarket(index, {
-                                      selection:
-                                        event.target.value,
-                                    })
-                                  }
-                                  className="
-                                    mt-2
-                                    h-11
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-input
-                                    bg-background
-                                    px-3
-                                    text-s
-                                    outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-primary/30
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-50
-                                  "
-                                >
-                                  <option value="">
-                                    Select prediction
-                                  </option>
-
-                                  {marketConfig?.selections.map(
-                                    (option) => (
-                                      <option
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </option>
-                                    ),
-                                  )}
-                                </select>
-                              </label>
+                              <SelectField
+                                label="Selection"
+                                value={market.selection}
+                                disabled={!market.market}
+                                onChange={(value) =>
+                                  updateMarket(index, {
+                                    selection: value,
+                                  })
+                                }
+                                options={
+                                  marketConfig?.selections || []
+                                }
+                                placeholder="Select prediction"
+                              />
                             </div>
 
                             {isPlayerMarket && (
-                              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                                <label className="block">
-                                  <span
-                                    className="
-                                      text-xs
-                                      font-semibold
-                                      uppercase
-                                      tracking-wider
-                                      text-muted-foreground
-                                    "
-                                  >
-                                    Player Name
-                                  </span>
+                              <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
+                                <TextField
+                                  label="Player Name"
+                                  placeholder="e.g. Erling Haaland"
+                                  value={
+                                    market.playerName || ''
+                                  }
+                                  onChange={(value) =>
+                                    updateMarket(index, {
+                                      playerName: value,
+                                    })
+                                  }
+                                />
 
-                                  <input
-                                    type="text"
-                                    placeholder="e.g. Erling Haaland"
-                                    value={
-                                      market.playerName || ''
-                                    }
-                                    onChange={(event) =>
-                                      updateMarket(index, {
-                                        playerName:
-                                          event.target.value,
-                                      })
-                                    }
-                                    className="
-                                      mt-2
-                                      h-11
-                                      w-full
-                                      rounded-xl
-                                      border
-                                      border-input
-                                      bg-background
-                                      px-3
-                                      text-s
-                                      outline-none
-                                      placeholder:text-muted-foreground
-                                      focus-visible:ring-2
-                                      focus-visible:ring-primary/30
-                                    "
-                                  />
-                                </label>
-
-                                <label className="block">
-                                  <span
-                                    className="
-                                      text-xs
-                                      font-semibold
-                                      uppercase
-                                      tracking-wider
-                                      text-muted-foreground
-                                    "
-                                  >
-                                    Override Text
-                                  </span>
-
-                                  <input
-                                    type="text"
-                                    placeholder="Optional"
-                                    value={
-                                      market.customValue || ''
-                                    }
-                                    onChange={(event) =>
-                                      updateMarket(index, {
-                                        customValue:
-                                          event.target.value,
-                                      })
-                                    }
-                                    className="
-                                      mt-2
-                                      h-11
-                                      w-full
-                                      rounded-xl
-                                      border
-                                      border-input
-                                      bg-background
-                                      px-3
-                                      text-s
-                                      outline-none
-                                      placeholder:text-muted-foreground
-                                      focus-visible:ring-2
-                                      focus-visible:ring-primary/30
-                                    "
-                                  />
-                                </label>
+                                <TextField
+                                  label="Override Text"
+                                  placeholder="Optional"
+                                  value={
+                                    market.customValue || ''
+                                  }
+                                  onChange={(value) =>
+                                    updateMarket(index, {
+                                      customValue: value,
+                                    })
+                                  }
+                                />
                               </div>
                             )}
                           </div>
@@ -1062,52 +682,40 @@ export default function PredictionModal({
                 </SectionCard>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
+                {/* Access */}
                 <SectionCard
                   title="Access & Pricing"
                   description="Control who can access this prediction."
-                  icon={<Crown className="h-5 w-5" />}
+                  icon={<Crown className="h-4 w-4" />}
                 >
-                  <div className="grid gap-3">
+                  <div className="grid gap-2">
                     {(
                       [
                         {
                           value: 'free',
                           label: 'Free',
-                          description:
-                            'Available to every user.',
+                          description: 'Available to every user.',
                         },
                         {
                           value: 'regular',
                           label: 'Regular',
-                          description:
-                            'Available to Regular members.',
+                          description: 'Available to Regular members.',
                         },
                         {
                           value: 'vip',
                           label: 'VIP',
-                          description:
-                            'Exclusive VIP access.',
+                          description: 'Exclusive VIP access.',
                         },
                       ] as const
                     ).map((option) => (
                       <label
                         key={option.value}
-                        className={`
-                          flex
-                          cursor-pointer
-                          items-center
-                          gap-3
-                          rounded-2xl
-                          border
-                          p-4
-                          transition
-                          ${
-                            accessType === option.value
-                              ? 'border-primary/30 bg-primary/[0.06]'
-                              : 'border-border bg-muted/20 hover:bg-muted/40'
-                          }
-                        `}
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-colors ${
+                          accessType === option.value
+                            ? 'border-primary/25 bg-primary/5'
+                            : 'border-border bg-muted/20 hover:bg-muted/40'
+                        }`}
                       >
                         <input
                           type="radio"
@@ -1117,17 +725,19 @@ export default function PredictionModal({
                             accessType === option.value
                           }
                           onChange={() =>
-                            handleAccessChange(option.value)
+                            handleAccessChange(
+                              option.value,
+                            )
                           }
                           className="accent-primary"
                         />
 
-                        <div>
-                          <p className="font-semibold">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold">
                             {option.label}
                           </p>
 
-                          <p className="mt-1 text-s text-muted-foreground">
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
                             {option.description}
                           </p>
                         </div>
@@ -1135,32 +745,13 @@ export default function PredictionModal({
                     ))}
                   </div>
 
-                  <label className="mt-5 block">
-                    <span
-                      className="
-                        text-xs
-                        font-semibold
-                        uppercase
-                        tracking-wider
-                        text-muted-foreground
-                      "
-                    >
+                  <label className="mt-3 block">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Individual Price
                     </span>
 
-                    <div className="relative mt-2">
-                      <span
-                        className="
-                          pointer-events-none
-                          absolute
-                          left-4
-                          top-1/2
-                          -translate-y-1/2
-                          text-s
-                          font-semibold
-                          text-muted-foreground
-                        "
-                      >
+                    <div className="relative mt-1.5">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
                         ₦
                       </span>
 
@@ -1182,19 +773,19 @@ export default function PredictionModal({
                           setPrice(event.target.value)
                         }
                         className="
-                          h-12
+                          h-10
                           w-full
-                          rounded-xl
+                          rounded-lg
                           border
                           border-input
                           bg-background
-                          pl-8
-                          pr-4
-                          text-s
+                          pl-7
+                          pr-3
+                          text-xs
                           font-semibold
                           outline-none
                           focus-visible:ring-2
-                          focus-visible:ring-primary/30
+                          focus-visible:ring-primary/20
                           disabled:cursor-not-allowed
                           disabled:bg-muted/50
                           disabled:text-muted-foreground
@@ -1204,12 +795,13 @@ export default function PredictionModal({
                   </label>
                 </SectionCard>
 
+                {/* Summary */}
                 <SectionCard
                   title="Prediction Summary"
-                  description="This is what will be saved with the fixture."
-                  icon={<CheckCircle2 className="h-5 w-5" />}
+                  description="Review what will be saved with the fixture."
+                  icon={<CheckCircle2 className="h-4 w-4" />}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-1.5">
                     <SummaryRow
                       label="Prediction"
                       value={
@@ -1257,50 +849,30 @@ export default function PredictionModal({
           </div>
         </main>
 
-        <footer
-          className="
-            shrink-0
-            border-t
-            border-border
-            bg-background/95
-            px-4
-            py-3
-            backdrop-blur-xl
-            sm:px-6
-            sm:py-4
-          "
-        >
-          <div
-            className="
-              flex
-              flex-col
-              gap-3
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
-            <p className="text-xs text-muted-foreground">
-              The prediction can only be created when probabilities total 100%.
+        {/* Footer */}
+        <footer className="shrink-0 border-t border-border bg-background px-4 py-3 sm:px-5">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[11px] text-muted-foreground">
+              Probabilities must total exactly 100%.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 sm:flex">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
                 className="
                   inline-flex
-                  h-11
+                  h-9
                   items-center
                   justify-center
-                  rounded-xl
+                  rounded-lg
                   border
                   border-border
-                  px-5
-                  text-s
+                  px-4
+                  text-xs
                   font-semibold
-                  transition
+                  transition-colors
                   hover:bg-muted
                   disabled:opacity-50
                 "
@@ -1314,18 +886,18 @@ export default function PredictionModal({
                 disabled={loading || total !== 100}
                 className="
                   inline-flex
-                  h-11
+                  h-9
                   items-center
                   justify-center
-                  gap-2
-                  rounded-xl
+                  gap-1.5
+                  rounded-lg
                   bg-primary
-                  px-5
-                  text-s
+                  px-4
+                  text-xs
                   font-semibold
                   text-primary-foreground
                   shadow-sm
-                  transition
+                  transition-colors
                   hover:brightness-110
                   disabled:cursor-not-allowed
                   disabled:opacity-40
@@ -1333,12 +905,12 @@ export default function PredictionModal({
               >
                 {loading ? (
                   <>
-                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                    <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                     Create Prediction
                   </>
                 )}
@@ -1350,6 +922,10 @@ export default function PredictionModal({
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Team                                                                      */
+/* -------------------------------------------------------------------------- */
 
 function TeamDisplay({
   name,
@@ -1366,68 +942,81 @@ function TeamDisplay({
 
   return (
     <div
-      className={`
-        flex
-        min-w-0
-        items-center
-        gap-3
-        ${isRight ? 'justify-end text-right' : 'text-left'}
-      `}
+      className={`flex min-w-0 items-center gap-2.5 ${
+        isRight
+          ? 'justify-end text-right'
+          : 'text-left'
+      }`}
     >
       {isRight && (
-        <div className="min-w-0">
-          <p className="truncate text-s font-bold sm:text-base">
-            {name}
-          </p>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            {label}
-          </p>
-        </div>
+        <TeamText
+          name={name}
+          label={label}
+        />
       )}
 
-      <div
-        className="
-          flex
-          h-12
-          w-12
-          shrink-0
-          items-center
-          justify-center
-          rounded-2xl
-          border
-          border-border
-          bg-background
-          shadow-sm
-        "
-      >
-        {badge ? (
-          <Image
-            src={badge}
-            alt={name}
-            width={32}
-            height={32}
-            className="object-contain"
-          />
-        ) : (
-          <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-        )}
-      </div>
+      <TeamBadge
+        name={name}
+        badge={badge}
+      />
 
       {!isRight && (
-        <div className="min-w-0">
-          <p className="truncate text-s font-bold sm:text-base">
-            {name}
-          </p>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            {label}
-          </p>
-        </div>
+        <TeamText
+          name={name}
+          label={label}
+        />
       )}
     </div>
   );
 }
+
+function TeamText({
+  name,
+  label,
+}: {
+  name: string;
+  label: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-xs font-bold sm:text-sm">
+        {name}
+      </p>
+
+      <p className="mt-0.5 text-[10px] text-muted-foreground">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function TeamBadge({
+  name,
+  badge,
+}: {
+  name: string;
+  badge?: string;
+}) {
+  return (
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background">
+      {badge ? (
+        <Image
+          src={badge}
+          alt={name}
+          width={28}
+          height={28}
+          className="object-contain"
+        />
+      ) : (
+        <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Probability                                                               */
+/* -------------------------------------------------------------------------- */
 
 function ProbabilityInput({
   label,
@@ -1439,24 +1028,12 @@ function ProbabilityInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <label
-      className="
-        flex
-        items-center
-        justify-between
-        gap-4
-        rounded-2xl
-        border
-        border-border
-        bg-muted/20
-        p-3
-      "
-    >
-      <span className="min-w-0 truncate text-s font-semibold">
+    <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-2">
+      <span className="min-w-0 truncate text-xs font-semibold">
         {label}
       </span>
 
-      <div className="relative w-24 shrink-0">
+      <div className="relative w-20 shrink-0">
         <input
           type="number"
           min="0"
@@ -1467,40 +1044,148 @@ function ProbabilityInput({
           }
           placeholder="0"
           className="
-            h-10
+            h-9
             w-full
-            rounded-xl
+            rounded-lg
             border
             border-input
             bg-background
-            px-3
-            pr-7
+            px-2.5
+            pr-6
             text-right
-            text-s
+            text-xs
             font-bold
             outline-none
             focus-visible:ring-2
-            focus-visible:ring-primary/30
+            focus-visible:ring-primary/20
           "
         />
 
-        <span
-          className="
-            pointer-events-none
-            absolute
-            right-3
-            top-1/2
-            -translate-y-1/2
-            text-xs
-            text-muted-foreground
-          "
-        >
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
           %
         </span>
       </div>
     </label>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Select Field                                                              */
+/* -------------------------------------------------------------------------- */
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{
+    value: string;
+    label: string;
+  }>;
+  placeholder: string;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className="
+          mt-1.5
+          h-9
+          w-full
+          rounded-lg
+          border
+          border-input
+          bg-background
+          px-2.5
+          text-xs
+          outline-none
+          focus-visible:ring-2
+          focus-visible:ring-primary/20
+          disabled:cursor-not-allowed
+          disabled:opacity-50
+        "
+      >
+        <option value="">{placeholder}</option>
+
+        {options.map((option) => (
+          <option
+            key={option.value}
+            value={option.value}
+          >
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Text Field                                                                */
+/* -------------------------------------------------------------------------- */
+
+function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className="
+          mt-1.5
+          h-9
+          w-full
+          rounded-lg
+          border
+          border-input
+          bg-background
+          px-2.5
+          text-xs
+          outline-none
+          placeholder:text-muted-foreground
+          focus-visible:ring-2
+          focus-visible:ring-primary/20
+        "
+      />
+    </label>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Section Card                                                              */
+/* -------------------------------------------------------------------------- */
 
 function SectionCard({
   title,
@@ -1511,46 +1196,24 @@ function SectionCard({
 }: {
   title: string;
   description: string;
-  icon: React.ReactNode;
-  action?: React.ReactNode;
-  children: React.ReactNode;
+  icon: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <section
-      className="
-        rounded-3xl
-        border
-        border-border
-        bg-card
-        p-4
-        shadow-sm
-        sm:p-5
-      "
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div
-            className="
-              flex
-              h-10
-              w-10
-              shrink-0
-              items-center
-              justify-center
-              rounded-xl
-              bg-primary/10
-              text-primary
-            "
-          >
+    <section className="rounded-2xl border border-border bg-card p-3.5 shadow-sm sm:p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             {icon}
           </div>
 
-          <div>
-            <h3 className="font-bold">
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold tracking-tight">
               {title}
             </h3>
 
-            <p className="mt-1 text-s leading-6 text-muted-foreground">
+            <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
               {description}
             </p>
           </div>
@@ -1559,12 +1222,16 @@ function SectionCard({
         {action}
       </div>
 
-      <div className="mt-5">
+      <div className="mt-3.5">
         {children}
       </div>
     </section>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Summary                                                                   */
+/* -------------------------------------------------------------------------- */
 
 function SummaryRow({
   label,
@@ -1579,40 +1246,22 @@ function SummaryRow({
 }) {
   return (
     <div
-      className={`
-        flex
-        items-center
-        justify-between
-        gap-4
-        rounded-xl
-        border
-        px-4
-        py-3
-        ${
-          highlighted
-            ? 'border-primary/20 bg-primary/[0.06]'
-            : 'border-border bg-muted/20'
-        }
-      `}
+      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+        highlighted
+          ? 'border-primary/15 bg-primary/5'
+          : 'border-border bg-muted/20'
+      }`}
     >
-      <span className="text-s text-muted-foreground">
+      <span className="text-[11px] text-muted-foreground">
         {label}
       </span>
 
       <span
-        className={`
-          max-w-[60%]
-          truncate
-          text-right
-          text-s
-          font-semibold
-          ${
-            highlighted
-              ? 'text-primary'
-              : 'text-foreground'
-          }
-          ${capitalize ? 'capitalize' : ''}
-        `}
+        className={`max-w-[65%] truncate text-right text-xs font-semibold ${
+          highlighted
+            ? 'text-primary'
+            : 'text-foreground'
+        } ${capitalize ? 'capitalize' : ''}`}
       >
         {value}
       </span>

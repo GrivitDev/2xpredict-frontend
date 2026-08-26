@@ -13,467 +13,256 @@ import {
   X,
 } from 'lucide-react';
 
-import {
-  Button,
-} from '@/components/ui/button';
-
-import {
-  toast,
-} from 'sonner';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface Props {
-
   onFileSelected: (
     file: File | undefined,
   ) => void;
-
   disabled?: boolean;
-
 }
 
-const MAX_MEDIA_SIZE =
-  20 * 1024 * 1024;
-
+const MAX_MEDIA_SIZE = 20 * 1024 * 1024;
 
 export default function MediaUploader({
-
   onFileSelected,
-
   disabled = false,
-
 }: Props) {
-
-
   const fileInputRef =
-    useRef<HTMLInputElement>(
-      null,
-    );
-
+    useRef<HTMLInputElement>(null);
 
   const previewUrlRef =
-    useRef<
-      string | undefined
-    >(
-      undefined,
-    );
+    useRef<string>();
 
+  const [preview, setPreview] =
+    useState<string>();
 
-  const [
-    preview,
-    setPreview,
-  ] = useState<string>();
-
-
-  const [
-    mediaType,
-    setMediaType,
-  ] = useState<
-    'image' | 'video'
-  >();
-
+  const [mediaType, setMediaType] =
+    useState<'image' | 'video'>();
 
   function clearPreview() {
-
-    if (
-      previewUrlRef.current
-    ) {
-
+    if (previewUrlRef.current) {
       URL.revokeObjectURL(
         previewUrlRef.current,
       );
-
-      previewUrlRef.current =
-        undefined;
-
+      previewUrlRef.current = undefined;
     }
 
-
-    setPreview(
-      undefined,
-    );
-
-    setMediaType(
-      undefined,
-    );
-
+    setPreview(undefined);
+    setMediaType(undefined);
   }
 
-
   useEffect(() => {
-
     return () => {
-
-      if (
-        previewUrlRef.current
-      ) {
-
+      if (previewUrlRef.current) {
         URL.revokeObjectURL(
           previewUrlRef.current,
         );
-
       }
-
     };
-
   }, []);
 
-
   function handleFile(
-    event:
-      React.ChangeEvent<
-        HTMLInputElement
-      >,
+    event: React.ChangeEvent<HTMLInputElement>,
   ) {
+    const file = event.target.files?.[0];
 
-    const file =
-      event.target.files?.[0];
+    if (!file) return;
 
+    const isImage =
+      file.type.startsWith('image/');
 
-    if (!file) {
+    const isVideo =
+      file.type.startsWith('video/');
 
-      return;
-
-    }
-
-
-    if (
-      !file.type.startsWith(
-        'image/',
-      ) &&
-      !file.type.startsWith(
-        'video/',
-      )
-    ) {
-
+    if (!isImage && !isVideo) {
       toast.error(
         'Only images and videos are allowed.',
       );
 
-      event.target.value =
-        '';
-
+      event.target.value = '';
       return;
-
     }
 
-
-    if (
-      file.size >
-      MAX_MEDIA_SIZE
-    ) {
-
+    if (file.size > MAX_MEDIA_SIZE) {
       toast.error(
         'Media size cannot exceed 20MB.',
       );
 
-      event.target.value =
-        '';
-
+      event.target.value = '';
       return;
-
     }
 
-
-    const type =
-      file.type.startsWith(
-        'image/',
-      )
-        ? 'image'
-        : 'video';
-
+    const type = isImage
+      ? 'image'
+      : 'video';
 
     const localPreview =
-      URL.createObjectURL(
-        file,
-      );
+      URL.createObjectURL(file);
 
-
-    if (
-      previewUrlRef.current
-    ) {
-
+    if (previewUrlRef.current) {
       URL.revokeObjectURL(
         previewUrlRef.current,
       );
-
     }
 
+    previewUrlRef.current = localPreview;
 
-    previewUrlRef.current =
-      localPreview;
-
-
-    setPreview(
-      localPreview,
-    );
-
-
-    setMediaType(
-      type,
-    );
-
-
-    onFileSelected(
-      file,
-    );
-
+    setPreview(localPreview);
+    setMediaType(type);
+    onFileSelected(file);
   }
-
 
   function removeMedia() {
-
     clearPreview();
+    onFileSelected(undefined);
 
-
-    onFileSelected(
-      undefined,
-    );
-
-
-    if (
-      fileInputRef.current
-    ) {
-
-      fileInputRef.current.value =
-        '';
-
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
-
   }
 
-
   return (
+    <div className="w-full space-y-2.5">
+      {preview && mediaType && (
+        <div
+          className="
+            relative
+            overflow-hidden
+            rounded-xl
+            border
+            border-border
+            bg-muted/30
+          "
+        >
+          {mediaType === 'image' ? (
+            <img
+              src={preview}
+              alt="Selected media preview"
+              className="
+                block
+                max-h-[420px]
+                w-full
+                object-contain
+              "
+            />
+          ) : (
+            <video
+              src={preview}
+              controls
+              playsInline
+              className="
+                block
+                max-h-[420px]
+                w-full
+                object-contain
+              "
+            />
+          )}
 
-    <div
-      className="
-        w-full
-        space-y-3
-      "
-    >
-
-      {
-        preview &&
-        mediaType && (
-
-          <div
+          <Button
+            type="button"
+            size="icon"
+            variant="destructive"
+            disabled={disabled}
+            onClick={removeMedia}
+            aria-label="Remove selected media"
             className="
-              relative
-              overflow-hidden
-              rounded-xl
-              border
-              border-border
-              bg-muted/30
+              absolute
+              right-2
+              top-2
+              size-8
+              rounded-full
               shadow-sm
             "
           >
-
-            {
-              mediaType ===
-              'image'
-
-                ? (
-
-                  <img
-                    src={
-                      preview
-                    }
-                    alt="
-                      Selected media preview
-                    "
-                    className="
-                      block
-                      h-auto
-                      max-h-[500px]
-                      w-full
-                      object-contain
-                    "
-                  />
-
-                )
-
-                : (
-
-                  <video
-                    src={
-                      preview
-                    }
-                    controls
-                    playsInline
-                    className="
-                      block
-                      max-h-[500px]
-                      w-full
-                      object-contain
-                    "
-                  />
-
-                )
-            }
-
-
-            <Button
-              type="button"
-              size="icon"
-              variant="destructive"
-              disabled={
-                disabled
-              }
-              onClick={
-                removeMedia
-              }
-              aria-label="
-                Remove selected media
-              "
-              className="
-                absolute
-                right-3
-                top-3
-                size-9
-                rounded-full
-                shadow-sm
-              "
-            >
-
-              <X
-                className="
-                  size-4
-                "
-                aria-hidden={true}
-              />
-
-            </Button>
-
-          </div>
-
-        )
-      }
-
+            <X
+              className="size-4"
+              aria-hidden="true"
+            />
+          </Button>
+        </div>
+      )}
 
       <input
-        ref={
-          fileInputRef
-        }
+        ref={fileInputRef}
         hidden
         type="file"
-        accept="
-          image/*,
-          video/*
-        "
-        onChange={
-          handleFile
-        }
-        disabled={
-          disabled
-        }
+        accept="image/*,video/*"
+        onChange={handleFile}
+        disabled={disabled}
       />
-
 
       <Button
         type="button"
         variant="outline"
-        disabled={
-          disabled
-        }
+        disabled={disabled}
         onClick={() =>
-          fileInputRef
-            .current
-            ?.click()
+          fileInputRef.current?.click()
         }
         className="
-          h-11
+          h-10
           w-full
           gap-2
           rounded-xl
           border-border
-          bg-background/60
-          text-s
+          bg-background
+          px-3
+          text-xs
           font-medium
           shadow-sm
           transition-colors
           hover:bg-muted
-          sm:h-12
-          sm:text-base
+          sm:text-sm
         "
       >
+        {mediaType === 'video' ? (
+          <Video
+            className="size-4"
+            aria-hidden="true"
+          />
+        ) : (
+          <ImageIcon
+            className="size-4"
+            aria-hidden="true"
+          />
+        )}
 
-        {
-          mediaType ===
-          'video'
-
-            ? (
-
-              <Video
-                className="
-                  size-4
-                  sm:size-[18px]
-                "
-                aria-hidden="true"
-              />
-
-            )
-
-            : (
-
-              <ImageIcon
-                className="
-                  size-4
-                  sm:size-[18px]
-                "
-                aria-hidden="true"
-              />
-
-            )
-        }
-
-
-        <span>
-          {
-            preview
-              ? 'Change Match Media'
-              : 'Choose Match Media'
-          }
+        <span className="truncate">
+          {preview
+            ? 'Change Match Media'
+            : 'Choose Match Media'}
         </span>
-
 
         <Upload
           className="
+            ml-auto
             size-4
             text-muted-foreground
           "
           aria-hidden="true"
         />
-
       </Button>
-
 
       <p
         className="
           text-center
-          text-xs
+          text-[11px]
           text-muted-foreground
         "
       >
         Images or videos up to 20MB
       </p>
 
-
       <div
-        className="
-          sr-only
-        "
+        className="sr-only"
         aria-live="polite"
       >
-
-        {
-          preview
-            ? 'Media selected and ready to post.'
-            : 'No media selected.'
-        }
-
+        {preview
+          ? 'Media selected and ready to post.'
+          : 'No media selected.'}
       </div>
-
     </div>
-
   );
-
 }

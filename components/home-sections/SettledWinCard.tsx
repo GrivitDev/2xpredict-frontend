@@ -7,9 +7,7 @@ import {
   Trophy,
 } from 'lucide-react';
 
-import {
-  formatMatchTime,
-} from '@/lib/formatMatchTime';
+import { formatMatchTime } from '@/lib/formatMatchTime';
 
 import type {
   PredictionDetails,
@@ -32,6 +30,7 @@ interface SettledWinCardProps {
 function clampPercentage(
   value: number | undefined,
 ): number {
+
   if (
     typeof value !== 'number' ||
     Number.isNaN(value)
@@ -113,11 +112,10 @@ export default function SettledWinCard({
       prediction,
     );
 
-  return (
 
+  return (
     <article
       className="
-        group
         overflow-hidden
         rounded-xl
         border
@@ -129,9 +127,7 @@ export default function SettledWinCard({
       "
     >
 
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+      {/* HEADER */}
 
       <div
         className="
@@ -242,9 +238,7 @@ export default function SettledWinCard({
       </div>
 
 
-      {/* =====================================================
-          TEAMS
-      ===================================================== */}
+      {/* TEAMS */}
 
       <div
         className="
@@ -256,40 +250,24 @@ export default function SettledWinCard({
         "
       >
 
-        {/* HOME */}
-
         <Team
           name={prediction.homeTeam}
           badge={prediction.homeTeamBadge}
         />
 
 
-        {/* SCORE / VS */}
-
-        <div
+        <span
           className="
-            flex
-            flex-col
-            items-center
+            text-[8px]
+            font-bold
+            uppercase
+            tracking-wider
+            text-muted-foreground
           "
         >
+          VS
+        </span>
 
-          <span
-            className="
-              text-[8px]
-              font-bold
-              uppercase
-              tracking-wider
-              text-muted-foreground
-            "
-          >
-            VS
-          </span>
-
-        </div>
-
-
-        {/* AWAY */}
 
         <Team
           name={prediction.awayTeam}
@@ -299,9 +277,7 @@ export default function SettledWinCard({
       </div>
 
 
-      {/* =====================================================
-          DATE
-      ===================================================== */}
+      {/* DATE */}
 
       <p
         className="
@@ -318,113 +294,98 @@ export default function SettledWinCard({
       </p>
 
 
-      {/* =====================================================
-    PREDICTION
-===================================================== */}
+      {/* PREDICTION */}
 
-<div
-  className="
-    mt-3
-    rounded-lg
-    bg-muted/40
-    px-2.5
-    py-2
-  "
->
+      <div
+        className="
+          mt-3
+          rounded-lg
+          bg-muted/40
+          px-2.5
+          py-2
+        "
+      >
 
-  <p
-    className="
-      text-[9px]
-      font-bold
-      uppercase
-      tracking-wide
-      text-muted-foreground
-    "
-  >
-    Prediction
-  </p>
+        <p
+          className="
+            text-[9px]
+            font-bold
+            uppercase
+            tracking-wide
+            text-muted-foreground
+          "
+        >
+          Prediction
+        </p>
 
-  <p
-    className="
-      mt-0.5
-      truncate
-      text-[11px]
-      font-bold
-      text-foreground
-    "
-  >
-    {predictionLabel}
-  </p>
+        <p
+          className="
+            mt-0.5
+            truncate
+            text-[11px]
+            font-bold
+            text-foreground
+          "
+        >
+          {predictionLabel}
+        </p>
 
-</div>
+      </div>
 
 
-{/* =====================================================
-    CONFIDENCE
-===================================================== */}
+      {/* CONFIDENCE */}
 
-<div
-  className="
-    mt-3
-  "
->
+      <div className="mt-3">
 
-  <div
-    className="
-      flex
-      items-center
-      justify-between
-      text-[11px]
-      font-bold
-      uppercase
-      tracking-wide
-      text-muted-foreground
-    "
-  >
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            text-[11px]
+            font-bold
+            uppercase
+            tracking-wide
+            text-muted-foreground
+          "
+        >
 
-    <span>
-      Confidence
-    </span>
+          <span>Confidence</span>
 
-    <span
-      className="
-        text-foreground
-      "
-    >
-      {confidence}%
-    </span>
+          <span className="text-foreground">
+            {confidence}%
+          </span>
 
-  </div>
+        </div>
 
 
-  <div
-    className="
-      mt-1
-      h-1.5
-      overflow-hidden
-      rounded-full
-      bg-muted
-    "
-  >
+        <div
+          className="
+            mt-1
+            h-1.5
+            overflow-hidden
+            rounded-full
+            bg-muted
+          "
+        >
 
-    <div
-      className="
-        h-full
-        rounded-full
-        bg-primary
-      "
-      style={{
-        width: `${confidence}%`,
-      }}
-    />
+          <div
+            className="
+              h-full
+              rounded-full
+              bg-primary
+            "
+            style={{
+              width: `${confidence}%`,
+            }}
+          />
 
-  </div>
+        </div>
 
-</div>
+      </div>
 
-      {/* =====================================================
-          PROBABILITIES
-      ===================================================== */}
+
+      {/* PROBABILITIES */}
 
       <div
         className="
@@ -450,9 +411,8 @@ export default function SettledWinCard({
 
       </div>
 
-      {/* =====================================================
-          SETTLED
-      ===================================================== */}
+
+      {/* SETTLED */}
 
       <div
         className="
@@ -485,7 +445,6 @@ export default function SettledWinCard({
       </div>
 
     </article>
-
   );
 }
 
@@ -503,7 +462,6 @@ function Team({
 }) {
 
   return (
-
     <div
       className="
         flex
@@ -577,7 +535,6 @@ function Team({
       </p>
 
     </div>
-
   );
 }
 
@@ -595,7 +552,6 @@ function ProbabilityBar({
 }) {
 
   return (
-
     <div
       className="
         flex
@@ -652,6 +608,5 @@ function ProbabilityBar({
       </span>
 
     </div>
-
   );
 }

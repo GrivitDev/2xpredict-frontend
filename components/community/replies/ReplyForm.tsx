@@ -43,19 +43,14 @@ export default function ReplyForm({
     const trimmedMessage =
       message.trim();
 
-    if (
-      !trimmedMessage ||
-      loading
-    ) {
+    if (!trimmedMessage || loading) {
       return;
     }
 
     try {
       setLoading(true);
 
-      await onSubmit(
-        trimmedMessage,
-      );
+      await onSubmit(trimmedMessage);
 
       setMessage('');
 
@@ -86,16 +81,14 @@ export default function ReplyForm({
         flex
         w-full
         items-center
-        gap-2
+        gap-1.5
       "
       aria-busy={loading}
     >
       <Input
         value={message}
         onChange={(event) =>
-          setMessage(
-            event.target.value,
-          )
+          setMessage(event.target.value)
         }
         onKeyDown={(event) => {
           if (
@@ -103,7 +96,6 @@ export default function ReplyForm({
             !event.shiftKey
           ) {
             event.preventDefault();
-
             void submit();
           }
         }}
@@ -111,43 +103,48 @@ export default function ReplyForm({
         disabled={loading}
         aria-label="Write a reply"
         className="
-          h-11
+          h-9
           min-w-0
           flex-1
-          rounded-xl
+          rounded-lg
+          border-border/70
           bg-background
-          text-s
-          shadow-sm
-          placeholder:text-muted-foreground
-          focus-visible:ring-2
+          px-3
+          text-xs
+          shadow-none
+          placeholder:text-muted-foreground/70
+          focus-visible:ring-1
           focus-visible:ring-primary/30
+          sm:h-10
+          sm:text-sm
         "
       />
 
       <Button
         type="button"
-        onClick={() =>
-          void submit()
-        }
+        onClick={() => void submit()}
         disabled={isDisabled}
         className="
-          h-11
+          h-9
           shrink-0
-          gap-2
-          rounded-xl
-          px-4
-          shadow-sm
-          transition-all
+          rounded-lg
+          px-3
+          text-xs
+          shadow-none
+          transition-opacity
           active:scale-[0.98]
           disabled:pointer-events-none
-          disabled:opacity-60
+          disabled:opacity-50
+          sm:h-10
+          sm:px-3.5
+          sm:text-sm
         "
       >
         {loading ? (
           <>
             <Loader2
               className="
-                size-4
+                size-3.5
                 animate-spin
               "
               aria-hidden="true"
@@ -162,11 +159,9 @@ export default function ReplyForm({
             </span>
           </>
         ) : (
-          <>
-            <span>
-              Reply
-            </span>
-          </>
+          <span>
+            Reply
+          </span>
         )}
       </Button>
     </div>

@@ -7,7 +7,6 @@ import {
   Users,
 } from 'lucide-react';
 
-
 type Props = {
   summary: {
     totalSessions: number;
@@ -18,299 +17,207 @@ type Props = {
   };
 };
 
-
-
-
 export default function SessionSummaryCard({
   summary,
-}:Props){
-
-
-  const lastLogin =
-    summary.lastLogin
-      ?
-      new Date(
-        summary.lastLogin
-      ).toLocaleString()
-      :
-      'Never';
-
-
+}: Props) {
+  const lastLogin = summary.lastLogin
+    ? new Date(summary.lastLogin).toLocaleString()
+    : 'Never';
 
   return (
+    <section
+      aria-labelledby="session-summary-title"
+      className="
+        overflow-hidden
+        rounded-lg
+        border
+        border-border/60
+        bg-card
+      "
+    >
+      {/* Header */}
 
-    <div className="
-      group
-      relative
-      overflow-hidden
-      rounded-3xl
-      border
-      bg-card/60
-      p-6
-      shadow-xl
-      backdrop-blur-xl
-      transition
-      hover:-translate-y-1
-    ">
-
-
-      {/* GLOW */}
-
-      <div className="
-        absolute
-        inset-0
-        bg-gradient-to-br
-        from-blue-500/10
-        via-transparent
-        to-transparent
-      "/>
-
-
-
-      <div className="
-        relative
-        space-y-6
-      ">
-
-
-
-        {/* HEADER */}
-
-        <div className="
+      <header
+        className="
           flex
           items-center
-          gap-3
-        ">
-
-
-          <div className="
+          gap-2.5
+          border-b
+          border-border/60
+          px-4
+          py-3
+        "
+      >
+        <div
+          className="
             flex
-            h-11
-            w-11
+            h-8
+            w-8
+            shrink-0
             items-center
             justify-center
-            rounded-2xl
+            rounded-md
             bg-blue-500/10
-            text-blue-500
-          ">
+            text-blue-600
+            dark:text-blue-400
+          "
+        >
+          <Activity
+            aria-hidden="true"
+            className="h-4 w-4"
+          />
+        </div>
 
-            <Activity size={22}/>
-
-          </div>
-
-
-
-
-          <div>
-
-            <h2 className="
+        <div>
+          <h2
+            id="session-summary-title"
+            className="
+              text-sm
               font-semibold
-            ">
-              Sessions
-            </h2>
+              tracking-tight
+            "
+          >
+            Sessions
+          </h2>
 
-
-            <p className="
-              text-xs
-              text-muted-foreground
-            ">
-              Login activity & security
-            </p>
-
-
-          </div>
-
-
+          <p className="text-[10px] text-muted-foreground">
+            Login activity & security
+          </p>
         </div>
+      </header>
 
+      <div className="p-3">
+        {/* Session stats */}
 
-
-
-
-
-
-        {/* SESSION STATS */}
-
-        <div className="
-          grid
-          grid-cols-2
-          gap-4
-        ">
-
-
+        <div
+          className="
+            grid
+            grid-cols-2
+            gap-px
+            overflow-hidden
+            rounded-md
+            border
+            border-border/50
+            bg-border/50
+          "
+        >
           <Stat
-
             icon={
-              <Users size={15}/>
+              <Users
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
             }
-
             label="Total"
-
-            value={
-              summary.totalSessions
-            }
-
+            value={summary.totalSessions}
           />
-
-
 
           <Stat
-
             icon={
-              <ShieldCheck size={15}/>
+              <ShieldCheck
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
             }
-
             label="Active"
-
-            value={
-              summary.activeSessions
-            }
-
+            value={summary.activeSessions}
           />
-
-
         </div>
 
+        {/* Last login */}
 
-
-
-
-
-
-        {/* LAST LOGIN */}
-
-        <div className="
-          rounded-2xl
-          border
-          bg-background/40
-          p-4
-        ">
-
-
-          <div className="
-            flex
-            items-center
-            gap-2
-            text-xs
-            text-muted-foreground
-          ">
-
-            <Clock size={14}/>
+        <div
+          className="
+            mt-2
+            rounded-md
+            border
+            border-border/50
+            bg-background/40
+            px-3
+            py-2.5
+          "
+        >
+          <div
+            className="
+              flex
+              items-center
+              gap-1.5
+              text-[10px]
+              text-muted-foreground
+            "
+          >
+            <Clock
+              aria-hidden="true"
+              className="h-3.5 w-3.5"
+            />
 
             Last Login
-
           </div>
 
-
-
-          <p className="
-            mt-2
-            text-s
-            font-semibold
-          ">
-
+          <p className="mt-0.5 text-xs font-semibold">
             {lastLogin}
-
           </p>
-
-
         </div>
 
+        {/* Security status */}
 
-
-
-
-
-
-
-        {/* SECURITY STATUS */}
-
-        <div className="
-          flex
-          items-center
-          gap-2
-          rounded-xl
-          bg-blue-500/10
-          px-3
-          py-2
-          text-xs
-          text-blue-500
-        ">
-
-
-          <ShieldCheck size={15}/>
-
+        <div
+          role="status"
+          className="
+            mt-2
+            flex
+            items-center
+            gap-1.5
+            rounded-md
+            bg-blue-500/10
+            px-2.5
+            py-2
+            text-[10px]
+            font-medium
+            text-blue-600
+            dark:text-blue-400
+          "
+        >
+          <ShieldCheck
+            aria-hidden="true"
+            className="h-3.5 w-3.5"
+          />
 
           Account activity monitored
-
-
         </div>
-
-
-
-
       </div>
-
-
-    </div>
-
+    </section>
   );
-
 }
-
-
-
-
-
 
 function Stat({
   icon,
   label,
   value,
-}:{
-  icon:React.ReactNode;
-  label:string;
-  value:number;
-}){
-
-
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}) {
   return (
-
-    <div className="
-      rounded-xl
-      border
-      bg-background/30
-      p-3
-    ">
-
-
-      <div className="
-        flex
-        items-center
-        gap-2
-        text-xs
-        text-muted-foreground
-      ">
-
+    <div className="bg-card px-3 py-2.5">
+      <div
+        className="
+          flex
+          items-center
+          gap-1.5
+          text-[10px]
+          text-muted-foreground
+        "
+      >
         {icon}
 
-        {label}
-
+        <span>{label}</span>
       </div>
 
-
-
-      <p className="
-        mt-2
-        text-xl
-        font-bold
-      ">
+      <p className="mt-0.5 text-sm font-bold">
         {value}
       </p>
-
-
     </div>
-
   );
-
 }

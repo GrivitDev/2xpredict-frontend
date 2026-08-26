@@ -21,28 +21,22 @@ export default function PostSubmitButton({
       onClick={onClick}
       aria-busy={loading}
       className="
-        h-11
+        h-10
         w-full
+        gap-2
         rounded-xl
-        bg-primary
-        px-5
-        text-s
+        px-4
+        text-xs
         font-semibold
-        text-primary-foreground
         shadow-sm
-        transition-all
-        hover:bg-primary/90
-        active:scale-[0.99]
-        disabled:pointer-events-none
-        disabled:opacity-60
-        sm:h-12
-        sm:text-base
+        sm:h-11
+        sm:text-sm
       "
     >
       {loading ? (
         <>
           <Loader2
-            className="size-4 animate-spin sm:size-[18px]"
+            className="size-4 animate-spin"
             aria-hidden="true"
           />
           <span>Publishing...</span>

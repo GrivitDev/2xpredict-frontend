@@ -11,7 +11,6 @@ import {
 
 interface Props {
   prediction: any;
-
   onSubscriptionRequired?: () => void;
 }
 
@@ -19,146 +18,93 @@ export default function PredictionPredictionCell({
   prediction,
   onSubscriptionRequired,
 }: Props) {
-  const confidence =
-    Number(
-      prediction.confidence ?? 0,
-    );
+  const confidence = clamp(
+    prediction?.confidence,
+  );
 
   const access =
-    prediction.access ?? {};
+    prediction?.access ?? {};
 
   const accessLoading =
-    prediction.accessLoading ??
-    false;
+    prediction?.accessLoading ?? false;
 
   const accessError =
-    prediction.accessError ??
-    false;
+    prediction?.accessError ?? false;
 
   const canView =
     access.allowed === true;
 
   const userPlan =
-    access.plan ??
-    prediction.userPlan ??
-    'free';
+    normalizePlan(
+      access.plan ??
+        prediction?.userPlan,
+    );
 
   const predictionPlan =
-    prediction.accessType ??
-    'free';
+    normalizePlan(
+      prediction?.accessType ??
+        'free',
+    );
 
   const released =
     access.released === true;
 
   const releaseAt =
-    access.releaseAt ??
-    null;
+    access.releaseAt ?? null;
 
   const accessState =
-    access.state ??
-    '';
+    access.state ?? '';
 
   const accessMessage =
-    access.message ??
-    null;
+    access.message ?? null;
 
   const predictionValue =
-    prediction.prediction ??
-    null;
+    prediction?.prediction ?? null;
 
   const settled =
-    prediction.settled ??
-    prediction.isSettled ??
+    prediction?.settled ??
+    prediction?.isSettled ??
     false;
 
-  const outcome =
-    String(
-      prediction.outcome ??
-        prediction.result ??
-        prediction.status ??
-        '',
-    ).toLowerCase();
+  const outcome = String(
+    prediction?.outcome ??
+      prediction?.result ??
+      prediction?.status ??
+      '',
+  ).toLowerCase();
 
-  /*
-   * =========================================================
-   * LOADING
-   * =========================================================
-   */
+  /* =========================================================
+     LOADING
+  ========================================================= */
 
   if (accessLoading) {
-    return (
-      <div
-        className="
-          min-w-0
-          space-y-2
-        "
-      >
-        <div
-          className="
-            h-7
-            w-full
-            animate-pulse
-            rounded-lg
-            bg-muted
-          "
-        />
-
-        <div
-          className="
-            h-1.5
-            w-full
-            animate-pulse
-            rounded-full
-            bg-muted
-          "
-        />
-      </div>
-    );
+    return <PredictionSkeleton />;
   }
 
-  /*
-   * =========================================================
-   * ALLOWED
-   * =========================================================
-   */
+  /* =========================================================
+     ALLOWED
+  ========================================================= */
 
   if (canView) {
     return (
-      <div
-        className="
-          min-w-0
-          space-y-2
-        "
-      >
+      <div className="min-w-0 space-y-2">
         <PredictionDisplay
-          value={
-            predictionValue
-          }
-          prediction={
-            prediction
-          }
+          value={predictionValue}
+          prediction={prediction}
         />
 
         <Confidence
-          confidence={
-            confidence
-          }
-          settled={
-            settled
-          }
-          outcome={
-            outcome
-          }
+          confidence={confidence}
+          settled={settled}
+          outcome={outcome}
         />
       </div>
     );
   }
 
-  /*
-   * =========================================================
-   * LOCKED
-   * =========================================================
-   */
+  /* =========================================================
+     LOCKED
+  ========================================================= */
 
   const lockInfo =
     getPredictionLockInfo({
@@ -172,17 +118,10 @@ export default function PredictionPredictionCell({
     });
 
   return (
-    <div
-      className="
-        min-w-0
-        space-y-2
-      "
-    >
+    <div className="min-w-0 space-y-2">
       <button
         type="button"
-        onClick={
-          onSubscriptionRequired
-        }
+        onClick={onSubscriptionRequired}
         className="
           group
           w-full
@@ -202,14 +141,7 @@ export default function PredictionPredictionCell({
           focus:ring-primary/30
         "
       >
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            gap-1.5
-          "
-        >
+        <div className="flex min-w-0 items-center gap-1.5">
           <span
             className="
               flex
@@ -226,11 +158,7 @@ export default function PredictionPredictionCell({
             {lockInfo.icon}
           </span>
 
-          <div
-            className="
-              min-w-0
-            "
-          >
+          <div className="min-w-0">
             <p
               className="
                 truncate
@@ -247,7 +175,7 @@ export default function PredictionPredictionCell({
                 truncate
                 text-[9px]
                 text-muted-foreground
-            "
+              "
             >
               {lockInfo.description}
             </p>
@@ -268,28 +196,49 @@ export default function PredictionPredictionCell({
               "
             >
               Available from{' '}
-              {formatReleaseDate(
-                releaseAt,
-              )}
+              {formatReleaseDate(releaseAt)}
             </p>
           )}
       </button>
 
       <Confidence
-        confidence={
-          confidence
-        }
-        settled={
-          settled
-        }
-        outcome={
-          outcome
-        }
+        confidence={confidence}
+        settled={settled}
+        outcome={outcome}
       />
     </div>
   );
 }
 
+/* =========================================================
+   SKELETON
+========================================================= */
+
+function PredictionSkeleton() {
+  return (
+    <div className="min-w-0 space-y-2">
+      <div
+        className="
+          h-7
+          w-full
+          animate-pulse
+          rounded-lg
+          bg-muted
+        "
+      />
+
+      <div
+        className="
+          h-1.5
+          w-full
+          animate-pulse
+          rounded-full
+          bg-muted
+        "
+      />
+    </div>
+  );
+}
 
 /* =========================================================
    LOCK INFORMATION
@@ -304,233 +253,121 @@ function getPredictionLockInfo({
   accessMessage,
   accessError,
 }: {
-  userPlan: string;
-  predictionPlan: string;
+  userPlan: Plan;
+  predictionPlan: Plan;
   released: boolean;
   releaseAt: number | null;
   accessState: string;
   accessMessage?: string | null;
   accessError: boolean;
 }) {
-  /*
-   * LOGIN
-   */
-
   if (
     accessError ||
-    accessState ===
-      'login_required'
+    accessState === 'login_required'
   ) {
     return {
       title: 'Login required',
-      description:
-        'Login to view this prediction.',
-      icon: (
-        <Lock size={10} />
-      ),
+      description: 'Login to view this prediction.',
+      icon: <Lock size={10} />,
       showReleaseDate: false,
     };
   }
 
-  /*
-   * USER DOES NOT HAVE THE
-   * REQUIRED SUBSCRIPTION LEVEL.
-   *
-   * This must come before release
-   * checking because the user may
-   * not even qualify for the prediction.
-   */
-
-  if (
-    accessState ===
-    'upgrade_required'
-  ) {
-    /*
-     * VIP prediction.
-     *
-     * Free and Regular users both
-     * need VIP.
-     */
-
-    if (
-      predictionPlan ===
-      'vip'
-    ) {
+  if (accessState === 'upgrade_required') {
+    if (predictionPlan === 'vip') {
       return {
-        title:
-          'VIP Required',
+        title: 'VIP Required',
         description:
           'Upgrade to VIP to unlock this prediction.',
-        icon: (
-          <Crown size={10} />
-        ),
+        icon: <Crown size={10} />,
         showReleaseDate: false,
       };
     }
 
-    /*
-     * Regular prediction.
-     *
-     * Free users can upgrade to
-     * Regular.
-     */
-
-    if (
-      predictionPlan ===
-      'regular'
-    ) {
+    if (predictionPlan === 'regular') {
       return {
-        title:
-          'Regular Required',
+        title: 'Regular Required',
         description:
           'Upgrade to Regular or VIP to unlock this prediction.',
-        icon: (
-          <Lock size={10} />
-        ),
-        showReleaseDate:
-          !released,
+        icon: <Lock size={10} />,
+        showReleaseDate: !released,
       };
     }
   }
 
-  /*
-   * =========================================================
-   * CORRECT RELEASE-WINDOW MESSAGES
-   * =========================================================
-   */
-
   if (
-    accessState ===
-      'locked' &&
+    accessState === 'locked' &&
     !released
   ) {
-    /*
-     * REGULAR USER
-     * looking at REGULAR prediction.
-     *
-     * Regular can access it eventually,
-     * but VIP gets it earlier.
-     */
-
     if (
-      userPlan ===
-        'regular' &&
-      predictionPlan ===
-        'regular'
+      userPlan === 'regular' &&
+      predictionPlan === 'regular'
     ) {
       return {
-        title:
-          'Not Released to Regular',
+        title: 'Not Released to Regular',
         description:
           'Upgrade to VIP to see this prediction earlier.',
-        icon: (
-          <Crown size={10} />
-        ),
-        showReleaseDate:
-          true,
+        icon: <Crown size={10} />,
+        showReleaseDate: Boolean(releaseAt),
       };
     }
 
-    /*
-     * VIP USER
-     * looking at a prediction that
-     * has not reached VIP release time.
-     */
-
-    if (
-      userPlan ===
-        'vip'
-    ) {
+    if (userPlan === 'vip') {
       return {
-        title:
-          'Not Released Yet',
+        title: 'Not Released Yet',
         description:
           accessMessage ??
           'This prediction will be released closer to kickoff.',
-        icon: (
-          <Clock3 size={10} />
-        ),
-        showReleaseDate:
-          true,
+        icon: <Clock3 size={10} />,
+        showReleaseDate: Boolean(releaseAt),
       };
     }
 
-    /*
-     * FREE USER
-     * looking at a FREE prediction
-     * before its release window.
-     */
-
     if (
-      userPlan ===
-        'free' &&
-      predictionPlan ===
-        'free'
+      userPlan === 'free' &&
+      predictionPlan === 'free'
     ) {
       return {
-        title:
-          'Not Released Yet',
+        title: 'Not Released Yet',
         description:
           accessMessage ??
           'This prediction will be available closer to kickoff.',
-        icon: (
-          <Clock3 size={10} />
-        ),
-        showReleaseDate:
-          true,
+        icon: <Clock3 size={10} />,
+        showReleaseDate: Boolean(releaseAt),
       };
     }
 
-    /*
-     * Fallback.
-     */
-
     return {
-      title:
-        'Not Released Yet',
+      title: 'Not Released Yet',
       description:
         accessMessage ??
         'This prediction will be available closer to kickoff.',
-      icon: (
-        <Clock3 size={10} />
-      ),
-      showReleaseDate:
-        Boolean(releaseAt),
+      icon: <Clock3 size={10} />,
+      showReleaseDate: Boolean(releaseAt),
     };
   }
 
-  /*
-   * =========================================================
-   * FALLBACK
-   * =========================================================
-   */
+  const isVip =
+    predictionPlan === 'vip';
 
   return {
-    title:
-      predictionPlan ===
-      'vip'
-        ? 'VIP Required'
-        : 'Subscription Required',
+    title: isVip
+      ? 'VIP Required'
+      : 'Subscription Required',
 
     description:
       accessMessage ??
       'Upgrade your subscription to unlock this prediction.',
 
-    icon:
-      predictionPlan ===
-      'vip'
-        ? (
-          <Crown size={10} />
-        )
-        : (
-          <Lock size={10} />
-        ),
+    icon: isVip ? (
+      <Crown size={10} />
+    ) : (
+      <Lock size={10} />
+    ),
 
-    showReleaseDate:
-      false,
+    showReleaseDate: false,
   };
 }
-
 
 /* =========================================================
    PREDICTION DISPLAY
@@ -543,113 +380,62 @@ function PredictionDisplay({
   value: any;
   prediction: any;
 }) {
-  const normalized =
-    String(
-      value ?? '',
-    ).toUpperCase();
+  const normalized = String(
+    value ?? '',
+  ).toUpperCase();
 
-  let teamName =
-    'Prediction unavailable';
-
-  let teamBadge:
-    | string
-    | undefined;
-
-  if (
-    normalized ===
-    'HOME'
-  ) {
-    teamName =
-      prediction.homeTeam;
-
-    teamBadge =
-      prediction.homeTeamBadge;
-  } else if (
-    normalized ===
-    'AWAY'
-  ) {
-    teamName =
-      prediction.awayTeam;
-
-    teamBadge =
-      prediction.awayTeamBadge;
-  } else if (
-    normalized ===
-    'DRAW'
-  ) {
-    teamName =
-      'Match to draw';
-  } else {
-    teamName =
-      String(
-        value ??
-          'Prediction unavailable',
-      );
-  }
-
-  const isTeamPrediction =
-    normalized ===
-      'HOME' ||
-    normalized ===
-      'AWAY';
+  const {
+    teamName,
+    teamBadge,
+    isTeamPrediction,
+  } = resolvePrediction(
+    normalized,
+    prediction,
+  );
 
   return (
-    <div
-      className="
-        flex
-        min-w-0
-        items-center
-        gap-2
-      "
-    >
-      {isTeamPrediction &&
-        (
-          teamBadge ? (
-            <Image
-              src={
-                teamBadge
-              }
-              alt={
-                teamName
-              }
-              width={24}
-              height={24}
-              className="
-                h-6
-                w-6
-                shrink-0
-                rounded-full
-                border
-                border-border
-                bg-background
-                object-contain
-                p-0.5
-              "
-            />
-          ) : (
-            <div
-              className="
-                flex
-                h-6
-                w-6
-                shrink-0
-                items-center
-                justify-center
-                rounded-full
-                bg-muted
-                text-[8px]
-                font-bold
-                text-muted-foreground
-              "
-            >
-              {teamName
-                ?.charAt(
-                  0,
-                )
-                ?.toUpperCase()}
-            </div>
-          )
-        )}
+    <div className="flex min-w-0 items-center gap-2">
+      {isTeamPrediction && (
+        teamBadge ? (
+          <Image
+            src={teamBadge}
+            alt={teamName}
+            width={24}
+            height={24}
+            className="
+              h-6
+              w-6
+              shrink-0
+              rounded-full
+              border
+              border-border
+              bg-background
+              object-contain
+              p-0.5
+            "
+          />
+        ) : (
+          <div
+            className="
+              flex
+              h-6
+              w-6
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              bg-muted
+              text-[8px]
+              font-bold
+              text-muted-foreground
+            "
+          >
+            {teamName
+              ?.charAt(0)
+              ?.toUpperCase()}
+          </div>
+        )
+      )}
 
       <p
         className="
@@ -673,6 +459,49 @@ function PredictionDisplay({
   );
 }
 
+function resolvePrediction(
+  value: string,
+  prediction: any,
+) {
+  if (value === 'HOME') {
+    return {
+      teamName:
+        prediction?.homeTeam ??
+        'Home Team',
+      teamBadge:
+        prediction?.homeTeamBadge,
+      isTeamPrediction: true,
+    };
+  }
+
+  if (value === 'AWAY') {
+    return {
+      teamName:
+        prediction?.awayTeam ??
+        'Away Team',
+      teamBadge:
+        prediction?.awayTeamBadge,
+      isTeamPrediction: true,
+    };
+  }
+
+  if (value === 'DRAW') {
+    return {
+      teamName: 'Match to draw',
+      teamBadge: undefined,
+      isTeamPrediction: false,
+    };
+  }
+
+  return {
+    teamName:
+      String(
+        value || 'Prediction unavailable',
+      ),
+    teamBadge: undefined,
+    isTeamPrediction: false,
+  };
+}
 
 /* =========================================================
    CONFIDENCE
@@ -688,11 +517,7 @@ function Confidence({
   outcome: string;
 }) {
   return (
-    <div
-      className="
-        space-y-1
-      "
-    >
+    <div className="space-y-1">
       <div
         className="
           flex
@@ -733,24 +558,11 @@ function Confidence({
       >
         <div
           className={clsx(
-            `
-              h-full
-              rounded-full
-              transition-all
-              duration-500
-            `,
-            getBarColor(
-              confidence,
-            ),
+            'h-full rounded-full transition-all duration-500',
+            getBarColor(confidence),
           )}
           style={{
-            width: `${Math.min(
-              100,
-              Math.max(
-                0,
-                confidence,
-              ),
-            )}%`,
+            width: `${confidence}%`,
           }}
         />
       </div>
@@ -766,18 +578,11 @@ function Confidence({
       >
         <span
           className={clsx(
-            `
-              text-[10px]
-              font-semibold
-            `,
-            getTextColor(
-              confidence,
-            ),
+            'text-[10px] font-semibold',
+            getTextColor(confidence),
           )}
         >
-          {getConfidenceLabel(
-            confidence,
-          )}
+          {getConfidenceLabel(confidence)}
         </span>
 
         {settled && (
@@ -792,14 +597,10 @@ function Confidence({
                 uppercase
                 leading-none
               `,
-              getOutcomeClass(
-                outcome,
-              ),
+              getOutcomeClass(outcome),
             )}
           >
-            {getOutcomeLabel(
-              outcome,
-            )}
+            {getOutcomeLabel(outcome)}
           </span>
         )}
       </div>
@@ -807,21 +608,17 @@ function Confidence({
   );
 }
 
-
 /* =========================================================
-   DATE
+   RELEASE DATE
 ========================================================= */
 
 function formatReleaseDate(
   timestamp: number,
 ) {
-  const date =
-    new Date(timestamp);
+  const date = new Date(timestamp);
 
   if (
-    Number.isNaN(
-      date.getTime(),
-    )
+    Number.isNaN(date.getTime())
   ) {
     return 'later';
   }
@@ -838,7 +635,6 @@ function formatReleaseDate(
   );
 }
 
-
 /* =========================================================
    CONFIDENCE LABEL
 ========================================================= */
@@ -846,27 +642,20 @@ function formatReleaseDate(
 function getConfidenceLabel(
   confidence: number,
 ) {
-  if (
-    confidence >= 85
-  ) {
+  if (confidence >= 85) {
     return 'Very High';
   }
 
-  if (
-    confidence >= 75
-  ) {
+  if (confidence >= 75) {
     return 'High';
   }
 
-  if (
-    confidence >= 60
-  ) {
+  if (confidence >= 60) {
     return 'Medium';
   }
 
   return 'Low';
 }
-
 
 /* =========================================================
    CONFIDENCE BAR
@@ -875,27 +664,20 @@ function getConfidenceLabel(
 function getBarColor(
   confidence: number,
 ) {
-  if (
-    confidence >= 85
-  ) {
+  if (confidence >= 85) {
     return 'bg-emerald-500';
   }
 
-  if (
-    confidence >= 75
-  ) {
+  if (confidence >= 75) {
     return 'bg-lime-500';
   }
 
-  if (
-    confidence >= 60
-  ) {
+  if (confidence >= 60) {
     return 'bg-amber-500';
   }
 
   return 'bg-orange-500';
 }
-
 
 /* =========================================================
    CONFIDENCE TEXT
@@ -904,27 +686,21 @@ function getBarColor(
 function getTextColor(
   confidence: number,
 ) {
-  if (
-    confidence >= 85
-  ) {
+  if (confidence >= 85) {
     return `
       text-emerald-600
       dark:text-emerald-400
     `;
   }
 
-  if (
-    confidence >= 75
-  ) {
+  if (confidence >= 75) {
     return `
       text-lime-600
       dark:text-lime-400
     `;
   }
 
-  if (
-    confidence >= 60
-  ) {
+  if (confidence >= 60) {
     return `
       text-amber-600
       dark:text-amber-400
@@ -936,7 +712,6 @@ function getTextColor(
     dark:text-orange-400
   `;
 }
-
 
 /* =========================================================
    SETTLEMENT LABEL
@@ -958,13 +733,9 @@ function getOutcomeLabel(
       return 'Void';
 
     default:
-      return (
-        outcome ||
-        'Settled'
-      );
+      return outcome || 'Settled';
   }
 }
-
 
 /* =========================================================
    SETTLEMENT COLOR
@@ -1003,4 +774,55 @@ function getOutcomeClass(
         text-muted-foreground
       `;
   }
+}
+
+/* =========================================================
+   PLAN
+========================================================= */
+
+type Plan =
+  | 'free'
+  | 'regular'
+  | 'vip';
+
+function normalizePlan(
+  value: unknown,
+): Plan {
+  const normalized = String(
+    value ?? 'free',
+  )
+    .trim()
+    .toLowerCase();
+
+  if (normalized === 'vip') {
+    return 'vip';
+  }
+
+  if (normalized === 'regular') {
+    return 'regular';
+  }
+
+  return 'free';
+}
+
+/* =========================================================
+   SAFE NUMBER
+========================================================= */
+
+function clamp(
+  value: unknown,
+): number {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(number),
+    ),
+  );
 }

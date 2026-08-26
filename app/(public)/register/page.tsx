@@ -26,10 +26,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { InternalAds } from '@/components/ads/IntAds/InternalAds';
-import { AdPage } from '@/constants/ads/ad-page';
-import { AdPosition } from '@/constants/ads/ad-position';
-
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -40,18 +36,28 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] =
+    useState('');
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
+
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false);
 
+  /* ======================================== */
+  /* REFERRAL / PROMO PARAMETERS */
+  /* ======================================== */
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(
+      window.location.search,
+    );
 
     setReferralCode(
       params.get('referralCode') ??
@@ -65,6 +71,10 @@ export default function RegisterPage() {
         '',
     );
   }, []);
+
+  /* ======================================== */
+  /* EMAIL VALIDATION */
+  /* ======================================== */
 
   const disposableEmailDomains = [
     'tempmail.com',
@@ -90,13 +100,16 @@ export default function RegisterPage() {
     if (!emailRegex.test(cleanEmail)) {
       return {
         valid: false,
-        message: 'Please enter a valid email address.',
+        message:
+          'Please enter a valid email address.',
       };
     }
 
     const domain = cleanEmail.split('@')[1];
 
-    if (disposableEmailDomains.includes(domain)) {
+    if (
+      disposableEmailDomains.includes(domain)
+    ) {
       return {
         valid: false,
         message:
@@ -109,6 +122,10 @@ export default function RegisterPage() {
       email: cleanEmail,
     };
   };
+
+  /* ======================================== */
+  /* PHONE VALIDATION */
+  /* ======================================== */
 
   const validatePhone = (value: string) => {
     const cleanPhone = value
@@ -123,7 +140,8 @@ export default function RegisterPage() {
     if (!phoneRegex.test(cleanPhone)) {
       return {
         valid: false,
-        message: 'Please enter a valid phone number.',
+        message:
+          'Please enter a valid phone number.',
       };
     }
 
@@ -133,32 +151,44 @@ export default function RegisterPage() {
     };
   };
 
+  /* ======================================== */
+  /* REGISTER */
+  /* ======================================== */
+
   const handleRegister = async (
     e: React.FormEvent,
   ) => {
     e.preventDefault();
 
-    const emailValidation = validateEmail(email);
+    const emailValidation =
+      validateEmail(email);
 
     if (!emailValidation.valid) {
       toast.error(
-        emailValidation.message || 'Invalid email',
+        emailValidation.message ||
+          'Invalid email',
       );
+
       return;
     }
 
-    const phoneValidation = validatePhone(phoneNumber);
+    const phoneValidation =
+      validatePhone(phoneNumber);
 
     if (!phoneValidation.valid) {
       toast.error(
         phoneValidation.message ||
           'Invalid phone number',
       );
+
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
+      toast.error(
+        'Passwords do not match.',
+      );
+
       return;
     }
 
@@ -166,6 +196,7 @@ export default function RegisterPage() {
       toast.error(
         'Password must be at least 6 characters.',
       );
+
       return;
     }
 
@@ -174,13 +205,25 @@ export default function RegisterPage() {
 
       await registerUser({
         fullName: fullName.trim(),
-        username: username.trim().toLowerCase(),
-        phoneNumber: phoneValidation.phone!,
-        email: emailValidation.email!,
+        username: username
+          .trim()
+          .toLowerCase(),
+
+        phoneNumber:
+          phoneValidation.phone!,
+
+        email:
+          emailValidation.email!,
+
         password,
+
         referralCode:
-          referralCode.trim() || undefined,
-        promoCode: promoCode.trim() || undefined,
+          referralCode.trim() ||
+          undefined,
+
+        promoCode:
+          promoCode.trim() ||
+          undefined,
       });
 
       setSuccess(true);
@@ -217,6 +260,10 @@ export default function RegisterPage() {
     }
   };
 
+  /* ======================================== */
+  /* PROFILE PROGRESS */
+  /* ======================================== */
+
   const fields = [
     fullName,
     username,
@@ -227,8 +274,14 @@ export default function RegisterPage() {
   ];
 
   const progress = Math.round(
-    (fields.filter(Boolean).length / fields.length) * 100,
+    (fields.filter(Boolean).length /
+      fields.length) *
+      100,
   );
+
+  /* ======================================== */
+  /* PASSWORD STRENGTH */
+  /* ======================================== */
 
   const passwordStrength =
     password.length < 6
@@ -248,7 +301,7 @@ export default function RegisterPage() {
       "
     >
       {/* ======================================== */}
-      {/* BACKGROUND */}
+      {/* LIGHTWEIGHT BACKGROUND */}
       {/* ======================================== */}
 
       <div
@@ -267,8 +320,7 @@ export default function RegisterPage() {
             h-[420px]
             w-[420px]
             rounded-full
-            bg-primary/15
-            blur-[150px]
+            bg-primary/10
           "
         />
 
@@ -280,23 +332,7 @@ export default function RegisterPage() {
             h-[420px]
             w-[420px]
             rounded-full
-            bg-cyan-500/10
-            blur-[150px]
-          "
-        />
-
-        <div
-          className="
-            absolute
-            left-1/2
-            top-1/2
-            h-[600px]
-            w-[600px]
-            -translate-x-1/2
-            -translate-y-1/2
-            rounded-full
-            bg-foreground/[0.025]
-            blur-[180px]
+            bg-cyan-500/5
           "
         />
 
@@ -311,11 +347,6 @@ export default function RegisterPage() {
           "
         />
       </div>
-
-      <InternalAds
-        page={AdPage.HOME}
-        position={AdPosition.POPUP}
-      />
 
       {/* ======================================== */}
       {/* MAIN */}
@@ -412,7 +443,6 @@ export default function RegisterPage() {
                 "
               >
                 Join
-
                 <br />
 
                 <span
@@ -435,14 +465,14 @@ export default function RegisterPage() {
                 className="
                   mt-4
                   max-w-md
-                  text-s
+                  text-sm
                   leading-6
                   text-muted-foreground
                 "
               >
-                Create your account and get access to
-                football predictions, VIP tips, match
-                analytics and live updates.
+                Create your account and get access
+                to football predictions, VIP tips,
+                match analytics and live updates.
               </p>
 
               {/* ======================================== */}
@@ -477,7 +507,7 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* SMALL TRUST LINE */}
+              {/* TRUST LINE */}
 
               <div
                 className="
@@ -491,8 +521,8 @@ export default function RegisterPage() {
               >
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
 
-                Built for football fans who want better
-                information.
+                Built for football fans who want
+                better information.
               </div>
             </div>
           </div>
@@ -510,10 +540,9 @@ export default function RegisterPage() {
                 rounded-2xl
                 border
                 border-border/70
-                bg-card/75
+                bg-card
                 p-5
                 shadow-2xl
-                backdrop-blur-2xl
                 sm:p-6
               "
             >
@@ -539,8 +568,8 @@ export default function RegisterPage() {
                     width={52}
                     height={52}
                     className="
-                      h-45
-                      w-45
+                      h-[52px]
+                      w-[52px]
                       object-contain
                     "
                     priority
@@ -561,6 +590,7 @@ export default function RegisterPage() {
                   "
                 >
                   <Sparkles className="h-3 w-3" />
+
                   Create Your Account
                 </div>
 
@@ -582,7 +612,8 @@ export default function RegisterPage() {
                     text-muted-foreground
                   "
                 >
-                  Create your account to get started.
+                  Create your account to get
+                  started.
                 </p>
               </div>
 
@@ -625,7 +656,10 @@ export default function RegisterPage() {
                 value={phoneNumber}
                 onChange={(value) =>
                   setPhoneNumber(
-                    value.replace(/[^\d+]/g, ''),
+                    value.replace(
+                      /[^\d+]/g,
+                      '',
+                    ),
                   )
                 }
               />
@@ -684,16 +718,19 @@ export default function RegisterPage() {
                 placeholder="Password"
                 visible={showPassword}
                 onToggle={() =>
-                  setShowPassword(!showPassword)
+                  setShowPassword(
+                    !showPassword,
+                  )
                 }
                 onChange={setPassword}
               />
 
+              {/* ======================================== */}
               {/* PASSWORD STRENGTH */}
+              {/* ======================================== */}
 
               {password && (
                 <div className="mb-3">
-
                   <div
                     className="
                       mb-1.5
@@ -709,9 +746,11 @@ export default function RegisterPage() {
 
                     <span
                       className={
-                        passwordStrength === 'Strong'
+                        passwordStrength ===
+                        'Strong'
                           ? 'font-semibold text-green-500'
-                          : passwordStrength === 'Medium'
+                          : passwordStrength ===
+                              'Medium'
                             ? 'font-semibold text-yellow-500'
                             : 'font-semibold text-red-500'
                       }
@@ -732,12 +771,12 @@ export default function RegisterPage() {
                       className={`
                         h-full
                         rounded-full
-                        transition-all
-                        duration-300
                         ${
-                          passwordStrength === 'Strong'
+                          passwordStrength ===
+                          'Strong'
                             ? 'w-full bg-green-500'
-                            : passwordStrength === 'Medium'
+                            : passwordStrength ===
+                                'Medium'
                               ? 'w-2/3 bg-yellow-500'
                               : 'w-1/3 bg-red-500'
                         }
@@ -763,7 +802,9 @@ export default function RegisterPage() {
                 onChange={setConfirmPassword}
               />
 
+              {/* ======================================== */}
               {/* PASSWORD MATCH */}
+              {/* ======================================== */}
 
               {confirmPassword && (
                 <div
@@ -775,15 +816,18 @@ export default function RegisterPage() {
                     text-xs
                     font-medium
                     ${
-                      password === confirmPassword
+                      password ===
+                      confirmPassword
                         ? 'text-green-500'
                         : 'text-destructive'
                     }
                   `}
                 >
-                  {password === confirmPassword ? (
+                  {password ===
+                  confirmPassword ? (
                     <>
                       <CheckCircle2 className="h-3.5 w-3.5" />
+
                       Passwords match.
                     </>
                   ) : (
@@ -797,7 +841,6 @@ export default function RegisterPage() {
               {/* ======================================== */}
 
               <div className="mb-4">
-
                 <div
                   className="
                     mb-1.5
@@ -829,8 +872,6 @@ export default function RegisterPage() {
                       h-full
                       rounded-full
                       bg-primary
-                      transition-all
-                      duration-300
                     "
                     style={{
                       width: `${progress}%`,
@@ -840,7 +881,7 @@ export default function RegisterPage() {
               </div>
 
               {/* ======================================== */}
-              {/* SUCCESS */}
+              {/* SUCCESS / REGISTER */}
               {/* ======================================== */}
 
               {success ? (
@@ -873,7 +914,7 @@ export default function RegisterPage() {
 
                   <h3
                     className="
-                      text-s
+                      text-sm
                       font-bold
                       text-green-500
                     "
@@ -889,8 +930,8 @@ export default function RegisterPage() {
                       text-muted-foreground
                     "
                   >
-                    We sent a verification link to
-                    your email.
+                    We sent a verification link
+                    to your email.
                   </p>
                 </div>
               ) : (
@@ -898,10 +939,10 @@ export default function RegisterPage() {
                   type="submit"
                   disabled={
                     loading ||
-                    password !== confirmPassword
+                    password !==
+                      confirmPassword
                   }
                   className="
-                    group
                     flex
                     h-12
                     w-full
@@ -910,22 +951,18 @@ export default function RegisterPage() {
                     gap-2
                     rounded-xl
                     bg-primary
-                    text-s
+                    text-sm
                     font-bold
                     text-primary-foreground
                     shadow-lg
                     shadow-primary/20
-                    transition-all
-                    duration-200
-                    hover:-translate-y-0.5
-                    hover:shadow-xl
-                    hover:shadow-primary/25
                     disabled:pointer-events-none
                     disabled:opacity-50
                   "
                 >
                   {loading ? (
                     <>
+                      {/* Native CSS loader */}
                       <div
                         className="
                           h-4
@@ -944,14 +981,7 @@ export default function RegisterPage() {
                     <>
                       Create Account
 
-                      <ArrowRight
-                        className="
-                          h-4
-                          w-4
-                          transition-transform
-                          group-hover:translate-x-1
-                        "
-                      />
+                      <ArrowRight className="h-4 w-4" />
                     </>
                   )}
                 </button>
@@ -976,7 +1006,6 @@ export default function RegisterPage() {
                   className="
                     font-semibold
                     text-primary
-                    transition
                     hover:underline
                   "
                 >
@@ -1010,10 +1039,9 @@ function StatCard({
         rounded-xl
         border
         border-border/70
-        bg-card/60
+        bg-card
         p-3
         shadow-sm
-        backdrop-blur-xl
       "
     >
       <div className="mb-2 text-primary">
@@ -1075,13 +1103,12 @@ function InputField({
           rounded-xl
           border
           border-input
-          bg-background/70
+          bg-background
           pl-10
           pr-4
-          text-s
+          text-sm
           text-foreground
           outline-none
-          transition
           placeholder:text-muted-foreground
           focus:border-primary/50
           focus:ring-2
@@ -1137,13 +1164,12 @@ function PasswordField({
           rounded-xl
           border
           border-input
-          bg-background/70
+          bg-background
           pl-10
           pr-11
-          text-s
+          text-sm
           text-foreground
           outline-none
-          transition
           placeholder:text-muted-foreground
           focus:border-primary/50
           focus:ring-2
@@ -1161,7 +1187,6 @@ function PasswordField({
           top-1/2
           -translate-y-1/2
           text-muted-foreground
-          transition
           hover:text-foreground
         "
         aria-label={
@@ -1238,7 +1263,7 @@ function CodeField({
           bg-transparent
           pl-10
           pr-28
-          text-s
+          text-sm
           text-foreground
           outline-none
         "

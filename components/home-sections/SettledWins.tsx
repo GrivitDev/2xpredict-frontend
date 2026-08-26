@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 
@@ -27,9 +26,7 @@ import SettledWinCard from './SettledWinCard';
 // ============================================================
 
 const INITIAL_VISIBLE_COUNT = 8;
-
 const MIN_WINS = 20;
-
 const MAX_WINS = 50;
 
 
@@ -52,17 +49,11 @@ function getDate(
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date;
+  return Number.isNaN(date.getTime())
+    ? null
+    : date;
 }
 
-
-// ============================================================
-// LAST MONTH
-// ============================================================
 
 function isLastMonth(
   date: Date,
@@ -91,15 +82,12 @@ function isLastMonth(
       1,
     );
 
-  return (
-    date >= start &&
-    date < end
-  );
+  return date >= start && date < end;
 }
 
 
 // ============================================================
-// RANDOMIZED QUALITY ORDER
+// SELECT WINS
 // ============================================================
 
 function selectWins(
@@ -116,50 +104,36 @@ function selectWins(
     return [];
   }
 
-  const recent =
-    won.filter(
-      prediction => {
 
-        const date =
-          getDate(prediction);
+  const recent: PredictionDetails[] = [];
+  const older: PredictionDetails[] = [];
 
-        return (
-          date !== null &&
-          isLastMonth(date)
-        );
-      },
-    );
+  for (const prediction of won) {
 
-  const older =
-    won.filter(
-      prediction => {
+    const date =
+      getDate(prediction);
 
-        const date =
-          getDate(prediction);
+    if (!date) {
+      continue;
+    }
 
-        return (
-          date !== null &&
-          !isLastMonth(date)
-        );
-      },
-    );
+    if (isLastMonth(date)) {
+      recent.push(prediction);
+    } else {
+      older.push(prediction);
+    }
+  }
 
-
-  // ----------------------------------------------------------
-  // SCORE QUALITY
-  // ----------------------------------------------------------
 
   const score =
-    (
-      prediction: PredictionDetails,
-    ) => {
+    (prediction: PredictionDetails): number => {
 
       const confidence =
         Number(
           prediction.confidence ?? 0,
         );
 
-      const probability =
+      const probabilities =
         prediction.data?.probabilities;
 
       const selection =
@@ -170,21 +144,17 @@ function selectWins(
       if (selection === 'HOME') {
         winningProbability =
           Number(
-            probability?.home ?? 0,
+            probabilities?.home ?? 0,
           );
-      }
-
-      if (selection === 'DRAW') {
+      } else if (selection === 'DRAW') {
         winningProbability =
           Number(
-            probability?.draw ?? 0,
+            probabilities?.draw ?? 0,
           );
-      }
-
-      if (selection === 'AWAY') {
+      } else if (selection === 'AWAY') {
         winningProbability =
           Number(
-            probability?.away ?? 0,
+            probabilities?.away ?? 0,
           );
       }
 
@@ -195,10 +165,6 @@ function selectWins(
     };
 
 
-  // ----------------------------------------------------------
-  // QUALITY POOL
-  // ----------------------------------------------------------
-
   const sortByQuality =
     (
       a: PredictionDetails,
@@ -206,65 +172,35 @@ function selectWins(
     ) =>
       score(b) - score(a);
 
-  const recentSorted =
-    [...recent]
-      .sort(sortByQuality);
 
-  const olderSorted =
-    [...older]
-      .sort(sortByQuality);
+  recent.sort(sortByQuality);
+  older.sort(sortByQuality);
 
-
-  // ----------------------------------------------------------
-  // PREFER LAST MONTH
-  // ----------------------------------------------------------
 
   let pool =
-    recentSorted.slice(
+    recent.slice(
       0,
       MAX_WINS,
     );
 
 
-  // ----------------------------------------------------------
-  // SUPPLEMENT IF LESS THAN 20
-  // ----------------------------------------------------------
-
   if (pool.length < MIN_WINS) {
-
-    const needed =
-      MIN_WINS -
-      pool.length;
 
     pool = [
       ...pool,
-      ...olderSorted.slice(
+      ...older.slice(
         0,
-        needed,
+        MIN_WINS - pool.length,
       ),
     ];
   }
 
 
-  // ----------------------------------------------------------
-  // NEVER EXCEED 50
-  // ----------------------------------------------------------
-
-  pool =
-    pool.slice(
-      0,
-      MAX_WINS,
+  return pool
+    .slice(0, MAX_WINS)
+    .sort(
+      () => Math.random() - 0.5,
     );
-
-
-  // ----------------------------------------------------------
-  // CONTROLLED RANDOM DISPLAY
-  // ----------------------------------------------------------
-
-  return [...pool].sort(
-    () =>
-      Math.random() - 0.5,
-  );
 }
 
 
@@ -277,117 +213,86 @@ export default function SettledWins() {
   const [
     predictions,
     setPredictions,
-  ] =
-    useState<PredictionDetails[]>([]);
+  ] = useState<PredictionDetails[]>([]);
 
   const [
     loading,
     setLoading,
-  ] =
-    useState(true);
+  ] = useState(true);
 
   const [
     error,
     setError,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     expanded,
     setExpanded,
-  ] =
-    useState(false);
+  ] = useState(false);
 
 
   // ==========================================================
   // LOAD
   // ==========================================================
 
-const loadWins =
-  useCallback(
-    async () => {
+  const loadWins =
+    useCallback(
+      async () => {
 
-      try {
+        try {
 
-        setLoading(true);
+          setLoading(true);
+          setError(false);
 
-        setError(false);
+          const data =
+            await getSettledWins();
 
-        const data =
-          await getSettledWins();
+          setPredictions(
+            selectWins(data),
+          );
 
-        setPredictions(
-          selectWins(data),
-        );
+        } catch (error) {
 
-      } catch (error) {
+          console.error(
+            'Failed to load settled wins:',
+            error,
+          );
 
-        console.error(
-          'Failed to load settled wins:',
-          error,
-        );
+          setPredictions([]);
+          setError(true);
 
-        setPredictions([]);
+        } finally {
 
-        setError(true);
+          setLoading(false);
 
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    [],
-  );
-
-
-  useEffect(
-    () => {
-      const promise =
-        Promise.resolve().then(
-          () => loadWins(),
-        );
-
-      return () => {
-        void promise;
-      };
-    },
-    [loadWins],
-  );
-
-
-  // ==========================================================
-  // VISIBLE
-  // ==========================================================
-
-  const visibleWins =
-    useMemo(
-      () => {
-
-        if (expanded) {
-          return predictions;
         }
 
-        return predictions.slice(
-          0,
-          INITIAL_VISIBLE_COUNT,
-        );
-
       },
-      [
-        predictions,
-        expanded,
-      ],
+      [],
     );
+
+
+  useEffect(() => {
+
+    loadWins();
+
+  }, [loadWins]);
 
 
   // ==========================================================
   // RENDER
   // ==========================================================
 
-  return (
+  const visibleWins =
+    expanded
+      ? predictions
+      : predictions.slice(
+          0,
+          INITIAL_VISIBLE_COUNT,
+        );
 
+
+  return (
     <section
       className="
         rounded-2xl
@@ -398,9 +303,7 @@ const loadWins =
       "
     >
 
-      {/* =====================================================
-          COMPACT HEADER
-      ===================================================== */}
+      {/* HEADER */}
 
       <div
         className="
@@ -438,8 +341,8 @@ const loadWins =
                 sm:text-xl
               "
             >
-              Our
-              {' '}
+              Our{' '}
+
               <span className="text-primary">
                 Wins
               </span>
@@ -475,9 +378,7 @@ const loadWins =
       </div>
 
 
-      {/* =====================================================
-          LOADING
-      ===================================================== */}
+      {/* LOADING */}
 
       {loading && (
 
@@ -522,9 +423,7 @@ const loadWins =
       )}
 
 
-      {/* =====================================================
-          ERROR
-      ===================================================== */}
+      {/* ERROR */}
 
       {!loading && error && (
 
@@ -584,9 +483,7 @@ const loadWins =
       )}
 
 
-      {/* =====================================================
-          EMPTY
-      ===================================================== */}
+      {/* EMPTY */}
 
       {!loading &&
         !error &&
@@ -627,9 +524,7 @@ const loadWins =
         )}
 
 
-      {/* =====================================================
-          GRID
-      ===================================================== */}
+      {/* GRID */}
 
       {!loading &&
         !error &&
@@ -661,75 +556,71 @@ const loadWins =
             </div>
 
 
-            {/* =================================================
-                SHOW MORE
-            ================================================= */}
+            {/* SHOW MORE */}
 
             {predictions.length >
               INITIAL_VISIBLE_COUNT && (
 
-                <div
+              <div
+                className="
+                  mt-4
+                  flex
+                  justify-center
+                "
+              >
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpanded(
+                      current => !current,
+                    )
+                  }
                   className="
-                    mt-4
-                    flex
-                    justify-center
+                    inline-flex
+                    items-center
+                    gap-1.5
+                    rounded-lg
+                    border
+                    border-border
+                    bg-card
+                    px-3.5
+                    py-1.5
+                    text-xs
+                    font-semibold
+                    shadow-sm
+                    hover:border-primary/40
+                    hover:bg-primary/5
                   "
                 >
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpanded(
-                        current =>
-                          !current,
-                      )
-                    }
-                    className="
-                      inline-flex
-                      items-center
-                      gap-1.5
-                      rounded-lg
-                      border
-                      border-border
-                      bg-card
-                      px-3.5
-                      py-1.5
-                      text-xs
-                      font-semibold
-                      shadow-sm
-                      hover:border-primary/40
-                      hover:bg-primary/5
-                    "
-                  >
+                  {expanded
+                    ? 'Show less'
+                    : `Show all ${predictions.length} wins`}
 
-                    {expanded
-                      ? 'Show less'
-                      : `Show all ${predictions.length} wins`}
+                  <ChevronDown
+                    className={`
+                      h-3.5
+                      w-3.5
+                      transition-transform
+                      ${
+                        expanded
+                          ? 'rotate-180'
+                          : ''
+                      }
+                    `}
+                  />
 
-                    <ChevronDown
-                      className={`
-                        h-3.5
-                        w-3.5
-                        transition-transform
-                        ${
-                          expanded
-                            ? 'rotate-180'
-                            : ''
-                        }
-                      `}
-                    />
+                </button>
 
-                  </button>
+              </div>
 
-                </div>
-
-              )}
+            )}
 
           </>
 
         )}
 
     </section>
-
   );
 }

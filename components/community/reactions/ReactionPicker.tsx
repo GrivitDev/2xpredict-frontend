@@ -18,55 +18,51 @@ export default function ReactionPicker({
       className="
         flex
         flex-wrap
-        gap-2
+        gap-1
       "
       role="group"
       aria-label="Choose a reaction"
     >
       {communityReactions.map(
         (reaction) => {
-          const Icon =
-            reaction.icon;
+          const Icon = reaction.icon;
 
           return (
             <button
               key={reaction.id}
               type="button"
               onClick={() =>
-                onReact(
-                  reaction.id,
-                )
+                onReact(reaction.id)
               }
-              title={
-                reaction.label
-              }
-              aria-label={
-                `React with ${reaction.label}`
-              }
+              title={reaction.label}
+              aria-label={`React with ${reaction.label}`}
               className="
                 flex
-                min-h-10
+                min-h-8
                 items-center
-                gap-2
+                gap-1.5
                 rounded-full
                 border
                 border-border
-                bg-background
-                px-3
-                py-2
-                text-s
+                bg-background/80
+                px-2.5
+                py-1
+                text-xs
                 font-medium
                 text-foreground
                 shadow-sm
                 transition-colors
                 hover:bg-muted
                 active:scale-[0.97]
-                sm:min-h-9
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-primary/40
+                sm:min-h-8
               "
             >
               <Icon
                 className="
-                  size-4
+                  size-3.5
                   shrink-0
                 "
                 aria-hidden="true"

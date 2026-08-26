@@ -32,7 +32,7 @@ export function BannerLayout({
         className="
           mx-auto
           w-full
-          max-w-[1440px]
+          max-w-7xl
         "
       >
 

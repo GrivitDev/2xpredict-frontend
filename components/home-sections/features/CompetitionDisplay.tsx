@@ -5,30 +5,15 @@ import type {
   League,
 } from '@/services/sports.service';
 
-import LeagueTable from './LeagueTable';
 import CupCompetition from './CupCompetition';
-
-
-// ============================================================
-// TYPES
-// ============================================================
+import LeagueTable from './LeagueTable';
 
 interface Props {
-
   league: League;
-
   competition: CompetitionStandingsResponse;
-
   search?: string;
-
   pointsFilter?: string;
-
 }
-
-
-// ============================================================
-// COMPONENT
-// ============================================================
 
 export default function CompetitionDisplay({
   league,
@@ -36,95 +21,26 @@ export default function CompetitionDisplay({
   search = '',
   pointsFilter = '',
 }: Props) {
-
-
-  // ==========================================================
-  // LEAGUE FILTERING
-  // ==========================================================
+  const query = search.trim().toLowerCase();
+  const minPoints = Number(pointsFilter) || 0;
 
   const filteredTable =
-    competition.table?.filter(
-      team => {
+    competition.table?.filter(({ team, points }) => {
+      if (query && !team.toLowerCase().includes(query)) {
+        return false;
+      }
 
-        const query =
-          search
-            .trim()
-            .toLowerCase();
-
-
-        if (
-          query &&
-          !team.team
-            .toLowerCase()
-            .includes(query)
-        ) {
-
-          return false;
-
-        }
-
-
-        if (
-          pointsFilter &&
-          team.points <
-            Number(pointsFilter)
-        ) {
-
-          return false;
-
-        }
-
-
-        return true;
-
-      },
-    ) ?? [];
-
-
-  // ==========================================================
-  // COMPETITION TYPE
-  // ==========================================================
+      return !pointsFilter || points >= minPoints;
+    }) ?? [];
 
   const competitionType =
-    competition.type ||
-    league.type ||
+    competition.type ??
+    league.type ??
     'LEAGUE';
 
-
-  // ==========================================================
-  // LEAGUE
-  // ==========================================================
-
-  if (
-    competitionType ===
-    'LEAGUE'
-  ) {
-
-    return (
-
-      <LeagueTable
-        table={
-          filteredTable
-        }
-      />
-
-    );
-
-  }
-
-
-  // ==========================================================
-  // CUP / TOURNAMENT
-  // ==========================================================
-
-  return (
-
-    <CupCompetition
-      competition={
-        competition
-      }
-    />
-
+  return competitionType === 'LEAGUE' ? (
+    <LeagueTable table={filteredTable} />
+  ) : (
+    <CupCompetition competition={competition} />
   );
-
 }

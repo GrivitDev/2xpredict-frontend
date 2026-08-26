@@ -2,38 +2,25 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import {
+  usePathname,
+  useRouter,
+} from 'next/navigation';
 
 import {
-  Menu,
-  Home,
-  Newspaper,
-  Info,
-  LayoutDashboard,
-  User,
-  Settings,
-  LogOut,
-  Trophy,
-  Handshake,
-  Users,
-  PlusCircle,
-  List,
-  FileText,
-  CreditCard,
-  Megaphone,
-  Gift,
-  TicketPercent,
-  TrendingUp,
-  ShoppingCart,
-  Sparkles,
   ChevronRight,
+  Handshake,
+  Home,
+  Info,
+  LogOut,
+  Menu,
+  Sparkles,
 } from 'lucide-react';
 
 import {
   FaFacebookF,
-  FaInstagram,
-  FaXTwitter,
   FaTelegram,
+  FaXTwitter,
 } from 'react-icons/fa6';
 
 import {
@@ -46,10 +33,42 @@ import {
 } from '@/components/ui/sheet';
 
 import { Button } from '@/components/ui/button';
-
 import { useAuth } from '@/providers/auth-provider';
 
 import ThemeSwitcher from './ThemeSwitcher';
+
+
+// ============================================================
+// PUBLIC LINKS
+// ============================================================
+
+const PUBLIC_LINKS = [
+  {
+    name: 'Home',
+    href: '/',
+    icon: Home,
+  },
+  {
+    name: 'Community',
+    href: '/community',
+    icon: Handshake,
+  },
+  {
+    name: 'Pricing',
+    href: '/pricing',
+    icon: Handshake,
+  },
+  {
+    name: 'Contact',
+    href: '/about',
+    icon: Info,
+  },
+] as const;
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function MobileMenu() {
   const pathname = usePathname();
@@ -60,37 +79,10 @@ export default function MobileMenu() {
     logout,
   } = useAuth();
 
-  /* --------------------------------------------------------------------------
-     PUBLIC LINKS
-  -------------------------------------------------------------------------- */
 
-  const publicLinks = [
-    {
-      name: 'Home',
-      href: '/',
-      icon: Home,
-    },
-    {
-      name: 'Community',
-      href: '/community',
-      icon: Handshake,
-    },
-    {
-      name: 'Pricing',
-      href: '/pricing',
-      icon: Handshake,
-    },
-    {
-      name: 'Contact',
-      href: '/about',
-      icon: Info,
-    },
-  ];
-
-
-  /* --------------------------------------------------------------------------
-     ACTIVE STATE
-  -------------------------------------------------------------------------- */
+  // ==========================================================
+  // ACTIVE LINK
+  // ==========================================================
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -103,50 +95,65 @@ export default function MobileMenu() {
     );
   };
 
-  /* --------------------------------------------------------------------------
-     NAVIGATION LINK
-  -------------------------------------------------------------------------- */
 
-  const linkClass = (active: boolean) => `
-    group
-    relative
-    flex
-    items-center
-    gap-3
-    overflow-hidden
-    rounded-xl
-    border
-    px-3.5
-    py-3
-    text-s
-    font-semibold
-    transition-all
-    duration-200
+  // ==========================================================
+  // LINK CLASS
+  // ==========================================================
 
-    ${
-      active
-        ? `
-          border-primary/20
-          bg-primary/10
-          text-foreground
-          shadow-sm
-        `
-        : `
-          border-transparent
-          text-muted-foreground
-          hover:border-border
-          hover:bg-secondary
-          hover:text-foreground
-        `
-    }
-  `;
+  const linkClass = (active: boolean) =>
+    `
+      group
+      relative
+      flex
+      items-center
+      gap-3
+      overflow-hidden
+      rounded-xl
+      border
+      px-3.5
+      py-3
+      text-s
+      font-semibold
+      transition-all
+      duration-200
+
+      ${
+        active
+          ? `
+            border-primary/20
+            bg-primary/10
+            text-foreground
+            shadow-sm
+          `
+          : `
+            border-transparent
+            text-muted-foreground
+            hover:border-border
+            hover:bg-secondary
+            hover:text-foreground
+          `
+      }
+    `;
+
+
+  // ==========================================================
+  // LOGOUT
+  // ==========================================================
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
+
 
   return (
     <div className="lg:hidden">
+
       <Sheet>
-        {/* ====================================================================
+
+        {/* =====================================================
             TRIGGER
-        ===================================================================== */}
+        ===================================================== */}
 
         <SheetTrigger asChild>
           <Button
@@ -189,9 +196,10 @@ export default function MobileMenu() {
           </Button>
         </SheetTrigger>
 
-        {/* ====================================================================
+
+        {/* =====================================================
             SHEET
-        ===================================================================== */}
+        ===================================================== */}
 
         <SheetContent
           side="right"
@@ -211,9 +219,8 @@ export default function MobileMenu() {
             dark:shadow-black/50
           "
         >
-          {/* ================================================================
-              DECORATIVE BACKGROUND
-          ================================================================= */}
+
+          {/* Decorative background */}
 
           <div
             className="
@@ -243,9 +250,10 @@ export default function MobileMenu() {
             "
           />
 
-          {/* ================================================================
+
+          {/* ===================================================
               HEADER
-          ================================================================= */}
+          =================================================== */}
 
           <SheetHeader
             className="
@@ -270,6 +278,7 @@ export default function MobileMenu() {
                   text-left
                 "
               >
+
                 <div
                   className="
                     relative
@@ -312,7 +321,9 @@ export default function MobileMenu() {
                   />
                 </div>
 
+
                 <div className="min-w-0">
+
                   <p
                     className="
                       text-xl
@@ -354,11 +365,11 @@ export default function MobileMenu() {
                       Bet With Confidence
                     </p>
                   </div>
+
                 </div>
+
               </Link>
             </SheetTitle>
-
-            {/* Gold divider */}
 
             <div
               className="
@@ -374,9 +385,10 @@ export default function MobileMenu() {
             />
           </SheetHeader>
 
-          {/* ==================================================================
-              SCROLLABLE CONTENT
-          =================================================================== */}
+
+          {/* ===================================================
+              CONTENT
+          =================================================== */}
 
           <div
             className="
@@ -388,11 +400,13 @@ export default function MobileMenu() {
               scrollbar-hide
             "
           >
-            {/* ================================================================
+
+            {/* =================================================
                 EXPLORE
-            ================================================================= */}
+            ================================================= */}
 
             <section>
+
               <div
                 className="
                   mb-3
@@ -403,6 +417,7 @@ export default function MobileMenu() {
                 "
               >
                 <div className="flex items-center gap-2">
+
                   <Sparkles
                     className="
                       h-3.5
@@ -422,11 +437,15 @@ export default function MobileMenu() {
                   >
                     Explore
                   </p>
+
                 </div>
               </div>
 
+
               <div className="space-y-1">
-                {publicLinks.map((link) => {
+
+                {PUBLIC_LINKS.map((link) => {
+
                   const Icon = link.icon;
                   const active = isActive(link.href);
 
@@ -439,6 +458,7 @@ export default function MobileMenu() {
                         href={link.href}
                         className={linkClass(active)}
                       >
+
                         {active && (
                           <span
                             className="
@@ -483,9 +503,11 @@ export default function MobileMenu() {
                           <Icon className="h-4 w-4" />
                         </span>
 
+
                         <span className="flex-1">
                           {link.name}
                         </span>
+
 
                         <ChevronRight
                           className={`
@@ -496,7 +518,10 @@ export default function MobileMenu() {
 
                             ${
                               active
-                                ? 'text-primary opacity-100'
+                                ? `
+                                  text-primary
+                                  opacity-100
+                                `
                                 : `
                                   text-muted-foreground/40
                                   opacity-0
@@ -506,18 +531,23 @@ export default function MobileMenu() {
                             }
                           `}
                         />
+
                       </Link>
                     </SheetClose>
                   );
                 })}
+
               </div>
+
             </section>
 
-            {/* ================================================================
-                THEME
-            ================================================================= */}
+
+            {/* =================================================
+                APPEARANCE
+            ================================================= */}
 
             <section className="mt-7">
+
               <div
                 className="
                   mb-3
@@ -549,6 +579,7 @@ export default function MobileMenu() {
                 </p>
               </div>
 
+
               <div
                 className="
                   rounded-xl
@@ -561,12 +592,15 @@ export default function MobileMenu() {
               >
                 <ThemeSwitcher />
               </div>
+
             </section>
+
           </div>
 
-          {/* ==================================================================
+
+          {/* ===================================================
               FOOTER
-          =================================================================== */}
+          =================================================== */}
 
           <div
             className="
@@ -579,10 +613,13 @@ export default function MobileMenu() {
               pt-4
             "
           >
+
             {/* Authentication */}
 
             {!user ? (
+
               <div className="grid grid-cols-2 gap-2">
+
                 <SheetClose asChild>
                   <Link
                     href="/login"
@@ -606,6 +643,7 @@ export default function MobileMenu() {
                     Login
                   </Link>
                 </SheetClose>
+
 
                 <SheetClose asChild>
                   <Link
@@ -647,13 +685,13 @@ export default function MobileMenu() {
                     />
                   </Link>
                 </SheetClose>
+
               </div>
+
             ) : (
+
               <Button
-                onClick={async () => {
-                  await logout();
-                  router.push('/login');
-                }}
+                onClick={handleLogout}
                 className="
                   h-11
                   w-full
@@ -668,7 +706,9 @@ export default function MobileMenu() {
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
+
             )}
+
 
             {/* Social Media */}
 
@@ -684,6 +724,7 @@ export default function MobileMenu() {
                 pt-4
               "
             >
+
               <p
                 className="
                   mr-1
@@ -699,105 +740,94 @@ export default function MobileMenu() {
                 Follow
               </p>
 
-              <Link
-                href="#"
-                aria-label="Facebook"
+
+              <SocialLink
+                href={process.env.NEXT_PUBLIC_FACEBOOK || '#'}
+                label="Facebook"
                 className="
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  border
-                  border-border
-                  bg-background
-                  text-muted-foreground
-                  transition-all
-                  duration-200
                   hover:border-[#1877F2]/30
                   hover:bg-[#1877F2]/10
                   hover:text-[#1877F2]
                 "
               >
                 <FaFacebookF className="h-3.5 w-3.5" />
-              </Link>
+              </SocialLink>
 
-              <Link
-                href="#"
-                aria-label="Instagram"
-                className="
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  border
-                  border-border
-                  bg-background
-                  text-muted-foreground
-                  transition-all
-                  duration-200
-                  hover:border-[#E4405F]/30
-                  hover:bg-[#E4405F]/10
-                  hover:text-[#E4405F]
-                "
-              >
-                <FaInstagram className="h-4 w-4" />
-              </Link>
 
-              <Link
-                href="#"
-                aria-label="X"
+              <SocialLink
+                href={process.env.NEXT_PUBLIC_TWITTER || '#'}
+                label="X"
                 className="
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  border
-                  border-border
-                  bg-background
-                  text-muted-foreground
-                  transition-all
-                  duration-200
                   hover:border-foreground/30
                   hover:bg-secondary
                   hover:text-foreground
                 "
               >
                 <FaXTwitter className="h-3.5 w-3.5" />
-              </Link>
+              </SocialLink>
 
-              <Link
-                href="#"
-                aria-label="Telegram"
+
+              <SocialLink
+                href={process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL || '#'}
+                label="Telegram"
                 className="
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  border
-                  border-border
-                  bg-background
-                  text-muted-foreground
-                  transition-all
-                  duration-200
                   hover:border-[#229ED9]/30
                   hover:bg-[#229ED9]/10
                   hover:text-[#229ED9]
                 "
               >
                 <FaTelegram className="h-4 w-4" />
-              </Link>
+              </SocialLink>
+
             </div>
+
           </div>
+
         </SheetContent>
+
       </Sheet>
+
     </div>
+  );
+}
+
+
+// ============================================================
+// SOCIAL LINK
+// ============================================================
+
+function SocialLink({
+  href,
+  label,
+  className,
+  children,
+}: {
+  href: string;
+  label: string;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className={`
+        flex
+        h-9
+        w-9
+        items-center
+        justify-center
+        rounded-lg
+        border
+        border-border
+        bg-background
+        text-muted-foreground
+        transition-all
+        duration-200
+        ${className}
+      `}
+    >
+      {children}
+    </Link>
   );
 }

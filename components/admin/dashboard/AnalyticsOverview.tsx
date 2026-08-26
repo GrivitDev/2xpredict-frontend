@@ -31,23 +31,37 @@ export default function AnalyticsOverview({
     <div
       className="
         grid
-        grid-cols-1
-        md:grid-cols-2
-        xl:grid-cols-4
-        gap-5
+        grid-cols-2
+        gap-2
+        lg:grid-cols-4
       "
     >
       <AnalyticsCard
         title="Total Users"
         icon={Users}
       >
-        <p className="text-3xl font-bold">
+        <p className="text-2xl font-semibold tracking-tight">
           {users.totalUsers.toLocaleString()}
         </p>
 
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Active: {users.activeUsers}</span>
-          <span>Verified: {users.verifiedUsers}</span>
+        <div
+          className="
+            mt-1
+            flex
+            flex-wrap
+            gap-x-3
+            gap-y-0.5
+            text-[11px]
+            text-muted-foreground
+          "
+        >
+          <span>
+            Active {users.activeUsers.toLocaleString()}
+          </span>
+
+          <span>
+            Verified {users.verifiedUsers.toLocaleString()}
+          </span>
         </div>
       </AnalyticsCard>
 
@@ -56,13 +70,28 @@ export default function AnalyticsOverview({
         icon={TrendingUp}
         highlight
       >
-        <p className="text-3xl font-bold">
+        <p className="text-2xl font-semibold tracking-tight">
           ₦{revenue.totalRevenue.NGN.toLocaleString()}
         </p>
 
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>${revenue.totalRevenue.USD.toLocaleString()}</span>
-          <span>{revenue.totalPayments} payments</span>
+        <div
+          className="
+            mt-1
+            flex
+            flex-wrap
+            gap-x-3
+            gap-y-0.5
+            text-[11px]
+            text-muted-foreground
+          "
+        >
+          <span>
+            ${revenue.totalRevenue.USD.toLocaleString()}
+          </span>
+
+          <span>
+            {revenue.totalPayments.toLocaleString()} payments
+          </span>
         </div>
       </AnalyticsCard>
 
@@ -70,13 +99,28 @@ export default function AnalyticsOverview({
         title="Subscriptions"
         icon={CreditCard}
       >
-        <p className="text-3xl font-bold">
+        <p className="text-2xl font-semibold tracking-tight">
           {subscriptions.totalSubscriptions.toLocaleString()}
         </p>
 
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>VIP: {subscriptions.vipSubscriptions}</span>
-          <span>Regular: {subscriptions.regularSubscriptions}</span>
+        <div
+          className="
+            mt-1
+            flex
+            flex-wrap
+            gap-x-3
+            gap-y-0.5
+            text-[11px]
+            text-muted-foreground
+          "
+        >
+          <span>
+            VIP {subscriptions.vipSubscriptions.toLocaleString()}
+          </span>
+
+          <span>
+            Regular {subscriptions.regularSubscriptions.toLocaleString()}
+          </span>
         </div>
       </AnalyticsCard>
 
@@ -84,13 +128,28 @@ export default function AnalyticsOverview({
         title="Predictions"
         icon={Target}
       >
-        <p className="text-3xl font-bold">
+        <p className="text-2xl font-semibold tracking-tight">
           {predictions.totalPredictions.toLocaleString()}
         </p>
 
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Won: {predictions.wonPredictions}</span>
-          <span>Pending: {predictions.pendingPredictions}</span>
+        <div
+          className="
+            mt-1
+            flex
+            flex-wrap
+            gap-x-3
+            gap-y-0.5
+            text-[11px]
+            text-muted-foreground
+          "
+        >
+          <span>
+            Won {predictions.wonPredictions.toLocaleString()}
+          </span>
+
+          <span>
+            Pending {predictions.pendingPredictions.toLocaleString()}
+          </span>
         </div>
       </AnalyticsCard>
     </div>

@@ -23,23 +23,21 @@ type Props = {
   payments: Payment[];
 };
 
+const moneyFormatter = new Intl.NumberFormat('en-NG', {
+  style: 'currency',
+  currency: 'NGN',
+  maximumFractionDigits: 0,
+});
+
 const money = (amount: number) =>
-  new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    maximumFractionDigits: 0,
-  }).format(Number(amount || 0));
+  moneyFormatter.format(Number(amount || 0));
 
 function formatPaymentType(type?: string) {
-  if (!type) {
-    return 'Payment';
-  }
+  if (!type) return 'Payment';
 
   return type
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase(),
-    );
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatPaymentDate(date: string) {
@@ -51,7 +49,6 @@ function formatPaymentDate(date: string) {
       month: 'short',
       year: 'numeric',
     }),
-
     time: paymentDate.toLocaleTimeString('en-NG', {
       hour: 'numeric',
       minute: '2-digit',
@@ -61,37 +58,29 @@ function formatPaymentDate(date: string) {
 }
 
 function getStatusConfig(status: string) {
-  const normalizedStatus = status?.toLowerCase();
+  switch (status?.toLowerCase()) {
+    case 'approved':
+      return {
+        icon: CheckCircle2,
+        classes:
+          'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+      };
 
-  if (normalizedStatus === 'approved') {
-    return {
-      icon: <CheckCircle2 className="h-4 w-4" />,
-      classes:
-        'border-emerald-500/20 bg-emerald-500/10 text-emerald-600',
-    };
+    case 'rejected':
+      return {
+        icon: XCircle,
+        classes:
+          'border-destructive/20 bg-destructive/10 text-destructive',
+      };
+
+    case 'pending':
+    default:
+      return {
+        icon: Clock3,
+        classes:
+          'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
+      };
   }
-
-  if (normalizedStatus === 'pending') {
-    return {
-      icon: <Clock3 className="h-4 w-4" />,
-      classes:
-        'border-amber-500/20 bg-amber-500/10 text-amber-600',
-    };
-  }
-
-  if (normalizedStatus === 'rejected') {
-    return {
-      icon: <XCircle className="h-4 w-4" />,
-      classes:
-        'border-destructive/20 bg-destructive/10 text-destructive',
-    };
-  }
-
-  return {
-    icon: <Clock3 className="h-4 w-4" />,
-    classes:
-      'border-border bg-muted text-muted-foreground',
-  };
 }
 
 export default function PaymentHistoryTable({
@@ -99,117 +88,91 @@ export default function PaymentHistoryTable({
 }: Props) {
   return (
     <section
+      aria-labelledby="payment-history-title"
       className="
         overflow-hidden
-        rounded-3xl
+        rounded-lg
         border
-        border-border
+        border-border/60
         bg-card
-        shadow-sm
       "
     >
       {/* Header */}
 
-      <div
+      <header
         className="
           flex
-          flex-col
-          gap-4
+          items-center
+          justify-between
+          gap-3
           border-b
-          border-border
+          border-border/60
           px-4
-          py-4
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:px-5
+          py-3
         "
       >
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
           <div
             className="
               flex
-              h-11
-              w-11
+              h-8
+              w-8
               shrink-0
               items-center
               justify-center
-              rounded-2xl
+              rounded-md
               bg-primary/10
               text-primary
             "
           >
-            <CreditCard className="h-5 w-5" />
+            <CreditCard
+              aria-hidden="true"
+              className="h-4 w-4"
+            />
           </div>
 
-          <div>
-            <h2 className="font-bold">
+          <div className="min-w-0">
+            <h2
+              id="payment-history-title"
+              className="
+                text-sm
+                font-semibold
+                tracking-tight
+              "
+            >
               Payment History
             </h2>
 
-            <p className="mt-1 text-s text-muted-foreground">
-              User financial transactions and payment records.
+            <p className="truncate text-[10px] text-muted-foreground">
+              Financial transactions and payment records
             </p>
           </div>
         </div>
 
         <span
           className="
-            w-fit
-            rounded-full
+            shrink-0
+            rounded-md
             bg-primary/10
-            px-3
-            py-1.5
-            text-xs
+            px-2
+            py-1
+            text-[10px]
             font-semibold
             text-primary
           "
         >
-          {payments.length} payment
-          {payments.length === 1 ? '' : 's'}
+          {payments.length}{' '}
+          {payments.length === 1 ? 'payment' : 'payments'}
         </span>
-      </div>
+      </header>
 
       {!payments.length ? (
-        <div
-          className="
-            flex
-            min-h-[260px]
-            flex-col
-            items-center
-            justify-center
-            p-6
-            text-center
-          "
-        >
-          <div
-            className="
-              flex
-              h-16
-              w-16
-              items-center
-              justify-center
-              rounded-2xl
-              bg-muted
-              text-muted-foreground
-            "
-          >
-            <CreditCard className="h-8 w-8" />
-          </div>
-
-          <h3 className="mt-5 font-bold">
-            No payment history
-          </h3>
-
-          <p className="mt-2 max-w-sm text-s leading-6 text-muted-foreground">
-            This user has not made any payments yet.
-          </p>
-        </div>
+        <EmptyState />
       ) : (
         <>
-          {/* Mobile cards */}
+          {/* Mobile */}
 
-          <div className="space-y-3 p-3 lg:hidden">
+          <div className="space-y-2 p-2 lg:hidden">
             {payments.map((payment) => {
               const date = formatPaymentDate(
                 payment.createdAt,
@@ -219,76 +182,77 @@ export default function PaymentHistoryTable({
                 <article
                   key={payment._id}
                   className="
-                    rounded-2xl
+                    rounded-md
                     border
-                    border-border
+                    border-border/50
                     bg-background
-                    p-4
-                    shadow-sm
+                    p-3
                   "
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex min-w-0 items-start gap-2.5">
                       <div
                         className="
                           flex
-                          h-10
-                          w-10
+                          h-8
+                          w-8
                           shrink-0
                           items-center
                           justify-center
-                          rounded-xl
+                          rounded-md
                           bg-primary/10
                           text-primary
                         "
                       >
-                        <ReceiptText className="h-5 w-5" />
+                        <ReceiptText
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
                       </div>
 
                       <div className="min-w-0">
-                        <p className="truncate font-bold">
+                        <p className="truncate text-xs font-semibold">
                           {formatPaymentType(payment.type)}
                         </p>
 
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">
                           {date.date} · {date.time}
                         </p>
                       </div>
                     </div>
 
-                    <p className="shrink-0 text-s font-black text-primary">
+                    <p className="shrink-0 text-xs font-bold text-primary">
                       {money(payment.amount)}
                     </p>
                   </div>
 
                   <div
                     className="
-                      mt-4
+                      mt-2.5
                       flex
-                      flex-wrap
+                      min-w-0
                       items-center
                       justify-between
-                      gap-3
+                      gap-2
                       border-t
-                      border-border
-                      pt-3
+                      border-border/50
+                      pt-2.5
                     "
                   >
-                    <PaymentStatus
-                      status={payment.status}
-                    />
+                    <PaymentStatus status={payment.status} />
 
                     {payment.reference && (
                       <span
+                        title={payment.reference}
                         className="
-                          max-w-full
+                          max-w-[55%]
                           truncate
-                          rounded-lg
+                          rounded-md
                           bg-muted
-                          px-2.5
+                          px-2
                           py-1
                           font-mono
-                          text-[11px]
+                          text-[9px]
                           text-muted-foreground
                         "
                       >
@@ -301,28 +265,14 @@ export default function PaymentHistoryTable({
             })}
           </div>
 
-          {/* Desktop table */}
+          {/* Desktop */}
 
-          <div className="hidden overflow-hidden lg:block">
-            <table className="w-full table-fixed text-left">
-              <colgroup>
-                <col className="w-[18%]" />
-                <col className="w-[24%]" />
-                <col className="w-[18%]" />
-                <col className="w-[20%]" />
-                <col className="w-[20%]" />
-              </colgroup>
-
-              <thead
-                className="
-                  border-b
-                  border-border
-                  bg-muted/40
-                "
-              >
+          <div className="hidden overflow-x-auto lg:block">
+            <table className="w-full text-left">
+              <thead className="border-b border-border/60 bg-muted/30">
                 <tr>
                   <TableHeader>Date</TableHeader>
-                  <TableHeader>Payment Type</TableHeader>
+                  <TableHeader>Type</TableHeader>
                   <TableHeader>Amount</TableHeader>
                   <TableHeader>Status</TableHeader>
                   <TableHeader>Reference</TableHeader>
@@ -340,40 +290,42 @@ export default function PaymentHistoryTable({
                       key={payment._id}
                       className="
                         border-b
-                        border-border/70
-                        transition-colors
+                        border-border/50
                         last:border-0
-                        hover:bg-primary/[0.04]
+                        hover:bg-muted/20
                       "
                     >
-                      <td className="px-5 py-4">
-                        <div className="flex items-start gap-2">
-                          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <CalendarDays
+                            aria-hidden="true"
+                            className="h-3.5 w-3.5 shrink-0 text-primary"
+                          />
 
                           <div>
-                            <p className="text-s font-semibold">
+                            <p className="text-xs font-medium">
                               {date.date}
                             </p>
 
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <p className="text-[10px] text-muted-foreground">
                               {date.time}
                             </p>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-3">
                         <span
                           className="
                             inline-flex
                             max-w-full
                             truncate
-                            rounded-full
+                            rounded-md
                             bg-primary/10
-                            px-3
-                            py-1.5
-                            text-xs
-                            font-semibold
+                            px-2
+                            py-1
+                            text-[10px]
+                            font-medium
                             text-primary
                           "
                         >
@@ -381,44 +333,46 @@ export default function PaymentHistoryTable({
                         </span>
                       </td>
 
-                      <td className="px-4 py-4">
-                        <p className="text-s font-black text-primary">
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-bold text-primary">
                           {money(payment.amount)}
-                        </p>
+                        </span>
                       </td>
 
-                      <td className="px-4 py-4">
-                        <PaymentStatus
-                          status={payment.status}
-                        />
+                      <td className="px-4 py-3">
+                        <PaymentStatus status={payment.status} />
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="max-w-[220px] px-4 py-3">
                         {payment.reference ? (
                           <span
+                            title={payment.reference}
                             className="
                               inline-flex
                               max-w-full
                               items-center
-                              gap-2
+                              gap-1.5
                               truncate
-                              rounded-lg
+                              rounded-md
                               bg-muted
-                              px-2.5
-                              py-1.5
+                              px-2
+                              py-1
                               font-mono
-                              text-xs
+                              text-[10px]
                               text-muted-foreground
                             "
                           >
-                            <Hash className="h-3.5 w-3.5 shrink-0" />
+                            <Hash
+                              aria-hidden="true"
+                              className="h-3 w-3 shrink-0"
+                            />
 
                             <span className="truncate">
                               {payment.reference}
                             </span>
                           </span>
                         ) : (
-                          <span className="text-s text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             —
                           </span>
                         )}
@@ -441,27 +395,74 @@ function PaymentStatus({
   status: string;
 }) {
   const config = getStatusConfig(status);
+  const Icon = config.icon;
 
   return (
     <span
       className={`
         inline-flex
         items-center
-        gap-2
-        rounded-full
+        gap-1.5
+        rounded-md
         border
-        px-3
-        py-1.5
-        text-xs
-        font-semibold
+        px-2
+        py-1
+        text-[10px]
+        font-medium
         capitalize
         ${config.classes}
       `}
     >
-      {config.icon}
+      <Icon
+        aria-hidden="true"
+        className="h-3 w-3"
+      />
 
-      {status}
+      {status || 'Pending'}
     </span>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div
+      className="
+        flex
+        min-h-40
+        flex-col
+        items-center
+        justify-center
+        px-4
+        py-8
+        text-center
+      "
+    >
+      <div
+        className="
+          flex
+          h-10
+          w-10
+          items-center
+          justify-center
+          rounded-md
+          bg-muted
+          text-muted-foreground
+        "
+      >
+        <CreditCard
+          aria-hidden="true"
+          className="h-5 w-5"
+        />
+      </div>
+
+      <h3 className="mt-3 text-xs font-semibold">
+        No payment history
+      </h3>
+
+      <p className="mt-1 max-w-xs text-[10px] text-muted-foreground">
+        This user has not made any payments yet.
+      </p>
+    </div>
   );
 }
 
@@ -472,16 +473,15 @@ function TableHeader({
 }) {
   return (
     <th
+      scope="col"
       className="
         px-4
-        py-4
-        text-xs
-        font-bold
+        py-2.5
+        text-[10px]
+        font-semibold
         uppercase
-        tracking-wider
+        tracking-wide
         text-muted-foreground
-        first:px-5
-        last:px-5
       "
     >
       {children}

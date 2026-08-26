@@ -1,9 +1,5 @@
 'use client';
 
-import {
-  motion,
-} from 'framer-motion';
-
 import type {
   CommunityPost,
   CommunityReply,
@@ -15,17 +11,12 @@ import CommunityReactionBar from '../reactions/CommunityReactionBar';
 
 interface Props {
   post: CommunityPost;
-
   onReact: (
     reaction: string,
   ) => void;
-
   replies: CommunityReply[];
-
   repliesLoading: boolean;
-
   loadReplies: () => Promise<void>;
-
   createReply: (
     message: string,
   ) => Promise<void>;
@@ -39,190 +30,125 @@ export default function CommunityMediaCard({
   loadReplies,
   createReply,
 }: Props) {
-
-  const mediaType =
-    post.media?.type;
-
-  const hasMedia =
-    Boolean(
-      post.media?.url,
-    );
+  const media = post.media;
+  const mediaUrl = media?.url;
+  const isVideo =
+    media?.type === 'video';
 
   return (
-
-    <motion.article
-      initial={{
-        opacity: 0,
-        y: 8,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: 0.25,
-      }}
+    <article
       className="
         overflow-hidden
-        rounded-2xl
+        rounded-lg
         border
         border-border
         bg-card
         shadow-sm
-        transition-colors
+        md:transition-shadow
+        md:duration-200
+        md:hover:border-primary/20
+        md:hover:shadow-md
       "
     >
+      {/* MEDIA */}
 
-      {
-        hasMedia && (
+      {mediaUrl && (
+        <div
+          className="
+            overflow-hidden
+            border-b
+            border-border
+            bg-muted
+          "
+        >
+          {isVideo ? (
+            <AutoPlayVideo
+              src={mediaUrl}
+              poster={mediaUrl}
+            />
+          ) : (
+            <div className="flex justify-center bg-muted">
+              <img
+                src={mediaUrl}
+                alt="Community media"
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="
+                  block
+                  h-auto
+                  max-h-[65vh]
+                  w-full
+                  object-contain
+                  bg-muted
+                  md:transition-transform
+                  md:duration-300
+                  md:hover:scale-[1.01]
+                "
+              />
+            </div>
+          )}
+        </div>
+      )}
 
-          <div
-            className="
-              overflow-hidden
-              border-b
-              border-border
-              bg-muted
-            "
-          >
+      {/* CONTENT */}
 
-            {
-              mediaType === 'video'
-
-                ? (
-
-                  <AutoPlayVideo
-                    src={
-                      post.media!.url
-                    }
-                    poster={
-                      post.media?.url
-                    }
-                  />
-
-                )
-
-                : (
-
-                  <div
-                    className="
-                      flex
-                      justify-center
-                      bg-muted
-                    "
-                  >
-
-                    <img
-                      src={
-                        post.media!.url
-                      }
-                      alt="
-                        Community media
-                      "
-                      loading="lazy"
-                      decoding="async"
-                      draggable={
-                        false
-                      }
-                      className="
-                        block
-                        h-auto
-                        max-h-[75vh]
-                        w-full
-                        object-contain
-                        bg-muted
-                        transition-transform
-                        duration-300
-                        md:hover:scale-[1.01]
-                      "
-                    />
-
-                  </div>
-
-                )
-            }
-
-          </div>
-
-        )
-      }
-
-      <div
-        className="
-          space-y-4
-          p-4
-          sm:p-5
-        "
-      >
-
-        {
-          post.message?.trim() && (
-
+      {(post.message?.trim() ||
+        post.username) && (
+        <div
+          className="
+            space-y-2.5
+            p-3
+            sm:p-4
+          "
+        >
+          {post.message?.trim() && (
             <p
               className="
                 whitespace-pre-wrap
                 break-words
-                text-s
-                leading-7
+                text-sm
+                leading-6
                 text-foreground
-                sm:text-base
+                sm:text-[15px]
               "
             >
               {post.message}
             </p>
+          )}
 
-          )
-        }
-
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-            gap-3
-          "
-        >
-
-          <p
-            className="
-              truncate
-              text-xs
-              font-medium
-              text-muted-foreground
-              sm:text-s
-            "
-          >
-            @{post.username}
-          </p>
-
+          {post.username && (
+            <p
+              className="
+                truncate
+                text-[11px]
+                font-medium
+                leading-tight
+                text-muted-foreground
+              "
+            >
+              @{post.username}
+            </p>
+          )}
         </div>
+      )}
 
-      </div>
+      {/* REACTIONS */}
 
-<CommunityReactionBar
-  reactions={post.reactions}
-  onReact={onReact}
-/>
-
-      <ReplySection
-        replyCount={
-          post.replyCount
-        }
-        replies={
-          replies
-        }
-        loading={
-          repliesLoading
-        }
-        loadReplies={
-          loadReplies
-        }
-        createReply={
-          createReply
-        }
+      <CommunityReactionBar
+        reactions={post.reactions}
+        onReact={onReact}
       />
 
-    </motion.article>
+      {/* REPLIES */}
 
+      <ReplySection
+        replyCount={post.replyCount}
+        replies={replies}
+        loading={repliesLoading}
+        loadReplies={loadReplies}
+        createReply={createReply}
+      />
+    </article>
   );
-
 }

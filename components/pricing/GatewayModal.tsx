@@ -1,10 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-
 import { useState } from 'react';
-
-import { motion } from 'framer-motion';
 
 import {
   AlertCircle,
@@ -29,15 +26,11 @@ interface GatewayModalProps {
     | 'vip_upgrade';
 
   target: string;
-
   amount: number;
-
   currency: PaymentCurrency;
-
   config: PlanConfig;
 
   title?: string;
-
   description?: string;
 
   onClose: () => void;
@@ -57,20 +50,14 @@ export default function GatewayModal({
     useState<PaymentGateway | null>(null);
 
   const [error, setError] = useState('');
-
   const [manualPayment, setManualPayment] =
     useState(false);
-
-  // =====================================================
-  // INITIALIZE GATEWAY PAYMENT
-  // =====================================================
 
   async function initializePayment(
     gateway: PaymentGateway,
   ) {
     try {
       setError('');
-
       setLoadingGateway(gateway);
 
       const data =
@@ -98,10 +85,6 @@ export default function GatewayModal({
     }
   }
 
-  // =====================================================
-  // MANUAL PAYMENT
-  // =====================================================
-
   if (manualPayment) {
     return (
       <PaymentModal
@@ -112,16 +95,13 @@ export default function GatewayModal({
         config={config}
         title={title}
         description={description}
-        onClose={() => {
-          setManualPayment(false);
-        }}
+        onClose={() => setManualPayment(false)}
       />
     );
   }
 
-  // =====================================================
-  // GATEWAY MODAL
-  // =====================================================
+  const isLoading =
+    loadingGateway !== null;
 
   return (
     <div
@@ -140,25 +120,7 @@ export default function GatewayModal({
         sm:p-4
       "
     >
-      <motion.div
-        initial={{
-          opacity: 0,
-          scale: 0.97,
-          y: 12,
-        }}
-        animate={{
-          opacity: 1,
-          scale: 1,
-          y: 0,
-        }}
-        exit={{
-          opacity: 0,
-          scale: 0.97,
-          y: 12,
-        }}
-        transition={{
-          duration: 0.2,
-        }}
+      <div
         className="
           relative
           my-2
@@ -176,14 +138,13 @@ export default function GatewayModal({
           sm:max-h-[calc(100vh-2rem)]
         "
       >
-        {/* =====================================================
-            CLOSE BUTTON
-        ===================================================== */}
+
+        {/* CLOSE */}
 
         <button
           type="button"
           onClick={onClose}
-          disabled={loadingGateway !== null}
+          disabled={isLoading}
           aria-label="Close payment gateway modal"
           className="
             absolute
@@ -208,9 +169,8 @@ export default function GatewayModal({
           <X size={16} />
         </button>
 
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
+
+        {/* HEADER */}
 
         <div
           className="
@@ -226,13 +186,7 @@ export default function GatewayModal({
             sm:py-6
           "
         >
-          <p
-            className="
-              text-xs
-              font-semibold
-              text-primary
-            "
-          >
+          <p className="text-xs font-semibold text-primary">
             Payment Gateway
           </p>
 
@@ -262,9 +216,8 @@ export default function GatewayModal({
               'Select your preferred payment gateway to complete your payment securely.'}
           </p>
 
-          {/* =====================================================
-              AMOUNT
-          ===================================================== */}
+
+          {/* AMOUNT */}
 
           <div
             className="
@@ -285,12 +238,7 @@ export default function GatewayModal({
                 gap-4
               "
             >
-              <p
-                className="
-                  text-xs
-                  text-muted-foreground
-                "
-              >
+              <p className="text-xs text-muted-foreground">
                 Amount
               </p>
 
@@ -324,9 +272,8 @@ export default function GatewayModal({
           </div>
         </div>
 
-        {/* =====================================================
-            BODY
-        ===================================================== */}
+
+        {/* BODY */}
 
         <div
           className="
@@ -337,23 +284,16 @@ export default function GatewayModal({
             sm:p-6
           "
         >
-          <h3
-            className="
-              mb-3
-              text-base
-              font-bold
-            "
-          >
+          <h3 className="mb-3 text-base font-bold">
             Select Gateway
           </h3>
 
-          {/* =====================================================
-              PAYSTACK
-          ===================================================== */}
+
+          {/* PAYSTACK */}
 
           <button
             type="button"
-            disabled={loadingGateway !== null}
+            disabled={isLoading}
             onClick={() =>
               initializePayment('paystack')
             }
@@ -383,8 +323,6 @@ export default function GatewayModal({
                 gap-4
               "
             >
-              {/* Paystack Logo */}
-
               <div
                 className="
                   relative
@@ -403,6 +341,7 @@ export default function GatewayModal({
                   alt="Paystack"
                   width={80}
                   height={80}
+                  priority
                   className="
                     h-20
                     w-20
@@ -410,7 +349,6 @@ export default function GatewayModal({
                     scale-150
                     object-contain
                   "
-                  priority
                 />
 
                 {loadingGateway ===
@@ -439,12 +377,7 @@ export default function GatewayModal({
               </div>
 
               <div className="min-w-0">
-                <h4
-                  className="
-                    text-base
-                    font-bold
-                  "
-                >
+                <h4 className="text-base font-bold">
                   Paystack
                 </h4>
 
@@ -474,9 +407,8 @@ export default function GatewayModal({
             />
           </button>
 
-          {/* =====================================================
-              ERROR
-          ===================================================== */}
+
+          {/* ERROR */}
 
           {error && (
             <div
@@ -495,26 +427,17 @@ export default function GatewayModal({
             >
               <AlertCircle
                 size={16}
-                className="
-                  mt-0.5
-                  shrink-0
-                "
+                className="mt-0.5 shrink-0"
               />
 
-              <span
-                className="
-                  text-xs
-                  leading-5
-                "
-              >
+              <span className="text-xs leading-5">
                 {error}
               </span>
             </div>
           )}
 
-          {/* =====================================================
-              MANUAL PAYMENT
-          ===================================================== */}
+
+          {/* MANUAL PAYMENT */}
 
           <div
             className="
@@ -543,12 +466,7 @@ export default function GatewayModal({
               />
 
               <div className="min-w-0">
-                <h4
-                  className="
-                    text-s
-                    font-semibold
-                  "
-                >
+                <h4 className="text-s font-semibold">
                   Having trouble with Paystack?
                 </h4>
 
@@ -586,12 +504,8 @@ export default function GatewayModal({
 
             <button
               type="button"
-              onClick={() =>
-                setManualPayment(true)
-              }
-              disabled={
-                loadingGateway !== null
-              }
+              onClick={() => setManualPayment(true)}
+              disabled={isLoading}
               className="
                 mt-4
                 w-full
@@ -616,23 +530,14 @@ export default function GatewayModal({
             </button>
           </div>
 
-          {/* =====================================================
-              CANCEL
-          ===================================================== */}
 
-          <div
-            className="
-              mt-5
-              flex
-              justify-end
-            "
-          >
+          {/* CANCEL */}
+
+          <div className="mt-5 flex justify-end">
             <button
               type="button"
               onClick={onClose}
-              disabled={
-                loadingGateway !== null
-              }
+              disabled={isLoading}
               className="
                 rounded-lg
                 border
@@ -649,8 +554,9 @@ export default function GatewayModal({
               Cancel
             </button>
           </div>
+
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

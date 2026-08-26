@@ -6,29 +6,16 @@ import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
 import UpgradeCard from './UpgradeCard';
 
-
-type CurrentPlan =
-  | 'free'
-  | 'regular'
-  | 'vip';
-
+type CurrentPlan = 'free' | 'regular' | 'vip';
 
 interface UpgradeSectionProps {
   plan: CurrentPlan;
-
   config: PlanConfig;
-
   currency: PaymentCurrency;
-
   upgradePrice?: UpgradePriceResponse | null;
-
   upgradeLoading?: boolean;
-
-  onUpgrade: (
-    target: 'regular' | 'vip',
-  ) => void;
+  onUpgrade: (target: 'regular' | 'vip') => void;
 }
-
 
 export default function UpgradeSection({
   plan,
@@ -38,7 +25,6 @@ export default function UpgradeSection({
   upgradeLoading = false,
   onUpgrade,
 }: UpgradeSectionProps) {
-
   return (
     <UpgradeCard
       currentPlan={plan}

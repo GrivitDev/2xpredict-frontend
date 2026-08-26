@@ -1,9 +1,5 @@
 'use client';
 
-import {
-  motion,
-} from 'framer-motion';
-
 import type {
   CommunityReply,
 } from '@/services/community.service';
@@ -12,65 +8,61 @@ interface Props {
   reply?: CommunityReply;
 }
 
+const HOUR =
+  60 * 60 * 1000;
+
+const DAY =
+  24 * HOUR;
+
+const timeFormatter =
+  new Intl.DateTimeFormat(
+    'en-US',
+    {
+      hour: 'numeric',
+      minute: '2-digit',
+    },
+  );
+
+const dateFormatter =
+  new Intl.DateTimeFormat(
+    'en-US',
+    {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    },
+  );
 
 function formatReplyDate(
   date: Date,
 ): string {
-
-  const now =
-    new Date();
-
+  const now = new Date();
 
   const diffMs =
     now.getTime() -
     date.getTime();
 
-
   const diffHours =
-    diffMs /
-    (
-      1000 *
-      60 *
-      60
-    );
+    diffMs / HOUR;
 
-
-  /*
-   * Less than 12 hours:
-   *
-   * Just now
-   * 1 hr ago
-   * 2 hrs ago
-   * 5 hrs ago
-   */
   if (
     diffHours >= 0 &&
     diffHours < 12
   ) {
-
     const hours =
-      Math.floor(
-        diffHours,
-      );
+      Math.floor(diffHours);
 
-
-    if (
-      hours < 1
-    ) {
-
+    if (hours < 1) {
       return 'Just now';
-
     }
-
 
     return `${hours} ${
       hours === 1
         ? 'hr'
         : 'hrs'
     } ago`;
-
   }
-
 
   const todayStart =
     new Date(
@@ -79,7 +71,6 @@ function formatReplyDate(
       now.getDate(),
     );
 
-
   const replyDateStart =
     new Date(
       date.getFullYear(),
@@ -87,162 +78,82 @@ function formatReplyDate(
       date.getDate(),
     );
 
-
   const dayDifference =
     Math.floor(
       (
         todayStart.getTime() -
         replyDateStart.getTime()
-      ) /
-      (
-        1000 *
-        60 *
-        60 *
-        24
-      ),
+      ) / DAY,
     );
 
-
-  /*
-   * Today
-   */
-  if (
-    dayDifference === 0
-  ) {
-
-    return `Today, ${
-      new Intl.DateTimeFormat(
-        'en-US',
-        {
-          hour: 'numeric',
-          minute: '2-digit',
-        },
-      ).format(date)
-    }`;
-
+  if (dayDifference === 0) {
+    return `Today, ${timeFormatter.format(
+      date,
+    )}`;
   }
 
-
-  /*
-   * Yesterday
-   */
-  if (
-    dayDifference === 1
-  ) {
-
-    return `Yesterday, ${
-      new Intl.DateTimeFormat(
-        'en-US',
-        {
-          hour: 'numeric',
-          minute: '2-digit',
-        },
-      ).format(date)
-    }`;
-
+  if (dayDifference === 1) {
+    return `Yesterday, ${timeFormatter.format(
+      date,
+    )}`;
   }
 
-
-  /*
-   * Two or more days old
-   */
-  return new Intl.DateTimeFormat(
-    'en-US',
-    {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    },
-  ).format(date);
-
+  return dateFormatter.format(date);
 }
-
 
 export default function ReplyCard({
   reply,
 }: Props) {
-
-
   if (!reply) {
     return null;
   }
-
 
   const displayName =
     reply.fullName?.trim() ||
     reply.username ||
     'Anonymous';
 
-
   const initial =
     displayName
       .charAt(0)
-      .toUpperCase() ||
-    '?';
-
+      .toUpperCase() || '?';
 
   const createdAt =
-    new Date(
-      reply.createdAt,
-    );
-
+    new Date(reply.createdAt);
 
   const formattedTime =
-    formatReplyDate(
-      createdAt,
-    );
-
+    formatReplyDate(createdAt);
 
   return (
-
-    <motion.article
-
-      initial={{
-        opacity: 0,
-        x: -6,
-      }}
-
-      animate={{
-        opacity: 1,
-        x: 0,
-      }}
-
-      transition={{
-        duration: 0.2,
-      }}
-
+    <article
       className="
-        rounded-lg
+        rounded-md
         border
-        border-border
+        border-border/70
         bg-muted/30
-        px-3
-        py-2.5
+        px-2.5
+        py-2
       "
-
     >
-
       <div
         className="
           flex
           items-start
-          gap-2.5
+          gap-2
         "
       >
-
         {/* AVATAR */}
 
         <div
           className="
             flex
-            size-8
+            size-7
             shrink-0
             items-center
             justify-center
             rounded-full
             bg-primary/10
-            text-xs
+            text-[11px]
             font-semibold
             text-primary
           "
@@ -251,14 +162,12 @@ export default function ReplyCard({
           {initial}
         </div>
 
-
         <div
           className="
             min-w-0
             flex-1
           "
         >
-
           {/* USER + TIME */}
 
           <div
@@ -266,25 +175,24 @@ export default function ReplyCard({
               flex
               flex-wrap
               items-center
-              gap-x-1.5
-              gap-y-0.5
+              gap-x-1
             "
           >
-
             <p
               className="
                 truncate
-                text-xs
+                text-[11px]
                 font-semibold
+                leading-tight
                 text-foreground
               "
             >
               @{reply.username}
             </p>
 
-
             <span
               className="
+                text-[10px]
                 text-muted-foreground/40
               "
               aria-hidden="true"
@@ -292,46 +200,37 @@ export default function ReplyCard({
               ·
             </span>
 
-
             <time
               dateTime={
                 createdAt.toISOString()
               }
               className="
-                text-[11px]
+                text-[10px]
+                leading-tight
                 text-muted-foreground
               "
-              title={
-                createdAt.toLocaleString()
-              }
+              title={createdAt.toLocaleString()}
             >
               {formattedTime}
             </time>
-
           </div>
-
 
           {/* MESSAGE */}
 
           <p
             className="
-              mt-1.5
+              mt-1
               whitespace-pre-wrap
               break-words
-              text-s
-              leading-5
+              text-xs
+              leading-[1.35rem]
               text-foreground/85
             "
           >
             {reply.message}
           </p>
-
         </div>
-
       </div>
-
-    </motion.article>
-
+    </article>
   );
-
 }

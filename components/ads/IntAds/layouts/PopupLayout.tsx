@@ -34,11 +34,13 @@ export function PopupLayout({
   );
 
   useEffect(() => {
+
     if (!popupAd) {
       return;
     }
 
     markPopupSeen(popupAd._id);
+
   }, [popupAd]);
 
   if (!open || !popupAd) {
@@ -55,22 +57,18 @@ export function PopupLayout({
         fixed
         inset-0
         z-50
-
         flex
         items-center
         justify-center
-
         overflow-y-auto
-
         bg-background/70
         p-3
         backdrop-blur-sm
-
         sm:p-5
       "
     >
 
-      {/* Subtle Ambient Light */}
+      {/* Ambient Light */}
 
       <div
         className="
@@ -82,11 +80,8 @@ export function PopupLayout({
           w-[min(80vw,28rem)]
           -translate-x-1/2
           -translate-y-1/2
-
           rounded-full
-
           bg-primary/10
-
           blur-3xl
         "
       />

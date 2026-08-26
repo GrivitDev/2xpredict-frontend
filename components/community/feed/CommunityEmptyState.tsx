@@ -1,62 +1,41 @@
 'use client';
 
 import {
-  motion,
-} from 'framer-motion';
-
-import {
   MessageCircle,
 } from 'lucide-react';
 
 export default function CommunityEmptyState() {
-
   return (
-
-    <motion.section
-      initial={{
-        opacity: 0,
-        y: 8,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: 0.25,
-      }}
+    <section
       className="
         overflow-hidden
-        rounded-2xl
+        rounded-lg
         border
         border-border
         bg-card
         shadow-sm
       "
+      aria-label="Community"
     >
-
       <div
         className="
           flex
           flex-col
           items-center
           justify-center
-          px-5
-          py-10
+          px-4
+          py-8
           text-center
-          sm:px-8
-          sm:py-12
-          md:px-10
-          md:py-14
+          sm:px-6
+          sm:py-10
         "
       >
-
-        {/* Icon */}
+        {/* ICON */}
 
         <div
           className="
             flex
-            h-14
-            w-14
+            size-11
             items-center
             justify-center
             rounded-full
@@ -64,64 +43,51 @@ export default function CommunityEmptyState() {
             text-primary
             ring-1
             ring-primary/10
-            sm:h-16
-            sm:w-16
+            sm:size-12
           "
           aria-hidden="true"
         >
-
           <MessageCircle
             className="
-              h-7
-              w-7
-              sm:h-8
-              sm:w-8
+              size-5
+              sm:size-6
             "
           />
-
         </div>
 
-        {/* Heading */}
+        {/* HEADING */}
 
         <h2
           className="
-            mt-5
-            max-w-xs
-            text-xl
+            mt-3
+            max-w-sm
+            text-lg
             font-semibold
             leading-tight
             tracking-tight
             text-foreground
-            sm:max-w-md
-            sm:text-2xl
+            sm:text-xl
           "
         >
           No football conversations yet
         </h2>
 
-        {/* Description */}
+        {/* DESCRIPTION */}
 
         <p
           className="
-            mt-3
-            max-w-sm
-            text-s
-            leading-7
+            mt-1.5
+            max-w-md
+            text-sm
+            leading-5
             text-muted-foreground
-            sm:max-w-md
-            sm:text-base
           "
         >
           Be the first fan to share your thoughts,
           start a discussion, upload media, and
-          kick off the conversation with the
-          community.
+          kick off the conversation.
         </p>
-
       </div>
-
-    </motion.section>
-
+    </section>
   );
-
 }

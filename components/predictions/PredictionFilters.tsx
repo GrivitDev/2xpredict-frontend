@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  useMemo,
   useState,
 } from 'react';
 
@@ -16,7 +15,6 @@ import {
 
 import {
   PredictionMarkets,
-  type PredictionMarket,
 } from '@/lib/prediction-enums';
 
 export type PredictionDateFilter =
@@ -28,19 +26,12 @@ export type PredictionDateFilter =
 
 export interface PredictionFilterState {
   search: string;
-
   league: string;
-
   date: PredictionDateFilter;
-
   customDate: string;
-
   minConfidence: number;
-
   market: string;
-
   plan: 'all' | 'free' | 'regular' | 'vip';
-
   status:
     | 'all'
     | 'pending'
@@ -51,106 +42,54 @@ export interface PredictionFilterState {
 
 interface Props {
   value: PredictionFilterState;
-
-  onChange: (
-    value: PredictionFilterState,
-  ) => void;
-
+  onChange: (value: PredictionFilterState) => void;
   leagues: string[];
-
   availableMarkets?: string[];
-
   totalResults?: number;
 }
 
-const MARKET_LABELS: Record<
-  string,
-  string
-> = {
+const MARKET_LABELS: Record<string, string> = {
   DOUBLE_CHANCE: 'Double Chance',
   DRAW_NO_BET: 'Draw No Bet',
-
   OVER_UNDER: 'Over / Under',
-  BOTH_TEAMS_TO_SCORE:
-    'Both Teams To Score',
+  BOTH_TEAMS_TO_SCORE: 'Both Teams To Score',
   BTTS_GOALS: 'BTTS Goals',
   GOAL_RANGE: 'Goal Range',
-  TEAM_TOTAL_GOALS:
-    'Team Total Goals',
+  TEAM_TOTAL_GOALS: 'Team Total Goals',
   EXACT_GOALS: 'Exact Goals',
   CLEAN_SHEET: 'Clean Sheet',
-
-  HALF_TIME_RESULT:
-    'Half Time Result',
-  SECOND_HALF_RESULT:
-    'Second Half Result',
-  HALF_TIME_FULL_TIME:
-    'Half Time / Full Time',
-
-  ASIAN_HANDICAP:
-    'Asian Handicap',
-  EUROPEAN_HANDICAP:
-    'European Handicap',
-
-  CORNERS_TOTAL:
-    'Total Corners',
-  TEAM_CORNERS:
-    'Team Corners',
-  CORNER_HANDICAP:
-    'Corner Handicap',
-
-  CARDS_TOTAL:
-    'Total Cards',
-  TEAM_CARDS:
-    'Team Cards',
-  CARD_HANDICAP:
-    'Card Handicap',
-
-  ANYTIME_GOALSCORER:
-    'Anytime Goalscorer',
-  FIRST_GOALSCORER:
-    'First Goalscorer',
-  PLAYER_SHOTS:
-    'Player Shots',
-  PLAYER_SHOTS_ON_TARGET:
-    'Player Shots on Target',
-  PLAYER_ASSISTS:
-    'Player Assists',
-
-  FIRST_GOAL:
-    'First Goal',
-  LAST_GOAL:
-    'Last Goal',
-  WIN_TO_NIL:
-    'Win to Nil',
-  CORRECT_SCORE:
-    'Correct Score',
-
-  POSSESSION_WINNER:
-    'Possession Winner',
-  MOST_SHOTS:
-    'Most Shots',
-  MOST_SHOTS_ON_TARGET:
-    'Most Shots on Target',
-  GOAL_TIMING:
-    'Goal Timing',
-  OFFSIDES_TOTAL:
-    'Total Offsides',
-  TEAM_OFFSIDES:
-    'Team Offsides',
-  FOULS_TOTAL:
-    'Total Fouls',
-  TEAM_FOULS:
-    'Team Fouls',
-
-  FIRST_HALF_GOALS:
-    'First Half Goals',
-  SECOND_HALF_GOALS:
-    'Second Half Goals',
-  FIRST_HALF_CORNERS:
-    'First Half Corners',
-  FIRST_HALF_CARDS:
-    'First Half Cards',
+  HALF_TIME_RESULT: 'Half Time Result',
+  SECOND_HALF_RESULT: 'Second Half Result',
+  HALF_TIME_FULL_TIME: 'Half Time / Full Time',
+  ASIAN_HANDICAP: 'Asian Handicap',
+  EUROPEAN_HANDICAP: 'European Handicap',
+  CORNERS_TOTAL: 'Total Corners',
+  TEAM_CORNERS: 'Team Corners',
+  CORNER_HANDICAP: 'Corner Handicap',
+  CARDS_TOTAL: 'Total Cards',
+  TEAM_CARDS: 'Team Cards',
+  CARD_HANDICAP: 'Card Handicap',
+  ANYTIME_GOALSCORER: 'Anytime Goalscorer',
+  FIRST_GOALSCORER: 'First Goalscorer',
+  PLAYER_SHOTS: 'Player Shots',
+  PLAYER_SHOTS_ON_TARGET: 'Player Shots on Target',
+  PLAYER_ASSISTS: 'Player Assists',
+  FIRST_GOAL: 'First Goal',
+  LAST_GOAL: 'Last Goal',
+  WIN_TO_NIL: 'Win to Nil',
+  CORRECT_SCORE: 'Correct Score',
+  POSSESSION_WINNER: 'Possession Winner',
+  MOST_SHOTS: 'Most Shots',
+  MOST_SHOTS_ON_TARGET: 'Most Shots on Target',
+  GOAL_TIMING: 'Goal Timing',
+  OFFSIDES_TOTAL: 'Total Offsides',
+  TEAM_OFFSIDES: 'Team Offsides',
+  FOULS_TOTAL: 'Total Fouls',
+  TEAM_FOULS: 'Team Fouls',
+  FIRST_HALF_GOALS: 'First Half Goals',
+  SECOND_HALF_GOALS: 'Second Half Goals',
+  FIRST_HALF_CORNERS: 'First Half Corners',
+  FIRST_HALF_CARDS: 'First Half Cards',
 };
 
 const MARKET_GROUPS: {
@@ -245,6 +184,20 @@ const MARKET_GROUPS: {
   },
 ];
 
+/*
+ * Static lookup set.
+ * Prevents rebuilding the complete market list on every render.
+ */
+const GROUPED_MARKETS = new Set(
+  MARKET_GROUPS.flatMap(
+    ({ markets }) => markets,
+  ),
+);
+
+const DEFAULT_MARKETS = Object.values(
+  PredictionMarkets,
+);
+
 export default function PredictionFilters({
   value,
   onChange,
@@ -252,10 +205,7 @@ export default function PredictionFilters({
   availableMarkets = [],
   totalResults,
 }: Props) {
-  const [
-    open,
-    setOpen,
-  ] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const update = (
     patch: Partial<PredictionFilterState>,
@@ -279,55 +229,40 @@ export default function PredictionFilters({
     });
   };
 
-  const activeFilterCount =
-    useMemo(() => {
-      let count = 0;
+  let activeFilterCount = 0;
 
-      if (value.league !== 'all') {
-        count++;
-      }
+  if (value.league !== 'all') {
+    activeFilterCount++;
+  }
 
-      if (value.date !== 'all') {
-        count++;
-      }
+  if (value.date !== 'all') {
+    activeFilterCount++;
+  }
 
-      if (value.minConfidence > 0) {
-        count++;
-      }
+  if (value.minConfidence > 0) {
+    activeFilterCount++;
+  }
 
-      if (value.market !== 'all') {
-        count++;
-      }
+  if (value.market !== 'all') {
+    activeFilterCount++;
+  }
 
-      if (value.plan !== 'all') {
-        count++;
-      }
+  if (value.plan !== 'all') {
+    activeFilterCount++;
+  }
 
-      if (value.status !== 'all') {
-        count++;
-      }
-
-      return count;
-    }, [value]);
+  if (value.status !== 'all') {
+    activeFilterCount++;
+  }
 
   const normalizedAvailableMarkets =
-    useMemo(() => {
-      if (
-        availableMarkets.length > 0
-      ) {
-        return Array.from(
+    availableMarkets.length > 0
+      ? Array.from(
           new Set(
-            availableMarkets.filter(
-              Boolean,
-            ),
+            availableMarkets.filter(Boolean),
           ),
-        );
-      }
-
-      return Object.values(
-        PredictionMarkets,
-      );
-    }, [availableMarkets]);
+        )
+      : DEFAULT_MARKETS;
 
   return (
     <div className="space-y-3">
@@ -335,21 +270,8 @@ export default function PredictionFilters({
           SEARCH + FILTER BUTTON
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          w-full
-          items-center
-          gap-2
-        "
-      >
-        <div
-          className="
-            relative
-            min-w-0
-            flex-1
-          "
-        >
+      <div className="flex w-full items-center gap-2">
+        <div className="relative min-w-0 flex-1">
           <Search
             size={17}
             className="
@@ -365,8 +287,7 @@ export default function PredictionFilters({
             value={value.search}
             onChange={(event) =>
               update({
-                search:
-                  event.target.value,
+                search: event.target.value,
               })
             }
             placeholder="Search teams..."
@@ -447,9 +368,7 @@ export default function PredictionFilters({
             focus:ring-primary/20
           "
         >
-          <SlidersHorizontal
-            size={17}
-          />
+          <SlidersHorizontal size={17} />
 
           <span className="hidden sm:inline">
             Filters
@@ -513,13 +432,7 @@ export default function PredictionFilters({
               py-3
             "
           >
-            <div
-              className="
-                flex
-                items-center
-                gap-2
-              "
-            >
+            <div className="flex items-center gap-2">
               <Filter
                 size={15}
                 className="text-primary"
@@ -563,10 +476,6 @@ export default function PredictionFilters({
               xl:grid-cols-4
             "
           >
-            {/* =================================================
-                DATE
-            ================================================= */}
-
             <FilterField
               label="Date"
               icon={<CalendarDays size={14} />}
@@ -585,36 +494,26 @@ export default function PredictionFilters({
                 <option value="all">
                   All dates
                 </option>
-
                 <option value="today">
                   Today
                 </option>
-
                 <option value="week">
                   This week
                 </option>
-
                 <option value="month">
                   This month
                 </option>
-
                 <option value="custom">
                   Custom date
                 </option>
               </select>
             </FilterField>
 
-            {/* =================================================
-                CUSTOM DATE
-            ================================================= */}
-
             {value.date === 'custom' && (
               <FilterField label="Custom date">
                 <input
                   type="date"
-                  value={
-                    value.customDate
-                  }
+                  value={value.customDate}
                   onChange={(event) =>
                     update({
                       customDate:
@@ -626,21 +525,14 @@ export default function PredictionFilters({
               </FilterField>
             )}
 
-            {/* =================================================
-                CONFIDENCE
-            ================================================= */}
-
             <FilterField label="Confidence">
               <select
-                value={
-                  value.minConfidence
-                }
+                value={value.minConfidence}
                 onChange={(event) =>
                   update({
-                    minConfidence:
-                      Number(
-                        event.target.value,
-                      ),
+                    minConfidence: Number(
+                      event.target.value,
+                    ),
                   })
                 }
                 className={selectClass}
@@ -648,32 +540,23 @@ export default function PredictionFilters({
                 <option value={0}>
                   Any confidence
                 </option>
-
                 <option value={50}>
                   50%+
                 </option>
-
                 <option value={60}>
                   60%+
                 </option>
-
                 <option value={70}>
                   70%+
                 </option>
-
                 <option value={80}>
                   80%+
                 </option>
-
                 <option value={90}>
                   90%+
                 </option>
               </select>
             </FilterField>
-
-            {/* =================================================
-                LEAGUE
-            ================================================= */}
 
             <FilterField label="League">
               <select
@@ -690,22 +573,16 @@ export default function PredictionFilters({
                   All leagues
                 </option>
 
-                {leagues.map(
-                  (item) => (
-                    <option
-                      key={item}
-                      value={item}
-                    >
-                      {item}
-                    </option>
-                  ),
-                )}
+                {leagues.map((item) => (
+                  <option
+                    key={item}
+                    value={item}
+                  >
+                    {item}
+                  </option>
+                ))}
               </select>
             </FilterField>
-
-            {/* =================================================
-                MARKET
-            ================================================= */}
 
             <FilterField label="Market">
               <select
@@ -722,95 +599,53 @@ export default function PredictionFilters({
                   All markets
                 </option>
 
-                {MARKET_GROUPS.map(
-                  (group) => {
-                    const markets =
-                      group.markets.filter(
-                        (market) =>
-                          normalizedAvailableMarkets.includes(
-                            market,
-                          ),
-                      );
-
-                    if (
-                      markets.length === 0
-                    ) {
-                      return null;
-                    }
-
-                    return (
-                      <optgroup
-                        key={
-                          group.label
-                        }
-                        label={
-                          group.label
-                        }
-                      >
-                        {markets.map(
-                          (market) => (
-                            <option
-                              key={
-                                market
-                              }
-                              value={
-                                market
-                              }
-                            >
-                              {
-                                MARKET_LABELS[
-                                  market
-                                ]
-                              }
-                            </option>
-                          ),
-                        )}
-                      </optgroup>
+                {MARKET_GROUPS.map((group) => {
+                  const markets =
+                    group.markets.filter(
+                      (market) =>
+                        normalizedAvailableMarkets.includes(
+                          market,
+                        ),
                     );
-                  },
-                )}
 
-                {/* Fallback for any future
-                    backend market not yet
-                    added to MARKET_GROUPS */}
+                  if (!markets.length) {
+                    return null;
+                  }
+
+                  return (
+                    <optgroup
+                      key={group.label}
+                      label={group.label}
+                    >
+                      {markets.map((market) => (
+                        <option
+                          key={market}
+                          value={market}
+                        >
+                          {MARKET_LABELS[market]}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+
                 {normalizedAvailableMarkets
                   .filter(
                     (market) =>
-                      !Object.values(
-                        MARKET_GROUPS.reduce(
-                          (
-                            acc,
-                            group,
-                          ) => {
-                            return [
-                              ...acc,
-                              ...group.markets,
-                            ];
-                          },
-                          [] as string[],
-                        ),
-                      ).includes(
+                      !GROUPED_MARKETS.has(
                         market,
                       ),
                   )
-                  .map(
-                    (market) => (
-                      <option
-                        key={market}
-                        value={market}
-                      >
-                        {formatMarketName(
-                          market,
-                        )}
-                      </option>
-                    ),
-                  )}
+                  .map((market) => (
+                    <option
+                      key={market}
+                      value={market}
+                    >
+                      {formatMarketName(market)}
+                    </option>
+                  ))}
               </select>
             </FilterField>
-
-            {/* =================================================
-                PLAN
-            ================================================= */}
 
             <FilterField label="Prediction plan">
               <select
@@ -818,8 +653,7 @@ export default function PredictionFilters({
                 onChange={(event) =>
                   update({
                     plan:
-                      event.target
-                        .value as PredictionFilterState['plan'],
+                      event.target.value as PredictionFilterState['plan'],
                   })
                 }
                 className={selectClass}
@@ -827,24 +661,17 @@ export default function PredictionFilters({
                 <option value="all">
                   All plans
                 </option>
-
                 <option value="free">
                   Free
                 </option>
-
                 <option value="regular">
                   Regular
                 </option>
-
                 <option value="vip">
                   VIP
                 </option>
               </select>
             </FilterField>
-
-            {/* =================================================
-                STATUS
-            ================================================= */}
 
             <FilterField label="Status">
               <select
@@ -852,8 +679,7 @@ export default function PredictionFilters({
                 onChange={(event) =>
                   update({
                     status:
-                      event.target
-                        .value as PredictionFilterState['status'],
+                      event.target.value as PredictionFilterState['status'],
                   })
                 }
                 className={selectClass}
@@ -861,29 +687,21 @@ export default function PredictionFilters({
                 <option value="all">
                   All statuses
                 </option>
-
                 <option value="pending">
                   Pending
                 </option>
-
                 <option value="won">
                   Won
                 </option>
-
                 <option value="lost">
                   Lost
                 </option>
-
                 <option value="void">
                   Void
                 </option>
               </select>
             </FilterField>
           </div>
-
-          {/* =================================================
-              ACTIVE FILTERS
-          ================================================= */}
 
           {activeFilterCount > 0 && (
             <div
@@ -925,12 +743,9 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.league !==
-                'all' && (
+              {value.league !== 'all' && (
                 <FilterChip
-                  label={
-                    value.league
-                  }
+                  label={value.league}
                   onRemove={() =>
                     update({
                       league: 'all',
@@ -939,8 +754,7 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.minConfidence >
-                0 && (
+              {value.minConfidence > 0 && (
                 <FilterChip
                   label={`${value.minConfidence}%+ confidence`}
                   onRemove={() =>
@@ -951,16 +765,11 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.market !==
-                'all' && (
+              {value.market !== 'all' && (
                 <FilterChip
                   label={
-                    MARKET_LABELS[
-                      value.market
-                    ] ??
-                    formatMarketName(
-                      value.market,
-                    )
+                    MARKET_LABELS[value.market] ??
+                    formatMarketName(value.market)
                   }
                   onRemove={() =>
                     update({
@@ -970,12 +779,9 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.plan !==
-                'all' && (
+              {value.plan !== 'all' && (
                 <FilterChip
-                  label={`${capitalize(
-                    value.plan,
-                  )} predictions`}
+                  label={`${capitalize(value.plan)} predictions`}
                   onRemove={() =>
                     update({
                       plan: 'all',
@@ -984,12 +790,9 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.status !==
-                'all' && (
+              {value.status !== 'all' && (
                 <FilterChip
-                  label={capitalize(
-                    value.status,
-                  )}
+                  label={capitalize(value.status)}
                   onRemove={() =>
                     update({
                       status: 'all',
@@ -1000,8 +803,7 @@ export default function PredictionFilters({
             </div>
           )}
 
-          {typeof totalResults ===
-            'number' && (
+          {typeof totalResults === 'number' && (
             <div
               className="
                 border-t
@@ -1017,9 +819,7 @@ export default function PredictionFilters({
                 {totalResults}
               </span>{' '}
               prediction
-              {totalResults === 1
-                ? ''
-                : 's'}
+              {totalResults === 1 ? '' : 's'}
             </div>
           )}
         </div>
@@ -1097,7 +897,6 @@ function FilterChip({
       "
     >
       {label}
-
       <X size={11} />
     </button>
   );
@@ -1123,34 +922,16 @@ const selectClass = `
   focus:ring-primary/20
 `;
 
-const inputClass = `
-  h-10
-  w-full
-  rounded-xl
-  border
-  border-border
-  bg-background
-  px-3
-  text-xs
-  outline-none
-  transition
-  focus:border-primary
-  focus:ring-2
-  focus:ring-primary/20
-`;
+const inputClass = selectClass;
 
-function capitalize(
-  value: string,
-) {
+function capitalize(value: string) {
   return (
     value.charAt(0).toUpperCase() +
     value.slice(1)
   );
 }
 
-function formatMarketName(
-  value: string,
-) {
+function formatMarketName(value: string) {
   return value
     .toLowerCase()
     .split('_')
@@ -1174,20 +955,14 @@ function getDateLabel(
     return 'This month';
   }
 
-  if (
-    date === 'custom' &&
-    customDate
-  ) {
+  if (date === 'custom' && customDate) {
     return new Date(
       `${customDate}T00:00:00`,
-    ).toLocaleDateString(
-      'en-GB',
-      {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      },
-    );
+    ).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   }
 
   return 'Date';

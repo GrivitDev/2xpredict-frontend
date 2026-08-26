@@ -1,6 +1,8 @@
 'use client';
 
-import { ReactNode } from 'react';
+import {
+  ReactNode,
+} from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -15,13 +17,10 @@ export function InfiniteTicker({
   className,
   speed = 35,
 }: Props) {
-
   return (
-
     <div
       className={cn(
         `
-          group
           relative
           w-full
           overflow-hidden
@@ -31,9 +30,6 @@ export function InfiniteTicker({
         className,
       )}
     >
-
-      {/* Left Fade */}
-
       <div
         className="
           pointer-events-none
@@ -48,8 +44,6 @@ export function InfiniteTicker({
           to-transparent
         "
       />
-
-      {/* Right Fade */}
 
       <div
         className="
@@ -74,29 +68,26 @@ export function InfiniteTicker({
           animate-ticker
           will-change-transform
           [transform:translate3d(0,0,0)]
-          group-hover:[animation-play-state:paused]
           motion-reduce:animate-none
         "
         style={{
-          animationDuration: `${speed}s`,
+          animationDuration:
+            `${speed}s`,
         }}
       >
-
         <div
           className="
             flex
             items-center
             gap-8
-            sm:gap-10
-            lg:gap-12
             pr-8
+            sm:gap-10
             sm:pr-10
+            lg:gap-12
             lg:pr-12
           "
         >
-
           {children}
-
         </div>
 
         <div
@@ -109,15 +100,9 @@ export function InfiniteTicker({
             lg:gap-12
           "
         >
-
           {children}
-
         </div>
-
       </div>
-
     </div>
-
   );
-
 }

@@ -4,58 +4,123 @@ import Link from 'next/link';
 
 import {
   ChevronDown,
-  LayoutDashboard,
-  LogOut,
-  UserRound,
-  Trophy,
-  ReceiptText,
   CreditCard,
-  UsersRound,
-  UserCog,
-  ShieldCheck,
+  LayoutDashboard,
   LogIn,
+  LogOut,
+  ReceiptText,
+  ShieldCheck,
+  Trophy,
+  UserCog,
   UserPlus,
+  UserRound,
+  UsersRound,
 } from 'lucide-react';
 
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 import { Button } from '@/components/ui/button';
 
 import { useAuth } from '@/providers/auth-provider';
 
+
+// ============================================================
+// TYPES
+// ============================================================
+
+type MenuTone =
+  | 'gold'
+  | 'blue'
+  | 'green'
+  | 'purple'
+  | 'rose'
+  | 'amber';
+
+
+// ============================================================
+// MENU DATA
+// ============================================================
+
+const USER_MENU_ITEMS = [
+  {
+    href: '/dashboard/predictions',
+    icon: Trophy,
+    tone: 'blue' as const,
+    title: 'My Predictions',
+    description: 'View your prediction history',
+  },
+  {
+    href: '/dashboard/purchases',
+    icon: ReceiptText,
+    tone: 'green' as const,
+    title: 'My Purchases',
+    description: 'Your prediction purchases',
+  },
+  {
+    href: '/dashboard/subscriptions',
+    icon: CreditCard,
+    tone: 'purple' as const,
+    title: 'My Subscriptions',
+    description: 'Manage your plan',
+  },
+  {
+    href: '/dashboard/referrals',
+    icon: UsersRound,
+    tone: 'rose' as const,
+    title: 'My Referrals',
+    description: 'Invite and earn rewards',
+  },
+  {
+    href: '/dashboard/profile',
+    icon: UserCog,
+    tone: 'amber' as const,
+    title: 'Profile',
+    description: 'Personal account settings',
+  },
+] as const;
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function UserMenu() {
+
   const {
     user,
     logout,
     loading,
   } = useAuth();
 
+
   if (loading) {
     return null;
   }
 
-  const isAdmin = user?.role === 'admin';
 
-  const dashboard = isAdmin
-    ? '/admin'
-    : '/dashboard';
+  const isAdmin =
+    user?.role === 'admin';
 
-  /* ==========================================================================
-     GUEST
-  ========================================================================== */
+  const dashboard =
+    isAdmin
+      ? '/admin'
+      : '/dashboard';
+
+
+  // ==========================================================
+  // GUEST
+  // ==========================================================
 
   if (!user) {
     return (
       <>
-        {/* --------------------------------------------------------------------
-            DESKTOP GUEST
-        --------------------------------------------------------------------- */}
+        {/* DESKTOP */}
 
         <div
           className="
@@ -146,9 +211,8 @@ export default function UserMenu() {
           </Link>
         </div>
 
-        {/* --------------------------------------------------------------------
-            MOBILE GUEST
-        --------------------------------------------------------------------- */}
+
+        {/* MOBILE */}
 
         <div className="lg:hidden">
           <DropdownMenu>
@@ -171,12 +235,10 @@ export default function UserMenu() {
                   shadow-sm
                   transition-all
                   duration-300
-
                   hover:border-gold/40
                   hover:bg-secondary
                   hover:text-foreground
                   hover:shadow-md
-
                   focus-visible:ring-gold/40
                 "
               >
@@ -194,7 +256,6 @@ export default function UserMenu() {
                     text-gold
                     transition-all
                     duration-300
-
                     group-hover:border-gold/50
                     group-hover:bg-gold/15
                   "
@@ -218,6 +279,7 @@ export default function UserMenu() {
               </Button>
             </DropdownMenuTrigger>
 
+
             <DropdownMenuContent
               align="end"
               sideOffset={10}
@@ -236,7 +298,7 @@ export default function UserMenu() {
               "
             >
 
-              {/* Header */}
+              {/* HEADER */}
 
               <div
                 className="
@@ -265,7 +327,14 @@ export default function UserMenu() {
                   "
                 />
 
-                <div className="relative flex items-center gap-3">
+                <div
+                  className="
+                    relative
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
                   <span
                     className="
                       flex
@@ -296,165 +365,41 @@ export default function UserMenu() {
                 </div>
               </div>
 
-              {/* Login */}
 
-              <DropdownMenuItem
-                asChild
-                className="
-                  group
-                  cursor-pointer
-                  rounded-xl
-                  p-2
-                  outline-none
-                  transition-all
-                  duration-200
+              <GuestMenuItem
+                href="/login"
+                icon={LogIn}
+                tone="blue"
+                title="Login"
+                description="Access your account"
+              />
 
-                  hover:bg-secondary
-                  focus:bg-secondary
-                  data-[highlighted]:bg-secondary
-                  data-[highlighted]:text-foreground
-                "
-              >
-                <Link
-                  href="/login"
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    gap-3
-                  "
-                >
-                  <MenuIcon
-                    icon={LogIn}
-                    tone="blue"
-                  />
-
-                  <div className="min-w-0 flex-1">
-                    <span
-                      className="
-                        block
-                        text-s
-                        font-semibold
-                        text-foreground
-                      "
-                    >
-                      Login
-                    </span>
-
-                    <span
-                      className="
-                        block
-                        text-[11px]
-                        text-muted-foreground
-                      "
-                    >
-                      Access your account
-                    </span>
-                  </div>
-
-                  <ChevronDown
-                    className="
-                      h-3.5
-                      w-3.5
-                      -rotate-90
-                      text-muted-foreground
-                      opacity-0
-                      transition-all
-                      group-hover:translate-x-0.5
-                      group-hover:opacity-100
-                    "
-                  />
-                </Link>
-              </DropdownMenuItem>
-
-              {/* Register */}
-
-              <DropdownMenuItem
-                asChild
-                className="
-                  group
-                  cursor-pointer
-                  rounded-xl
-                  p-2
-                  outline-none
-                  transition-all
-                  duration-200
-
-                  hover:bg-gold/10
-                  focus:bg-gold/10
-                  data-[highlighted]:bg-gold/10
-                  data-[highlighted]:text-foreground
-                "
-              >
-                <Link
-                  href="/register"
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    gap-3
-                  "
-                >
-                  <MenuIcon
-                    icon={UserPlus}
-                    tone="gold"
-                  />
-
-                  <div className="min-w-0 flex-1">
-                    <span
-                      className="
-                        block
-                        text-s
-                        font-semibold
-                        text-foreground
-                      "
-                    >
-                      Register
-                    </span>
-
-                    <span
-                      className="
-                        block
-                        text-[11px]
-                        text-muted-foreground
-                      "
-                    >
-                      Create your account
-                    </span>
-                  </div>
-
-                  <ChevronDown
-                    className="
-                      h-3.5
-                      w-3.5
-                      -rotate-90
-                      text-muted-foreground
-                      opacity-0
-                      transition-all
-                      group-hover:translate-x-0.5
-                      group-hover:opacity-100
-                    "
-                  />
-                </Link>
-              </DropdownMenuItem>
+              <GuestMenuItem
+                href="/register"
+                icon={UserPlus}
+                tone="gold"
+                title="Register"
+                description="Create your account"
+                gold
+              />
 
             </DropdownMenuContent>
+
           </DropdownMenu>
         </div>
       </>
     );
   }
 
-  /* ==========================================================================
-     AUTHENTICATED USER
-  ========================================================================== */
+
+  // ==========================================================
+  // AUTHENTICATED USER
+  // ==========================================================
 
   return (
     <DropdownMenu>
 
-      {/* =========================================================================
-          TRIGGER
-      ========================================================================= */}
+      {/* TRIGGER */}
 
       <DropdownMenuTrigger asChild>
         <Button
@@ -478,19 +423,14 @@ export default function UserMenu() {
             shadow-sm
             transition-all
             duration-300
-
             hover:border-gold/40
             hover:bg-secondary
             hover:text-foreground
             hover:shadow-md
-
             focus-visible:ring-gold/40
-
             sm:px-2.5
           "
         >
-
-          {/* Account badge */}
 
           <span
             className="
@@ -508,7 +448,6 @@ export default function UserMenu() {
               text-gold
               transition-all
               duration-300
-
               group-hover:border-gold/50
               group-hover:bg-gold/15
             "
@@ -520,8 +459,6 @@ export default function UserMenu() {
             )}
           </span>
 
-          {/* Label */}
-
           <span
             className="
               hidden
@@ -532,7 +469,9 @@ export default function UserMenu() {
               sm:inline
             "
           >
-            {isAdmin ? 'Admin' : 'Dashboard'}
+            {isAdmin
+              ? 'Admin'
+              : 'Dashboard'}
           </span>
 
           <ChevronDown
@@ -542,13 +481,10 @@ export default function UserMenu() {
               text-muted-foreground
               transition-all
               duration-300
-
               group-data-[state=open]:rotate-180
               group-hover:text-foreground
             "
           />
-
-          {/* Gold underline */}
 
           <span
             className="
@@ -563,17 +499,16 @@ export default function UserMenu() {
               opacity-60
               transition-all
               duration-300
-
               group-hover:w-10
               group-hover:opacity-100
             "
           />
+
         </Button>
       </DropdownMenuTrigger>
 
-      {/* =========================================================================
-          DROPDOWN
-      ========================================================================= */}
+
+      {/* DROPDOWN */}
 
       <DropdownMenuContent
         align="end"
@@ -703,103 +638,37 @@ export default function UserMenu() {
           </div>
         </div>
 
+
         {/* MENU */}
 
         <div className="p-2">
 
-          {/* Dashboard */}
+          <DashboardItem
+            href={dashboard}
+            icon={
+              isAdmin
+                ? ShieldCheck
+                : LayoutDashboard
+            }
+            tone="gold"
+            title="Dashboard"
+            description={
+              isAdmin
+                ? 'Manage platform'
+                : 'Your overview'
+            }
+          />
 
-          <DropdownMenuItem
-            asChild
-            className="
-              group
-              cursor-pointer
-              rounded-xl
-              p-2
-              outline-none
-              transition-all
-              duration-200
-
-              hover:bg-secondary
-              focus:bg-secondary
-              data-[highlighted]:bg-secondary
-              data-[highlighted]:text-foreground
-            "
-          >
-            <Link
-              href={dashboard}
-              className="flex w-full items-center gap-3"
-            >
-              <MenuIcon
-                icon={
-                  isAdmin
-                    ? ShieldCheck
-                    : LayoutDashboard
-                }
-                tone="gold"
-              />
-
-              <div className="min-w-0 flex-1">
-                <span className="block text-s font-semibold text-foreground">
-                  Dashboard
-                </span>
-
-                <span className="hidden text-[11px] text-muted-foreground sm:block">
-                  {isAdmin
-                    ? 'Manage platform'
-                    : 'Your overview'}
-                </span>
-              </div>
-
-              <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
-            </Link>
-          </DropdownMenuItem>
-
-          {!isAdmin && (
-            <>
+          {!isAdmin &&
+            USER_MENU_ITEMS.map(item => (
               <DashboardItem
-                href="/dashboard/predictions"
-                icon={Trophy}
-                tone="blue"
-                title="My Predictions"
-                description="View your prediction history"
+                key={item.href}
+                {...item}
               />
-
-              <DashboardItem
-                href="/dashboard/purchases"
-                icon={ReceiptText}
-                tone="green"
-                title="My Purchases"
-                description="Your prediction purchases"
-              />
-
-              <DashboardItem
-                href="/dashboard/subscriptions"
-                icon={CreditCard}
-                tone="purple"
-                title="My Subscriptions"
-                description="Manage your plan"
-              />
-
-              <DashboardItem
-                href="/dashboard/referrals"
-                icon={UsersRound}
-                tone="rose"
-                title="My Referrals"
-                description="Invite and earn rewards"
-              />
-
-              <DashboardItem
-                href="/dashboard/profile"
-                icon={UserCog}
-                tone="amber"
-                title="Profile"
-                description="Personal account settings"
-              />
-            </>
-          )}
+            ))}
 
         </div>
+
 
         {/* LOGOUT */}
 
@@ -817,7 +686,6 @@ export default function UserMenu() {
               text-destructive
               transition-all
               duration-200
-
               hover:bg-destructive/10
               focus:bg-destructive/10
               data-[highlighted]:bg-destructive/10
@@ -837,7 +705,6 @@ export default function UserMenu() {
                 text-destructive
                 transition-transform
                 duration-200
-
                 group-hover:scale-105
               "
             >
@@ -851,38 +718,35 @@ export default function UserMenu() {
         </div>
 
       </DropdownMenuContent>
+
     </DropdownMenu>
   );
 }
 
 
-/* =============================================================================
-   DASHBOARD ITEM
-============================================================================= */
+// ============================================================
+// GUEST MENU ITEM
+// ============================================================
 
-function DashboardItem({
+function GuestMenuItem({
   href,
   icon,
   tone,
   title,
   description,
+  gold = false,
 }: {
   href: string;
   icon: React.ElementType;
-  tone:
-    | 'gold'
-    | 'blue'
-    | 'green'
-    | 'purple'
-    | 'rose'
-    | 'amber';
+  tone: MenuTone;
   title: string;
   description: string;
+  gold?: boolean;
 }) {
   return (
     <DropdownMenuItem
       asChild
-      className="
+      className={`
         group
         cursor-pointer
         rounded-xl
@@ -890,16 +754,30 @@ function DashboardItem({
         outline-none
         transition-all
         duration-200
-
-        hover:bg-secondary
-        focus:bg-secondary
-        data-[highlighted]:bg-secondary
+        ${
+          gold
+            ? `
+              hover:bg-gold/10
+              focus:bg-gold/10
+              data-[highlighted]:bg-gold/10
+            `
+            : `
+              hover:bg-secondary
+              focus:bg-secondary
+              data-[highlighted]:bg-secondary
+            `
+        }
         data-[highlighted]:text-foreground
-      "
+      `}
     >
       <Link
         href={href}
-        className="flex w-full items-center gap-3"
+        className="
+          flex
+          w-full
+          items-center
+          gap-3
+        "
       >
         <MenuIcon
           icon={icon}
@@ -907,11 +785,24 @@ function DashboardItem({
         />
 
         <div className="min-w-0 flex-1">
-          <span className="block text-s font-semibold text-foreground">
+          <span
+            className="
+              block
+              text-s
+              font-semibold
+              text-foreground
+            "
+          >
             {title}
           </span>
 
-          <span className="hidden text-[11px] text-muted-foreground sm:block">
+          <span
+            className="
+              block
+              text-[11px]
+              text-muted-foreground
+            "
+          >
             {description}
           </span>
         </div>
@@ -934,24 +825,109 @@ function DashboardItem({
 }
 
 
-/* =============================================================================
-   MENU ICON
-============================================================================= */
+// ============================================================
+// DASHBOARD ITEM
+// ============================================================
+
+function DashboardItem({
+  href,
+  icon,
+  tone,
+  title,
+  description,
+}: {
+  href: string;
+  icon: React.ElementType;
+  tone: MenuTone;
+  title: string;
+  description: string;
+}) {
+  return (
+    <DropdownMenuItem
+      asChild
+      className="
+        group
+        cursor-pointer
+        rounded-xl
+        p-2
+        outline-none
+        transition-all
+        duration-200
+        hover:bg-secondary
+        focus:bg-secondary
+        data-[highlighted]:bg-secondary
+        data-[highlighted]:text-foreground
+      "
+    >
+      <Link
+        href={href}
+        className="
+          flex
+          w-full
+          items-center
+          gap-3
+        "
+      >
+        <MenuIcon
+          icon={icon}
+          tone={tone}
+        />
+
+        <div className="min-w-0 flex-1">
+          <span
+            className="
+              block
+              text-s
+              font-semibold
+              text-foreground
+            "
+          >
+            {title}
+          </span>
+
+          <span
+            className="
+              hidden
+              text-[11px]
+              text-muted-foreground
+              sm:block
+            "
+          >
+            {description}
+          </span>
+        </div>
+
+        <ChevronDown
+          className="
+            h-3.5
+            w-3.5
+            -rotate-90
+            text-muted-foreground
+            opacity-0
+            transition-all
+            group-hover:translate-x-0.5
+            group-hover:opacity-100
+          "
+        />
+      </Link>
+    </DropdownMenuItem>
+  );
+}
+
+
+// ============================================================
+// MENU ICON
+// ============================================================
 
 function MenuIcon({
   icon: Icon,
   tone,
 }: {
   icon: React.ElementType;
-  tone:
-    | 'gold'
-    | 'blue'
-    | 'green'
-    | 'purple'
-    | 'rose'
-    | 'amber';
+  tone: MenuTone;
 }) {
-  const tones = {
+
+  const toneClasses: Record<MenuTone, string> = {
     gold: `
       bg-gold/10
       text-gold
@@ -1014,7 +990,7 @@ function MenuIcon({
         border
         transition-all
         duration-200
-        ${tones[tone]}
+        ${toneClasses[tone]}
       `}
     >
       <Icon className="h-4 w-4" />

@@ -1,7 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 import { AdWrapper } from '../shared/AdWrapper';
 import { AdImage } from '../shared/AdImage';
 import { AdBadge } from '../shared/AdBadge';
@@ -27,19 +25,18 @@ export function BottomAd({
       className="
         group
         relative
+        min-h-[220px]
         overflow-hidden
         rounded-2xl
         border
         border-border/60
         bg-card
         shadow-lg
-        transition-all
+        transition-shadow
         duration-300
-        hover:shadow-2xl
-
-        min-h-[220px]
-        sm:min-h-[260px]
-        lg:min-h-[300px]
+        hover:shadow-xl
+        sm:min-h-[250px]
+        lg:min-h-[280px]
       "
     >
 
@@ -47,23 +44,7 @@ export function BottomAd({
 
         <>
 
-          {/* Background */}
-
-          <motion.div
-            initial={{
-              scale: 1,
-            }}
-            animate={{
-              scale: 1.04,
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              repeatType: 'reverse',
-              ease: 'linear',
-            }}
-            className="absolute inset-0"
-          >
+          <div className="absolute inset-0">
 
             <AdImage
               ad={ad}
@@ -71,34 +52,35 @@ export function BottomAd({
               priority
             />
 
-          </motion.div>
-
-          {/* Premium overlays */}
+          </div>
 
           <div
             className="
+              pointer-events-none
               absolute
               inset-0
               bg-gradient-to-r
               from-black/85
               via-black/60
-              to-black/40
+              to-black/35
             "
           />
 
           <div
             className="
+              pointer-events-none
               absolute
               inset-0
               bg-gradient-to-t
-              from-black/60
-              via-transparent
-              to-black/10
+              from-black/65
+              via-black/10
+              to-transparent
             "
           />
 
           <div
             className="
+              pointer-events-none
               absolute
               inset-0
               bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,.08),transparent_45%)]
@@ -113,52 +95,25 @@ export function BottomAd({
         className="
           relative
           z-10
-
           flex
           min-h-[220px]
-          sm:min-h-[260px]
-          lg:min-h-[300px]
-
           flex-col
           justify-between
-
           p-4
+          sm:min-h-[250px]
           sm:p-5
+          lg:min-h-[280px]
           lg:p-6
         "
       >
 
-        {/* Badge */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: -8,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-        >
+        <div>
 
           <AdBadge />
 
-        </motion.div>
+        </div>
 
-        {/* Main Content */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 14,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: .4,
-          }}
+        <div
           className="
             mx-auto
             flex
@@ -166,8 +121,10 @@ export function BottomAd({
             max-w-4xl
             flex-col
             items-center
-            text-center
             gap-2
+            py-4
+            text-center
+            sm:py-5
           "
         >
 
@@ -182,40 +139,21 @@ export function BottomAd({
             light
           />
 
-        </motion.div>
+        </div>
 
-        {/* Footer */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 16,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            delay: .2,
-          }}
+        <div
           className="
-            mt-4
-
+            mt-3
             flex
             flex-col
             gap-4
-
             lg:flex-row
             lg:items-end
             lg:justify-between
           "
         >
 
-          <div
-            className="
-              max-w-lg
-            "
-          >
+          <div className="max-w-lg">
 
             <AdInstructions
               ad={ad}
@@ -238,35 +176,19 @@ export function BottomAd({
 
           </div>
 
-        </motion.div>
+        </div>
 
       </div>
 
-      {/* Decorative Ambient Glow */}
-
-      <motion.div
-        animate={{
-          y: [
-            0,
-            -12,
-            0,
-          ],
-        }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
+      <div
         className="
           pointer-events-none
           absolute
-          -right-32
-          -top-32
-          h-72
-          w-72
-          rounded-full
-          bg-primary/10
-          blur-3xl
+          inset-0
+          rounded-2xl
+          ring-1
+          ring-inset
+          ring-white/10
         "
       />
 

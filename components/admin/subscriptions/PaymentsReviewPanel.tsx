@@ -1,629 +1,649 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import Image from 'next/image';
 
 import {
-  CheckCircle2,
-  XCircle,
-  Wallet,
-  Clock3,
   AlertTriangle,
+  CheckCircle2,
+  Clock3,
   ExternalLink,
+  Loader2,
+  Wallet,
+  XCircle,
 } from 'lucide-react';
 
 import toast from 'react-hot-toast';
 
 import {
-  getPendingPayments,
   approvePayment,
+  getPendingPayments,
   rejectPayment,
 } from '@/services/admin-payments.service';
 
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 
+interface Payment {
+  _id: string;
+  type: string;
+  amount: number;
+  email: string;
+  proofImageUrl?: string;
+}
+
+interface PaymentsReviewPanelProps {
+  token: string;
+}
 
 export default function PaymentsReviewPanel({
   token,
-}: {
-  token: string;
-}) {
+}: PaymentsReviewPanelProps) {
+  const [payments, setPayments] =
+    useState<Payment[]>([]);
 
-  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<string | null>(null);
 
+  const [processing, setProcessing] =
+    useState<string | null>(null);
 
-
-  const load = async () => {
-
+  const load = useCallback(async () => {
     try {
-
       const data = await getPendingPayments(token);
 
       setPayments(data);
-
-
     } catch {
-
       toast.error(
-        'Unable to load pending payments'
+        'Unable to load pending payments',
       );
-
-
     } finally {
-
       setLoading(false);
-
     }
-
-  };
-
-
-
-
-  useEffect(() => {
-
-    load();
-
   }, [token]);
 
+  useEffect(() => {
+    load();
+  }, [load]);
 
-
-
-
-  useAdminRealtime((event, data) => {
-
-
+  useAdminRealtime((event, data: Payment) => {
     if (event === 'payment:new') {
-
       setPayments((prev) => [
         data,
-        ...prev,
+        ...prev.filter(
+          (payment) => payment._id !== data._id,
+        ),
       ]);
 
-      toast.success(
-        'New payment received'
-      );
+      toast.success('New payment received');
 
+      return;
     }
 
-
-
     if (event === 'payment:update') {
-
       setPayments((prev) =>
         prev.filter(
           (payment) =>
             payment._id !== data._id,
         ),
       );
-
     }
-
-
   });
 
-
-
-
-
-  const approve = async (
-    id: string,
-  ) => {
-
+  const handleApprove = async (id: string) => {
     try {
-
       setProcessing(id);
 
-      await approvePayment(
-        token,
-        id,
+      await approvePayment(token, id);
+
+      setPayments((prev) =>
+        prev.filter((payment) => payment._id !== id),
       );
 
-      toast.success(
-        'Payment approved'
-      );
-
-      await load();
-
-
+      toast.success('Payment approved');
     } catch {
-
-      toast.error(
-        'Failed to approve payment'
-      );
-
-
+      toast.error('Failed to approve payment');
     } finally {
-
       setProcessing(null);
-
     }
-
   };
 
-
-
-
-
-  const reject = async (
-    id: string,
-  ) => {
-
+  const handleReject = async (id: string) => {
     try {
-
       setProcessing(id);
 
-      await rejectPayment(
-        token,
-        id,
+      await rejectPayment(token, id);
+
+      setPayments((prev) =>
+        prev.filter((payment) => payment._id !== id),
       );
 
-
-      toast.success(
-        'Payment rejected'
-      );
-
-
-      await load();
-
-
+      toast.success('Payment rejected');
     } catch {
-
-      toast.error(
-        'Failed to reject payment'
-      );
-
-
+      toast.error('Failed to reject payment');
     } finally {
-
       setProcessing(null);
-
     }
-
   };
-
-
-
-
-
 
   if (loading) {
-
-    return (
-
-      <div className="
-        rounded-3xl
-        border
-        bg-card/70
-        p-6
-        backdrop-blur-xl
-      ">
-
-        <div className="
-          h-6
-          w-52
-          animate-pulse
-          rounded-lg
-          bg-muted
-        "/>
-
-
-        <div className="
-          mt-6
-          h-32
-          animate-pulse
-          rounded-2xl
-          bg-muted
-        "/>
-
-      </div>
-
-    );
-
+    return <PaymentsSkeleton />;
   }
 
-
-
-
-
-
-
   return (
-
-    <div className="
-      relative
-      overflow-hidden
-      rounded-3xl
-      border
-      bg-card/70
-      p-6
-      backdrop-blur-xl
-    ">
-
-
-      {/* Header */}
-
-      <div className="
-        flex
-        items-center
-        justify-between
-      ">
-
-
-        <div className="
+    <section
+      aria-labelledby="payment-review-title"
+      className="
+        overflow-hidden
+        rounded-lg
+        border
+        border-border/60
+        bg-card
+      "
+    >
+      <header
+        className="
           flex
           items-center
-          gap-4
-        ">
-
-
-          <div className="
-            rounded-2xl
-            bg-primary/10
-            p-4
-          ">
-
-            <Wallet className="
-              h-6
-              w-6
+          justify-between
+          gap-3
+          border-b
+          border-border/60
+          px-4
+          py-3.5
+        "
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div
+            className="
+              flex
+              h-8
+              w-8
+              shrink-0
+              items-center
+              justify-center
+              rounded-md
+              bg-primary/10
               text-primary
-            "/>
-
+            "
+          >
+            <Wallet
+              aria-hidden="true"
+              className="h-4 w-4"
+            />
           </div>
 
-
-
-          <div>
-
-            <h3 className="
-              text-xl
-              font-semibold
-            ">
+          <div className="min-w-0">
+            <h3
+              id="payment-review-title"
+              className="
+                text-sm
+                font-semibold
+                tracking-tight
+              "
+            >
               Payment Verification
             </h3>
 
-
-            <p className="
-              text-s
-              text-muted-foreground
-            ">
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-[11px]
+                text-muted-foreground
+              "
+            >
               Review and approve subscription payments.
             </p>
-
           </div>
-
-
         </div>
 
+        <span
+          role="status"
+          className="
+            inline-flex
+            shrink-0
+            items-center
+            gap-1.5
+            rounded-md
+            border
+            border-orange-500/20
+            bg-orange-500/5
+            px-2
+            py-1
+            text-[11px]
+            font-medium
+            text-orange-600
+          "
+        >
+          <Clock3
+            aria-hidden="true"
+            className="h-3 w-3"
+          />
 
+          {payments.length} Pending
+        </span>
+      </header>
 
+      {payments.length === 0 ? (
+        <EmptyPayments />
+      ) : (
+        <div
+          className="
+            divide-y
+            divide-border/50
+          "
+        >
+          {payments.map((payment) => (
+            <PaymentItem
+              key={payment._id}
+              payment={payment}
+              processing={
+                processing === payment._id
+              }
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
+function PaymentItem({
+  payment,
+  processing,
+  onApprove,
+  onReject,
+}: {
+  payment: Payment;
+  processing: boolean;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+}) {
+  return (
+    <article
+      className="
+        p-3.5
+        transition-colors
+        hover:bg-muted/10
+      "
+    >
+      <div
+        className="
+          flex
+          flex-col
+          gap-3
+          lg:flex-row
+          lg:items-start
+          lg:justify-between
+        "
+      >
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="
+                inline-flex
+                items-center
+                gap-1
+                rounded-md
+                border
+                border-orange-500/20
+                bg-orange-500/5
+                px-1.5
+                py-0.5
+                text-[10px]
+                font-medium
+                text-orange-600
+              "
+            >
+              <AlertTriangle
+                aria-hidden="true"
+                className="h-3 w-3"
+              />
 
-        <div className="
+              Awaiting Approval
+            </span>
+          </div>
+
+          <dl
+            className="
+              mt-3
+              grid
+              gap-x-6
+              gap-y-1.5
+              text-xs
+              sm:grid-cols-2
+            "
+          >
+            <PaymentDetail
+              label="Type"
+              value={payment.type}
+            />
+
+            <PaymentDetail
+              label="Amount"
+              value={`₦${payment.amount.toLocaleString()}`}
+            />
+
+            <PaymentDetail
+              label="User"
+              value={payment.email}
+            />
+          </dl>
+        </div>
+
+        {payment.proofImageUrl && (
+          <a
+            href={payment.proofImageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open payment proof"
+            className="
+              group
+              relative
+              block
+              h-24
+              w-full
+              shrink-0
+              overflow-hidden
+              rounded-md
+              border
+              border-border/60
+              bg-muted
+              sm:w-36
+              lg:h-20
+              lg:w-32
+            "
+          >
+            <Image
+              src={payment.proofImageUrl}
+              alt="Payment proof"
+              fill
+              sizes="128px"
+              className="
+                object-cover
+                transition-transform
+                group-hover:scale-[1.02]
+              "
+            />
+
+            <span
+              className="
+                absolute
+                right-1.5
+                top-1.5
+                flex
+                h-6
+                w-6
+                items-center
+                justify-center
+                rounded-md
+                bg-background/90
+                text-foreground
+                shadow-sm
+              "
+            >
+              <ExternalLink
+                aria-hidden="true"
+                className="h-3 w-3"
+              />
+            </span>
+          </a>
+        )}
+      </div>
+
+      <div
+        className="
+          mt-3
           flex
           items-center
           gap-2
+        "
+      >
+        <button
+          type="button"
+          disabled={processing}
+          onClick={() =>
+            onApprove(payment._id)
+          }
+          className="
+            inline-flex
+            h-8
+            items-center
+            gap-1.5
+            rounded-md
+            bg-emerald-600
+            px-3
+            text-xs
+            font-medium
+            text-white
+            transition-opacity
+            hover:opacity-90
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-emerald-600
+            focus-visible:ring-offset-2
+            disabled:pointer-events-none
+            disabled:opacity-50
+          "
+        >
+          {processing ? (
+            <Loader2
+              aria-hidden="true"
+              className="
+                h-3.5
+                w-3.5
+                animate-spin
+              "
+            />
+          ) : (
+            <CheckCircle2
+              aria-hidden="true"
+              className="h-3.5 w-3.5"
+            />
+          )}
+
+          {processing
+            ? 'Processing...'
+            : 'Approve'}
+        </button>
+
+        <button
+          type="button"
+          disabled={processing}
+          onClick={() =>
+            onReject(payment._id)
+          }
+          className="
+            inline-flex
+            h-8
+            items-center
+            gap-1.5
+            rounded-md
+            border
+            border-destructive/30
+            bg-destructive/5
+            px-3
+            text-xs
+            font-medium
+            text-destructive
+            transition-colors
+            hover:bg-destructive/10
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-destructive
+            focus-visible:ring-offset-2
+            disabled:pointer-events-none
+            disabled:opacity-50
+          "
+        >
+          <XCircle
+            aria-hidden="true"
+            className="h-3.5 w-3.5"
+          />
+
+          Reject
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function PaymentDetail({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="inline text-muted-foreground">
+        {label}:{' '}
+      </dt>
+
+      <dd className="inline font-medium text-foreground">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function EmptyPayments() {
+  return (
+    <div
+      className="
+        flex
+        flex-col
+        items-center
+        justify-center
+        px-4
+        py-10
+        text-center
+      "
+    >
+      <div
+        className="
+          flex
+          h-9
+          w-9
+          items-center
+          justify-center
           rounded-full
-          border
-          bg-orange-500/10
-          px-4
-          py-2
-          text-s
-          text-orange-600
-        ">
-
-
-          <Clock3 className="h-4 w-4"/>
-
-
-          {payments.length}
-          {' '}
-          Pending
-
-
-        </div>
-
-
+          bg-emerald-500/10
+          text-emerald-600
+        "
+      >
+        <CheckCircle2
+          aria-hidden="true"
+          className="h-5 w-5"
+        />
       </div>
 
+      <h4
+        className="
+          mt-2.5
+          text-xs
+          font-semibold
+        "
+      >
+        Everything is clear
+      </h4>
 
+      <p
+        className="
+          mt-1
+          text-[11px]
+          text-muted-foreground
+        "
+      >
+        No pending payments require attention.
+      </p>
+    </div>
+  );
+}
 
+function PaymentsSkeleton() {
+  return (
+    <section
+      aria-busy="true"
+      aria-label="Loading payment verification"
+      className="
+        overflow-hidden
+        rounded-lg
+        border
+        border-border/60
+        bg-card
+      "
+    >
+      <div
+        className="
+          flex
+          items-center
+          gap-2.5
+          border-b
+          border-border/60
+          px-4
+          py-3.5
+        "
+      >
+        <div
+          className="
+            h-8
+            w-8
+            animate-pulse
+            rounded-md
+            bg-muted
+          "
+        />
 
-
-
-
-
-      {/* Empty */}
-
-      {payments.length === 0 && (
-
-        <div className="
-          mt-8
-          rounded-2xl
-          border
-          border-dashed
-          p-10
-          text-center
-        ">
-
-
-          <CheckCircle2 className="
-            mx-auto
-            h-10
-            w-10
-            text-green-500
-          "/>
-
-
-
-          <h4 className="
-            mt-4
-            font-semibold
-          ">
-            Everything is clear
-          </h4>
-
-
-          <p className="
-            mt-2
-            text-s
-            text-muted-foreground
-          ">
-            No pending payments require attention.
-          </p>
-
-
-        </div>
-
-      )}
-
-
-
-
-
-
-
-      {/* Payments */}
-
-      <div className="
-        mt-8
-        space-y-5
-      ">
-
-
-        {payments.map((payment)=>(
-
+        <div className="space-y-1.5">
+          <div
+            className="
+              h-3.5
+              w-40
+              animate-pulse
+              rounded
+              bg-muted
+            "
+          />
 
           <div
-
-            key={payment._id}
-
             className="
-              rounded-2xl
-              border
-              bg-background/50
-              p-5
-              transition
-              hover:shadow-lg
+              h-2.5
+              w-56
+              animate-pulse
+              rounded
+              bg-muted
             "
-
-          >
-
-
-
-            <div className="
-              flex
-              flex-col
-              gap-5
-              lg:flex-row
-              lg:justify-between
-            ">
-
-
-
-              <div
-                className="
-                  space-y-2
-                "
-              >
-
-                <div className="
-                  flex
-                  items-center
-                  gap-2
-                ">
-
-                  <AlertTriangle className="
-                    h-4
-                    w-4
-                    text-orange-500
-                  "/>
-
-
-                  <span className="
-                    text-s
-                    font-medium
-                  ">
-                    Awaiting Approval
-                  </span>
-
-
-                </div>
-
-
-
-                <p>
-                  <span className="text-muted-foreground">
-                    Type:
-                  </span>
-                  {' '}
-                  {payment.type}
-                </p>
-
-
-                <p>
-                  <span className="text-muted-foreground">
-                    Amount:
-                  </span>
-                  {' '}
-                  ₦{payment.amount}
-                </p>
-
-
-                <p>
-                  <span className="text-muted-foreground">
-                    User:
-                  </span>
-                  {' '}
-                  {payment.email}
-                </p>
-
-
-              </div>
-
-
-
-
-
-
-              {payment.proofImageUrl && (
-
-                <a
-                  href={payment.proofImageUrl}
-                  target="_blank"
-                  className="
-                    relative
-                    h-32
-                    w-full
-                    overflow-hidden
-                    rounded-xl
-                    border
-                    lg:w-48
-                  "
-                >
-
-                  <Image
-                    src={payment.proofImageUrl}
-                    alt="Payment proof"
-                    fill
-                    className="object-cover"
-                  />
-
-                  <ExternalLink className="
-                    absolute
-                    right-2
-                    top-2
-                    h-5
-                    w-5
-                    rounded
-                    bg-background
-                    p-1
-                  "/>
-
-                </a>
-
-              )}
-
-
-            </div>
-
-
-
-
-
-
-            <div className="
-              mt-5
-              flex
-              gap-3
-            ">
-
-
-              <button
-
-                disabled={processing === payment._id}
-
-                onClick={() =>
-                  approve(payment._id)
-                }
-
-                className="
-                  flex
-                  items-center
-                  gap-2
-                  rounded-xl
-                  bg-green-600
-                  px-5
-                  py-2.5
-                  text-s
-                  font-medium
-                  text-white
-                  transition
-                  hover:bg-green-500
-                  disabled:opacity-50
-                "
-              >
-
-                <CheckCircle2 className="h-4 w-4"/>
-
-                Approve
-
-              </button>
-
-
-
-
-
-              <button
-
-                disabled={processing === payment._id}
-
-                onClick={() =>
-                  reject(payment._id)
-                }
-
-                className="
-                  flex
-                  items-center
-                  gap-2
-                  rounded-xl
-                  bg-destructive
-                  px-5
-                  py-2.5
-                  text-s
-                  font-medium
-                  text-white
-                  transition
-                  hover:opacity-90
-                  disabled:opacity-50
-                "
-              >
-
-                <XCircle className="h-4 w-4"/>
-
-                Reject
-
-              </button>
-
-
-            </div>
-
-
-
-          </div>
-
-
-        ))}
-
-
+          />
+        </div>
       </div>
 
+      <div className="space-y-3 p-3.5">
+        <div
+          className="
+            h-28
+            animate-pulse
+            rounded-lg
+            bg-muted/60
+          "
+        />
 
-    </div>
-
+        <div
+          className="
+            h-28
+            animate-pulse
+            rounded-lg
+            bg-muted/60
+          "
+        />
+      </div>
+    </section>
   );
-
 }

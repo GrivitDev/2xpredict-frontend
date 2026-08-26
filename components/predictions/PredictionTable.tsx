@@ -1,8 +1,6 @@
 'use client';
 
-import {
-  useCallback,
-} from 'react';
+import { useCallback } from 'react';
 
 import clsx from 'clsx';
 
@@ -10,10 +8,6 @@ import PredictionRow, {
   SubscriptionRequiredData,
 } from './PredictionRow';
 
-
-/* =========================================================
-   PROPS
-========================================================= */
 
 interface Props {
   predictions: any[];
@@ -26,43 +20,20 @@ interface Props {
 }
 
 
-/* =========================================================
-   COMPONENT
-========================================================= */
-
 export default function PredictionTable({
   predictions,
   highlightedId,
   onSubscriptionRequired,
 }: Props) {
-
-  /* =======================================================
-     SUBSCRIPTION HANDLER
-  ======================================================= */
-
   const handleSubscriptionRequired =
     useCallback(
-      (
-        params: SubscriptionRequiredData,
-      ) => {
-
-        onSubscriptionRequired(
-          params,
-        );
-
+      (params: SubscriptionRequiredData) => {
+        onSubscriptionRequired(params);
       },
-      [
-        onSubscriptionRequired,
-      ],
+      [onSubscriptionRequired],
     );
 
-
-  /* =======================================================
-     RENDER
-  ======================================================= */
-
   return (
-
     <div
       className="
         hidden
@@ -75,7 +46,6 @@ export default function PredictionTable({
         xl:block
       "
     >
-
       <table
         className="
           w-full
@@ -84,27 +54,14 @@ export default function PredictionTable({
           text-xs
         "
       >
-
         <colgroup>
-
           <col className="w-[8%]" />
-
           <col className="w-[12%]" />
-
           <col className="w-[20%]" />
-
           <col className="w-[22%]" />
-
           <col className="w-[22%]" />
-
           <col className="w-[20%]" />
-
         </colgroup>
-
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
 
         <thead
           className="
@@ -113,83 +70,41 @@ export default function PredictionTable({
             bg-muted/40
           "
         >
-
           <tr>
-
-            <Header>
-              Date & Time
-            </Header>
-
-            <Header>
-              League
-            </Header>
-
-            <Header>
-              Match
-            </Header>
-
-            <Header>
-              Prediction
-            </Header>
-
-            <Header>
-              Probability
-            </Header>
-
-            <Header>
-              Markets
-            </Header>
-
+            <Header>Date & Time</Header>
+            <Header>League</Header>
+            <Header>Match</Header>
+            <Header>Prediction</Header>
+            <Header>Probability</Header>
+            <Header>Markets</Header>
           </tr>
-
         </thead>
 
-
-        {/* =================================================
-            BODY
-        ================================================= */}
-
         <tbody>
+          {predictions.map((prediction) => {
+            const id = String(
+              prediction?._id ??
+                prediction?.id ??
+                '',
+            );
 
-          {predictions.map(
-            (prediction) => {
-
-              const id =
-                String(
-                  prediction._id ??
-                  prediction.id ??
-                  '',
-                );
-
-
-              return (
-
-                <PredictionRow
-                  key={id}
-                  prediction={
-                    prediction
-                  }
-                  highlighted={
-                    highlightedId === id
-                  }
-                  onSubscriptionRequired={
-                    handleSubscriptionRequired
-                  }
-                />
-
-              );
-
-            },
-          )}
-
+            return (
+              <PredictionRow
+                key={id}
+                prediction={prediction}
+                highlighted={
+                  highlightedId === id
+                }
+                onSubscriptionRequired={
+                  handleSubscriptionRequired
+                }
+              />
+            );
+          })}
         </tbody>
-
       </table>
-
     </div>
-
   );
-
 }
 
 
@@ -202,13 +117,11 @@ function Header({
   align = 'left',
 }: {
   children: React.ReactNode;
-
   align?: 'left' | 'center';
 }) {
-
   return (
-
     <th
+      scope="col"
       className={clsx(
         `
           px-2
@@ -219,14 +132,10 @@ function Header({
           tracking-wider
           text-muted-foreground
         `,
-
-        align === 'center' &&
-          'text-center',
+        align === 'center' && 'text-center',
       )}
     >
       {children}
     </th>
-
   );
-
 }

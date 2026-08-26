@@ -16,8 +16,6 @@ import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
 import PaymentProofUpload from './PaymentProofUpload';
 
-
-
 interface PaymentModalProps {
   type:
     | 'subscription'
@@ -25,21 +23,13 @@ interface PaymentModalProps {
     | 'prediction';
 
   target: string;
-
   amount: number;
-
   currency: PaymentCurrency;
-
   config: PlanConfig;
-
   title?: string;
-
   description?: string;
-
   onClose: () => void;
 }
-
-
 
 export default function PaymentModal({
   type,
@@ -51,263 +41,151 @@ export default function PaymentModal({
   description,
   onClose,
 }: PaymentModalProps) {
-
-
-  const [transferReference,setTransferReference] =
+  const [transferReference, setTransferReference] =
     useState('');
 
-
-  const [proofMessage,setProofMessage] =
+  const [proofMessage, setProofMessage] =
     useState('');
 
+  const [proof, setProof] = useState<{
+    url: string;
+    publicId: string;
+  } | null>(null);
 
-  const [proof,setProof] =
-    useState<{
-      url:string;
-      publicId:string;
-    } | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
+  const bankDetails =
+    currency === 'USD'
+      ? config.bankDetailsUSD
+      : config.bankDetails;
 
+  const paymentLabel =
+    type === 'prediction'
+      ? 'Prediction Purchase'
+      : target.toUpperCase();
 
-  const [error,setError] =
-    useState('');
-
-
-  const [loading,setLoading] =
-    useState(false);
-
-
-  const [success,setSuccess] =
-    useState(false);
-
-
-const bankDetails =
-  currency === 'USD'
-    ? config.bankDetailsUSD
-    : config.bankDetails;
-
-  async function submitPayment(){
-
-
+  async function submitPayment() {
     setError('');
 
-
-
-    if(!transferReference.trim()){
-
+    if (!transferReference.trim()) {
       setError(
         'Please enter your payment reference or account name used for transfer.',
       );
-
       return;
-
     }
 
-
-
-    if(!proof){
-
+    if (!proof) {
       setError(
         'Please upload your payment screenshot before submitting.',
       );
-
       return;
-
     }
 
-
-
-    try{
-
-
+    try {
       setLoading(true);
 
-
-
-await api.post(
-  '/payments',
-  {
-    type,
-
-    target,
-
-    currency,
-
-    transferReference:
-      transferReference.trim(),
-
-    proofMessage:
-      proofMessage.trim(),
-
-    proofImageUrl:
-      proof.url,
-
-    proofPublicId:
-      proof.publicId,
-  },
-);
-
-
+      await api.post('/payments', {
+        type,
+        target,
+        currency,
+        transferReference: transferReference.trim(),
+        proofMessage: proofMessage.trim(),
+        proofImageUrl: proof.url,
+        proofPublicId: proof.publicId,
+      });
 
       setSuccess(true);
-
-
-
-    }catch(error:any){
-
-
+    } catch (error: any) {
       const message =
         error.response?.data?.message ||
         'Something went wrong while submitting payment. Please try again.';
-
-
 
       setError(
         Array.isArray(message)
           ? message[0]
           : message,
       );
-
-
-    }finally{
-
-
+    } finally {
       setLoading(false);
-
-
     }
-
-
   }
 
-
-
-
-
-  const paymentLabel =
-    type === 'prediction'
-      ? 'Prediction Purchase'
-      : (target || '').toUpperCase();
-
-
-
-
-
   return (
-
     <div
       className="
-        fixed
-        inset-0
-        z-50
+        fixed inset-0 z-50
         overflow-y-auto
         bg-black/60
-        p-4
-        pt-8
-        pb-8
+        p-4 pb-8 pt-8
         backdrop-blur-md
-        sm:flex
-        sm:items-center
-        sm:justify-center
+        sm:flex sm:items-center sm:justify-center
       "
     >
-
-
       <div
         className="
-          relative
-          mx-auto
-          flex
-          max-h-[calc(100vh-4rem)]
-          w-full
-          flex-col
-          overflow-hidden
+          relative mx-auto flex w-full max-h-[calc(100vh-4rem)]
+          flex-col overflow-hidden
           rounded-3xl
-          border
-          border-border/60
+          border border-border/60
           bg-background
           shadow-2xl
           sm:max-w-2xl
         "
       >
-
-
+        {/* CLOSE */}
 
         <button
+          type="button"
           onClick={onClose}
+          disabled={loading}
+          aria-label="Close payment modal"
           className="
-            absolute
-            right-5
-            top-5
-            z-10
-            flex
-            h-10
-            w-10
-            items-center
-            justify-center
-            rounded-full
-            border
+            absolute right-5 top-5 z-10
+            flex h-10 w-10 items-center justify-center
+            rounded-full border
             bg-background/70
             backdrop-blur
-            transition-all
-            hover:scale-105
             hover:bg-muted
+            disabled:cursor-not-allowed
+            disabled:opacity-50
           "
         >
-
-          <X size={20}/>
-
+          <X size={20} />
         </button>
-
-
-
 
         <div
           className="
             overflow-y-auto
-            px-5
-            pb-8
-            pt-16
-            sm:px-8
-            sm:pt-8
+            px-5 pb-8 pt-16
+            sm:px-8 sm:pt-8
           "
         >
-
-                  {
-          success ? (
+          {success ? (
+            /* ==================================================
+               SUCCESS
+            ================================================== */
 
             <div
               className="
-                flex
-                flex-col
-                items-center
-                py-10
-                text-center
+                flex flex-col items-center
+                py-10 text-center
               "
             >
-
               <div
                 className="
-                  flex
-                  h-24
-                  w-24
-                  items-center
-                  justify-center
+                  flex h-24 w-24 items-center justify-center
                   rounded-full
                   bg-green-500/10
-                  ring-8
-                  ring-green-500/5
+                  ring-8 ring-green-500/5
                 "
               >
-
                 <CheckCircle2
                   size={45}
                   className="text-green-500"
                 />
-
               </div>
-
-
 
               <h2
                 className="
@@ -316,12 +194,8 @@ await api.post(
                   font-black
                 "
               >
-
                 Payment Submitted
-
               </h2>
-
-
 
               <p
                 className="
@@ -330,73 +204,54 @@ await api.post(
                   text-muted-foreground
                 "
               >
-
                 Your payment has been received and is
                 waiting for admin approval. Your account
                 will automatically update once approved.
-
               </p>
 
-
-
               <button
+                type="button"
                 onClick={onClose}
                 className="
-                  mt-8
-                  w-full
+                  mt-8 w-full
                   rounded-2xl
                   bg-primary
                   py-3
                   font-bold
                   text-primary-foreground
-                  shadow-lg
-                  shadow-primary/20
-                  transition
+                  shadow-lg shadow-primary/20
                   hover:opacity-90
                 "
               >
-
                 Continue
-
               </button>
-
-
             </div>
-
-
           ) : (
-
-
             <>
-
+              {/* ==================================================
+                  HEADER
+              ================================================== */}
 
               <div
                 className="
                   rounded-3xl
-                  border-b
-                  border-border/50
+                  border-b border-border/50
                   bg-gradient-to-b
                   from-primary/10
                   via-primary/5
                   to-transparent
-                  px-6
-                  py-7
+                  px-6 py-7
                 "
               >
-
                 <p
                   className="
-                    text-s
+                    text-sm
                     font-semibold
                     text-primary
                   "
                 >
-
                   {paymentLabel}
-
                 </p>
-
-
 
                 <h2
                   className="
@@ -406,72 +261,54 @@ await api.post(
                     tracking-tight
                   "
                 >
-
                   {title || 'Complete Payment'}
-
                 </h2>
 
+                <p
+                  className="
+                    mt-3
+                    text-muted-foreground
+                  "
+                >
+                  {description ||
+                    'Transfer the amount below and upload your payment proof.'}
+                </p>
 
-
-                  <p
-                    className="
-                      mt-3
-                      text-muted-foreground
-                    "
-                  >
-
-                    {
-                      description ||
-                      'Transfer the amount below and upload your payment proof.'
-                    }
-
-                  </p>
-
-
-                  <p
-                    className="
-                      mt-3
-                      rounded-xl
-                      border
-                      border-primary/20
-                      bg-primary/5
-                      p-3
-                      text-s
-                      text-muted-foreground
-                    "
-                  >
-
-                    After submitting your payment, please allow the admin about 30 minutes to confirm your payment and activate your subscription.
-
-                  </p>
-
-
+                <p
+                  className="
+                    mt-3
+                    rounded-xl
+                    border border-primary/20
+                    bg-primary/5
+                    p-3
+                    text-sm
+                    text-muted-foreground
+                  "
+                >
+                  After submitting your payment, please allow
+                  the admin about 30 minutes to confirm your
+                  payment and activate your subscription.
+                </p>
               </div>
 
-
-
-
-
+              {/* ==================================================
+                  AMOUNT
+              ================================================== */}
 
               <div
                 className="
                   mt-8
                   rounded-3xl
-                  border
-                  border-primary/15
+                  border border-primary/15
                   bg-gradient-to-br
-                  from-primary/10
-                  to-primary/5
+                  from-primary/10 to-primary/5
                   p-7
                   shadow-sm
                 "
               >
-
-                  <p className="text-s text-muted-foreground">
-                    Amount to pay ({currency})
-                  </p>
-
-
+                <p className="text-sm text-muted-foreground">
+                  Amount to pay ({currency})
+                </p>
 
                 <p
                   className="
@@ -481,93 +318,62 @@ await api.post(
                     tracking-tight
                   "
                 >
-
                   {currency === 'USD'
                     ? `$${amount.toLocaleString()}`
-                    : `₦${amount.toLocaleString()}`
-                  }
-
+                    : `₦${amount.toLocaleString()}`}
                 </p>
 
-
-
-
-                {
-                  type !== 'prediction' && (
-
-                    <p
-                      className="
-                        mt-3
-                        text-s
-                        text-muted-foreground
-                      "
-                    >
-
-                      Valid for {
-                        config.subscriptionDurationDays
-                      } days
-
-                    </p>
-
-                  )
-                }
-
-
+                {type !== 'prediction' && (
+                  <p
+                    className="
+                      mt-3
+                      text-sm
+                      text-muted-foreground
+                    "
+                  >
+                    Valid for{' '}
+                    {config.subscriptionDurationDays} days
+                  </p>
+                )}
               </div>
 
-
-
-
-
-
+              {/* ==================================================
+                  BANK DETAILS
+              ================================================== */}
 
               <div
                 className="
                   mt-8
                   rounded-3xl
-                  border
-                  border-border/60
+                  border border-border/60
                   bg-card
                   p-6
                   shadow-sm
                 "
               >
-
-                <h3
-                  className="
-                    font-bold
-                  "
-                >
-
+                <h3 className="font-bold">
                   Bank Transfer Details
-
                 </h3>
-
-
 
                 <div
                   className="
                     mt-5
                     space-y-3
-                    text-s
+                    text-sm
                   "
                 >
-
                   <p>
-                    Bank:
-                    {' '}
+                    Bank:{' '}
                     {bankDetails.bankName}
                   </p>
 
                   <p>
-                    Account Name:
-                    {' '}
+                    Account Name:{' '}
                     {bankDetails.accountName}
                   </p>
 
                   <p>
-                    Account Number:
-                    {' '}
+                    Account Number:{' '}
                     {bankDetails.accountNumber}
                   </p>
 
@@ -581,231 +387,135 @@ await api.post(
                       {bankDetails.instructions}
                     </p>
                   )}
-
-
                 </div>
-
-
               </div>
 
-                            <div
+              {/* ==================================================
+                  PAYMENT PROOF
+              ================================================== */}
+
+              <div
                 className="
                   mt-8
                   space-y-5
                 "
               >
-
-
                 <PaymentProofUpload
-
-                  onUpload={(data)=>{
-
+                  onUpload={(data) => {
                     setProof(data);
-
                     setError('');
-
                   }}
-
                 />
 
-
-
-
-
                 <input
-
                   value={transferReference}
-
-                  onChange={(e)=>{
-
+                  onChange={(event) => {
                     setTransferReference(
-                      e.target.value,
+                      event.target.value,
                     );
-
                     setError('');
-
                   }}
-
-                  placeholder="
-                    Transfer reference / sender name
-                  "
-
+                  placeholder="Transfer reference / sender name"
                   className="
                     w-full
                     rounded-2xl
-                    border
-                    border-border/60
+                    border border-border/60
                     bg-muted/30
-                    px-4
-                    py-3.5
+                    px-4 py-3.5
                     outline-none
-                    transition-all
                     focus:border-primary
                     focus:bg-background
                     focus:ring-4
                     focus:ring-primary/10
                   "
-
                 />
 
-
-
-
-
-
-
                 <textarea
-
                   value={proofMessage}
-
-                  onChange={(e)=>
+                  onChange={(event) =>
                     setProofMessage(
-                      e.target.value,
+                      event.target.value,
                     )
                   }
-
-                  placeholder="
-                    Additional information (optional)
-                  "
-
+                  placeholder="Additional information (optional)"
                   className="
                     min-h-28
                     w-full
                     rounded-2xl
-                    border
-                    border-border/60
+                    border border-border/60
                     bg-muted/30
-                    px-4
-                    py-3.5
+                    px-4 py-3.5
                     outline-none
-                    transition-all
                     focus:border-primary
                     focus:bg-background
                     focus:ring-4
                     focus:ring-primary/10
                   "
-
                 />
-
-
               </div>
 
+              {/* ==================================================
+                  ERROR
+              ================================================== */}
 
+              {error && (
+                <div
+                  className="
+                    mt-6
+                    rounded-2xl
+                    border border-red-500/20
+                    bg-red-500/10
+                    p-4
+                    text-sm
+                    text-red-500
+                  "
+                >
+                  {error}
+                </div>
+              )}
 
-
-
-
-
-
-              {
-                error && (
-
-                  <div
-                    className="
-                      mt-6
-                      rounded-2xl
-                      border
-                      border-red-500/20
-                      bg-red-500/10
-                      p-4
-                      text-s
-                      text-red-500
-                    "
-                  >
-
-                    {error}
-
-                  </div>
-
-                )
-              }
-
-
-
-
-
-
-
+              {/* ==================================================
+                  SUBMIT
+              ================================================== */}
 
               <button
-
+                type="button"
                 disabled={loading}
-
                 onClick={submitPayment}
-
                 className="
                   mt-8
-                  flex
-                  h-14
-                  w-full
-                  items-center
-                  justify-center
+                  flex h-14 w-full
+                  items-center justify-center
                   gap-3
                   rounded-2xl
                   bg-primary
                   font-bold
                   text-primary-foreground
-                  shadow-lg
-                  shadow-primary/20
-                  transition-all
-                  hover:-translate-y-0.5
-                  hover:shadow-xl
-                  disabled:translate-y-0
+                  shadow-lg shadow-primary/20
+                  hover:opacity-90
                   disabled:cursor-not-allowed
                   disabled:opacity-50
                 "
-
               >
-
-                {
-                  loading ? (
-
-                    <>
-
-                      <Loader2
-                        size={18}
-                        className="animate-spin"
-                      />
-
-                      Processing...
-
-                    </>
-
-
-                  ) : (
-
-                    <>
-
-                      <UploadCloud
-                        size={18}
-                      />
-
-                      Submit Payment
-
-                    </>
-
-                  )
-                }
-
-
+                {loading ? (
+                  <>
+                    <Loader2
+                      size={18}
+                      className="animate-spin"
+                    />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud size={18} />
+                    Submit Payment
+                  </>
+                )}
               </button>
-
-
             </>
-
-          )
-
-        }
-
-
+          )}
         </div>
-
-
       </div>
-
-
     </div>
-
   );
-
 }

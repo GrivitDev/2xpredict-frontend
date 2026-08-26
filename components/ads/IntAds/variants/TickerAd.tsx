@@ -1,7 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 import {
   Megaphone,
   Sparkles,
@@ -30,50 +28,16 @@ export function TickerAd({
         group
         relative
         overflow-hidden
-
         rounded-xl
-
         border
         border-border/60
-
         bg-card
-
         shadow-sm
-
-        transition-all
+        transition-shadow
         duration-300
-
-        hover:border-primary/25
         hover:shadow-md
       "
     >
-
-      {/* Subtle Moving Highlight */}
-
-      <motion.div
-        animate={{
-          x: ['-120%', '220%'],
-        }}
-        transition={{
-          duration: 9,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        className="
-          pointer-events-none
-          absolute
-          inset-y-0
-          z-10
-          w-24
-
-          bg-gradient-to-r
-          from-transparent
-          via-primary/10
-          to-transparent
-
-          opacity-70
-        "
-      />
 
       <InfiniteTicker
         className="
@@ -88,11 +52,11 @@ export function TickerAd({
           <div
             key={ad._id}
             className="
-              mx-6
+              mx-5
               inline-flex
               items-center
               gap-2.5
-              sm:mx-8
+              sm:mx-7
             "
           >
 
@@ -104,40 +68,21 @@ export function TickerAd({
                 shrink-0
                 items-center
                 gap-1.5
-
                 rounded-full
-
                 border
                 border-primary/20
-
                 bg-primary/10
-
                 px-2.5
                 py-1
-
                 text-[10px]
                 font-semibold
                 uppercase
                 tracking-[0.16em]
-
                 text-primary
               "
             >
 
-              <motion.span
-                animate={{
-                  rotate: [0, -8, 8, 0],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-
-                <Megaphone className="h-3 w-3" />
-
-              </motion.span>
+              <Megaphone className="h-3 w-3" />
 
               Sponsored
 
@@ -149,7 +94,6 @@ export function TickerAd({
               className="
                 max-w-[220px]
                 truncate
-
                 text-sm
                 font-semibold
                 tracking-tight
@@ -180,7 +124,6 @@ export function TickerAd({
                   className="
                     max-w-[240px]
                     truncate
-
                     text-sm
                     text-muted-foreground
                   "
@@ -214,7 +157,6 @@ export function TickerAd({
                   className="
                     max-w-[280px]
                     truncate
-
                     text-sm
                     text-muted-foreground
                   "
@@ -244,7 +186,6 @@ export function TickerAd({
           left-0
           z-20
           w-8
-
           bg-gradient-to-r
           from-card
           to-transparent
@@ -259,7 +200,6 @@ export function TickerAd({
           right-0
           z-20
           w-8
-
           bg-gradient-to-l
           from-card
           to-transparent

@@ -4,94 +4,49 @@ import { useState } from 'react';
 
 import { uploadService } from '@/services/uploads.service';
 
-
-
 interface PaymentProofUploadProps {
-
-  onUpload:
-    (data:{
-      url:string;
-      publicId:string;
-    })=>void;
-
+  onUpload: (data: {
+    url: string;
+    publicId: string;
+  }) => void;
 }
-
-
 
 export default function PaymentProofUpload({
   onUpload,
-}:PaymentProofUploadProps){
-
-
-  const [loading,setLoading] =
-    useState(false);
-
-
-  const [fileName,setFileName] =
-    useState('');
-
-
+}: PaymentProofUploadProps) {
+  const [loading, setLoading] = useState(false);
+  const [fileName, setFileName] = useState('');
 
   async function handleUpload(
-    e:React.ChangeEvent<HTMLInputElement>,
-  ){
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
 
-
-    const file =
-      e.target.files?.[0];
-
-
-    if(!file) return;
-
-
+    if (!file) return;
 
     try {
-
       setLoading(true);
 
-
-
       const result =
-        await uploadService.uploadPaymentProof(
-          file,
-        );
+        await uploadService.uploadPaymentProof(file);
 
-
-
-      setFileName(
-        file.name,
-      );
-
-
+      setFileName(file.name);
 
       onUpload({
-        url:result.url,
-        publicId:result.publicId,
+        url: result.url,
+        publicId: result.publicId,
       });
-
-
-
-    } catch(error){
-
+    } catch (error) {
       console.error(
         'Payment proof upload failed',
         error,
       );
-
-
     } finally {
-
       setLoading(false);
-
     }
-
-
   }
 
-
-
   return (
-
     <label
       className="
         block
@@ -104,35 +59,16 @@ export default function PaymentProofUpload({
         hover:bg-muted
       "
     >
-
-      {
-        loading
-          ?
-          'Uploading...'
-          :
-          fileName
-          ?
-          fileName
-          :
-          'Upload Payment Screenshot'
-      }
-
+      {loading
+        ? 'Uploading...'
+        : fileName || 'Upload Payment Screenshot'}
 
       <input
-
         type="file"
-
         accept="image/*"
-
         hidden
-
         onChange={handleUpload}
-
       />
-
-
     </label>
-
   );
-
 }

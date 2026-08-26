@@ -1,15 +1,16 @@
 'use client';
 
 import {
+  useMemo,
   useState,
 } from 'react';
 
 import Image from 'next/image';
 
 import {
-  Trophy,
   ChevronDown,
   ChevronUp,
+  Trophy,
 } from 'lucide-react';
 
 import type {
@@ -44,12 +45,14 @@ export default function Results({
   // SORT RESULTS — NEWEST TO OLDEST
   // ==========================================================
 
-  const sortedResults = [
-    ...results,
-  ].sort(
-    (a, b) =>
-      new Date(b.date).getTime() -
-      new Date(a.date).getTime(),
+  const sortedResults = useMemo(
+    () =>
+      [...results].sort(
+        (a, b) =>
+          new Date(b.date).getTime() -
+          new Date(a.date).getTime(),
+      ),
+    [results],
   );
 
 
@@ -57,10 +60,9 @@ export default function Results({
   // VISIBLE RESULTS
   // ==========================================================
 
-  const visibleResults =
-    expanded
-      ? sortedResults
-      : sortedResults.slice(0, 10);
+  const visibleResults = expanded
+    ? sortedResults
+    : sortedResults.slice(0, 10);
 
 
   // ==========================================================
@@ -68,7 +70,6 @@ export default function Results({
   // ==========================================================
 
   return (
-
     <section
       className="
         relative
@@ -135,7 +136,6 @@ export default function Results({
             sm:rounded-2xl
           "
         >
-
           <Trophy
             size={19}
             strokeWidth={2}
@@ -144,12 +144,10 @@ export default function Results({
               sm:w-[22px]
             "
           />
-
         </div>
 
 
         <div>
-
           <h2
             className="
               text-base
@@ -158,9 +156,8 @@ export default function Results({
               sm:text-lg
             "
           >
-            Recent Results
+            Recent Match Results
           </h2>
-
 
           <p
             className="
@@ -169,9 +166,8 @@ export default function Results({
               sm:text-xs
             "
           >
-            Completed matches
+            Completed matches and their scores 
           </p>
-
         </div>
 
       </div>
@@ -191,7 +187,7 @@ export default function Results({
             bg-background/40
             p-5
             text-center
-            text-s
+            text-xs
             text-muted-foreground
             sm:p-6
           "
@@ -213,7 +209,6 @@ export default function Results({
               grid
               grid-cols-2
               gap-1
-              sm:grid-cols-2
               sm:gap-3
               lg:grid-cols-5
             "
@@ -222,7 +217,7 @@ export default function Results({
             {visibleResults.map(
               (match) => (
 
-                <div
+                <article
                   key={match.id}
                   className="
                     min-w-0
@@ -250,7 +245,6 @@ export default function Results({
                       text-center
                       text-[9px]
                       text-muted-foreground
-                      sm:mb-2
                       sm:text-xs
                     "
                   >
@@ -282,9 +276,7 @@ export default function Results({
                     "
                   >
 
-                    {/* ======================================
-                        HOME TEAM
-                    ====================================== */}
+                    {/* HOME TEAM */}
 
                     <div
                       className="
@@ -304,9 +296,7 @@ export default function Results({
                           src={
                             match.homeTeamBadge
                           }
-                          alt={
-                            `${match.homeTeam} badge`
-                          }
+                          alt={`${match.homeTeam} badge`}
                           width={38}
                           height={38}
                           className="
@@ -329,10 +319,10 @@ export default function Results({
                             sm:h-9
                             sm:w-9
                           "
+                          aria-hidden="true"
                         />
 
                       )}
-
 
                       <span
                         className="
@@ -352,9 +342,7 @@ export default function Results({
                     </div>
 
 
-                    {/* ======================================
-                        SCORE
-                    ====================================== */}
+                    {/* SCORE */}
 
                     <div
                       className="
@@ -419,9 +407,7 @@ export default function Results({
                     </div>
 
 
-                    {/* ======================================
-                        AWAY TEAM
-                    ====================================== */}
+                    {/* AWAY TEAM */}
 
                     <div
                       className="
@@ -441,9 +427,7 @@ export default function Results({
                           src={
                             match.awayTeamBadge
                           }
-                          alt={
-                            `${match.awayTeam} badge`
-                          }
+                          alt={`${match.awayTeam} badge`}
                           width={38}
                           height={38}
                           className="
@@ -466,10 +450,10 @@ export default function Results({
                             sm:h-9
                             sm:w-9
                           "
+                          aria-hidden="true"
                         />
 
                       )}
-
 
                       <span
                         className="
@@ -518,7 +502,7 @@ export default function Results({
 
                   )}
 
-                </div>
+                </article>
 
               ),
             )}
@@ -558,7 +542,6 @@ export default function Results({
                 hover:bg-muted/40
                 sm:mt-5
                 sm:py-3
-                sm:text-s
               "
             >
 
@@ -566,14 +549,20 @@ export default function Results({
 
                 <>
                   Show Less
-                  <ChevronUp size={15} />
+
+                  <ChevronUp
+                    size={15}
+                  />
                 </>
 
               ) : (
 
                 <>
                   Show All Results
-                  <ChevronDown size={15} />
+
+                  <ChevronDown
+                    size={15}
+                  />
                 </>
 
               )}
@@ -587,7 +576,5 @@ export default function Results({
       )}
 
     </section>
-
   );
-
 }

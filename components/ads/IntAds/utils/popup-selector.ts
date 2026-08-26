@@ -8,64 +8,40 @@ import {
 export function selectPopupAd(
   ads: InternalAd[],
 ): InternalAd | null {
-
   if (!ads.length) {
-
     return null;
-
   }
 
   const history =
     getPopupHistory();
 
-  const scored =
-    ads.map(
-      ad => {
+  let selected: InternalAd | null =
+    null;
 
-        let score = 0;
+  let highestScore =
+    -Infinity;
 
-        if (!history[ad._id]) {
+  for (const ad of ads) {
+    let score =
+      ad.priority ?? 0;
 
-          score += 100;
+    if (!history[ad._id]) {
+      score += 100;
+    }
 
-        }
+    if (
+      shownThisVisit(ad._id)
+    ) {
+      score -= 1000;
+    }
 
-        score +=
-          ad.priority ?? 0;
+    if (
+      score > highestScore
+    ) {
+      highestScore = score;
+      selected = ad;
+    }
+  }
 
-        if (
-          shownThisVisit(
-            ad._id,
-          )
-        ) {
-
-          score -= 1000;
-
-        }
-
-        return {
-
-          ad,
-
-          score,
-
-        };
-
-      },
-    );
-
-  scored.sort(
-    (
-      a,
-      b,
-    ) =>
-      b.score -
-      a.score,
-  );
-
-  return (
-    scored[0]?.ad ??
-    null
-  );
-
+  return selected;
 }

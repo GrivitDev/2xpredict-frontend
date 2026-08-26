@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import {
+  useMemo,
+} from 'react';
 
 import type {
   CommunityPost,
@@ -62,182 +64,112 @@ export default function CommunityFeed({
   createReply,
   onReact,
 }: Props) {
+  const insertionPoints = useMemo(
+    () =>
+      generateInsertionPoints(
+        posts.length,
+      ),
+    [posts.length],
+  );
+
+  const insertionPointSet = useMemo(
+    () =>
+      new Set(
+        insertionPoints,
+      ),
+    [insertionPoints],
+  );
 
   if (loading) {
-
     return (
-
-      <div
-        className="
-          space-y-6
-        "
-      >
-
-        {
-          Array.from({
-            length: 3,
-          }).map((_, index) => (
-
-            <CommunityCardSkeleton
-              key={`community-skeleton-${index}`}
-            />
-
-          ))
-        }
-
+      <div className="space-y-3">
+        {Array.from({
+          length: 3,
+        }).map((_, index) => (
+          <CommunityCardSkeleton
+            key={`community-skeleton-${index}`}
+          />
+        ))}
       </div>
-
     );
-
   }
 
   if (!posts.length) {
-
-    return (
-      <CommunityEmptyState />
-    );
-
+    return <CommunityEmptyState />;
   }
-
-  const insertionPoints =
-    useMemo(
-      () =>
-        generateInsertionPoints(
-          posts.length,
-        ),
-      [posts.length],
-    );
-
-  const insertionPointSet =
-    useMemo(
-      () =>
-        new Set(
-          insertionPoints,
-        ),
-      [insertionPoints],
-    );
 
   const feed: React.ReactNode[] = [];
 
-  posts.forEach(
-    (
+  posts.forEach((post, index) => {
+    const postReplies =
+      replies[post._id] ?? [];
+
+    const isRepliesLoading =
+      repliesLoading[post._id] ?? false;
+
+    const handleLoadReplies =
+      () =>
+        loadReplies(post._id);
+
+    const handleCreateReply =
+      (message: string) =>
+        createReply(
+          post._id,
+          message,
+        );
+
+    const handleReact =
+      (reaction: string) =>
+        onReact(
+          post._id,
+          reaction,
+        );
+
+    const commonProps = {
       post,
-      index,
-    ) => {
+      onReact: handleReact,
+      replies: postReplies,
+      repliesLoading:
+        isRepliesLoading,
+      loadReplies:
+        handleLoadReplies,
+      createReply:
+        handleCreateReply,
+    };
 
-      const postReplies =
-        replies[post._id] ?? [];
+    feed.push(
+      post.type ===
+        CommunityPostType.MEDIA ? (
+        <CommunityMediaCard
+          key={post._id}
+          {...commonProps}
+        />
+      ) : (
+        <CommunityDiscussionCard
+          key={post._id}
+          {...commonProps}
+        />
+      ),
+    );
 
-      const isRepliesLoading =
-        repliesLoading[post._id] ?? false;
-
-      const handleLoadReplies =
-        () =>
-          loadReplies(
-            post._id,
-          );
-
-      const handleCreateReply =
-        (
-          message: string,
-        ) =>
-          createReply(
-            post._id,
-            message,
-          );
-
-      const handleReact =
-        (
-          reaction: string,
-        ) =>
-          onReact(
-            post._id,
-            reaction,
-          );
-
-      if (
-        post.type ===
-        CommunityPostType.MEDIA
-      ) {
-
-        feed.push(
-
-          <CommunityMediaCard
-            key={post._id}
-            post={post}
-            onReact={handleReact}
-            replies={postReplies}
-            repliesLoading={
-              isRepliesLoading
-            }
-            loadReplies={
-              handleLoadReplies
-            }
-            createReply={
-              handleCreateReply
-            }
-          />,
-
-        );
-
-      }
-      else {
-
-        feed.push(
-
-          <CommunityDiscussionCard
-            key={post._id}
-            post={post}
-            onReact={handleReact}
-            replies={postReplies}
-            repliesLoading={
-              isRepliesLoading
-            }
-            loadReplies={
-              handleLoadReplies
-            }
-            createReply={
-              handleCreateReply
-            }
-          />,
-
-        );
-
-      }
-
-      if (
-        insertionPointSet.has(
-          index + 1,
-        )
-      ) {
-
-        feed.push(
-
-          <CommunityFeedAd
-            key={`community-ad-${index}`}
-          />,
-
-        );
-
-      }
-
-    },
-  );
+    if (
+      insertionPointSet.has(
+        index + 1,
+      )
+    ) {
+      feed.push(
+        <CommunityFeedAd
+          key={`community-ad-${index}`}
+        />,
+      );
+    }
+  });
 
   return (
-
-    <div
-      className="
-        space-y-6
-      "
-    >
-
+    <div className="space-y-3 sm:space-y-4">
       {feed}
 
       <CommunityBottomAd />
-
     </div>
-
   );
-
 }

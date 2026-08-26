@@ -33,28 +33,24 @@ export default function CommunityActions({
           aria-label="Create a community post"
           className="
             !flex
-            !size-10
+            !size-9
             shrink-0
             items-center
             justify-center
             rounded-full
-            border-border
+            border-border/70
             bg-background
+            p-0
             text-foreground
             shadow-sm
-            opacity-100
-            transition-all
+            transition-colors
             hover:bg-muted
             active:scale-95
-            sm:size-10
+            sm:size-9
           "
         >
           <Plus
-            className="
-              !size-5
-              shrink-0
-              text-foreground
-            "
+            className="size-[18px]"
             strokeWidth={2.5}
             aria-hidden="true"
           />
@@ -63,12 +59,14 @@ export default function CommunityActions({
 
       <DropdownMenuContent
         align="end"
-        sideOffset={8}
+        sideOffset={5}
         className="
           z-50
-          w-56
-          rounded-xl
-          p-1.5
+          w-52
+          rounded-lg
+          border-border/70
+          p-1
+          shadow-md
         "
       >
         <DropdownMenuItem
@@ -76,13 +74,19 @@ export default function CommunityActions({
           className="
             cursor-pointer
             gap-2
-            rounded-lg
-            px-3
-            py-2.5
+            rounded-md
+            px-2.5
+            py-2
+            text-xs
+            font-medium
           "
         >
           <MessageSquare
-            className="size-4 text-muted-foreground"
+            className="
+              size-3.5
+              text-muted-foreground
+            "
+            aria-hidden="true"
           />
 
           <span>
@@ -95,13 +99,19 @@ export default function CommunityActions({
           className="
             cursor-pointer
             gap-2
-            rounded-lg
-            px-3
-            py-2.5
+            rounded-md
+            px-2.5
+            py-2
+            text-xs
+            font-medium
           "
         >
           <ImageIcon
-            className="size-4 text-muted-foreground"
+            className="
+              size-3.5
+              text-muted-foreground
+            "
+            aria-hidden="true"
           />
 
           <span>

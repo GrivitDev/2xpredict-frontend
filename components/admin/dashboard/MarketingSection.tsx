@@ -24,20 +24,31 @@ export default function MarketingSection({
   promos,
 }: Props) {
   return (
-    <section className="space-y-6">
+    <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-lg font-semibold tracking-tight">
           Marketing
         </h2>
+
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Advertising and promotion performance.
+        </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div
+        className="
+          grid
+          grid-cols-2
+          gap-2
+          lg:grid-cols-3
+        "
+      >
         <AnalyticsCard
           title="Total Ads"
-          description="Created advertisements"
+          description="Created"
           icon={Megaphone}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {ads.totalAds.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -48,7 +59,7 @@ export default function MarketingSection({
           icon={Megaphone}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {ads.activeAds.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -58,7 +69,7 @@ export default function MarketingSection({
           description="Total views"
           icon={Eye}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {ads.impressions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -68,7 +79,7 @@ export default function MarketingSection({
           description="User clicks"
           icon={MousePointerClick}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {ads.clicks.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -79,17 +90,17 @@ export default function MarketingSection({
           icon={MousePointerClick}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {ads.ctr.toFixed(2)}%
           </p>
         </AnalyticsCard>
 
         <AnalyticsCard
           title="Total Promos"
-          description="Created promotions"
+          description="Created"
           icon={Gift}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {promos.totalPromos.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -100,17 +111,17 @@ export default function MarketingSection({
           icon={CheckCircle}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {promos.activePromos.toLocaleString()}
           </p>
         </AnalyticsCard>
 
         <AnalyticsCard
           title="Expired Promos"
-          description="Completed campaigns"
+          description="Completed"
           icon={Clock}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {promos.expiredPromos.toLocaleString()}
           </p>
         </AnalyticsCard>

@@ -1,13 +1,6 @@
 'use client';
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
-import {
   Badge,
 } from '@/components/ui/badge';
 
@@ -36,84 +29,119 @@ export default function LeaderboardTable({
   metric,
 }: Props) {
   return (
-    <Card className="surface-card">
-      <CardHeader className="pb-1">
-        <CardTitle className="text-base">
+    <div
+      className="
+        overflow-hidden
+        rounded-lg
+        border
+        bg-card
+        shadow-sm
+      "
+    >
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          border-b
+          px-3
+          py-2.5
+        "
+      >
+        <h3 className="text-sm font-medium">
           {title}
-        </CardTitle>
-      </CardHeader>
+        </h3>
 
-      <CardContent className="p-0 px-8">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
+        {users.length > 0 && (
+          <span className="text-[11px] text-muted-foreground">
+            {users.length} users
+          </span>
+        )}
+      </div>
+
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-8 w-12 px-3 text-[11px]">
+                Rank
+              </TableHead>
+
+              <TableHead className="h-8 px-3 text-[11px]">
+                User
+              </TableHead>
+
+              <TableHead className="h-8 px-3 text-[11px]">
+                Email
+              </TableHead>
+
+              <TableHead className="h-8 px-3 text-right text-[11px]">
+                Value
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {users.length === 0 ? (
               <TableRow>
-                <TableHead className="w-16">
-                  Rank
-                </TableHead>
-
-                <TableHead>
-                  User
-                </TableHead>
-
-                <TableHead>
-                  Email
-                </TableHead>
-
-                <TableHead className="text-right">
-                  Value
-                </TableHead>
+                <TableCell
+                  colSpan={4}
+                  className="
+                    h-20
+                    px-3
+                    text-center
+                    text-xs
+                    text-muted-foreground
+                  "
+                >
+                  No data available.
+                </TableCell>
               </TableRow>
-            </TableHeader>
+            ) : (
+              users.map((user, index) => (
+                <TableRow key={user.userId}>
+                  <TableCell className="px-3 py-2">
+                    <Badge
+                      variant="secondary"
+                      className="
+                        h-5
+                        min-w-7
+                        justify-center
+                        rounded-md
+                        px-1.5
+                        text-[10px]
+                        font-medium
+                      "
+                    >
+                      #{index + 1}
+                    </Badge>
+                  </TableCell>
 
-            <TableBody>
-              {users.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="py-10 text-center text-muted-foreground"
-                  >
-                    No data available.
+                  <TableCell className="px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium">
+                        {user.fullName}
+                      </p>
+
+                      <p className="truncate text-[10px] text-muted-foreground">
+                        @{user.username}
+                      </p>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="max-w-[220px] truncate px-3 py-2 text-xs text-muted-foreground">
+                    {user.email}
+                  </TableCell>
+
+                  <TableCell className="px-3 py-2 text-right text-xs font-semibold tabular-nums">
+                    {user[metric] ?? 0}
                   </TableCell>
                 </TableRow>
-              ) : (
-                users.map((user, index) => (
-                  <TableRow key={user.userId}>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className="min-w-10 justify-center"
-                      >
-                        #{index + 1}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="space-y-0.5">
-                        <p className="font-medium leading-none">
-                          {user.fullName}
-                        </p>
-
-                        <p className="text-xs text-muted-foreground">
-                          @{user.username}
-                        </p>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="text-muted-foreground">
-                      {user.email}
-                    </TableCell>
-
-                    <TableCell className="text-right font-semibold tabular-nums">
-                      {user[metric] ?? 0}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }

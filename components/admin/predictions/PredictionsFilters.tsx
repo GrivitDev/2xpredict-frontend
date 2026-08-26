@@ -8,9 +8,7 @@ import {
   Crown,
 } from 'lucide-react';
 
-import {
-  Input,
-} from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 
 import {
   Select,
@@ -39,6 +37,21 @@ interface Props {
   }[];
 }
 
+const statusOptions = [
+  { value: 'all', label: 'All Status' },
+  { value: 'Upcoming', label: 'Upcoming' },
+  { value: 'In Play', label: 'In Play' },
+  { value: 'Needs Settlement', label: 'Needs Settlement' },
+  { value: 'Settled', label: 'Settled' },
+];
+
+const accessOptions = [
+  { value: 'all', label: 'All Access' },
+  { value: 'free', label: 'Free' },
+  { value: 'regular', label: 'Regular' },
+  { value: 'vip', label: 'VIP' },
+];
+
 export default function PredictionsFilters({
   search,
   setSearch,
@@ -62,14 +75,7 @@ export default function PredictionsFilters({
         sm:p-5
       "
     >
-      <div
-        className="
-          mb-4
-          flex
-          items-start
-          gap-3
-        "
-      >
+      <div className="mb-4 flex items-start gap-3">
         <div
           className="
             flex
@@ -86,7 +92,7 @@ export default function PredictionsFilters({
           <SlidersHorizontal className="h-5 w-5" />
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h2 className="font-bold">
             Filter Predictions
           </h2>
@@ -107,11 +113,13 @@ export default function PredictionsFilters({
       >
         <div className="relative">
           <Search
+            aria-hidden="true"
             className="
               pointer-events-none
               absolute
               left-3.5
               top-1/2
+              z-10
               h-4
               w-4
               -translate-y-1/2
@@ -120,6 +128,7 @@ export default function PredictionsFilters({
           />
 
           <Input
+            type="search"
             placeholder="Search teams..."
             value={search}
             onChange={(event) =>
@@ -138,130 +147,90 @@ export default function PredictionsFilters({
           />
         </div>
 
-        <Select
+        <FilterSelect
           value={status}
-          onValueChange={setStatus}
-        >
-          <SelectTrigger
-            className="
-              h-11
-              rounded-xl
-              border-input
-              bg-background
-              text-s
-              shadow-none
-              focus:ring-primary/30
-            "
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <CircleDot className="h-4 w-4 shrink-0 text-primary" />
+          onChange={setStatus}
+          placeholder="Status"
+          icon={<CircleDot className="h-4 w-4 shrink-0 text-primary" />}
+          options={statusOptions}
+        />
 
-              <SelectValue placeholder="Status" />
-            </div>
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">
-              All Status
-            </SelectItem>
-
-            <SelectItem value="Upcoming">
-              Upcoming
-            </SelectItem>
-
-            <SelectItem value="In Play">
-              In Play
-            </SelectItem>
-
-            <SelectItem value="Needs Settlement">
-              Needs Settlement
-            </SelectItem>
-
-            <SelectItem value="Settled">
-              Settled
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
+        <FilterSelect
           value={access}
-          onValueChange={setAccess}
-        >
-          <SelectTrigger
-            className="
-              h-11
-              rounded-xl
-              border-input
-              bg-background
-              text-s
-              shadow-none
-              focus:ring-primary/30
-            "
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <Crown className="h-4 w-4 shrink-0 text-primary" />
+          onChange={setAccess}
+          placeholder="Access"
+          icon={<Crown className="h-4 w-4 shrink-0 text-primary" />}
+          options={accessOptions}
+        />
 
-              <SelectValue placeholder="Access" />
-            </div>
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">
-              All Access
-            </SelectItem>
-
-            <SelectItem value="free">
-              Free
-            </SelectItem>
-
-            <SelectItem value="regular">
-              Regular
-            </SelectItem>
-
-            <SelectItem value="vip">
-              VIP
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
+        <FilterSelect
           value={league}
-          onValueChange={setLeague}
-        >
-          <SelectTrigger
-            className="
-              h-11
-              rounded-xl
-              border-input
-              bg-background
-              text-s
-              shadow-none
-              focus:ring-primary/30
-            "
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <Trophy className="h-4 w-4 shrink-0 text-primary" />
-
-              <SelectValue placeholder="League" />
-            </div>
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="all">
-              All Leagues
-            </SelectItem>
-
-            {leagues.map((item) => (
-              <SelectItem
-                key={item.code}
-                value={item.code}
-              >
-                {item.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={setLeague}
+          placeholder="League"
+          icon={<Trophy className="h-4 w-4 shrink-0 text-primary" />}
+          options={[
+            { value: 'all', label: 'All Leagues' },
+            ...leagues.map((item) => ({
+              value: item.code,
+              label: item.name,
+            })),
+          ]}
+        />
       </div>
     </section>
+  );
+}
+
+function FilterSelect({
+  value,
+  onChange,
+  placeholder,
+  icon,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  icon: React.ReactNode;
+  options: {
+    value: string;
+    label: string;
+  }[];
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={onChange}
+    >
+      <SelectTrigger
+        className="
+          h-11
+          w-full
+          rounded-xl
+          border-input
+          bg-background
+          text-s
+          shadow-none
+          focus:ring-primary/30
+        "
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          {icon}
+
+          <SelectValue placeholder={placeholder} />
+        </div>
+      </SelectTrigger>
+
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

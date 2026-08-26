@@ -6,8 +6,6 @@ import {
   useState,
 } from 'react';
 
-import { motion } from 'framer-motion';
-
 import { InternalAd } from '@/types/internal-ad';
 
 import { cn } from '@/lib/utils';
@@ -23,7 +21,6 @@ export function AdTitle({
   centered = false,
   light = false,
 }: Props) {
-
   const containerRef =
     useRef<HTMLDivElement>(null);
 
@@ -34,7 +31,6 @@ export function AdTitle({
     useState(30);
 
   useEffect(() => {
-
     const container =
       containerRef.current;
 
@@ -46,7 +42,6 @@ export function AdTitle({
     }
 
     const calculateFontSize = () => {
-
       const width =
         container.clientWidth;
 
@@ -56,7 +51,8 @@ export function AdTitle({
 
       let size = 30;
 
-      text.style.fontSize = `${size}px`;
+      text.style.fontSize =
+        `${size}px`;
 
       while (
         text.scrollHeight >
@@ -69,8 +65,12 @@ export function AdTitle({
           `${size}px`;
       }
 
-      setFontSize(size);
-
+      setFontSize(
+        (current) =>
+          current === size
+            ? current
+            : size,
+      );
     };
 
     calculateFontSize();
@@ -84,120 +84,61 @@ export function AdTitle({
 
     return () =>
       observer.disconnect();
-
   }, [
     ad.title,
   ]);
 
   return (
-
-    <motion.div
+    <div
       ref={containerRef}
-      initial={{
-        opacity: 0,
-        y: 8,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: .35,
-      }}
       className={cn(
         'w-full space-y-2',
         centered && 'text-center',
       )}
     >
-
-      <motion.h2
+      <h2
         ref={textRef}
         style={{
           fontSize,
         }}
-        initial={{
-          opacity: 0,
-          y: 8,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: .05,
-        }}
         className={cn(
           `
             font-display
-
             font-bold
-
             uppercase
-
             leading-[1.05]
-
             tracking-[0.02em]
-
             text-balance
-
             break-words
-
-            transition-all
-
-            duration-300
           `,
           light
             ? 'text-white'
             : 'text-foreground',
         )}
       >
-
         {ad.title}
-
-      </motion.h2>
+      </h2>
 
       {ad.subTitle && (
-
-        <motion.p
-          initial={{
-            opacity: 0,
-            y: 4,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            delay: .12,
-          }}
+        <p
           className={cn(
             `
               mx-auto
               max-w-2xl
-
               text-sm
-              sm:text-[15px]
-
               leading-6
-
               font-medium
-
               text-pretty
             `,
+            'sm:text-[15px]',
             light
               ? 'text-white/85'
               : 'text-muted-foreground',
           )}
         >
-
           {ad.subTitle}
-
-        </motion.p>
-
+        </p>
       )}
-
-    </motion.div>
-
+    </div>
   );
-
 }

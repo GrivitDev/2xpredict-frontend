@@ -12,34 +12,17 @@ import type { PlanConfig } from '@/types/plan-config';
 import type { UpgradePriceResponse } from '@/services/subscription.service';
 import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
-
-// ============================================================
-// TYPES
-// ============================================================
-
-type CurrentPlan =
-  | 'free'
-  | 'regular'
-  | 'vip';
-
-type UpgradeTarget =
-  | 'regular'
-  | 'vip';
-
+type CurrentPlan = 'free' | 'regular' | 'vip';
+type UpgradeTarget = 'regular' | 'vip';
 
 interface UpgradeCardProps {
   currentPlan: CurrentPlan;
   config: PlanConfig;
   currency: PaymentCurrency;
-
   upgradePrice?: UpgradePriceResponse | null;
   upgradeLoading?: boolean;
-
-  onUpgrade: (
-    target: UpgradeTarget,
-  ) => void;
+  onUpgrade: (target: UpgradeTarget) => void;
 }
-
 
 interface PlanCard {
   id: UpgradeTarget;
@@ -50,10 +33,34 @@ interface PlanCard {
   popular?: boolean;
 }
 
+const PLAN_ICONS = {
+  regular: Trophy,
+  vip: Crown,
+} as const;
 
-// ============================================================
-// COMPONENT
-// ============================================================
+const PLAN_FEATURES = {
+  regular: [
+    'Regular Predictions',
+    'Reduced advertisements',
+    'Priority prediction releases',
+  ],
+  vip: [
+    'Unlimited VIP Predictions',
+    'Zero advertisements',
+    'Early access to premium tips',
+  ],
+} as const;
+
+const PLAN_DESCRIPTIONS = {
+  regular: 'More winning opportunities every day.',
+  vip: 'The complete premium prediction experience.',
+} as const;
+
+const PLAN_NAMES = {
+  free: 'Free',
+  regular: 'Regular',
+  vip: 'VIP',
+} as const;
 
 export default function UpgradeCard({
   currentPlan,
@@ -63,125 +70,44 @@ export default function UpgradeCard({
   upgradeLoading = false,
   onUpgrade,
 }: UpgradeCardProps) {
-
-  // ==========================================================
-  // MONEY
-  // ==========================================================
-
-  const currencySymbol =
-    currency === 'USD'
-      ? '$'
-      : '₦';
-
+  const currencySymbol = currency === 'USD' ? '$' : '₦';
+  const locale = currency === 'USD' ? 'en-US' : 'en-NG';
 
   const formatMoney = (
     value: number,
-    fractionDigits =
-      currency === 'USD'
-        ? 2
-        : 0,
+    fractionDigits = currency === 'USD' ? 2 : 0,
   ) =>
-    `${currencySymbol}${Number(
-      value || 0,
-    ).toLocaleString(
-      currency === 'USD'
-        ? 'en-US'
-        : 'en-NG',
-      {
-        minimumFractionDigits:
-          fractionDigits,
-
-        maximumFractionDigits:
-          fractionDigits,
-      },
-    )}`;
-
-
-  // ==========================================================
-  // PLANS
-  // ==========================================================
+    `${currencySymbol}${Number(value || 0).toLocaleString(locale, {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    })}`;
 
   const regularPlan: PlanCard = {
     id: 'regular',
-
-    name:
-      config.planLabels.regular,
-
+    name: config.planLabels.regular,
     price:
       currency === 'USD'
         ? config.regularPriceUSD
         : config.regularPrice,
-
-    description:
-      'More winning opportunities every day.',
-
+    description: PLAN_DESCRIPTIONS.regular,
     popular: true,
-
-    features: [
-      'Regular Predictions',
-      'Reduced advertisements',
-      'Priority prediction releases',
-    ],
+    features: [...PLAN_FEATURES.regular],
   };
-
 
   const vipPlan: PlanCard = {
     id: 'vip',
-
-    name:
-      config.planLabels.vip,
-
+    name: config.planLabels.vip,
     price:
-      currentPlan === 'regular' &&
-      upgradePrice
+      currentPlan === 'regular' && upgradePrice
         ? upgradePrice.amount
         : currency === 'USD'
           ? config.vipPriceUSD
           : config.vipPrice,
-
-    description:
-      'The complete premium prediction experience.',
-
-    features: [
-      'Unlimited VIP Predictions',
-      'Zero advertisements',
-      'Early access to premium tips',
-    ],
+    description: PLAN_DESCRIPTIONS.vip,
+    features: [...PLAN_FEATURES.vip],
   };
-
-
-  let plans: PlanCard[] = [];
-
-
-  if (currentPlan === 'free') {
-    plans = [
-      regularPlan,
-      vipPlan,
-    ];
-  }
-
-
-  if (currentPlan === 'regular') {
-    plans = [vipPlan];
-  }
-
-
-  // ==========================================================
-  // ICONS
-  // ==========================================================
-
-  const icons = {
-    regular: Trophy,
-    vip: Crown,
-  };
-
-
-  // ==========================================================
-  // VIP MEMBER
-  // ==========================================================
 
   if (currentPlan === 'vip') {
-
     return (
       <div
         className="
@@ -197,9 +123,6 @@ export default function UpgradeCard({
           shadow-sm
         "
       >
-
-        {/* Accent */}
-
         <div
           className="
             absolute
@@ -213,7 +136,6 @@ export default function UpgradeCard({
           "
         />
 
-
         <div
           className="
             flex
@@ -225,9 +147,6 @@ export default function UpgradeCard({
             sm:px-8
           "
         >
-
-          {/* Crown */}
-
           <div
             className="
               flex
@@ -245,40 +164,14 @@ export default function UpgradeCard({
             <Crown className="h-6 w-6" />
           </div>
 
-
-          {/* Heading */}
-
           <div className="mt-4">
-
-            <div
-              className="
-                flex
-                items-center
-                justify-center
-                gap-2
-              "
-            >
-
-              <h2
-                className="
-                  text-lg
-                  font-semibold
-                  tracking-tight
-                "
-              >
+            <div className="flex items-center justify-center gap-2">
+              <h2 className="text-lg font-semibold tracking-tight">
                 Already a VIP Member
               </h2>
 
-              <Sparkles
-                className="
-                  h-4
-                  w-4
-                  text-amber-500
-                "
-              />
-
+              <Sparkles className="h-4 w-4 text-amber-500" />
             </div>
-
 
             <p
               className="
@@ -294,11 +187,7 @@ export default function UpgradeCard({
               feature. There are no higher membership
               plans available.
             </p>
-
           </div>
-
-
-          {/* Status */}
 
           <div
             className="
@@ -317,43 +206,29 @@ export default function UpgradeCard({
           >
             Current Membership
           </div>
-
         </div>
-
       </div>
     );
   }
 
-
-  // ==========================================================
-  // PLAN CARDS
-  // ==========================================================
+  const plans: PlanCard[] =
+    currentPlan === 'free'
+      ? [regularPlan, vipPlan]
+      : [vipPlan];
 
   return (
     <div
       className={`
         grid
         gap-3
-        ${
-          plans.length === 1
-            ? 'mx-auto max-w-lg'
-            : 'sm:grid-cols-2'
-        }
+        ${plans.length === 1 ? 'mx-auto max-w-lg' : 'sm:grid-cols-2'}
       `}
     >
-
       {plans.map((plan) => {
-
-        const Icon =
-          icons[plan.id];
-
-        const isVip =
-          plan.id === 'vip';
-
+        const Icon = PLAN_ICONS[plan.id];
+        const isVip = plan.id === 'vip';
         const isUpgrade =
-          currentPlan === 'regular' &&
-          isVip;
-
+          currentPlan === 'regular' && isVip;
 
         return (
           <div
@@ -366,10 +241,6 @@ export default function UpgradeCard({
               border
               p-5
               shadow-sm
-              transition-all
-              duration-200
-              hover:-translate-y-0.5
-              hover:shadow-md
               ${
                 isVip
                   ? `
@@ -391,11 +262,6 @@ export default function UpgradeCard({
               }
             `}
           >
-
-            {/* ==================================================
-                ACCENT GLOW
-                ================================================== */}
-
             <div
               className={`
                 pointer-events-none
@@ -406,18 +272,9 @@ export default function UpgradeCard({
                 w-24
                 rounded-full
                 blur-3xl
-                ${
-                  isVip
-                    ? 'bg-amber-500/15'
-                    : 'bg-primary/10'
-                }
+                ${isVip ? 'bg-amber-500/15' : 'bg-primary/10'}
               `}
             />
-
-
-            {/* ==================================================
-                POPULAR
-                ================================================== */}
 
             {plan.popular && (
               <div
@@ -439,28 +296,12 @@ export default function UpgradeCard({
                   text-primary
                 "
               >
-
                 <Sparkles className="h-3 w-3" />
-
                 Popular
-
               </div>
             )}
 
-
-            {/* ==================================================
-                HEADER
-                ================================================== */}
-
-            <div
-              className="
-                relative
-                flex
-                items-center
-                gap-3
-              "
-            >
-
+            <div className="relative flex items-center gap-3">
               <div
                 className={`
                   flex
@@ -486,30 +327,13 @@ export default function UpgradeCard({
                   }
                 `}
               >
-
                 <Icon className="h-5 w-5" />
-
               </div>
 
-
-              <div
-                className="
-                  min-w-0
-                  pr-16
-                "
-              >
-
-                <h2
-                  className="
-                    truncate
-                    text-base
-                    font-semibold
-                    tracking-tight
-                  "
-                >
+              <div className="min-w-0 pr-16">
+                <h2 className="truncate text-base font-semibold tracking-tight">
                   {plan.name}
                 </h2>
-
 
                 <p
                   className="
@@ -522,15 +346,8 @@ export default function UpgradeCard({
                 >
                   {plan.description}
                 </p>
-
               </div>
-
             </div>
-
-
-            {/* ==================================================
-                PRICE
-                ================================================== */}
 
             <div
               className="
@@ -541,221 +358,29 @@ export default function UpgradeCard({
                 gap-2
               "
             >
-
-              <span
-                className="
-                  text-3xl
-                  font-bold
-                  tracking-tight
-                "
-              >
+              <span className="text-3xl font-bold tracking-tight">
                 {formatMoney(plan.price)}
               </span>
 
-
-              <span
-                className="
-                  text-xs
-                  text-muted-foreground
-                "
-              >
-                {isUpgrade
-                  ? 'upgrade price'
-                  : '/ 30 days'}
+              <span className="text-xs text-muted-foreground">
+                {isUpgrade ? 'upgrade price' : '/ 30 days'}
               </span>
-
             </div>
 
-
-            {/* ==================================================
-                UPGRADE SUMMARY
-                ================================================== */}
-
-            {isUpgrade &&
-              upgradePrice && (
-
-              <div
-                className="
-                  relative
-                  mt-4
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-border/50
-                  bg-muted/20
-                "
-              >
-
-                <div
-                  className="
-                    border-b
-                    border-border/50
-                    px-3.5
-                    py-2.5
-                  "
-                >
-
-                  <p
-                    className="
-                      text-xs
-                      font-semibold
-                    "
-                  >
-                    Upgrade Summary
-                  </p>
-
-                </div>
-
-
-                <div
-                  className="
-                    divide-y
-                    divide-border/40
-                    px-3.5
-                  "
-                >
-
-                  <SummaryRow
-                    label="Current plan"
-                    value={
-                      config.planLabels.regular
-                    }
-                  />
-
-                  <SummaryRow
-                    label="Regular price"
-                    value={
-                      formatMoney(
-                        upgradePrice.regularPrice,
-                      )
-                    }
-                  />
-
-                  <SummaryRow
-                    label="VIP price"
-                    value={
-                      formatMoney(
-                        upgradePrice.vipPrice,
-                      )
-                    }
-                  />
-
-                  <SummaryRow
-                    label="Days remaining"
-                    value={`
-                      ${upgradePrice.daysRemaining}
-                      ${
-                        upgradePrice.daysRemaining === 1
-                          ? 'day'
-                          : 'days'
-                      }
-                    `}
-                  />
-
-                  <SummaryRow
-                    label="Upgrade rate"
-                    value={`
-                      ${formatMoney(
-                        upgradePrice.upgradeDailyPrice,
-                        2,
-                      )}/day
-                    `}
-                  />
-
-
-                  {/* Amount */}
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      gap-3
-                      py-2.5
-                    "
-                  >
-
-                    <span
-                      className="
-                        text-xs
-                        font-semibold
-                      "
-                    >
-                      Amount to pay
-                    </span>
-
-
-                    <span
-                      className="
-                        text-base
-                        font-bold
-                        text-primary
-                      "
-                    >
-                      {formatMoney(
-                        upgradePrice.amount,
-                      )}
-                    </span>
-
-                  </div>
-
-                </div>
-
-
-                {/* Explanation */}
-
-                <div
-                  className="
-                    border-t
-                    border-border/40
-                    bg-primary/[0.025]
-                    px-3.5
-                    py-2.5
-                  "
-                >
-
-                  <p
-                    className="
-                      text-[10px]
-                      leading-relaxed
-                      text-muted-foreground
-                    "
-                  >
-                    The upgrade cost is based on the
-                    remaining days of your current Regular
-                    membership. VIP then starts a new full
-                    subscription period.
-                  </p>
-
-                </div>
-
-              </div>
+            {isUpgrade && upgradePrice && (
+              <UpgradeSummary
+                config={config}
+                upgradePrice={upgradePrice}
+                formatMoney={formatMoney}
+              />
             )}
 
-
-            {/* ==================================================
-                FEATURES
-                ================================================== */}
-
-            <div
-              className="
-                relative
-                mt-5
-                space-y-2
-              "
-            >
-
+            <div className="relative mt-5 space-y-2">
               {plan.features.map((feature) => (
-
                 <div
                   key={feature}
-                  className="
-                    flex
-                    items-center
-                    gap-2.5
-                  "
+                  className="flex items-center gap-2.5"
                 >
-
                   <span
                     className={`
                       flex
@@ -765,28 +390,17 @@ export default function UpgradeCard({
                       items-center
                       justify-center
                       rounded-full
-                      ${
-                        isVip
-                          ? 'bg-amber-500/10'
-                          : 'bg-emerald-500/10'
-                      }
+                      ${isVip ? 'bg-amber-500/10' : 'bg-emerald-500/10'}
                     `}
                   >
-
                     <Check
                       className={`
                         h-3
                         w-3
-                        ${
-                          isVip
-                            ? 'text-amber-500'
-                            : 'text-emerald-500'
-                        }
+                        ${isVip ? 'text-amber-500' : 'text-emerald-500'}
                       `}
                     />
-
                   </span>
-
 
                   <span
                     className="
@@ -797,24 +411,14 @@ export default function UpgradeCard({
                   >
                     {feature}
                   </span>
-
                 </div>
-
               ))}
-
             </div>
-
-
-            {/* ==================================================
-                ACTION
-                ================================================== */}
 
             <button
               type="button"
               disabled={upgradeLoading}
-              onClick={() =>
-                onUpgrade(plan.id)
-              }
+              onClick={() => onUpgrade(plan.id)}
               className={`
                 relative
                 mt-5
@@ -826,7 +430,6 @@ export default function UpgradeCard({
                 rounded-xl
                 text-sm
                 font-semibold
-                transition-all
                 disabled:cursor-not-allowed
                 disabled:opacity-60
                 ${
@@ -844,42 +447,136 @@ export default function UpgradeCard({
                 }
               `}
             >
-
               {upgradeLoading ? (
-
-                <Loader2
-                  className="
-                    h-4
-                    w-4
-                    animate-spin
-                  "
-                />
-
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isUpgrade ? (
+                'Upgrade to VIP'
+              ) : isVip ? (
+                'Subscribe to VIP'
               ) : (
-
-                isUpgrade
-                  ? 'Upgrade to VIP'
-                  : plan.id === 'vip'
-                    ? 'Subscribe to VIP'
-                    : 'Subscribe Now'
-
+                'Subscribe Now'
               )}
-
             </button>
-
           </div>
         );
-
       })}
-
     </div>
   );
 }
 
+function UpgradeSummary({
+  config,
+  upgradePrice,
+  formatMoney,
+}: {
+  config: PlanConfig;
+  upgradePrice: UpgradePriceResponse;
+  formatMoney: (value: number, fractionDigits?: number) => string;
+}) {
+  const {
+    regularPrice,
+    vipPrice,
+    daysRemaining,
+    upgradeDailyPrice,
+    amount,
+  } = upgradePrice;
 
-// ============================================================
-// SUMMARY ROW
-// ============================================================
+  return (
+    <div
+      className="
+        relative
+        mt-4
+        overflow-hidden
+        rounded-xl
+        border
+        border-border/50
+        bg-muted/20
+      "
+    >
+      <div
+        className="
+          border-b
+          border-border/50
+          px-3.5
+          py-2.5
+        "
+      >
+        <p className="text-xs font-semibold">
+          Upgrade Summary
+        </p>
+      </div>
+
+      <div className="divide-y divide-border/40 px-3.5">
+        <SummaryRow
+          label="Current plan"
+          value={config.planLabels.regular}
+        />
+
+        <SummaryRow
+          label="Regular price"
+          value={formatMoney(regularPrice)}
+        />
+
+        <SummaryRow
+          label="VIP price"
+          value={formatMoney(vipPrice)}
+        />
+
+        <SummaryRow
+          label="Days remaining"
+          value={`${daysRemaining} ${
+            daysRemaining === 1 ? 'day' : 'days'
+          }`}
+        />
+
+        <SummaryRow
+          label="Upgrade rate"
+          value={`${formatMoney(upgradeDailyPrice, 2)}/day`}
+        />
+
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-3
+            py-2.5
+          "
+        >
+          <span className="text-xs font-semibold">
+            Amount to pay
+          </span>
+
+          <span className="text-base font-bold text-primary">
+            {formatMoney(amount)}
+          </span>
+        </div>
+      </div>
+
+      <div
+        className="
+          border-t
+          border-border/40
+          bg-primary/[0.025]
+          px-3.5
+          py-2.5
+        "
+      >
+        <p
+          className="
+            text-[10px]
+            leading-relaxed
+            text-muted-foreground
+          "
+        >
+          The upgrade cost is based on the remaining
+          days of your current Regular membership. VIP
+          then starts a new full subscription period.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function SummaryRow({
   label,
@@ -888,7 +585,6 @@ function SummaryRow({
   label: string;
   value: string;
 }) {
-
   return (
     <div
       className="
@@ -899,27 +595,13 @@ function SummaryRow({
         py-2
       "
     >
-
-      <span
-        className="
-          text-xs
-          text-muted-foreground
-        "
-      >
+      <span className="text-xs text-muted-foreground">
         {label}
       </span>
 
-
-      <span
-        className="
-          text-right
-          text-xs
-          font-medium
-        "
-      >
+      <span className="text-right text-xs font-medium">
         {value}
       </span>
-
     </div>
   );
 }

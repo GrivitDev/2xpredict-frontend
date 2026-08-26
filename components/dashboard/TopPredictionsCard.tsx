@@ -8,9 +8,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-import {
-  formatMatchTime,
-} from '@/lib/formatMatchTime';
+import { formatMatchTime } from '@/lib/formatMatchTime';
 
 import type {
   PredictionItem,
@@ -26,7 +24,6 @@ export function TopPredictionsCard({
 }: {
   items?: PredictionItem[];
 }) {
-
   if (!items.length) {
     return (
       <div
@@ -45,9 +42,7 @@ export function TopPredictionsCard({
           text-center
         "
       >
-
         <div className="space-y-1">
-
           <TrendingUp
             className="
               mx-auto
@@ -66,13 +61,10 @@ export function TopPredictionsCard({
           >
             No predictions available today.
           </p>
-
         </div>
-
       </div>
     );
   }
-
 
   return (
     <div
@@ -83,18 +75,20 @@ export function TopPredictionsCard({
         xl:grid-cols-3
       "
     >
-
       {items.map((item, index) => {
-
         const home =
           item.homeTeam || 'Home';
 
         const away =
           item.awayTeam || 'Away';
 
-        const confidence =
-          Number(item.confidence || 0);
-
+        const confidence = Math.min(
+          100,
+          Math.max(
+            0,
+            Number(item.confidence || 0),
+          ),
+        );
 
         return (
           <div
@@ -103,44 +97,15 @@ export function TopPredictionsCard({
               `${home}-${away}-${index}`
             }
             className="
-              group
-              relative
               overflow-hidden
               rounded-2xl
               border
               border-border/60
               bg-card
               shadow-sm
-              transition-all
-              duration-200
-              hover:-translate-y-0.5
-              hover:border-primary/25
-              hover:shadow-md
             "
           >
-
-            {/* ==================================================
-                PREMIUM ACCENT
-                ================================================== */}
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                inset-x-0
-                top-0
-                h-px
-                bg-gradient-to-r
-                from-transparent
-                via-primary/70
-                to-transparent
-              "
-            />
-
-
-            {/* ==================================================
-                LEAGUE HEADER
-                ================================================== */}
+            {/* League Header */}
 
             <div
               className="
@@ -154,9 +119,6 @@ export function TopPredictionsCard({
                 py-2.5
               "
             >
-
-              {/* League emblem */}
-
               {item.league?.emblem && (
                 <div
                   className="
@@ -173,7 +135,6 @@ export function TopPredictionsCard({
                     p-1
                   "
                 >
-
                   <Image
                     src={item.league.emblem}
                     alt={
@@ -188,12 +149,8 @@ export function TopPredictionsCard({
                       object-contain
                     "
                   />
-
                 </div>
               )}
-
-
-              {/* League */}
 
               <p
                 className="
@@ -205,14 +162,9 @@ export function TopPredictionsCard({
                   text-muted-foreground
                 "
               >
-                {
-                  item.league?.name ||
-                  'Football League'
-                }
+                {item.league?.name ||
+                  'Football League'}
               </p>
-
-
-              {/* Top badge */}
 
               <span
                 className="
@@ -233,24 +185,15 @@ export function TopPredictionsCard({
                   text-primary
                 "
               >
-
                 <TrendingUp
-                  className="
-                    h-3
-                    w-3
-                  "
+                  className="h-3 w-3"
                 />
 
                 Top
-
               </span>
-
             </div>
 
-
-            {/* ==================================================
-                MATCH
-                ================================================== */}
+            {/* Match */}
 
             <div
               className="
@@ -259,7 +202,6 @@ export function TopPredictionsCard({
                 pt-4
               "
             >
-
               <div
                 className="
                   flex
@@ -267,14 +209,10 @@ export function TopPredictionsCard({
                   gap-2
                 "
               >
-
                 <TeamMini
                   name={home}
                   badge={item.homeTeamBadge}
                 />
-
-
-                {/* VS */}
 
                 <div
                   className="
@@ -290,7 +228,6 @@ export function TopPredictionsCard({
                     bg-muted/20
                   "
                 >
-
                   <span
                     className="
                       text-[10px]
@@ -302,22 +239,16 @@ export function TopPredictionsCard({
                   >
                     VS
                   </span>
-
                 </div>
-
 
                 <TeamMini
                   name={away}
                   badge={item.awayTeamBadge}
                   align="right"
                 />
-
               </div>
 
-
-              {/* ==================================================
-                  MATCH META
-                  ================================================== */}
+              {/* Match Meta */}
 
               <div
                 className="
@@ -331,9 +262,6 @@ export function TopPredictionsCard({
                   pt-3
                 "
               >
-
-                {/* Match time */}
-
                 <div
                   className="
                     flex
@@ -342,7 +270,6 @@ export function TopPredictionsCard({
                     gap-1.5
                   "
                 >
-
                   <CalendarDays
                     className="
                       h-3.5
@@ -360,32 +287,22 @@ export function TopPredictionsCard({
                       text-muted-foreground
                     "
                   >
-                    {
-                      item.matchDate
-                        ? formatMatchTime(
-                            item.matchDate,
-                          )
-                        : 'TBA'
-                    }
+                    {item.matchDate
+                      ? formatMatchTime(
+                          item.matchDate,
+                        )
+                      : 'TBA'}
                   </span>
-
                 </div>
-
-
-                {/* Confidence */}
 
                 <Confidence
                   confidence={confidence}
                 />
-
               </div>
-
             </div>
-
           </div>
         );
       })}
-
     </div>
   );
 }
@@ -404,10 +321,8 @@ function TeamMini({
   badge?: string;
   align?: 'left' | 'right';
 }) {
-
   const isRight =
     align === 'right';
-
 
   return (
     <div
@@ -420,9 +335,6 @@ function TeamMini({
         ${isRight ? 'flex-row-reverse' : ''}
       `}
     >
-
-      {/* Team badge */}
-
       <div
         className="
           flex
@@ -438,7 +350,6 @@ function TeamMini({
           p-1
         "
       >
-
         {badge ? (
           <Image
             src={badge}
@@ -460,11 +371,7 @@ function TeamMini({
             "
           />
         )}
-
       </div>
-
-
-      {/* Team name */}
 
       <p
         className={`
@@ -479,7 +386,6 @@ function TeamMini({
       >
         {name}
       </p>
-
     </div>
   );
 }
@@ -494,14 +400,6 @@ function Confidence({
 }: {
   confidence: number;
 }) {
-
-  const value =
-    Math.min(
-      100,
-      Math.max(0, confidence),
-    );
-
-
   return (
     <div
       className="
@@ -511,7 +409,6 @@ function Confidence({
         gap-2
       "
     >
-
       <div
         className="
           h-1.5
@@ -522,22 +419,17 @@ function Confidence({
           sm:w-12
         "
       >
-
         <div
           className="
             h-full
             rounded-full
             bg-primary
-            transition-all
-            duration-500
           "
           style={{
-            width: `${value}%`,
+            width: `${confidence}%`,
           }}
         />
-
       </div>
-
 
       <span
         className="
@@ -547,9 +439,8 @@ function Confidence({
           text-primary
         "
       >
-        {value}%
+        {confidence}%
       </span>
-
     </div>
   );
 }

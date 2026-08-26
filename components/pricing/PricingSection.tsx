@@ -1,6 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import {
+  Crown,
+  Gift,
+  ShieldCheck,
+  TrendingUp,
+} from 'lucide-react';
 
 import PricingCard from './PricingCard';
 import GatewayModal from './GatewayModal';
@@ -11,13 +22,6 @@ import type { PlanConfig } from '@/types/plan-config';
 import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
 import { useAuth } from '@/providers/auth-provider';
-
-import {
-  Crown,
-  ShieldCheck,
-  TrendingUp,
-  Gift,
-} from 'lucide-react';
 
 type SelectedPlan =
   | 'regular'
@@ -36,51 +40,128 @@ export default function PricingSection() {
   const [selectedPlan, setSelectedPlan] =
     useState<SelectedPlan>(null);
 
+  /*
+   * NGN is intentionally the default.
+   *
+   * This means there is no USD flash while
+   * country detection is taking place.
+   */
   const [currency, setCurrency] =
-    useState<PaymentCurrency>('USD');
+    useState<PaymentCurrency>('NGN');
 
 
-  /* ==========================================================================
-     LOAD PLAN CONFIG
-  ========================================================================== */
+  /*
+   * ============================================================
+   * LOAD PLAN CONFIG
+   * ============================================================
+   */
 
   useEffect(() => {
-    async function loadPlans() {
-      try {
-        const data = await getPlanConfig();
+    let mounted = true;
 
-        setConfig(data);
-      } catch (error) {
+    getPlanConfig()
+      .then((data) => {
+        if (mounted) {
+          setConfig(data);
+        }
+      })
+      .catch((error) => {
         console.error(
           'Failed loading plans',
           error,
         );
-      } finally {
-        setLoading(false);
-      }
-    }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
-    loadPlans();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
 
-  /* ==========================================================================
-     CURRENCY
-  ========================================================================== */
+  /*
+   * ============================================================
+   * CURRENCY
+   *
+   * Authenticated user's saved currency has priority.
+   *
+   * Otherwise detect country:
+   *
+   * Nigeria -> NGN
+   * Everything else -> USD
+   * ============================================================
+   */
 
   useEffect(() => {
-    if (!user) {
-      setCurrency('USD');
+    if (user?.currency) {
+      setCurrency(user.currency);
       return;
     }
 
-    setCurrency(user.currency);
-  }, [user]);
+    let cancelled = false;
+
+    const detectCurrency = async () => {
+      try {
+        /*
+         * Lightweight country detection.
+         *
+         * The API response is only used to determine
+         * whether the visitor is in Nigeria.
+         */
+        const response = await fetch(
+          'https://ipapi.co/country/',
+          {
+            cache: 'no-store',
+          },
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const country =
+          (
+            await response.text()
+          )
+            .trim()
+            .toUpperCase();
+
+        if (cancelled) {
+          return;
+        }
+
+        setCurrency(
+          country === 'NG'
+            ? 'NGN'
+            : 'USD',
+        );
+      } catch {
+        /*
+         * NGN remains the fallback.
+         */
+        if (!cancelled) {
+          setCurrency('NGN');
+        }
+      }
+    };
+
+    detectCurrency();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.currency]);
 
 
-  /* ==========================================================================
-     PRICES
-  ========================================================================== */
+  /*
+   * ============================================================
+   * PRICES
+   * ============================================================
+   */
 
   const prices = useMemo(() => {
     if (!config) {
@@ -104,9 +185,11 @@ export default function PricingSection() {
   }, [config, currency]);
 
 
-  /* ==========================================================================
-     LOADING
-  ========================================================================== */
+  /*
+   * ============================================================
+   * LOADING
+   * ============================================================
+   */
 
   if (loading) {
     return (
@@ -121,7 +204,6 @@ export default function PricingSection() {
           className="
             mx-auto
             max-w-5xl
-            animate-pulse
             rounded-2xl
             border
             border-border/50
@@ -129,14 +211,40 @@ export default function PricingSection() {
             p-8
           "
         >
-          <div className="mx-auto h-5 w-32 rounded bg-muted" />
+          <div
+            className="
+              mx-auto
+              h-5
+              w-32
+              animate-pulse
+              rounded
+              bg-muted
+            "
+          />
 
-          <div className="mx-auto mt-3 h-8 w-64 rounded bg-muted" />
+          <div
+            className="
+              mx-auto
+              mt-3
+              h-8
+              w-64
+              animate-pulse
+              rounded
+              bg-muted
+            "
+          />
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="h-72 rounded-2xl bg-muted/50" />
-            <div className="h-72 rounded-2xl bg-muted/50" />
-            <div className="h-72 rounded-2xl bg-muted/50" />
+          <div
+            className="
+              mt-8
+              grid
+              gap-4
+              md:grid-cols-3
+            "
+          >
+            <div className="h-72 animate-pulse rounded-2xl bg-muted/50" />
+            <div className="h-72 animate-pulse rounded-2xl bg-muted/50" />
+            <div className="h-72 animate-pulse rounded-2xl bg-muted/50" />
           </div>
         </div>
       </section>
@@ -144,13 +252,21 @@ export default function PricingSection() {
   }
 
 
-  /* ==========================================================================
-     ERROR
-  ========================================================================== */
+  /*
+   * ============================================================
+   * ERROR
+   * ============================================================
+   */
 
   if (!config) {
     return (
-      <section className="px-4 py-10 text-center">
+      <section
+        className="
+          px-4
+          py-10
+          text-center
+        "
+      >
         <p className="text-s text-muted-foreground">
           Unable to load pricing.
         </p>
@@ -159,20 +275,18 @@ export default function PricingSection() {
   }
 
 
-  /* ==========================================================================
-     PLANS
-  ========================================================================== */
+  /*
+   * ============================================================
+   * PLANS
+   * ============================================================
+   */
 
   const plans = [
     {
       id: 'free' as const,
-
       name: config.planLabels.free,
-
       price: 0,
-
       description: 'Get started',
-
       features: [
         'Daily free predictions',
         'Match analysis',
@@ -182,15 +296,10 @@ export default function PricingSection() {
 
     {
       id: 'regular' as const,
-
       name: config.planLabels.regular,
-
       price: prices.regular,
-
       description: 'More winning opportunities',
-
       popular: true,
-
       features: [
         'More predictions',
         'More prediction markets',
@@ -201,13 +310,9 @@ export default function PricingSection() {
 
     {
       id: 'vip' as const,
-
       name: config.planLabels.vip,
-
       price: prices.vip,
-
       description: 'The complete experience',
-
       features: [
         'Unlimited predictions',
         'Zero advertisements',
@@ -219,9 +324,11 @@ export default function PricingSection() {
   ];
 
 
-  /* ==========================================================================
-     BENEFITS
-  ========================================================================== */
+  /*
+   * ============================================================
+   * BENEFITS
+   * ============================================================
+   */
 
   const benefits = [
     {
@@ -239,20 +346,23 @@ export default function PricingSection() {
   ];
 
 
+  /*
+   * ============================================================
+   * RENDER
+   * ============================================================
+   */
+
   return (
     <>
       <section
         className="
           px-4
           py-8
-
           sm:px-6
           sm:py-10
-
           lg:py-12
         "
       >
-
         <div
           className="
             mx-auto
@@ -260,9 +370,7 @@ export default function PricingSection() {
           "
         >
 
-          {/* ================================================================
-              COMPACT HEADER
-          ================================================================ */}
+          {/* HEADER */}
 
           <div className="text-center">
 
@@ -289,20 +397,17 @@ export default function PricingSection() {
               Premium Membership
             </div>
 
-
             <h1
               className="
                 mt-3
                 text-2xl
                 font-black
                 tracking-tight
-
                 sm:text-3xl
               "
             >
               Choose Your Plan
             </h1>
-
 
             <p
               className="
@@ -315,9 +420,6 @@ export default function PricingSection() {
             >
               More predictions. Fewer ads. Better access.
             </p>
-
-
-            {/* Benefits */}
 
             <div
               className="
@@ -360,13 +462,10 @@ export default function PricingSection() {
                 ),
               )}
             </div>
-
           </div>
 
 
-          {/* ================================================================
-              CURRENCY
-          ================================================================ */}
+          {/* CURRENCY */}
 
           <div
             className="
@@ -403,16 +502,13 @@ export default function PricingSection() {
           </div>
 
 
-          {/* ================================================================
-              PRICING CARDS
-          ================================================================ */}
+          {/* PRICING CARDS */}
 
           <div
             className="
               mt-6
               grid
               gap-4
-
               md:grid-cols-3
               md:items-center
             "
@@ -427,31 +523,29 @@ export default function PricingSection() {
                 }
                 onSelect={(id) => {
                   if (
-                    id === 'regular' ||
-                    id === 'vip'
+                    id !== 'regular' &&
+                    id !== 'vip'
                   ) {
-                    if (!user) {
-                      window.location.href =
-                        '/login?redirect=/pricing';
-
-                      return;
-                    }
-
-                    setSelectedPlan(id);
+                    return;
                   }
+
+                  if (!user) {
+                    window.location.href =
+                      '/login?redirect=/pricing';
+
+                    return;
+                  }
+
+                  setSelectedPlan(id);
                 }}
               />
             ))}
           </div>
-
         </div>
-
       </section>
 
 
-      {/* ======================================================================
-          PAYMENT
-      ======================================================================= */}
+      {/* PAYMENT */}
 
       {selectedPlan && (
         <GatewayModal
@@ -467,9 +561,7 @@ export default function PricingSection() {
           title={
             `Complete ${selectedPlan.toUpperCase()} Subscription`
           }
-          description={
-            'Choose your preferred payment gateway.'
-          }
+          description="Choose your preferred payment gateway."
           onClose={() =>
             setSelectedPlan(null)
           }

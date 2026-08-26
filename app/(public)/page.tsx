@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -18,23 +17,20 @@ import CompetitionDisplay from '@/components/home-sections/features/CompetitionD
 import LivescoreFilters from '@/components/home-sections/features/LivescoreFilters';
 
 import { InternalAds } from '@/components/ads/IntAds/InternalAds';
+import { LiveScoreAds } from '@/components/ads/ExtAds/positions/LiveScoreAds';
 
 import { AdPage } from '@/constants/ads/ad-page';
 import { AdPosition } from '@/constants/ads/ad-position';
 
-import { LiveScoreAds } from '@/components/ads/ExtAds/positions/LiveScoreAds';
-
 import PredictionPreview from '@/components/home-sections/PredictionsPreview';
-
 import SettledWins from '@/components/home-sections/SettledWins';
 
-import {
-  useLivescore,
-} from '@/hooks/useLivescore';
+import { useLivescore } from '@/hooks/useLivescore';
+import CommunityPreviewSection from '@/components/home-sections/community-preview/CommunityPreviewSection';
 
 
 // ============================================================
-// LOADING MESSAGES
+// LOADING
 // ============================================================
 
 const loadingMessages = [
@@ -49,115 +45,59 @@ const loadingMessages = [
 // ============================================================
 
 export default function HomePage() {
-
-  // ==========================================================
-  // LOADING MESSAGE
-  // ==========================================================
-
-  const [
-    messageIndex,
-    setMessageIndex,
-  ] = useState(0);
-
-
-  useEffect(() => {
-
-    const interval =
-      setInterval(() => {
-
-        setMessageIndex(
-          previous =>
-            (
-              previous + 1
-            ) %
-            loadingMessages.length,
-        );
-
-      }, 4000);
-
-
-    return () =>
-      clearInterval(interval);
-
-  }, []);
-
-
-  // ==========================================================
-  // LIVESCORE
-  // ==========================================================
+  const [messageIndex, setMessageIndex] = useState(0);
 
   const {
     leagues,
     selectedLeagueCode,
     selectLeague,
-
     matches,
     liveMatches,
     results,
     standings,
-
     isLoading,
   } = useLivescore();
 
+  // ----------------------------------------------------------
+  // Loading message rotation
+  // ----------------------------------------------------------
 
-  // ==========================================================
-  // SELECTED COMPETITION
-  // ==========================================================
-
-  const selectedLeague =
-    useMemo(() => {
-
-      return leagues.find(
-        league =>
-          league.code ===
-          selectedLeagueCode,
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setMessageIndex(
+        (previous) =>
+          (previous + 1) % loadingMessages.length,
       );
+    }, 4000);
 
-    }, [
-      leagues,
-      selectedLeagueCode,
-    ]);
+    return () => window.clearInterval(interval);
+  }, []);
 
+  // ----------------------------------------------------------
+  // Selected competition
+  // ----------------------------------------------------------
 
-  // ==========================================================
-  // FILTER STATE
-  // ==========================================================
+  const selectedLeague = useMemo(
+    () =>
+      leagues.find(
+        (league) =>
+          league.code === selectedLeagueCode,
+      ),
+    [leagues, selectedLeagueCode],
+  );
 
-  const [
-    search,
-    setSearch,
-  ] = useState('');
+  // ----------------------------------------------------------
+  // Filters
+  // ----------------------------------------------------------
 
+  const [search, setSearch] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [goalFilter, setGoalFilter] = useState('');
+  const [pointsFilter, setPointsFilter] = useState('');
 
-  const [
-    selectedDate,
-    setSelectedDate,
-  ] = useState('');
-
-
-  const [
-    goalFilter,
-    setGoalFilter,
-  ] = useState('');
-
-
-  const [
-    pointsFilter,
-    setPointsFilter,
-  ] = useState('');
-
-
-  const [
-    resultFilter,
-    setResultFilter,
-  ] = useState<
+  const [resultFilter, setResultFilter] = useState<
     'all' | 'home' | 'away' | 'draw'
   >('all');
-
-
-  // ==========================================================
-  // SECTION VIEW
-  // ==========================================================
 
   type SectionView =
     | 'all'
@@ -168,396 +108,151 @@ export default function HomePage() {
     | 'upcoming'
     | 'table';
 
-
-  const [
-    sectionView,
-    setSectionView,
-  ] = useState<SectionView>('all');
-
-
-  // ==========================================================
-  // RESET FILTERS
-  // ==========================================================
-
-  const resetFilters =
-    useCallback(() => {
-
-      setSearch('');
-
-      setSelectedDate('');
-
-      setGoalFilter('');
-
-      setPointsFilter('');
-
-      setResultFilter('all');
-
-    }, []);
-
-
-  // ==========================================================
-  // COMPETITION CHANGE
-  // ==========================================================
-
-  const handleLeagueChange =
-    useCallback(
-      (
-        leagueCode: string,
-      ) => {
-
-        resetFilters();
-
-        setSectionView('all');
-
-        selectLeague(
-          leagueCode,
-        );
-
-      },
-      [
-        resetFilters,
-        selectLeague,
-      ],
-    );
-
-
-  // ==========================================================
-  // FILTER MATCHES
-  // ==========================================================
-
-  const filteredMatches =
-    useMemo(() => {
-
-      const query =
-        search
-          .trim()
-          .toLowerCase();
-
-
-      return matches.filter(
-        match => {
-
-          // --------------------------------------------------
-          // SEARCH
-          // --------------------------------------------------
-
-          if (query) {
-
-            const found =
-              match.homeTeam
-                .toLowerCase()
-                .includes(query) ||
-
-              match.awayTeam
-                .toLowerCase()
-                .includes(query) ||
-
-              (
-                match.venue ??
-                ''
-              )
-                .toLowerCase()
-                .includes(query);
-
-
-            if (!found) {
-              return false;
-            }
-
-          }
-
-
-          // --------------------------------------------------
-          // DATE
-          // --------------------------------------------------
-
-          if (selectedDate) {
-
-            const matchDate =
-              new Date(
-                match.date,
-              )
-                .toISOString()
-                .split('T')[0];
-
-
-            if (
-              matchDate !==
-              selectedDate
-            ) {
-
-              return false;
-
-            }
-
-          }
-
-
-          return true;
-
-        },
-      );
-
-    }, [
-      matches,
-      search,
-      selectedDate,
-    ]);
-
-
-  // ==========================================================
-  // FILTER RESULTS
-  // ==========================================================
-
-  const filteredResults =
-    useMemo(() => {
-
-      const query =
-        search
-          .trim()
-          .toLowerCase();
-
-
-      return results.filter(
-        match => {
-
-          // --------------------------------------------------
-          // SEARCH
-          // --------------------------------------------------
-
-          if (query) {
-
-            const found =
-              match.homeTeam
-                .toLowerCase()
-                .includes(query) ||
-
-              match.awayTeam
-                .toLowerCase()
-                .includes(query) ||
-
-              (
-                match.venue ??
-                ''
-              )
-                .toLowerCase()
-                .includes(query);
-
-
-            if (!found) {
-              return false;
-            }
-
-          }
-
-
-          // --------------------------------------------------
-          // DATE
-          // --------------------------------------------------
-
-          if (selectedDate) {
-
-            const matchDate =
-              new Date(
-                match.date,
-              )
-                .toISOString()
-                .split('T')[0];
-
-
-            if (
-              matchDate !==
-              selectedDate
-            ) {
-
-              return false;
-
-            }
-
-          }
-
-
-          // --------------------------------------------------
-          // GOALS
-          // --------------------------------------------------
-
-          if (goalFilter) {
-
-            const goals =
-              (
-                match.homeScore ??
-                0
-              ) +
-              (
-                match.awayScore ??
-                0
-              );
-
-
-            if (
-              goals <
-              Number(
-                goalFilter,
-              )
-            ) {
-
-              return false;
-
-            }
-
-          }
-
-
-          // --------------------------------------------------
-          // HOME WIN
-          // --------------------------------------------------
-
-          if (
-            resultFilter ===
-            'home'
-          ) {
-
-            if (
-              (
-                match.homeScore ??
-                0
-              ) <=
-              (
-                match.awayScore ??
-                0
-              )
-            ) {
-
-              return false;
-
-            }
-
-          }
-
-
-          // --------------------------------------------------
-          // AWAY WIN
-          // --------------------------------------------------
-
-          if (
-            resultFilter ===
-            'away'
-          ) {
-
-            if (
-              (
-                match.awayScore ??
-                0
-              ) <=
-              (
-                match.homeScore ??
-                0
-              )
-            ) {
-
-              return false;
-
-            }
-
-          }
-
-
-          // --------------------------------------------------
-          // DRAW
-          // --------------------------------------------------
-
-          if (
-            resultFilter ===
-            'draw'
-          ) {
-
-            if (
-              (
-                match.homeScore ??
-                0
-              ) !==
-              (
-                match.awayScore ??
-                0
-              )
-            ) {
-
-              return false;
-
-            }
-
-          }
-
-
-          return true;
-
-        },
-      );
-
-    }, [
-      results,
-      search,
-      selectedDate,
-      goalFilter,
-      resultFilter,
-    ]);
-
-
-  // ==========================================================
-  // FILTER LIVE MATCHES
-  // ==========================================================
-
-  const filteredLiveMatches =
-    useMemo(() => {
-
-      const query =
-        search
-          .trim()
-          .toLowerCase();
-
-
-      if (!query) {
-        return liveMatches;
+  const [sectionView, setSectionView] =
+    useState<SectionView>('all');
+
+  // ----------------------------------------------------------
+  // Reset filters
+  // ----------------------------------------------------------
+
+  const resetFilters = () => {
+    setSearch('');
+    setSelectedDate('');
+    setGoalFilter('');
+    setPointsFilter('');
+    setResultFilter('all');
+  };
+
+  // ----------------------------------------------------------
+  // Competition change
+  // ----------------------------------------------------------
+
+  const handleLeagueChange = (leagueCode: string) => {
+    resetFilters();
+    setSectionView('all');
+    selectLeague(leagueCode);
+  };
+
+  // ----------------------------------------------------------
+  // Match filtering
+  // ----------------------------------------------------------
+
+  const filteredMatches = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return matches.filter((match) => {
+      if (query) {
+        const found =
+          match.homeTeam.toLowerCase().includes(query) ||
+          match.awayTeam.toLowerCase().includes(query) ||
+          (match.venue ?? '')
+            .toLowerCase()
+            .includes(query);
+
+        if (!found) return false;
       }
 
+      if (selectedDate) {
+        const date = new Date(match.date)
+          .toISOString()
+          .split('T')[0];
 
-      return liveMatches.filter(
-        match => {
+        if (date !== selectedDate) return false;
+      }
 
-          return (
-            match.homeTeam
-              .toLowerCase()
-              .includes(query) ||
+      return true;
+    });
+  }, [matches, search, selectedDate]);
 
-            match.awayTeam
-              .toLowerCase()
-              .includes(query) ||
+  const filteredResults = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-            (
-              match.venue ??
-              ''
-            )
-              .toLowerCase()
-              .includes(query)
-          );
+    return results.filter((match) => {
+      if (query) {
+        const found =
+          match.homeTeam.toLowerCase().includes(query) ||
+          match.awayTeam.toLowerCase().includes(query) ||
+          (match.venue ?? '')
+            .toLowerCase()
+            .includes(query);
 
-        },
+        if (!found) return false;
+      }
+
+      if (selectedDate) {
+        const date = new Date(match.date)
+          .toISOString()
+          .split('T')[0];
+
+        if (date !== selectedDate) return false;
+      }
+
+      if (goalFilter) {
+        const goals =
+          (match.homeScore ?? 0) +
+          (match.awayScore ?? 0);
+
+        if (goals < Number(goalFilter)) {
+          return false;
+        }
+      }
+
+      const homeScore = match.homeScore ?? 0;
+      const awayScore = match.awayScore ?? 0;
+
+      if (
+        resultFilter === 'home' &&
+        homeScore <= awayScore
+      ) {
+        return false;
+      }
+
+      if (
+        resultFilter === 'away' &&
+        awayScore <= homeScore
+      ) {
+        return false;
+      }
+
+      if (
+        resultFilter === 'draw' &&
+        homeScore !== awayScore
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [
+    results,
+    search,
+    selectedDate,
+    goalFilter,
+    resultFilter,
+  ]);
+
+  const filteredLiveMatches = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) return liveMatches;
+
+    return liveMatches.filter((match) => {
+      return (
+        match.homeTeam.toLowerCase().includes(query) ||
+        match.awayTeam.toLowerCase().includes(query) ||
+        (match.venue ?? '')
+          .toLowerCase()
+          .includes(query)
       );
-
-    }, [
-      liveMatches,
-      search,
-    ]);
-
+    });
+  }, [liveMatches, search]);
 
   // ==========================================================
-  // INITIAL LOADING
+  // LOADING SCREEN
   // ==========================================================
 
   if (isLoading) {
-
     return (
-
       <main
         className="
           flex
@@ -568,7 +263,6 @@ export default function HomePage() {
           px-3
         "
       >
-
         <div
           className="
             flex
@@ -577,10 +271,7 @@ export default function HomePage() {
             gap-14
           "
         >
-
-          {/* ==================================================
-              PREMIUM LOADER
-          ================================================== */}
+          {/* Loader */}
 
           <div
             className="
@@ -592,7 +283,6 @@ export default function HomePage() {
               justify-center
             "
           >
-
             {/* Ambient glow */}
 
             <div
@@ -606,7 +296,6 @@ export default function HomePage() {
               "
             />
 
-
             {/* Outer ring */}
 
             <div
@@ -619,8 +308,7 @@ export default function HomePage() {
               "
             />
 
-
-            {/* Main rotating ring */}
+            {/* Main ring */}
 
             <div
               className="
@@ -635,11 +323,9 @@ export default function HomePage() {
                 border-t-primary
               "
               style={{
-                animationDuration:
-                  '1.8s',
+                animationDuration: '1.8s',
               }}
             />
-
 
             {/* Secondary ring */}
 
@@ -655,13 +341,10 @@ export default function HomePage() {
                 border-transparent
               "
               style={{
-                animationDuration:
-                  '2.8s',
-                animationDirection:
-                  'reverse',
+                animationDuration: '2.8s',
+                animationDirection: 'reverse',
               }}
             />
-
 
             {/* Inner ring */}
 
@@ -675,7 +358,6 @@ export default function HomePage() {
                 bg-primary/[0.03]
               "
             />
-
 
             {/* Logo */}
 
@@ -696,7 +378,6 @@ export default function HomePage() {
                 backdrop-blur-xl
               "
             >
-
               <div
                 className="
                   absolute
@@ -706,7 +387,6 @@ export default function HomePage() {
                   blur-md
                 "
               />
-
 
               <Image
                 src="/logo.png"
@@ -723,9 +403,7 @@ export default function HomePage() {
                   object-contain
                 "
               />
-
             </div>
-
 
             {/* Center pulse */}
 
@@ -741,8 +419,7 @@ export default function HomePage() {
               "
             />
 
-
-            {/* Rotating highlight */}
+            {/* Highlight ring */}
 
             <div
               className="
@@ -754,25 +431,14 @@ export default function HomePage() {
                 border-primary/10
               "
               style={{
-                animationDuration:
-                  '5s',
+                animationDuration: '5s',
               }}
             />
-
           </div>
 
+          {/* Loading message */}
 
-          {/* ==================================================
-              MESSAGE
-          ================================================== */}
-
-          <div
-            className="
-              h-8
-              overflow-hidden
-            "
-          >
-
+          <div className="h-8 overflow-hidden">
             <p
               key={messageIndex}
               className="
@@ -784,44 +450,29 @@ export default function HomePage() {
                 text-muted-foreground
               "
             >
-              {
-                loadingMessages[
-                  messageIndex
-                ]
-              }
+              {loadingMessages[messageIndex]}
             </p>
-
           </div>
-
         </div>
-
       </main>
-
     );
-
   }
-
 
   // ==========================================================
   // PAGE
   // ==========================================================
 
   return (
-
-    <main
-      className="
-        min-h-screen
-        w-full
-        overflow-x-hidden
-        bg-background
-        py-4
-        sm:py-5
-      "
-    >
-
-      {/* ====================================================
-          HERO
-      ==================================================== */}
+        <main
+          className="
+            min-h-screen
+            w-full
+            bg-background
+            py-4
+            sm:py-5
+          "
+        >
+      {/* HERO */}
 
       <section
         className="
@@ -838,7 +489,6 @@ export default function HomePage() {
           lg:h-[28rem]
         "
       >
-
         <Image
           src="/banner.png"
           alt="Live Scores"
@@ -849,11 +499,8 @@ export default function HomePage() {
             (max-width: 1024px) 100vw,
             1152px
           "
-          className="
-            object-cover
-          "
+          className="object-cover"
         />
-
 
         <div
           className="
@@ -865,20 +512,13 @@ export default function HomePage() {
             to-transparent
           "
         />
-
       </section>
 
-
-      {/* ====================================================
-          EXTERNAL ADS
-      ==================================================== */}
+      {/* EXTERNAL ADS */}
 
       <LiveScoreAds />
 
-
-      {/* ====================================================
-          MAIN CONTENT
-      ==================================================== */}
+      {/* MAIN CONTENT */}
 
       <div
         className="
@@ -891,256 +531,163 @@ export default function HomePage() {
           sm:px-4
         "
       >
-
-        {/* ==================================================
-            TOP BANNER AD
-        ================================================== */}
+        {/* TOP BANNER */}
 
         <InternalAds
           page={AdPage.HOME}
-          position={
-            AdPosition.TOP_BANNER
-          }
+          position={AdPosition.TOP_BANNER}
         />
 
-
-
-
-
-        {/* ==================================================
-            FILTERS
-        ================================================== */}
+        {/* FILTERS */}
 
         {selectedLeagueCode && (
+          <div
+            className="
+              sticky
+              top-[var(--navbar-offset)]
+              z-40
+              -mx-3
+              px-3
+              py-2
+              sm:-mx-4
+              sm:px-4
+            "
+          >
+            <LivescoreFilters
+              search={search}
+              selectedDate={selectedDate}
+              goalFilter={goalFilter}
+              pointsFilter={pointsFilter}
+              resultFilter={resultFilter}
+              sectionView={sectionView}
+              onSearchChange={setSearch}
+              onDateChange={setSelectedDate}
+              onGoalFilterChange={setGoalFilter}
+              onPointsFilterChange={setPointsFilter}
+              onResultFilterChange={setResultFilter}
+              onSectionViewChange={setSectionView}
+              onReset={resetFilters}
+            />
+          </div>
+        )}
+        {/* LIVE MATCHES */}
 
-             <LivescoreFilters
-            search={search}
-            selectedDate={selectedDate}
-            goalFilter={goalFilter}
-            pointsFilter={pointsFilter}
-            resultFilter={resultFilter}
-            sectionView={sectionView}
-            onSearchChange={setSearch}
-            onDateChange={setSelectedDate}
-            onGoalFilterChange={setGoalFilter}
-            onPointsFilterChange={setPointsFilter}
-            onResultFilterChange={setResultFilter}
-            onSectionViewChange={setSectionView}
-            onReset={resetFilters}
+        {(sectionView === 'all' ||
+          sectionView === 'live') && (
+          <LiveMatches
+            matches={filteredLiveMatches}
           />
-
         )}
 
 
-            {/* ==============================================
-                LIVE MATCHES
-            ============================================== */}
 
-            {(
-              sectionView === 'all' ||
-              sectionView === 'live'
-            ) && (
+        {selectedLeagueCode && (
+          <>
+            {/* PREDICTIONS */}
 
-              <LiveMatches
-                matches={
-                  filteredLiveMatches
-                }
+            {(sectionView === 'all' ||
+              sectionView === 'predictions') && (
+              <PredictionPreview
+                search={search}
+                selectedDate={selectedDate}
+                goalFilter={goalFilter}
+                resultFilter={resultFilter}
               />
-
             )}
 
-        {/* ==================================================
-            HERO AD
-        ================================================== */}
+            {/* COMPETITION SELECTOR */}
+
+            <LeagueSelector
+              leagues={leagues}
+              selectedLeague={selectedLeagueCode}
+              onLeagueChange={handleLeagueChange}
+            />
+            
+                    {/* HERO AD */}
 
         <InternalAds
           page={AdPage.HOME}
-          position={
-            AdPosition.HERO
-          }
+          position={AdPosition.HERO}
         />
 
 
-        {selectedLeagueCode && (
+            {/* TODAY */}
 
-          <>
-
-            {/* ==============================================
-                PREDICTIONS
-            ============================================== */}
-
-            {(
-              sectionView === 'all' ||
-              sectionView === 'predictions'
-            ) && (
-
-              <PredictionPreview
-                search={search}
-                selectedDate={
-                  selectedDate
-                }
-                goalFilter={
-                  goalFilter
-                }
-                resultFilter={
-                  resultFilter
-                }
-              />
-
-            )}
-
-
-
-        {/* ==================================================
-            COMPETITION SELECTOR
-        ================================================== */}
-        
-        <LeagueSelector
-          leagues={leagues}
-          selectedLeague={
-            selectedLeagueCode
-          }
-          onLeagueChange={
-            handleLeagueChange
-          }
-        />
-
-            {/* ==============================================
-                TODAY
-            ============================================== */}
-
-            {(
-              sectionView === 'all' ||
-              sectionView === 'today'
-            ) && (
-
+            {(sectionView === 'all' ||
+              sectionView === 'today') && (
               <TodayMatches
-                matches={
-                  filteredMatches
-                }
+                matches={filteredMatches}
               />
-
             )}
 
+            {/* RESULTS */}
 
-            {/* ==============================================
-                RESULTS
-            ============================================== */}
-
-            {(
-              sectionView === 'all' ||
-              sectionView === 'results'
-            ) && (
-
-              <Results
-                results={
-                  filteredResults
-                }
-              />
-
+            {(sectionView === 'all' ||
+              sectionView === 'results') && (
+              <Results results={filteredResults} />
             )}
 
-
-            {/* ==================================================
-                INLINE AD
-            ================================================== */}
+            {/* INLINE AD */}
 
             <InternalAds
               page={AdPage.HOME}
-              position={
-                AdPosition.INLINE
-              }
+              position={AdPosition.INLINE}
             />
 
+            {/* UPCOMING */}
 
-            {/* ==============================================
-                UPCOMING
-            ============================================== */}
-
-            {(
-              sectionView === 'all' ||
-              sectionView === 'upcoming'
-            ) && (
-
+            {(sectionView === 'all' ||
+              sectionView === 'upcoming') && (
               <UpcomingFixtures
-                fixtures={
-                  filteredMatches
-                }
+                fixtures={filteredMatches}
               />
-
             )}
 
 
-            {/* ==============================================
-                COMPETITION TABLE / CUP
-            ============================================== */}
+            {/* INLINE AD */}
 
-            {(
-              sectionView === 'all' ||
-              sectionView === 'table'
-            ) && selectedLeague && standings && (
+            <InternalAds
+              page={AdPage.HOME}
+              position={AdPosition.INLINE}
+            />
 
-              <CompetitionDisplay
+            
+            {/* COMPETITION TABLE / CUP */}
 
-                league={
-                  selectedLeague
-                }
+            {(sectionView === 'all' ||
+              sectionView === 'table') &&
+              selectedLeague &&
+              standings && (
+                <CompetitionDisplay
+                  league={selectedLeague}
+                  competition={standings}
+                  search={search}
+                  pointsFilter={pointsFilter}
+                />
+              )}
 
-                competition={
-                  standings
-                }
-
-                search={
-                  search
-                }
-
-                pointsFilter={
-                  pointsFilter
-                }
-
-              />
-
-            )}
-
-
-            {/* ==============================================
-                SETTLED WINS
-            ============================================== */}
+            {/* SETTLED WINS */}
 
             <SettledWins />
 
+            <CommunityPreviewSection/>
 
-            {/* ==============================================
-                BOTTOM AD
-            ============================================== */}
-
-            <InternalAds
-              page={AdPage.HOME}
-              position={
-                AdPosition.BOTTOM
-              }
-            />
-
-
-            {/* ==============================================
-                POPUP AD
-            ============================================== */}
+            {/* BOTTOM AD */}
 
             <InternalAds
               page={AdPage.HOME}
-              position={
-                AdPosition.POPUP
-              }
+              position={AdPosition.BOTTOM}
             />
 
+            {/* POPUP AD */}
+
+            <InternalAds
+              page={AdPage.HOME}
+              position={AdPosition.POPUP}
+            />
           </>
-
         )}
-
       </div>
-
     </main>
-
   );
-
 }

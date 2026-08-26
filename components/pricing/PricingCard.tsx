@@ -11,22 +11,94 @@ import {
 import type { PaymentCurrency } from '@/services/payment-gateway.service';
 
 interface PricingPlan {
-  id: 'free' | 'regular' | 'vip';
+  id:
+    | 'free'
+    | 'regular'
+    | 'vip';
+
   name: string;
+
   price: number;
+
   description: string;
+
   features: string[];
+
   popular?: boolean;
 }
 
 interface PricingCardProps {
   plan: PricingPlan;
+
   currency: PaymentCurrency;
+
   subscriptionDurationDays: number;
+
   onSelect: (
-    id: 'free' | 'regular' | 'vip'
+    id:
+      | 'free'
+      | 'regular'
+      | 'vip',
   ) => void;
 }
+
+const icons = {
+  free: ShieldCheck,
+  regular: Trophy,
+  vip: Crown,
+};
+
+const buttonText = {
+  free: 'Get Started',
+  regular: 'Subscribe',
+  vip: 'Become VIP',
+};
+
+const cardStyles = {
+  free: `
+    border-border/70
+    bg-card/60
+    hover:border-primary/30
+  `,
+
+  regular: `
+    border-blue-500/40
+    bg-gradient-to-b
+    from-blue-500/[0.07]
+    via-card/70
+    to-card/50
+    shadow-lg
+    shadow-blue-500/10
+    lg:scale-[1.02]
+  `,
+
+  vip: `
+    border-gold/30
+    bg-gradient-to-b
+    from-gold/[0.08]
+    via-card/70
+    to-card/50
+    shadow-lg
+    shadow-gold/10
+  `,
+};
+
+const iconStyles = {
+  free: `
+    bg-muted
+    text-muted-foreground
+  `,
+
+  regular: `
+    bg-blue-500/10
+    text-blue-500
+  `,
+
+  vip: `
+    bg-gold/10
+    text-gold
+  `,
+};
 
 export default function PricingCard({
   plan,
@@ -34,20 +106,6 @@ export default function PricingCard({
   subscriptionDurationDays,
   onSelect,
 }: PricingCardProps) {
-  const handleSelectPlan = () => {
-    if (plan.id === 'free') {
-      window.location.href = '/register';
-      return;
-    }
-
-    onSelect(plan.id);
-  };
-
-  const icons = {
-    free: ShieldCheck,
-    regular: Trophy,
-    vip: Crown,
-  };
 
   const Icon = icons[plan.id];
 
@@ -56,57 +114,18 @@ export default function PricingCard({
       ? '$'
       : '₦';
 
-  const buttonText = {
-    free: 'Get Started',
-    regular: 'Subscribe',
-    vip: 'Become VIP',
+
+  const handleSelectPlan = () => {
+    if (plan.id === 'free') {
+      window.location.href =
+        '/register';
+
+      return;
+    }
+
+    onSelect(plan.id);
   };
 
-  const cardStyles = {
-    free: `
-      border-border/70
-      bg-card/60
-      hover:border-primary/30
-    `,
-
-    regular: `
-      border-blue-500/40
-      bg-gradient-to-b
-      from-blue-500/[0.07]
-      via-card/70
-      to-card/50
-      shadow-lg
-      shadow-blue-500/10
-      lg:scale-[1.02]
-    `,
-
-    vip: `
-      border-gold/30
-      bg-gradient-to-b
-      from-gold/[0.08]
-      via-card/70
-      to-card/50
-      shadow-lg
-      shadow-gold/10
-    `,
-  };
-
-  const iconStyles = {
-    free: `
-      bg-muted
-      text-muted-foreground
-    `,
-
-    regular: `
-      bg-blue-500/10
-      text-blue-500
-    `,
-
-    vip: `
-      bg-gold/10
-      text-gold
-    `,
-  };
 
   return (
     <div
@@ -117,20 +136,11 @@ export default function PricingCard({
         rounded-2xl
         border
         p-5
-
-        transition-all
-        duration-300
-
-        hover:-translate-y-1
-        hover:shadow-xl
-
         ${cardStyles[plan.id]}
       `}
     >
 
-      {/* ================================================================
-          VIP GLOW
-      ================================================================= */}
+      {/* VIP GLOW */}
 
       {plan.id === 'vip' && (
         <div
@@ -149,9 +159,7 @@ export default function PricingCard({
       )}
 
 
-      {/* ================================================================
-          POPULAR
-      ================================================================= */}
+      {/* POPULAR */}
 
       {plan.popular && (
         <div
@@ -159,19 +167,15 @@ export default function PricingCard({
             absolute
             right-4
             top-4
-
             inline-flex
             items-center
             gap-1.5
-
             rounded-full
             border
             border-blue-500/20
             bg-blue-500/10
-
             px-2.5
             py-1
-
             text-[9px]
             font-bold
             uppercase
@@ -188,9 +192,7 @@ export default function PricingCard({
 
       <div className="relative">
 
-        {/* ================================================================
-            HEADER
-        ================================================================= */}
+        {/* HEADER */}
 
         <div className="flex items-center gap-3">
 
@@ -203,13 +205,11 @@ export default function PricingCard({
               items-center
               justify-center
               rounded-xl
-
               ${iconStyles[plan.id]}
             `}
           >
             <Icon className="h-5 w-5" />
           </div>
-
 
           <div className="min-w-0">
 
@@ -239,14 +239,11 @@ export default function PricingCard({
         </div>
 
 
-        {/* ================================================================
-            PRICE
-        ================================================================= */}
+        {/* PRICE */}
 
         <div className="mt-5">
 
           {plan.price === 0 ? (
-
             <div
               className="
                 text-3xl
@@ -256,11 +253,14 @@ export default function PricingCard({
             >
               Free
             </div>
-
           ) : (
-
-            <div className="flex items-baseline gap-1.5">
-
+            <div
+              className="
+                flex
+                items-baseline
+                gap-1.5
+              "
+            >
               <span
                 className="
                   text-3xl
@@ -281,79 +281,72 @@ export default function PricingCard({
               >
                 / {subscriptionDurationDays} days
               </span>
-
             </div>
-
           )}
 
         </div>
 
 
-        {/* ================================================================
-            FEATURES
-        ================================================================= */}
+        {/* FEATURES */}
 
         <div className="mt-5">
 
           <ul className="space-y-2.5">
 
-            {plan.features.map((feature) => (
-
-              <li
-                key={feature}
-                className="
-                  flex
-                  items-start
-                  gap-2
-                "
-              >
-
-                <span
+            {plan.features.map(
+              (feature) => (
+                <li
+                  key={feature}
                   className="
-                    mt-0.5
                     flex
-                    h-4
-                    w-4
-                    shrink-0
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-green-500/10
+                    items-start
+                    gap-2
                   "
                 >
-                  <Check
+                  <span
                     className="
-                      h-2.5
-                      w-2.5
-                      text-green-500
+                      mt-0.5
+                      flex
+                      h-4
+                      w-4
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-green-500/10
                     "
-                  />
-                </span>
+                  >
+                    <Check
+                      className="
+                        h-2.5
+                        w-2.5
+                        text-green-500
+                      "
+                    />
+                  </span>
 
-                <span
-                  className="
-                    text-xs
-                    leading-5
-                    text-muted-foreground
-                  "
-                >
-                  {feature}
-                </span>
-
-              </li>
-
-            ))}
+                  <span
+                    className="
+                      text-xs
+                      leading-5
+                      text-muted-foreground
+                    "
+                  >
+                    {feature}
+                  </span>
+                </li>
+              ),
+            )}
 
           </ul>
 
         </div>
 
 
-        {/* ================================================================
-            ACTION
-        ================================================================= */}
+        {/* ACTION */}
 
         <button
+          type="button"
           onClick={handleSelectPlan}
           className={`
             mt-6
@@ -364,15 +357,8 @@ export default function PricingCard({
             rounded-xl
             px-4
             py-2.5
-
             text-xs
             font-bold
-
-            transition-all
-            duration-300
-
-            hover:-translate-y-px
-
             ${
               plan.id === 'vip'
                 ? `
@@ -396,7 +382,6 @@ export default function PricingCard({
         </button>
 
       </div>
-
     </div>
   );
 }

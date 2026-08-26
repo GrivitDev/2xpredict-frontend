@@ -3,13 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import {
-  ArrowUpRight,
-} from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 import {
   FaFacebookF,
-  FaInstagram,
   FaXTwitter,
   FaTelegram,
 } from 'react-icons/fa6';
@@ -21,40 +18,19 @@ import { useAuth } from '@/providers/auth-provider';
 ============================================================================ */
 
 const explore = [
-  {
-    name: 'Home',
-    href: '/',
-  },
-  {
-    name: 'Live Scores',
-    href: '/live-scores',
-  },
-  {
-    name: 'Articles',
-    href: '/articles',
-  },
-  {
-    name: 'Pricing',
-    href: '/pricing',
-  },
+  { name: 'Home', href: '/' },
+  { name: 'Live Scores', href: '/live-scores' },
+  { name: 'Articles', href: '/articles' },
+  { name: 'Pricing', href: '/pricing' },
 ];
 
 const company = [
-  {
-    name: 'About Us',
-    href: '/about',
-  },
-  {
-    name: 'Contact',
-    href: '/about#contact',
-  },
+  { name: 'About Us', href: '/about' },
+  { name: 'Contact', href: '/about#contact' },
 ];
 
 const legal = [
-  {
-    name: 'Privacy Policy',
-    href: '/privacy-policy',
-  },
+  { name: 'Privacy Policy', href: '/privacy-policy' },
   {
     name: 'Terms & Conditions',
     href: '/terms-and-conditions',
@@ -75,11 +51,6 @@ const socials = [
     name: 'Facebook',
     icon: FaFacebookF,
     href: process.env.NEXT_PUBLIC_FACEBOOK || '#',
-  },
-  {
-    name: 'Instagram',
-    icon: FaInstagram,
-    href: process.env.NEXT_PUBLIC_INSTAGRAM || '#',
   },
   {
     name: 'Telegram',
@@ -118,9 +89,7 @@ export default function Footer() {
         bg-background
       "
     >
-      {/* ======================================================================
-          BACKGROUND
-      ======================================================================= */}
+      {/* BACKGROUND */}
 
       <div
         aria-hidden="true"
@@ -131,8 +100,6 @@ export default function Footer() {
           overflow-hidden
         "
       >
-        {/* Top glow */}
-
         <div
           className="
             absolute
@@ -148,8 +115,6 @@ export default function Footer() {
           "
         />
 
-        {/* Gold accent */}
-
         <div
           className="
             absolute
@@ -163,8 +128,6 @@ export default function Footer() {
             dark:bg-gold/[0.06]
           "
         />
-
-        {/* Subtle grid */}
 
         <div
           className="
@@ -182,9 +145,7 @@ export default function Footer() {
         />
       </div>
 
-      {/* ======================================================================
-          MAIN CONTAINER
-      ======================================================================= */}
+      {/* MAIN CONTAINER */}
 
       <div
         className="
@@ -193,18 +154,13 @@ export default function Footer() {
           max-w-[1500px]
           px-4
           py-6
-
           sm:px-6
           sm:py-8
-
           lg:px-8
           lg:py-10
         "
       >
-
-        {/* ====================================================================
-            BRAND STATEMENT
-        ===================================================================== */}
+        {/* BRAND STATEMENT */}
 
         <div
           className="
@@ -219,17 +175,12 @@ export default function Footer() {
             shadow-xl
             shadow-black/[0.03]
             backdrop-blur-2xl
-
             sm:px-2
             sm:py-2
-
             lg:px-2
             lg:py-3
           "
         >
-
-          {/* Gold top line */}
-
           <div
             className="
               absolute
@@ -243,242 +194,170 @@ export default function Footer() {
             "
           />
 
-         {/* ====================================================================
-    BRAND STATEMENT
-===================================================================== */}
+          <div
+            className="
+              flex
+              flex-col-reverse
+              items-center
+              gap-3
+              lg:flex-row
+              lg:items-center
+              lg:justify-between
+            "
+          >
+            {/* BRAND STATEMENT */}
 
             <div
               className="
                 flex
-                flex-col-reverse
-                items-center
-                gap-3
-
-                lg:flex-row
-                lg:items-center
-                lg:justify-between
+                w-full
+                justify-center
+                lg:ml-10
+                lg:w-auto
+                lg:justify-end
               "
             >
-
-              {/* Brand statement */}
-
               <div
                 className="
-                  flex
-                  w-full
-                  justify-center
-
-                  lg:w-auto
-                  lg:justify-end
-                  lg:ml-10
-                "
-              >
-                <div
-                  className="
-                    inline-flex
-                    items-center
-                    justify-center
-                    gap-2
-
-                    rounded-full
-                    border
-                    border-gold/20
-                    bg-gold/[0.06]
-
-                    px-3
-                    py-1.5
-
-                    shadow-sm
-                    shadow-gold/5
-                    backdrop-blur-md
-
-                    sm:px-4
-                    sm:py-2
-                    sm:gap-3
-                  "
-                >
-
-                  <span
-                    className="
-                      h-1.5
-                      w-1.5
-                      shrink-0
-                      rounded-full
-                      bg-gold
-                      shadow-[0_0_10px_rgba(234,179,8,0.7)]
-                    "
-                  />
-
-                  <span
-                    className="
-                      text-[9px]
-                      font-black
-                      uppercase
-                      tracking-[0.14em]
-                      text-foreground
-
-                      sm:text-[10px]
-                      sm:tracking-[0.18em]
-                    "
-                  >
-                    We Analyze
-                  </span>
-
-                  <span className="text-gold">
-                    •
-                  </span>
-
-                  <span
-                    className="
-                      text-[9px]
-                      font-black
-                      uppercase
-                      tracking-[0.14em]
-                      text-foreground
-
-                      sm:text-[10px]
-                      sm:tracking-[0.18em]
-                    "
-                  >
-                    We Predict
-                  </span>
-
-                  <span className="text-gold">
-                    •
-                  </span>
-
-                  <span
-                    className="
-                      text-[9px]
-                      font-black
-                      uppercase
-                      tracking-[0.14em]
-                      text-gold
-
-                      sm:text-[10px]
-                      sm:tracking-[0.18em]
-                    "
-                  >
-                    You WIN
-                  </span>
-
-                </div>
-              </div>
-
-
-              {/* Brand */}
-
-              <Link
-                href="/"
-                className="
-                  group
                   inline-flex
-                  w-fit
                   items-center
-                  gap-1
-
-                  lg:mr-30
+                  justify-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-gold/20
+                  bg-gold/[0.06]
+                  px-3
+                  py-1.5
+                  shadow-sm
+                  shadow-gold/5
+                  backdrop-blur-md
+                  sm:gap-3
+                  sm:px-4
+                  sm:py-2
                 "
               >
-
-                <div
+                <span
                   className="
-                    relative
-                    flex
-                    h-12
-                    w-12
+                    h-1.5
+                    w-1.5
                     shrink-0
-                    items-center
-                    justify-center
-                    overflow-hidden
-                    rounded-xl
-                    border
-                    border-border/70
-                    bg-background
-                    shadow-lg
-                    transition-all
-                    duration-300
-
-                    group-hover:border-gold/40
-                    group-hover:shadow-gold/10
-
-                    sm:h-13
-                    sm:w-13
+                    rounded-full
+                    bg-gold
+                    shadow-[0_0_10px_rgba(234,179,8,0.7)]
                   "
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="2xpredict"
-                    width={56}
-                    height={56}
-                    priority
-                    className="
-                      h-full
-                      w-full
-                      object-cover
-                    "
-                  />
-                </div>
+                />
 
-                <div>
+                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-foreground sm:text-[10px] sm:tracking-[0.18em]">
+                  We Analyze
+                </span>
 
-                  <div
-                    className="
-                      text-lg
-                      font-black
-                      tracking-[-0.04em]
-                      text-foreground
+                <span className="text-gold">•</span>
 
-                      sm:text-xl
-                    "
-                  >
-                    2xpredict
-                  </div>
+                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-foreground sm:text-[10px] sm:tracking-[0.18em]">
+                  We Predict
+                </span>
 
-                  <div
-                    className="
-                      mt-0.5
-                      text-[8px]
-                      font-semibold
-                      uppercase
-                      tracking-[0.25em]
-                      text-gold
-                    "
-                  >
-                    Bet With Confidence
-                  </div>
+                <span className="text-gold">•</span>
 
-                </div>
-
-              </Link>
-
+                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-gold sm:text-[10px] sm:tracking-[0.18em]">
+                  You WIN
+                </span>
+              </div>
             </div>
 
+            {/* BRAND */}
+
+            <Link
+              href="/"
+              className="
+                group
+                inline-flex
+                w-fit
+                items-center
+                gap-1
+                lg:mr-30
+              "
+            >
+              <div
+                className="
+                  relative
+                  flex
+                  h-12
+                  w-12
+                  shrink-0
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-xl
+                  border
+                  border-border/70
+                  bg-background
+                  shadow-lg
+                  transition-all
+                  duration-300
+                  group-hover:border-gold/40
+                  group-hover:shadow-gold/10
+                  sm:h-13
+                  sm:w-13
+                "
+              >
+                <Image
+                  src="/logo.png"
+                  alt="2xpredict"
+                  width={56}
+                  height={56}
+                  priority
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              <div>
+                <div
+                  className="
+                    text-lg
+                    font-black
+                    tracking-[-0.04em]
+                    text-foreground
+                    sm:text-xl
+                  "
+                >
+                  2xpredict
+                </div>
+
+                <div
+                  className="
+                    mt-0.5
+                    text-[8px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.25em]
+                    text-gold
+                  "
+                >
+                  Bet With Confidence
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
 
-
-        {/* ====================================================================
-            CONTENT GRID
-        ===================================================================== */}
+        {/* CONTENT GRID */}
 
         <div
           className="
             mt-5
             grid
             gap-6
-
             sm:grid-cols-2
-
             lg:mt-8
             lg:grid-cols-[1.5fr_1fr_1fr_1.4fr]
             lg:gap-10
           "
         >
-
-          {/* About */}
+          {/* ABOUT */}
 
           <div>
-
             <p
               className="
                 max-w-sm
@@ -520,194 +399,161 @@ export default function Footer() {
                 "
               />
             </Link>
-
           </div>
 
-              {/* ================================================================
-                  MOBILE NAVIGATION GROUP
-              ================================================================= */}
+          {/* MOBILE NAVIGATION GROUP */}
+
+          <div
+            className="
+              grid
+              grid-cols-2
+              gap-6
+              lg:contents
+            "
+          >
+            <FooterColumn
+              title="Explore"
+              items={exploreLinks}
+            />
+
+            <FooterColumn
+              title="Company"
+              items={company}
+            />
+          </div>
+
+          {/* PREMIUM */}
+
+          <div className="hidden lg:block">
+            <div
+              className="
+                relative
+                -mt-4
+                overflow-hidden
+                rounded-2xl
+                border
+                border-gold/15
+                bg-gradient-to-br
+                from-gold/[0.08]
+                via-card/50
+                to-primary/[0.04]
+                p-3
+                shadow-lg
+              "
+            >
+              <div
+                className="
+                  absolute
+                  -right-10
+                  -top-10
+                  h-28
+                  w-28
+                  rounded-full
+                  bg-gold/10
+                  blur-3xl
+                "
+              />
 
               <div
                 className="
-                  grid
-                  grid-cols-2
-                  gap-6
-
-                  lg:contents
+                  relative
+                  flex
+                  items-center
+                  justify-between
                 "
               >
-
-                {/* Explore */}
-
-                <FooterColumn
-                  title="Explore"
-                  items={exploreLinks}
-                />
-
-                {/* Company */}
-
-                <FooterColumn
-                  title="Company"
-                  items={company}
-                />
-
-              </div>
-
-
-              {/* ================================================================
-                  PREMIUM
-              ================================================================= */}
-
-              <div
-                className="
-                  hidden
-                  lg:block
-                "
-              >
-
-                <div
+                <span
                   className="
-                    relative
-                    overflow-hidden
-                    rounded-2xl
+                    rounded-full
                     border
-                    border-gold/15
-                    bg-gradient-to-br
-                    from-gold/[0.08]
-                    via-card/50
-                    to-primary/[0.04]
-                    p-3
-                    shadow-lg
-                    -mt-4
+                    border-gold/20
+                    bg-gold/10
+                    px-2.5
+                    py-1
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    tracking-[0.2em]
+                    text-gold
                   "
                 >
+                  Premium
+                </span>
 
-                  <div
-                    className="
-                      absolute
-                      -right-10
-                      -top-10
-                      h-28
-                      w-28
-                      rounded-full
-                      bg-gold/10
-                      blur-3xl
-                    "
-                  />
-
-                  <div
-                    className="
-                      relative
-                      flex
-                      items-center
-                      justify-between
-                    "
-                  >
-
-                    <span
-                      className="
-                        rounded-full
-                        border
-                        border-gold/20
-                        bg-gold/10
-                        px-2.5
-                        py-1
-                        text-[9px]
-                        font-bold
-                        uppercase
-                        tracking-[0.2em]
-                        text-gold
-                      "
-                    >
-                      Premium
-                    </span>
-
-                    <span
-                      className="
-                        text-xs
-                        text-muted-foreground
-                      "
-                    >
-                      VIP
-                    </span>
-
-                  </div>
-
-                  <h3
-                    className="
-                      relative
-                      mt-3
-                      text-lg
-                      font-bold
-                      tracking-tight
-                      text-foreground
-                    "
-                  >
-                    Go beyond ordinary predictions.
-                  </h3>
-
-                  <p
-                    className="
-                      relative
-                      mt-2
-                      text-s
-                      leading-5
-                      text-muted-foreground
-                    "
-                  >
-                    Unlock premium predictions,
-                    exclusive insights and deeper match
-                    analysis.
-                  </p>
-
-                  <Link
-                    href="/pricing"
-                    className="
-                      group
-                      relative
-                      mt-4
-                      inline-flex
-                      items-center
-                      gap-2
-                      rounded-lg
-                      border
-                      border-gold/25
-                      bg-gold
-                      px-3.5
-                      py-2
-                      text-xs
-                      font-bold
-                      text-background
-                      transition-all
-                      duration-300
-                      hover:-translate-y-px
-                      hover:bg-gold/90
-                    "
-                  >
-                    View Plans
-
-                    <ArrowUpRight
-                      className="
-                        h-3.5
-                        w-3.5
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-0.5
-                        group-hover:-translate-y-0.5
-                      "
-                    />
-                  </Link>
-
-                </div>
-
+                <span className="text-xs text-muted-foreground">
+                  VIP
+                </span>
               </div>
 
+              <h3
+                className="
+                  relative
+                  mt-3
+                  text-lg
+                  font-bold
+                  tracking-tight
+                  text-foreground
+                "
+              >
+                Go beyond ordinary predictions.
+              </h3>
+
+              <p
+                className="
+                  relative
+                  mt-2
+                  text-s
+                  leading-5
+                  text-muted-foreground
+                "
+              >
+                Unlock premium predictions,
+                exclusive insights and deeper match
+                analysis.
+              </p>
+
+              <Link
+                href="/pricing"
+                className="
+                  group
+                  relative
+                  mt-4
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-lg
+                  border
+                  border-gold/25
+                  bg-gold
+                  px-3.5
+                  py-2
+                  text-xs
+                  font-bold
+                  text-background
+                  transition-all
+                  duration-300
+                  hover:-translate-y-px
+                  hover:bg-gold/90
+                "
+              >
+                View Plans
+
+                <ArrowUpRight
+                  className="
+                    h-3.5
+                    w-3.5
+                    transition-transform
+                    duration-300
+                    group-hover:-translate-y-0.5
+                    group-hover:translate-x-0.5
+                  "
+                />
+              </Link>
+            </div>
+          </div>
         </div>
 
-
-        {/* ====================================================================
-            LOWER DIVIDER
-        ===================================================================== */}
+        {/* DIVIDER */}
 
         <div
           className="
@@ -717,38 +563,24 @@ export default function Footer() {
             from-transparent
             via-border
             to-transparent
-
-            lg:my-2
           "
         />
 
-
-        {/* ====================================================================
-            BOTTOM AREA
-        ===================================================================== */}
+        {/* BOTTOM AREA */}
 
         <div
           className="
             flex
             flex-col
             gap-4
-
             lg:flex-row
             lg:items-center
             lg:justify-between
           "
         >
+          {/* LEGAL + COPYRIGHT */}
 
-          {/* Legal + copyright */}
-
-          <div
-            className="
-              flex
-              flex-col
-              gap-2
-            "
-          >
-
+          <div className="flex flex-col gap-2">
             <div
               className="
                 flex
@@ -758,7 +590,6 @@ export default function Footer() {
                 gap-y-1
               "
             >
-
               {legal.map((item) => (
                 <Link
                   key={item.href}
@@ -774,9 +605,7 @@ export default function Footer() {
                   {item.name}
                 </Link>
               ))}
-
             </div>
-
 
             <div
               className="
@@ -788,36 +617,22 @@ export default function Footer() {
                 text-muted-foreground
               "
             >
-
-              <span>
-                © 2026 2xpredict
-              </span>
-
-              <span>
-                •
-              </span>
-
-              <span>
-                All rights reserved.
-              </span>
-
+              <span>© 2026 2xpredict</span>
+              <span>•</span>
+              <span>All rights reserved.</span>
             </div>
-
           </div>
 
-
-          {/* Developer */}
+          {/* DEVELOPER */}
 
           <div
             className="
               text-xs
               leading-5
               text-muted-foreground
-
               lg:text-center
             "
           >
-
             <p>
               Designed & Developed by{' '}
               <a
@@ -838,20 +653,11 @@ export default function Footer() {
             <p className="text-[11px]">
               Digital experiences built with precision.
             </p>
-
           </div>
 
+          {/* SOCIALS */}
 
-          {/* Socials */}
-
-          <div
-            className="
-              flex
-              items-center
-              gap-1.5
-            "
-          >
-
+          <div className="flex items-center gap-1.5">
             {socials.map(
               ({ name, icon: Icon, href }) => (
                 <Link
@@ -891,19 +697,14 @@ export default function Footer() {
                     "
                   />
                 </Link>
-              )
+              ),
             )}
-
           </div>
-
         </div>
-
       </div>
-
     </footer>
   );
 }
-
 
 /* ============================================================================
    FOOTER COLUMN
@@ -921,7 +722,6 @@ function FooterColumn({
 }) {
   return (
     <div>
-
       <div
         className="
           mb-1
@@ -930,14 +730,7 @@ function FooterColumn({
           gap-1
         "
       >
-
-        <span
-          className="
-            h-px
-            w-4
-            bg-gold/70
-          "
-        />
+        <span className="h-px w-4 bg-gold/70" />
 
         <h3
           className="
@@ -950,16 +743,11 @@ function FooterColumn({
         >
           {title}
         </h3>
-
       </div>
 
-
       <ul className="space-y-1">
-
         {items.map((item) => (
-
           <li key={item.href}>
-
             <Link
               href={item.href}
               className="
@@ -973,10 +761,7 @@ function FooterColumn({
                 hover:text-foreground
               "
             >
-
-              <span>
-                {item.name}
-              </span>
+              <span>{item.name}</span>
 
               <ArrowUpRight
                 className="
@@ -993,15 +778,10 @@ function FooterColumn({
                   group-hover:opacity-100
                 "
               />
-
             </Link>
-
           </li>
-
         ))}
-
       </ul>
-
     </div>
   );
 }

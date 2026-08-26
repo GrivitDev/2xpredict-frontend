@@ -11,33 +11,17 @@ import type {
 } from '@/services/sports.service';
 
 
-// ============================================================
-// TYPES
-// ============================================================
-
 interface Props {
-
   table: Standing[];
-
   title?: string;
-
   subtitle?: string;
-
 }
 
 
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export default function LeagueTable({
-
   table,
-
   title = 'League Table',
-
   subtitle = 'Current standings',
-
 }: Props) {
 
   return (
@@ -57,10 +41,6 @@ export default function LeagueTable({
       "
     >
 
-      {/* ======================================================
-          GLOW
-      ====================================================== */}
-
       <div
         className="
           pointer-events-none
@@ -75,10 +55,6 @@ export default function LeagueTable({
         "
       />
 
-
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
 
       <div
         className="
@@ -110,9 +86,9 @@ export default function LeagueTable({
         >
 
           <Trophy
-            size={19}
-            strokeWidth={2}
             className="
+              h-[19px]
+              w-[19px]
               sm:h-[21px]
               sm:w-[21px]
             "
@@ -121,11 +97,7 @@ export default function LeagueTable({
         </div>
 
 
-        <div
-          className="
-            min-w-0
-          "
-        >
+        <div className="min-w-0">
 
           <h2
             className="
@@ -138,7 +110,6 @@ export default function LeagueTable({
           >
             {title}
           </h2>
-
 
           <p
             className="
@@ -155,10 +126,6 @@ export default function LeagueTable({
 
       </div>
 
-
-      {/* ======================================================
-          EMPTY STATE
-      ====================================================== */}
 
       {table.length === 0 ? (
 
@@ -181,10 +148,6 @@ export default function LeagueTable({
 
       ) : (
 
-        /* ====================================================
-           TABLE
-        ==================================================== */
-
         <div
           className="
             relative
@@ -205,10 +168,6 @@ export default function LeagueTable({
               sm:text-xs
             "
           >
-
-            {/* ==================================================
-                HEADER
-            ================================================== */}
 
             <thead>
 
@@ -241,7 +200,6 @@ export default function LeagueTable({
                   #
                 </th>
 
-
                 <th
                   scope="col"
                   className="
@@ -254,7 +212,6 @@ export default function LeagueTable({
                 >
                   Team
                 </th>
-
 
                 <th
                   scope="col"
@@ -272,7 +229,6 @@ export default function LeagueTable({
                   P
                 </th>
 
-
                 <th
                   scope="col"
                   title="Won"
@@ -288,7 +244,6 @@ export default function LeagueTable({
                 >
                   W
                 </th>
-
 
                 <th
                   scope="col"
@@ -306,7 +261,6 @@ export default function LeagueTable({
                   D
                 </th>
 
-
                 <th
                   scope="col"
                   title="Lost"
@@ -323,7 +277,6 @@ export default function LeagueTable({
                   L
                 </th>
 
-
                 <th
                   scope="col"
                   title="Goal Difference"
@@ -339,7 +292,6 @@ export default function LeagueTable({
                 >
                   GD
                 </th>
-
 
                 <th
                   scope="col"
@@ -362,291 +314,252 @@ export default function LeagueTable({
             </thead>
 
 
-            {/* ==================================================
-                BODY
-            ================================================== */}
-
             <tbody>
 
               {table.map(
-                (
-                  team,
-                  index,
-                ) => (
+                (team, index) => {
 
-                  <tr
-                    key={
-                      team.teamId ??
-                      `${team.team}-${team.position}-${index}`
-                    }
-                    className={`
-                      border-b
-                      border-border/50
-                      transition-colors
-                      hover:bg-muted/40
-                      ${
-                        index % 2 === 0
-                          ? 'bg-background/60'
-                          : 'bg-muted/20'
+                  const goalDifference =
+                    team.goalDifference;
+
+                  return (
+
+                    <tr
+                      key={
+                        team.teamId ??
+                        `${team.team}-${team.position}-${index}`
                       }
-                    `}
-                  >
-
-                    {/* ========================================
-                        POSITION
-                    ======================================== */}
-
-                    <td
-                      className="
-                        px-1.5
-                        py-2
-                        font-bold
-                        text-foreground
-                        sm:px-3
-                        sm:py-3
-                      "
-                    >
-                      {team.position}
-                    </td>
-
-
-                    {/* ========================================
-                        TEAM
-                    ======================================== */}
-
-                    <td
-                      className="
-                        px-2
-                        py-2
-                        sm:px-4
-                        sm:py-3
-                      "
-                    >
-
-                      <div
-                        className="
-                          flex
-                          min-w-0
-                          items-center
-                          gap-2
-                          sm:gap-3
-                        "
-                      >
-
-                        {team.crest ? (
-
-                          <Image
-                            src={team.crest}
-                            alt={`${team.team} crest`}
-                            width={32}
-                            height={32}
-                            className="
-                              h-6
-                              w-6
-                              shrink-0
-                              object-contain
-                              sm:h-8
-                              sm:w-8
-                            "
-                          />
-
-                        ) : (
-
-                          <div
-                            className="
-                              flex
-                              h-6
-                              w-6
-                              shrink-0
-                              items-center
-                              justify-center
-                              rounded-full
-                              bg-muted
-                              sm:h-8
-                              sm:w-8
-                            "
-                            aria-hidden="true"
-                          >
-
-                            <Trophy
-                              size={11}
-                              className="
-                                text-muted-foreground
-                                sm:h-[14px]
-                                sm:w-[14px]
-                              "
-                            />
-
-                          </div>
-
-                        )}
-
-
-                        <div
-                          className="
-                            min-w-0
-                          "
-                        >
-
-                          <span
-                            className="
-                              block
-                              max-w-[120px]
-                              truncate
-                              font-semibold
-                              text-foreground
-                              sm:max-w-none
-                            "
-                          >
-                            {team.team}
-                          </span>
-
-
-                          {team.tla && (
-
-                            <span
-                              className="
-                                hidden
-                                text-[9px]
-                                font-medium
-                                uppercase
-                                tracking-wide
-                                text-muted-foreground
-                                sm:block
-                              "
-                            >
-                              {team.tla}
-                            </span>
-
-                          )}
-
-                        </div>
-
-                      </div>
-
-                    </td>
-
-
-                    {/* ========================================
-                        PLAYED
-                    ======================================== */}
-
-                    <td
-                      className="
-                        px-1
-                        py-2
-                        text-center
-                        text-muted-foreground
-                        sm:px-2
-                        sm:py-3
-                      "
-                    >
-                      {team.playedGames}
-                    </td>
-
-
-                    {/* ========================================
-                        WON
-                    ======================================== */}
-
-                    <td
-                      className="
-                        px-1
-                        py-2
-                        text-center
-                        text-muted-foreground
-                        sm:px-2
-                        sm:py-3
-                      "
-                    >
-                      {team.won}
-                    </td>
-
-
-                    {/* ========================================
-                        DRAW
-                    ======================================== */}
-
-                    <td
-                      className="
-                        px-1
-                        py-2
-                        text-center
-                        text-muted-foreground
-                        sm:px-2
-                        sm:py-3
-                      "
-                    >
-                      {team.draw}
-                    </td>
-
-
-                    {/* ========================================
-                        LOST
-                    ======================================== */}
-
-                    <td
-                      className="
-                        px-1
-                        py-2
-                        text-center
-                        text-muted-foreground
-                        sm:px-2
-                        sm:py-3
-                      "
-                    >
-                      {team.lost}
-                    </td>
-
-
-                    {/* ========================================
-                        GOAL DIFFERENCE
-                    ======================================== */}
-
-                    <td
                       className={`
-                        px-1
-                        py-2
-                        text-center
-                        font-medium
-                        sm:px-2
-                        sm:py-3
+                        border-b
+                        border-border/50
+                        transition-colors
+                        hover:bg-muted/40
                         ${
-                          team.goalDifference > 0
-                            ? 'text-emerald-500'
-                            : team.goalDifference < 0
-                              ? 'text-red-500'
-                              : 'text-muted-foreground'
+                          index % 2 === 0
+                            ? 'bg-background/60'
+                            : 'bg-muted/20'
                         }
                       `}
                     >
-                      {team.goalDifference > 0
-                        ? `+${team.goalDifference}`
-                        : team.goalDifference}
-                    </td>
+
+                      <td
+                        className="
+                          px-1.5
+                          py-2
+                          font-bold
+                          text-foreground
+                          sm:px-3
+                          sm:py-3
+                        "
+                      >
+                        {team.position}
+                      </td>
 
 
-                    {/* ========================================
-                        POINTS
-                    ======================================== */}
+                      <td
+                        className="
+                          px-2
+                          py-2
+                          sm:px-4
+                          sm:py-3
+                        "
+                      >
 
-                    <td
-                      className="
-                        px-1.5
-                        py-2
-                        text-center
-                        font-black
-                        text-foreground
-                        sm:px-3
-                        sm:py-3
-                      "
-                    >
-                      {team.points}
-                    </td>
+                        <div
+                          className="
+                            flex
+                            min-w-0
+                            items-center
+                            gap-2
+                            sm:gap-3
+                          "
+                        >
 
-                  </tr>
+                          {team.crest ? (
 
-                ),
+                            <Image
+                              src={team.crest}
+                              alt={`${team.team} crest`}
+                              width={32}
+                              height={32}
+                              className="
+                                h-6
+                                w-6
+                                shrink-0
+                                object-contain
+                                sm:h-8
+                                sm:w-8
+                              "
+                            />
+
+                          ) : (
+
+                            <div
+                              className="
+                                flex
+                                h-6
+                                w-6
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-full
+                                bg-muted
+                                sm:h-8
+                                sm:w-8
+                              "
+                              aria-hidden="true"
+                            >
+
+                              <Trophy
+                                className="
+                                  h-[11px]
+                                  w-[11px]
+                                  text-muted-foreground
+                                  sm:h-[14px]
+                                  sm:w-[14px]
+                                "
+                              />
+
+                            </div>
+
+                          )}
+
+
+                          <div className="min-w-0">
+
+                            <span
+                              className="
+                                block
+                                max-w-[120px]
+                                truncate
+                                font-semibold
+                                text-foreground
+                                sm:max-w-none
+                              "
+                            >
+                              {team.team}
+                            </span>
+
+                            {team.tla && (
+
+                              <span
+                                className="
+                                  hidden
+                                  text-[9px]
+                                  font-medium
+                                  uppercase
+                                  tracking-wide
+                                  text-muted-foreground
+                                  sm:block
+                                "
+                              >
+                                {team.tla}
+                              </span>
+
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      </td>
+
+
+                      <td
+                        className="
+                          px-1
+                          py-2
+                          text-center
+                          text-muted-foreground
+                          sm:px-2
+                          sm:py-3
+                        "
+                      >
+                        {team.playedGames}
+                      </td>
+
+                      <td
+                        className="
+                          px-1
+                          py-2
+                          text-center
+                          text-muted-foreground
+                          sm:px-2
+                          sm:py-3
+                        "
+                      >
+                        {team.won}
+                      </td>
+
+                      <td
+                        className="
+                          px-1
+                          py-2
+                          text-center
+                          text-muted-foreground
+                          sm:px-2
+                          sm:py-3
+                        "
+                      >
+                        {team.draw}
+                      </td>
+
+                      <td
+                        className="
+                          px-1
+                          py-2
+                          text-center
+                          text-muted-foreground
+                          sm:px-2
+                          sm:py-3
+                        "
+                      >
+                        {team.lost}
+                      </td>
+
+
+                      <td
+                        className={`
+                          px-1
+                          py-2
+                          text-center
+                          font-medium
+                          sm:px-2
+                          sm:py-3
+                          ${
+                            goalDifference > 0
+                              ? 'text-emerald-500'
+                              : goalDifference < 0
+                                ? 'text-red-500'
+                                : 'text-muted-foreground'
+                          }
+                        `}
+                      >
+                        {goalDifference > 0
+                          ? `+${goalDifference}`
+                          : goalDifference}
+                      </td>
+
+
+                      <td
+                        className="
+                          px-1.5
+                          py-2
+                          text-center
+                          font-black
+                          text-foreground
+                          sm:px-3
+                          sm:py-3
+                        "
+                      >
+                        {team.points}
+                      </td>
+
+                    </tr>
+
+                  );
+
+                },
               )}
 
             </tbody>
@@ -660,4 +573,5 @@ export default function LeagueTable({
     </section>
 
   );
+
 }

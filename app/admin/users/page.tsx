@@ -18,24 +18,19 @@ import {
 } from 'lucide-react';
 
 import {
-  motion,
-} from 'framer-motion';
-
-import {
   useAdminUsers,
 } from '@/hooks/useAdminUsers';
 
 import UsersTable from '@/components/admin/users/UsersTable';
 
-const defaultFilters = {
+const DEFAULT_FILTERS = {
   search: '',
   status: 'all',
   role: 'all',
 };
 
 export default function UsersPage() {
-  const [filters, setFilters] = useState(defaultFilters);
-
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
 
   const {
@@ -46,29 +41,29 @@ export default function UsersPage() {
 
   const safeTotalPages = Math.max(totalPages || 1, 1);
 
-  const attentionCount = useMemo(() => {
-    return users.filter(
-      (
-        user: {
+  const attentionCount = useMemo(
+    () =>
+      users.filter(
+        (user: {
           attention?: {
             required?: boolean;
           };
-        },
-      ) => user.attention?.required,
-    ).length;
-  }, [users]);
+        }) => user.attention?.required,
+      ).length,
+    [users],
+  );
 
   const hasActiveFilters =
-    filters.search ||
+    Boolean(filters.search) ||
     filters.status !== 'all' ||
     filters.role !== 'all';
 
   const updateFilter = (
-    key: keyof typeof defaultFilters,
+    key: keyof typeof DEFAULT_FILTERS,
     value: string,
   ) => {
-    setFilters((currentFilters) => ({
-      ...currentFilters,
+    setFilters((current) => ({
+      ...current,
       [key]: value,
     }));
 
@@ -76,7 +71,7 @@ export default function UsersPage() {
   };
 
   const resetFilters = () => {
-    setFilters(defaultFilters);
+    setFilters(DEFAULT_FILTERS);
     setPage(1);
   };
 
@@ -92,17 +87,11 @@ export default function UsersPage() {
         sm:space-y-8
       "
     >
-      {/* Hero */}
+      {/* =========================================================
+          HERO
+      ========================================================= */}
 
-      <motion.section
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
+      <section
         className="
           relative
           overflow-hidden
@@ -115,6 +104,10 @@ export default function UsersPage() {
           to-card
           p-5
           shadow-sm
+          animate-in
+          fade-in
+          slide-in-from-bottom-4
+          duration-500
           sm:p-7
         "
       >
@@ -206,33 +199,11 @@ export default function UsersPage() {
             </div>
           </div>
 
-          <div
-            className="
-              flex
-              flex-wrap
-              items-center
-              gap-3
-            "
-          >
-            <div
-              className="
-                rounded-2xl
-                border
-                border-border
-                bg-background/70
-                px-4
-                py-3
-                backdrop-blur
-              "
-            >
-              <p className="text-xs text-muted-foreground">
-                Current Page
-              </p>
-
-              <p className="mt-1 text-lg font-black text-primary">
-                {loading ? '...' : users.length}
-              </p>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Metric
+              label="Current Page"
+              value={loading ? '...' : String(users.length)}
+            />
 
             {attentionCount > 0 && (
               <div
@@ -250,7 +221,7 @@ export default function UsersPage() {
                   text-destructive
                 "
               >
-                <AlertTriangle className="h-5 w-5" />
+                <AlertTriangle className="h-5 w-5 shrink-0" />
 
                 <div>
                   <p className="font-semibold">
@@ -266,22 +237,13 @@ export default function UsersPage() {
             )}
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      {/* Filters */}
+      {/* =========================================================
+          FILTERS
+      ========================================================= */}
 
-      <motion.section
-        initial={{
-          opacity: 0,
-          y: 10,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: 0.1,
-        }}
+      <section
         className="
           rounded-3xl
           border
@@ -289,6 +251,10 @@ export default function UsersPage() {
           bg-card
           p-4
           shadow-sm
+          animate-in
+          fade-in
+          slide-in-from-bottom-2
+          duration-500
           sm:p-5
         "
       >
@@ -367,218 +333,106 @@ export default function UsersPage() {
             xl:grid-cols-[minmax(0,1.5fr)_minmax(0,0.75fr)_minmax(0,0.75fr)]
           "
         >
-          <label className="block">
-            <span
+          <FilterField label="Search">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+            <input
+              value={filters.search}
+              placeholder="Name, email, or username..."
+              onChange={(event) =>
+                updateFilter('search', event.target.value)
+              }
               className="
-                text-xs
-                font-semibold
-                uppercase
-                tracking-wider
-                text-muted-foreground
+                h-11
+                w-full
+                rounded-xl
+                border
+                border-input
+                bg-background
+                pl-10
+                pr-4
+                text-s
+                outline-none
+                transition
+                placeholder:text-muted-foreground
+                focus-visible:ring-2
+                focus-visible:ring-primary/30
+              "
+            />
+          </FilterField>
+
+          <FilterField label="Status">
+            <Filter className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+            <select
+              value={filters.status}
+              onChange={(event) =>
+                updateFilter('status', event.target.value)
+              }
+              className="
+                h-11
+                w-full
+                appearance-none
+                rounded-xl
+                border
+                border-input
+                bg-background
+                pl-10
+                pr-4
+                text-s
+                font-medium
+                outline-none
+                transition
+                focus-visible:ring-2
+                focus-visible:ring-primary/30
               "
             >
-              Search
-            </span>
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="deleted">Deleted</option>
+            </select>
+          </FilterField>
 
-            <div className="relative mt-2">
-              <Search
-                className="
-                  pointer-events-none
-                  absolute
-                  left-3.5
-                  top-1/2
-                  h-4
-                  w-4
-                  -translate-y-1/2
-                  text-muted-foreground
-                "
-              />
+          <FilterField label="Role">
+            <ShieldCheck className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-              <input
-                placeholder="Name, email, or username..."
-                value={filters.search}
-                onChange={(event) =>
-                  updateFilter(
-                    'search',
-                    event.target.value,
-                  )
-                }
-                className="
-                  h-11
-                  w-full
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  pl-10
-                  pr-4
-                  text-s
-                  outline-none
-                  transition
-                  placeholder:text-muted-foreground
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              />
-            </div>
-          </label>
-
-          <label className="block">
-            <span
+            <select
+              value={filters.role}
+              onChange={(event) =>
+                updateFilter('role', event.target.value)
+              }
               className="
-                text-xs
-                font-semibold
-                uppercase
-                tracking-wider
-                text-muted-foreground
+                h-11
+                w-full
+                appearance-none
+                rounded-xl
+                border
+                border-input
+                bg-background
+                pl-10
+                pr-4
+                text-s
+                font-medium
+                outline-none
+                transition
+                focus-visible:ring-2
+                focus-visible:ring-primary/30
               "
             >
-              Status
-            </span>
-
-            <div className="relative mt-2">
-              <Filter
-                className="
-                  pointer-events-none
-                  absolute
-                  left-3.5
-                  top-1/2
-                  h-4
-                  w-4
-                  -translate-y-1/2
-                  text-muted-foreground
-                "
-              />
-
-              <select
-                value={filters.status}
-                onChange={(event) =>
-                  updateFilter(
-                    'status',
-                    event.target.value,
-                  )
-                }
-                className="
-                  h-11
-                  w-full
-                  appearance-none
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  pl-10
-                  pr-4
-                  text-s
-                  font-medium
-                  outline-none
-                  transition
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              >
-                <option value="all">
-                  All Status
-                </option>
-
-                <option value="active">
-                  Active
-                </option>
-
-                <option value="suspended">
-                  Suspended
-                </option>
-
-                <option value="deleted">
-                  Deleted
-                </option>
-              </select>
-            </div>
-          </label>
-
-          <label className="block">
-            <span
-              className="
-                text-xs
-                font-semibold
-                uppercase
-                tracking-wider
-                text-muted-foreground
-              "
-            >
-              Role
-            </span>
-
-            <div className="relative mt-2">
-              <ShieldCheck
-                className="
-                  pointer-events-none
-                  absolute
-                  left-3.5
-                  top-1/2
-                  h-4
-                  w-4
-                  -translate-y-1/2
-                  text-muted-foreground
-                "
-              />
-
-              <select
-                value={filters.role}
-                onChange={(event) =>
-                  updateFilter(
-                    'role',
-                    event.target.value,
-                  )
-                }
-                className="
-                  h-11
-                  w-full
-                  appearance-none
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  pl-10
-                  pr-4
-                  text-s
-                  font-medium
-                  outline-none
-                  transition
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              >
-                <option value="all">
-                  All Roles
-                </option>
-
-                <option value="user">
-                  User
-                </option>
-
-                <option value="admin">
-                  Admin
-                </option>
-              </select>
-            </div>
-          </label>
+              <option value="all">All Roles</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </FilterField>
         </div>
-      </motion.section>
+      </section>
 
-      {/* Table */}
+      {/* =========================================================
+          USER TABLE
+      ========================================================= */}
 
-      <motion.section
-        initial={{
-          opacity: 0,
-          y: 16,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          delay: 0.2,
-        }}
+      <section
         className="
           overflow-hidden
           rounded-3xl
@@ -586,6 +440,10 @@ export default function UsersPage() {
           border-border
           bg-card
           shadow-sm
+          animate-in
+          fade-in
+          slide-in-from-bottom-2
+          duration-500
         "
       >
         <div
@@ -633,9 +491,11 @@ export default function UsersPage() {
           users={users}
           loading={loading}
         />
-      </motion.section>
+      </section>
 
-      {/* Pagination */}
+      {/* =========================================================
+          PAGINATION
+      ========================================================= */}
 
       <nav
         aria-label="User list pagination"
@@ -666,41 +526,20 @@ export default function UsersPage() {
         </p>
 
         <div className="grid grid-cols-2 gap-3 sm:flex">
-          <button
-            type="button"
+          <PaginationButton
             disabled={page <= 1 || loading}
             onClick={() =>
               setPage((currentPage) =>
                 Math.max(1, currentPage - 1),
               )
             }
-            className="
-              inline-flex
-              h-10
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              border
-              border-border
-              px-4
-              text-s
-              font-semibold
-              transition
-              hover:bg-muted
-              disabled:pointer-events-none
-              disabled:opacity-40
-            "
           >
             <ChevronLeft className="h-4 w-4" />
             Previous
-          </button>
+          </PaginationButton>
 
-          <button
-            type="button"
-            disabled={
-              page >= safeTotalPages || loading
-            }
+          <PaginationButton
+            disabled={page >= safeTotalPages || loading}
             onClick={() =>
               setPage((currentPage) =>
                 Math.min(
@@ -709,29 +548,119 @@ export default function UsersPage() {
                 ),
               )
             }
-            className="
-              inline-flex
-              h-10
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              border
-              border-border
-              px-4
-              text-s
-              font-semibold
-              transition
-              hover:bg-muted
-              disabled:pointer-events-none
-              disabled:opacity-40
-            "
           >
             Next
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </PaginationButton>
         </div>
       </nav>
     </main>
+  );
+}
+
+// ============================================================
+// FILTER FIELD
+// ============================================================
+
+function FilterField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span
+        className="
+          text-xs
+          font-semibold
+          uppercase
+          tracking-wider
+          text-muted-foreground
+        "
+      >
+        {label}
+      </span>
+
+      <div className="relative mt-2">
+        {children}
+      </div>
+    </label>
+  );
+}
+
+// ============================================================
+// METRIC
+// ============================================================
+
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      className="
+        rounded-2xl
+        border
+        border-border
+        bg-background/70
+        px-4
+        py-3
+        backdrop-blur
+      "
+    >
+      <p className="text-xs text-muted-foreground">
+        {label}
+      </p>
+
+      <p className="mt-1 text-lg font-black text-primary">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+// ============================================================
+// PAGINATION BUTTON
+// ============================================================
+
+function PaginationButton({
+  children,
+  disabled,
+  onClick,
+}: {
+  children: React.ReactNode;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="
+        inline-flex
+        h-10
+        items-center
+        justify-center
+        gap-2
+        rounded-xl
+        border
+        border-border
+        px-4
+        text-s
+        font-semibold
+        transition
+        hover:bg-muted
+        disabled:pointer-events-none
+        disabled:opacity-40
+      "
+    >
+      {children}
+    </button>
   );
 }

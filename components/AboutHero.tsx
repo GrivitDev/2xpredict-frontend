@@ -3,7 +3,6 @@
 import Image from 'next/image';
 
 import {
-  Trophy,
   TrendingUp,
   ShieldCheck,
   Target,
@@ -27,12 +26,9 @@ export default function AboutHero() {
         shadow-xl
         sm:px-6
         sm:py-6
-
       "
     >
-      {/* ======================================== */}
       {/* TEAM BACKGROUND */}
-      {/* ======================================== */}
 
       <div className="pointer-events-none absolute inset-0 -z-20">
         <Image
@@ -47,9 +43,7 @@ export default function AboutHero() {
         />
       </div>
 
-      {/* ======================================== */}
       {/* THEME OVERLAY */}
-      {/* ======================================== */}
 
       <div
         className="
@@ -61,9 +55,7 @@ export default function AboutHero() {
         "
       />
 
-      {/* ======================================== */}
-      {/* COLOUR / READABILITY OVERLAY */}
-      {/* ======================================== */}
+      {/* READABILITY OVERLAY */}
 
       <div
         className="
@@ -78,9 +70,7 @@ export default function AboutHero() {
         "
       />
 
-      {/* ======================================== */}
-      {/* TEAM CUP HIGHLIGHT */}
-      {/* ======================================== */}
+      {/* TEAM CUP */}
 
       <div
         className="
@@ -95,7 +85,6 @@ export default function AboutHero() {
           sm:right-4
           sm:h-[280px]
           sm:w-[360px]
-          sm:opacity-95
           lg:right-2
           lg:h-[320px]
           lg:w-[420px]
@@ -112,9 +101,7 @@ export default function AboutHero() {
         />
       </div>
 
-      {/* ======================================== */}
       {/* HERO CONTENT */}
-      {/* ======================================== */}
 
       <div
         className="
@@ -130,9 +117,7 @@ export default function AboutHero() {
           lg:grid-cols-[1.2fr_0.8fr]
         "
       >
-        {/* ======================================== */}
         {/* LEFT CONTENT */}
-        {/* ======================================== */}
 
         <div
           className="
@@ -146,8 +131,6 @@ export default function AboutHero() {
             lg:-mt-10
           "
         >
-          {/* CONTENT GLASS */}
-
           <div
             className="
               relative
@@ -163,7 +146,7 @@ export default function AboutHero() {
               lg:p-6
             "
           >
-            {/* SUBTLE INNER GLOW */}
+            {/* INNER GLOW */}
 
             <div
               className="
@@ -212,7 +195,6 @@ export default function AboutHero() {
                   leading-tight
                   tracking-tight
                   text-foreground
-                  sm:text-3xl
                   lg:text-4xl
                 "
               >
@@ -236,7 +218,7 @@ export default function AboutHero() {
                 className="
                   mt-2
                   max-w-xl
-                  text-s
+                  text-sm
                   leading-6
                   text-muted-foreground
                   sm:text-base
@@ -255,9 +237,9 @@ export default function AboutHero() {
                 className="
                   mt-4
                   grid
+                  max-w-xl
                   grid-cols-3
                   gap-2
-                  max-w-xl
                 "
               >
                 <FeatureCard
@@ -282,71 +264,67 @@ export default function AboutHero() {
           </div>
         </div>
 
-        {/* ======================================== */}
-        {/* PLAYER IMAGE */}
-        {/* ======================================== */}
+        {/* PLAYER */}
 
- {/* PLAYER IMAGE */}
+        <div
+          className="
+            relative
+            z-20
+            hidden
+            min-h-[340px]
+            items-end
+            justify-end
+            md:flex
+          "
+        >
+          {/* PLAYER GLOW */}
 
-<div
-  className="
-    relative
-    z-20
-    hidden
-    min-h-[340px]
-    items-end
-    justify-end
-    md:flex
-  "
->
-  {/* PLAYER GLOW */}
+          <div
+            className="
+              pointer-events-none
+              absolute
+              bottom-0
+              right-1/4
+              h-48
+              w-48
+              rounded-full
+              bg-primary/25
+              blur-3xl
+              md:right-4
+              lg:right-0
+            "
+          />
 
-  <div
-    className="
-      pointer-events-none
-      absolute
-      bottom-0
-      right-1/4
-      h-48
-      w-48
-      rounded-full
-      bg-primary/25
-      blur-3xl
-      md:right-4
-      lg:right-0
-    "
-  />
+          {/* PLAYER IMAGE */}
 
-  {/* PLAYER */}
-
-  <div
-    className="
-      relative
-      h-[390px]
-      w-[390px]
-      translate-x-8
-      translate-y-8
-      lg:h-[450px]
-      lg:w-[450px]
-      lg:translate-x-12
-      lg:translate-y-10
-      md:right-142
-      lg:right-232
-    "
-  >
-    <Image
-      src="/images/goal.png"
-      alt="Football player celebrating"
-      fill
-      priority
-      className="
-        object-contain
-        object-bottom
-        drop-shadow-2xl
-      "
-    />
-  </div>
-</div>
+          <div
+            className="
+              relative
+              h-[390px]
+              w-[390px]
+              translate-x-8
+              translate-y-8
+              lg:h-[450px]
+              lg:w-[450px]
+              lg:translate-x-12
+              lg:translate-y-10
+              md:right-[142px]
+              lg:right-[232px]
+            "
+          >
+            <Image
+              src="/images/goal.png"
+              alt="Football player celebrating"
+              fill
+              priority
+              className="
+                object-contain
+                object-bottom
+                drop-shadow-2xl
+              "
+            />
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -368,7 +346,6 @@ function FeatureCard({
   return (
     <div
       className="
-        group
         relative
         overflow-hidden
         rounded-xl
@@ -379,8 +356,6 @@ function FeatureCard({
         py-2
         shadow-sm
         backdrop-blur-md
-        transition-colors
-        hover:border-primary/40
       "
     >
       {/* TOP ACCENT */}

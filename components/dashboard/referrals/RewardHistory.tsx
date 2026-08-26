@@ -11,13 +11,7 @@ import {
 
 import { getMyRewards } from '@/services/promos.service';
 
-
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export function RewardHistory() {
-
   const {
     data: rewards = [],
     isLoading,
@@ -25,11 +19,6 @@ export function RewardHistory() {
     queryKey: ['my-rewards'],
     queryFn: getMyRewards,
   });
-
-
-  // ==========================================================
-  // LOADING
-  // ==========================================================
 
   if (isLoading) {
     return (
@@ -52,11 +41,6 @@ export function RewardHistory() {
     );
   }
 
-
-  // ==========================================================
-  // EMPTY
-  // ==========================================================
-
   if (rewards.length === 0) {
     return (
       <div
@@ -75,7 +59,6 @@ export function RewardHistory() {
           text-center
         "
       >
-
         <div
           className="
             flex
@@ -93,17 +76,9 @@ export function RewardHistory() {
           <Gift className="h-4 w-4" />
         </div>
 
-
-        <p
-          className="
-            mt-2.5
-            text-xs
-            font-semibold
-          "
-        >
+        <p className="mt-2.5 text-xs font-semibold">
           No Rewards Yet
         </p>
-
 
         <p
           className="
@@ -114,18 +89,11 @@ export function RewardHistory() {
             text-muted-foreground
           "
         >
-          Complete referral campaigns to start
-          earning rewards.
+          Complete referral campaigns to start earning rewards.
         </p>
-
       </div>
     );
   }
-
-
-  // ==========================================================
-  // CONTENT
-  // ==========================================================
 
   return (
     <div
@@ -137,11 +105,6 @@ export function RewardHistory() {
         bg-card
       "
     >
-
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
       <div
         className="
           flex
@@ -155,7 +118,6 @@ export function RewardHistory() {
           py-2.5
         "
       >
-
         <div
           className="
             flex
@@ -164,7 +126,6 @@ export function RewardHistory() {
             gap-2
           "
         >
-
           <div
             className="
               flex
@@ -183,34 +144,16 @@ export function RewardHistory() {
             <Gift className="h-3.5 w-3.5" />
           </div>
 
-
           <div className="min-w-0">
-
-            <p
-              className="
-                text-xs
-                font-semibold
-                tracking-tight
-              "
-            >
+            <p className="text-xs font-semibold tracking-tight">
               Reward History
             </p>
 
-            <p
-              className="
-                mt-0.5
-                truncate
-                text-[9px]
-                text-muted-foreground
-              "
-            >
+            <p className="mt-0.5 truncate text-[9px] text-muted-foreground">
               Your earned rewards
             </p>
-
           </div>
-
         </div>
-
 
         <span
           className="
@@ -227,37 +170,29 @@ export function RewardHistory() {
           "
         >
           {rewards.length}
-          {rewards.length === 1
-            ? ' reward'
-            : ' rewards'}
+          {rewards.length === 1 ? ' reward' : ' rewards'}
         </span>
-
       </div>
 
-
-      {/* ======================================================
-          REWARDS
-      ====================================================== */}
-
       <div className="divide-y divide-border/40">
-
         {rewards.map((reward: any) => {
+          const isCash = reward.type === 'cash';
 
-          const isCash =
-            reward.type === 'cash';
+          const date = new Date(
+            reward.createdAt,
+          ).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+          });
 
+          const rewardName =
+            reward.promoId?.name ?? 'Referral Reward';
 
-          const date =
-            new Date(
-              reward.createdAt,
-            ).toLocaleDateString(
-              'en-GB',
-              {
-                day: '2-digit',
-                month: 'short',
-              },
-            );
-
+          const rewardValue = isCash
+            ? `₦${Number(
+                reward.amount ?? 0,
+              ).toLocaleString('en-NG')}`
+            : `${reward.plan} Subscription`;
 
           return (
             <div
@@ -274,11 +209,6 @@ export function RewardHistory() {
                 hover:bg-muted/[0.03]
               "
             >
-
-              {/* =================================================
-                  REWARD INFO
-              ================================================= */}
-
               <div
                 className="
                   flex
@@ -287,9 +217,6 @@ export function RewardHistory() {
                   gap-2.5
                 "
               >
-
-                {/* Icon */}
-
                 <div
                   className={`
                     flex
@@ -315,20 +242,14 @@ export function RewardHistory() {
                     }
                   `}
                 >
-
                   {isCash ? (
                     <Wallet className="h-3.5 w-3.5" />
                   ) : (
                     <Crown className="h-3.5 w-3.5" />
                   )}
-
                 </div>
 
-
-                {/* Details */}
-
                 <div className="min-w-0">
-
                   <p
                     className="
                       truncate
@@ -336,10 +257,8 @@ export function RewardHistory() {
                       font-semibold
                     "
                   >
-                    {reward.promoId?.name ??
-                      'Referral Reward'}
+                    {rewardName}
                   </p>
-
 
                   <div
                     className="
@@ -350,7 +269,6 @@ export function RewardHistory() {
                       gap-1.5
                     "
                   >
-
                     <p
                       className={`
                         truncate
@@ -363,39 +281,19 @@ export function RewardHistory() {
                         }
                       `}
                     >
-                      {isCash
-                        ? `₦${Number(
-                            reward.amount ?? 0,
-                          ).toLocaleString('en-GB')}`
-                        : `${reward.plan} Subscription`}
+                      {rewardValue}
                     </p>
 
-
-                    <span
-                      className="
-                        shrink-0
-                        text-[8px]
-                        text-muted-foreground/60
-                      "
-                    >
+                    <span className="shrink-0 text-[8px] text-muted-foreground/60">
                       •
                     </span>
 
-
-                    <span
-                      className="
-                        shrink-0
-                        text-[8px]
-                        text-muted-foreground
-                      "
-                    >
+                    <span className="shrink-0 text-[8px] text-muted-foreground">
                       {isCash
                         ? date
                         : `${reward.durationDays} days`}
                     </span>
-
                   </div>
-
 
                   {!isCash && (
                     <p
@@ -408,28 +306,13 @@ export function RewardHistory() {
                         text-muted-foreground
                       "
                     >
-                      <span>
-                        Earned
-                      </span>
-
-                      <span>
-                        •
-                      </span>
-
-                      <span>
-                        {date}
-                      </span>
+                      <span>Earned</span>
+                      <span>•</span>
+                      <span>{date}</span>
                     </p>
                   )}
-
                 </div>
-
               </div>
-
-
-              {/* =================================================
-                  STATUS
-              ================================================= */}
 
               <div
                 className="
@@ -445,14 +328,7 @@ export function RewardHistory() {
                   py-0.5
                 "
               >
-
-                <CheckCircle2
-                  className="
-                    h-2.5
-                    w-2.5
-                    text-emerald-500
-                  "
-                />
+                <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
 
                 <span
                   className="
@@ -464,16 +340,11 @@ export function RewardHistory() {
                 >
                   Completed
                 </span>
-
               </div>
-
             </div>
           );
-
         })}
-
       </div>
-
     </div>
   );
 }

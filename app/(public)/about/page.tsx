@@ -21,14 +21,29 @@ import { AdPage } from '@/constants/ads/ad-page';
 import { AdPosition } from '@/constants/ads/ad-position';
 
 export default function AboutPage() {
+  const supportEmail =
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
+
+  const supportPhone =
+    process.env.NEXT_PUBLIC_SUPPORT_PHONE || '';
+
+  const whatsappChat =
+    process.env.NEXT_PUBLIC_WHATSAPP_CHAT || '#';
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background">
-
       {/* Background */}
 
-      <div className="absolute inset-0 -z-20 bg-background" />
-
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          -z-10
+          overflow-hidden
+        "
+      >
         <div
           className="
             absolute
@@ -71,7 +86,6 @@ export default function AboutPage() {
         "
       >
         <div className="mb-5 text-center">
-
           <h2 className="text-2xl font-bold">
             Why Choose 2xPredict
           </h2>
@@ -80,11 +94,9 @@ export default function AboutPage() {
             Designed to deliver reliable football predictions,
             match insights and a fast experience across every device.
           </p>
-
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
-
           <FeatureCard
             icon={<BarChart3 className="h-6 w-6" />}
             title="Smart Match Analysis"
@@ -102,7 +114,6 @@ export default function AboutPage() {
             title="Modern Experience"
             description="Responsive layouts, fast loading pages and a clean interface built for every football fan."
           />
-
         </div>
       </section>
 
@@ -120,6 +131,7 @@ export default function AboutPage() {
       {/* CONTACT */}
 
       <section
+        id="contact"
         className="
           mx-auto
           max-w-5xl
@@ -130,40 +142,36 @@ export default function AboutPage() {
         "
       >
         <div className="mb-5 text-center">
-
           <h2 className="text-2xl font-bold">
             Contact Us
           </h2>
 
           <p className="mt-1.5 text-s text-muted-foreground">
-            Need help or have a question? We'd love to hear from you.
+            Need help or have a question? We&apos;d love to hear from you.
           </p>
-
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
-
           <ContactCard
             icon={<Mail className="h-6 w-6" />}
             title="Email"
-            value={process.env.NEXT_PUBLIC_SUPPORT_EMAIL || ''}
-            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`}
+            value={supportEmail}
+            href={`mailto:${supportEmail}`}
           />
 
           <ContactCard
             icon={<Phone className="h-6 w-6" />}
             title="Phone"
-            value={process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''}
-            href={`tel:${process.env.NEXT_PUBLIC_SUPPORT_PHONE}`}
+            value={supportPhone}
+            href={`tel:${supportPhone}`}
           />
 
           <ContactCard
             icon={<FaWhatsapp className="h-6 w-6" />}
             title="WhatsApp"
             value="Start a conversation"
-            href={process.env.NEXT_PUBLIC_WHATSAPP_CHAT || '#'}
+            href={whatsappChat}
           />
-
         </div>
       </section>
 
@@ -192,15 +200,12 @@ export default function AboutPage() {
             bg-card
             p-4
             shadow-sm
-            transition-all
-            duration-300
-            hover:-translate-y-1
+            transition
             hover:border-cyan-500/40
-            hover:shadow-lg
+            hover:shadow-md
           "
         >
           <div>
-
             <h3 className="text-lg font-semibold">
               Legal & Policies
             </h3>
@@ -209,7 +214,6 @@ export default function AboutPage() {
               Read our Privacy Policy, Terms of Service, Disclaimer and
               other legal documents that govern the use of 2xPredict.
             </p>
-
           </div>
 
           <ArrowRight
@@ -231,55 +235,17 @@ export default function AboutPage() {
         position={AdPosition.POPUP}
       />
 
-      {/* CTA */}
-
-      <section className="px-5 py-8">
-
-        <div className="flex justify-center">
-
-          <Link
-            href="/"
-            className="
-              group
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              bg-primary
-              px-5
-              py-2.5
-              text-s
-              font-semibold
-              text-primary-foreground
-              transition-all
-              duration-300
-              hover:scale-[1.02]
-            "
-          >
-            Explore Predictions
-
-            <ArrowRight
-              className="
-                h-4
-                w-4
-                transition-transform
-                group-hover:translate-x-1
-              "
-            />
-
-          </Link>
-
-        </div>
-            <InternalAds
-              page={AdPage.HOME}
-              position={AdPosition.BOTTOM}
-            />
-
-      </section>
-
+        <InternalAds
+          page={AdPage.HOME}
+          position={AdPosition.BOTTOM}
+        />
     </main>
   );
 }
+
+/* ============================================================================
+   FEATURE CARD
+============================================================================ */
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -302,11 +268,9 @@ function FeatureCard({
         bg-card
         p-4
         shadow-sm
-        transition-all
-        duration-300
-        hover:-translate-y-1
+        transition
         hover:border-cyan-500/40
-        hover:shadow-lg
+        hover:shadow-md
       "
     >
       <div
@@ -317,8 +281,6 @@ function FeatureCard({
           bg-cyan-500/10
           p-2.5
           text-cyan-500
-          transition-transform
-          group-hover:scale-110
         "
       >
         {icon}
@@ -335,6 +297,10 @@ function FeatureCard({
   );
 }
 
+/* ============================================================================
+   CONTACT CARD
+============================================================================ */
+
 interface ContactCardProps {
   icon: React.ReactNode;
   title: string;
@@ -348,13 +314,19 @@ function ContactCard({
   value,
   href,
 }: ContactCardProps) {
-  const isExternal = href.startsWith('http');
+  const isExternal =
+    href.startsWith('http://') ||
+    href.startsWith('https://');
 
   return (
     <Link
       href={href}
       target={isExternal ? '_blank' : undefined}
-      rel={isExternal ? 'noopener noreferrer' : undefined}
+      rel={
+        isExternal
+          ? 'noopener noreferrer'
+          : undefined
+      }
       className="
         group
         rounded-2xl
@@ -363,11 +335,9 @@ function ContactCard({
         bg-card
         p-4
         shadow-sm
-        transition-all
-        duration-300
-        hover:-translate-y-1
+        transition
         hover:border-cyan-500/40
-        hover:shadow-lg
+        hover:shadow-md
       "
     >
       <div
@@ -378,8 +348,6 @@ function ContactCard({
           bg-cyan-500/10
           p-2.5
           text-cyan-500
-          transition-transform
-          group-hover:scale-110
         "
       >
         {icon}

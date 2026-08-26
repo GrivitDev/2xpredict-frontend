@@ -19,29 +19,32 @@ export default function SubscriptionSection({
   subscriptions,
 }: Props) {
   return (
-    <section className="space-y-4">
+    <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-lg font-semibold tracking-tight">
           Subscription Analytics
         </h2>
+
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Current and lifetime subscription activity.
+        </p>
       </div>
 
       <div
         className="
           grid
-          grid-cols-1
-          md:grid-cols-2
-          xl:grid-cols-4
-          gap-5
+          grid-cols-2
+          gap-2
+          lg:grid-cols-4
         "
       >
         <AnalyticsCard
           title="Active Subscriptions"
-          description="Currently active plans"
+          description="Currently active"
           icon={CheckCircle}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {subscriptions.activeSubscriptions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -52,7 +55,7 @@ export default function SubscriptionSection({
           icon={Crown}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {subscriptions.activeVipSubscriptions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -62,7 +65,7 @@ export default function SubscriptionSection({
           description="Active regular users"
           icon={Users}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {subscriptions.activeRegularSubscriptions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -72,7 +75,7 @@ export default function SubscriptionSection({
           description="Lifetime subscriptions"
           icon={CreditCard}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {subscriptions.totalSubscriptions.toLocaleString()}
           </p>
         </AnalyticsCard>

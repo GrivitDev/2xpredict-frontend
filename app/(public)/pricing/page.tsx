@@ -13,14 +13,6 @@ export default function PricingPage() {
         />
 
       <PricingSection />
-            <InternalAds
-              page={AdPage.HOME}
-              position={AdPosition.INLINE}
-            />
-            <InternalAds
-              page={AdPage.HOME}
-              position={AdPosition.POPUP}
-            />
     </main>
   );
 }

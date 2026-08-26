@@ -1,9 +1,5 @@
 'use client';
 
-import {
-  motion,
-} from 'framer-motion';
-
 import type {
   CommunityReaction,
 } from './reaction.constants';
@@ -13,164 +9,107 @@ import {
 } from './reaction.constants';
 
 interface Props {
-
   reaction: CommunityReaction;
-
   count: number;
-
   active?: boolean;
-
   onClick: () => void;
-
 }
 
-
 export default function ReactionButton({
-
   reaction,
-
   count,
-
   active = false,
-
   onClick,
-
 }: Props) {
+  const Icon = reaction.icon;
 
-
-  const Icon =
-    reaction.icon;
-
+  const iconColor =
+    reaction.id === 'strongly_agree'
+      ? 'text-green-600 dark:text-green-400'
+      : reaction.id === 'agree'
+        ? 'text-emerald-500 dark:text-emerald-400'
+        : reaction.id === 'slightly_agree'
+          ? 'text-lime-500 dark:text-lime-400'
+          : reaction.id === 'slightly_disagree'
+            ? 'text-yellow-500 dark:text-yellow-400'
+            : reaction.id === 'disagree'
+              ? 'text-orange-500 dark:text-orange-400'
+              : 'text-red-600 dark:text-red-400';
 
   const animation =
     reactionAnimation[
       reaction.intensity
     ];
 
-
   return (
-
-    <motion.button
-
+    <button
       type="button"
-
-      whileHover={
-        animation.hover
-      }
-
-      whileTap={
-        animation.tap
-      }
-
-      onClick={
-        onClick
-      }
-
-      title={
-        reaction.label
-      }
-
-      aria-label={
-        `${reaction.label} reaction, ${count} ${
-          count === 1
-            ? 'reaction'
-            : 'reactions'
-        }`
-      }
-
-      aria-pressed={
-        active
-      }
-
+      onClick={onClick}
+      title={reaction.label}
+      aria-label={`${reaction.label} reaction, ${count} ${
+        count === 1
+          ? 'reaction'
+          : 'reactions'
+      }`}
+      aria-pressed={active}
       className="
         inline-flex
-        min-h-8
+        min-h-7
         items-center
-        gap-1
+        gap-0.5
         rounded-md
         px-1
-        py-1
+        py-0.5
         transition-opacity
-        duration-200
+        duration-150
+        hover:bg-muted/60
         focus-visible:outline-none
         focus-visible:ring-2
-        focus-visible:ring-primary/50
+        focus-visible:ring-primary/40
+        active:scale-95
       "
-
+      style={{
+        ['--reaction-hover' as string]:
+          animation.hover
+            ? undefined
+            : undefined,
+      }}
     >
-
       <Icon
-
         className={`
-          size-5
+          size-[18px]
           shrink-0
-          transition-all
-          duration-200
-
+          ${iconColor}
           ${
             active
-              ? 'scale-110 opacity-100'
-              : 'opacity-75 hover:opacity-100'
+              ? 'scale-105 opacity-100'
+              : 'opacity-70 hover:opacity-100'
           }
-
-          ${
-            reaction.id ===
-            'strongly_agree'
-              ? 'text-green-600 dark:text-green-400'
-
-            : reaction.id ===
-              'agree'
-              ? 'text-emerald-500 dark:text-emerald-400'
-
-            : reaction.id ===
-              'slightly_agree'
-              ? 'text-lime-500 dark:text-lime-400'
-
-            : reaction.id ===
-              'slightly_disagree'
-              ? 'text-yellow-500 dark:text-yellow-400'
-
-            : reaction.id ===
-              'disagree'
-              ? 'text-orange-500 dark:text-orange-400'
-
-            : 'text-red-600 dark:text-red-400'
-          }
+          transition-opacity
+          duration-150
         `}
-
         strokeWidth={
-          active
-            ? 2.5
-            : 2
+          active ? 2.4 : 2
         }
-
         aria-hidden="true"
-
       />
 
-
       <span
-
         className={`
-          text-xs
+          min-w-[1ch]
+          text-[11px]
           font-medium
+          leading-none
           tabular-nums
-
           ${
             active
               ? 'text-foreground'
               : 'text-muted-foreground'
           }
         `}
-
       >
-
         {count}
-
       </span>
-
-    </motion.button>
-
+    </button>
   );
-
 }

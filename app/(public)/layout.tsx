@@ -13,35 +13,31 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-  <NavbarProvider>
-    <div
-      className="
-        min-h-screen
-        w-full
-        overflow-x-hidden
-      "
-    >
-
-      <Navbar />
-
-      <main
+    <NavbarProvider>
+      <div
         className="
+          min-h-screen
           w-full
+          overflow-x-clip
         "
       >
-        <ExternalAds />
-        {children}
-      </main>
+        <Navbar />
 
-      <CookieConsent />
+        <main className="w-full">
+          <ExternalAds />
+
+          {children}
+        </main>
+
+        <CookieConsent />
+
         <InternalAds
           page={AdPage.HOME}
           position={AdPosition.FOOTER}
         />
 
-      <Footer />
-
-    </div>
+        <Footer />
+      </div>
     </NavbarProvider>
   );
 }

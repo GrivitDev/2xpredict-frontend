@@ -6,10 +6,6 @@ import {
 } from 'react';
 
 import {
-  motion,
-} from 'framer-motion';
-
-import {
   Check,
   Crown,
   Lock,
@@ -22,7 +18,6 @@ import {
 
 interface Props {
   open: boolean;
-
   onClose: () => void;
 
   userPlan?:
@@ -37,9 +32,7 @@ interface Props {
     | 'vip'
     | string;
 
-  currency?:
-    | 'NGN'
-    | 'USD';
+  currency?: 'NGN' | 'USD';
 
   requiredPlan?:
     | 'regular'
@@ -67,9 +60,27 @@ type Plan =
   | 'regular'
   | 'vip';
 
+type PaidPlan =
+  | 'regular'
+  | 'vip';
+
 type Currency =
   | 'NGN'
   | 'USD';
+
+interface PlanConfig {
+  planLabels?: Partial<
+    Record<PaidPlan, string>
+  >;
+
+  subscriptionDurationDays?: number;
+
+  regularPrice?: number;
+  regularPriceUSD?: number;
+
+  vipPrice?: number;
+  vipPriceUSD?: number;
+}
 
 export default function SubscriptionModal({
   open,
@@ -103,22 +114,13 @@ export default function SubscriptionModal({
       predictionPlan,
     );
 
-  const normalizedCurrency =
+  const normalizedCurrency: Currency =
     currency === 'USD'
       ? 'USD'
       : 'NGN';
 
-  /*
-   * =========================================================
-   * REQUIRED PLAN
-   * =========================================================
-   *
-   * IMPORTANT:
-   * Respect the plan calculated by PredictionRow.
-   */
-
   const effectiveRequiredPlan =
-    useMemo(() => {
+    useMemo<PaidPlan>(() => {
       if (requiredPlan) {
         return normalizeRequiredPlan(
           requiredPlan,
@@ -147,134 +149,63 @@ export default function SubscriptionModal({
     ]);
 
   const isVip =
-    effectiveRequiredPlan ===
-    'vip';
-
-  /*
-   * =========================================================
-   * PLAN LABEL
-   * =========================================================
-   */
+    effectiveRequiredPlan === 'vip';
 
   const planLabel =
     config?.planLabels?.[
       effectiveRequiredPlan
     ] ??
-    (
-      isVip
-        ? 'VIP'
-        : 'Regular'
-    );
+    (isVip ? 'VIP' : 'Regular');
 
-  /*
-   * =========================================================
-   * PRICE
-   * =========================================================
-   */
-
-  const price =
-    getPlanPrice({
-      config,
-      plan:
-        effectiveRequiredPlan,
-      currency:
-        normalizedCurrency,
-    });
-
-  /*
-   * =========================================================
-   * FEATURE
-   * =========================================================
-   */
+  const price = getPlanPrice({
+    config,
+    plan: effectiveRequiredPlan,
+    currency: normalizedCurrency,
+  });
 
   const featureName =
     String(feature)
-      .toLowerCase() ===
-    'markets'
+      .trim()
+      .toLowerCase() === 'markets'
       ? 'markets'
       : 'prediction';
 
-  /*
-   * =========================================================
-   * EARLY ACCESS
-   * =========================================================
-   */
-
   const regularWaitingForRelease =
-    normalizedUserPlan ===
-      'regular' &&
-    normalizedPredictionPlan ===
-      'regular' &&
-    accessState ===
-      'locked' &&
+    normalizedUserPlan === 'regular' &&
+    normalizedPredictionPlan === 'regular' &&
+    accessState === 'locked' &&
     !released;
 
-  /*
-   * =========================================================
-   * TITLE
-   * =========================================================
-   */
+  const title = isVip
+    ? regularWaitingForRelease
+      ? 'Get VIP Early Access'
+      : 'VIP Access Required'
+    : 'Regular Access Required';
 
-  const title =
-    isVip
-      ? regularWaitingForRelease
-        ? 'Get VIP Early Access'
-        : 'VIP Access Required'
-      : 'Regular Access Required';
+  const description = isVip
+    ? regularWaitingForRelease
+      ? `Your Regular plan gives you access after release. Upgrade to VIP to access this ${featureName} earlier.`
+      : `This ${featureName} requires VIP access. Upgrade to VIP to unlock it.`
+    : `This ${featureName} requires a Regular subscription. Upgrade to Regular or VIP to unlock it.`;
 
-  /*
-   * =========================================================
-   * DESCRIPTION
-   * =========================================================
-   */
+  const benefits = isVip
+    ? [
+        'Access every prediction',
+        'Unlock VIP predictions',
+        'Get predictions earlier',
+        'View all available markets',
+        'Access premium picks',
+      ]
+    : [
+        'Access Regular predictions',
+        'View prediction details',
+        'Unlock available markets',
+        'Access premium picks',
+      ];
 
-  const description =
-    isVip
-      ? regularWaitingForRelease
-        ? `Your Regular plan gives you access after release. Upgrade to VIP to access this ${featureName} earlier.`
-        : `This ${featureName} requires VIP access. Upgrade to VIP to unlock it.`
-      : `This ${featureName} requires a Regular subscription. Upgrade to Regular or VIP to unlock it.`;
-
-  /*
-   * =========================================================
-   * BENEFITS
-   * =========================================================
-   */
-
-  const benefits =
-    isVip
-      ? [
-          'Access every prediction',
-          'Unlock VIP predictions',
-          'Get predictions earlier',
-          'View all available markets',
-          'Access premium picks',
-        ]
-      : [
-          'Access Regular predictions',
-          'View prediction details',
-          'Unlock available markets',
-          'Access premium picks',
-        ];
-
-  /*
-   * =========================================================
-   * RELEASE DATE
-   * =========================================================
-   */
-
-  const releaseText =
-    releaseAt
-      ? formatReleaseDate(
-          releaseAt,
-        )
-      : null;
-
-  /*
-   * =========================================================
-   * SCROLL LOCK
-   * =========================================================
-   */
+  const releaseText = releaseAt
+    ? formatReleaseDate(releaseAt)
+    : null;
 
   useEffect(() => {
     if (!open) {
@@ -293,12 +224,6 @@ export default function SubscriptionModal({
     };
   }, [open]);
 
-  /*
-   * =========================================================
-   * ESCAPE
-   * =========================================================
-   */
-
   useEffect(() => {
     if (!open) {
       return;
@@ -307,10 +232,7 @@ export default function SubscriptionModal({
     const handleKeyDown = (
       event: KeyboardEvent,
     ) => {
-      if (
-        event.key ===
-        'Escape'
-      ) {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
@@ -326,10 +248,7 @@ export default function SubscriptionModal({
         handleKeyDown,
       );
     };
-  }, [
-    open,
-    onClose,
-  ]);
+  }, [open, onClose]);
 
   if (!open) {
     return null;
@@ -342,6 +261,16 @@ export default function SubscriptionModal({
           normalizedCurrency,
         )
       : null;
+
+  const handleSubscribe = () => {
+    if (onSubscribe) {
+      onSubscribe();
+      return;
+    }
+
+    window.location.href =
+      '/dashboard/subscriptions';
+  };
 
   return (
     <div
@@ -361,28 +290,13 @@ export default function SubscriptionModal({
       onMouseDown={onClose}
       role="presentation"
     >
-      <motion.div
-        initial={{
-          opacity: 0,
-          scale: 0.97,
-          y: 8,
-        }}
-        animate={{
-          opacity: 1,
-          scale: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: 0.18,
-        }}
-        onMouseDown={(
-          event,
-        ) =>
-          event.stopPropagation()
-        }
+      <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="subscription-modal-title"
+        onMouseDown={(event) =>
+          event.stopPropagation()
+        }
         className="
           relative
           my-auto
@@ -449,7 +363,7 @@ export default function SubscriptionModal({
             sm:p-5
           "
         >
-          {/* ICON */}
+          {/* HEADER */}
 
           <div
             className="
@@ -529,8 +443,7 @@ export default function SubscriptionModal({
             </p>
 
             {accessMessage &&
-              accessState !==
-                'locked' && (
+              accessState !== 'locked' && (
                 <p
                   className="
                     text-[11px]
@@ -652,46 +565,44 @@ export default function SubscriptionModal({
                 sm:grid-cols-2
               "
             >
-              {benefits.map(
-                (benefit) => (
-                  <div
-                    key={benefit}
+              {benefits.map((benefit) => (
+                <div
+                  key={benefit}
+                  className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-2
+                  "
+                >
+                  <span
                     className="
                       flex
-                      min-w-0
+                      h-4
+                      w-4
+                      shrink-0
                       items-center
-                      gap-2
+                      justify-center
+                      rounded-full
+                      bg-primary/10
+                      text-primary
                     "
                   >
-                    <span
-                      className="
-                        flex
-                        h-4
-                        w-4
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-primary/10
-                        text-primary
-                      "
-                    >
-                      <Check size={10} />
-                    </span>
+                    <Check size={10} />
+                  </span>
 
-                    <span
-                      className="
-                        text-[11px]
-                        leading-4
-                        text-foreground
-                        sm:text-xs
-                      "
-                    >
-                      {benefit}
-                    </span>
-                  </div>
-                ),
-              )}
+                  <span
+                    className="
+                      text-[11px]
+                      leading-4
+                      text-foreground
+                      sm:text-xs
+                    "
+                  >
+                    {benefit}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -700,15 +611,7 @@ export default function SubscriptionModal({
           <div className="space-y-2">
             <button
               type="button"
-              onClick={() => {
-                if (onSubscribe) {
-                  onSubscribe();
-                  return;
-                }
-
-                window.location.href =
-                  '/dashboard/subscriptions';
-              }}
+              onClick={handleSubscribe}
               className="
                 flex
                 min-h-10
@@ -758,7 +661,7 @@ export default function SubscriptionModal({
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -773,18 +676,14 @@ function normalizePlan(
 ): Plan {
   const normalized =
     String(value ?? '')
-      .toLowerCase()
-      .trim();
+      .trim()
+      .toLowerCase();
 
-  if (
-    normalized === 'vip'
-  ) {
+  if (normalized === 'vip') {
     return 'vip';
   }
 
-  if (
-    normalized === 'regular'
-  ) {
+  if (normalized === 'regular') {
     return 'regular';
   }
 
@@ -794,10 +693,10 @@ function normalizePlan(
 
 function normalizeRequiredPlan(
   value: string,
-): Plan {
+): PaidPlan {
   return value
-    .toLowerCase()
-    .trim() === 'vip'
+    .trim()
+    .toLowerCase() === 'vip'
     ? 'vip'
     : 'regular';
 }
@@ -812,39 +711,28 @@ function getPlanPrice({
   plan,
   currency,
 }: {
-  config: any;
-  plan: Plan;
+  config: PlanConfig | null | undefined;
+  plan: PaidPlan;
   currency: Currency;
-}) {
+}): number | null {
   if (!config) {
     return null;
   }
 
-  if (
+  const amount =
     plan === 'vip'
-  ) {
-    return currency === 'USD'
-      ? Number(
-          config.vipPriceUSD,
-        )
-      : Number(
-          config.vipPrice,
-        );
-  }
+      ? currency === 'USD'
+        ? config.vipPriceUSD
+        : config.vipPrice
+      : currency === 'USD'
+        ? config.regularPriceUSD
+        : config.regularPrice;
 
-  if (
-    plan === 'regular'
-  ) {
-    return currency === 'USD'
-      ? Number(
-          config.regularPriceUSD,
-        )
-      : Number(
-          config.regularPrice,
-        );
-  }
+  const price = Number(amount);
 
-  return 0;
+  return Number.isFinite(price)
+    ? price
+    : null;
 }
 
 
@@ -856,9 +744,7 @@ function formatPrice(
   amount: number,
   currency: Currency,
 ) {
-  if (
-    !Number.isFinite(amount)
-  ) {
+  if (!Number.isFinite(amount)) {
     return null;
   }
 
@@ -882,14 +768,9 @@ function formatPrice(
 function formatReleaseDate(
   timestamp: number,
 ) {
-  const date =
-    new Date(timestamp);
+  const date = new Date(timestamp);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return 'later';
   }
 

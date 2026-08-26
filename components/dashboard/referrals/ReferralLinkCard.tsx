@@ -1,29 +1,18 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-
 import {
   Copy,
   Link2,
   Share2,
   Users,
 } from 'lucide-react';
-
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-
-import {
-  getMyReferralLink,
-} from '@/services/referrals.service';
-
-
-// ============================================================
-// COMPONENT
-// ============================================================
+import { getMyReferralLink } from '@/services/referrals.service';
 
 export function ReferralLinkCard() {
-
   const {
     data,
     isLoading,
@@ -32,66 +21,33 @@ export function ReferralLinkCard() {
     queryFn: getMyReferralLink,
   });
 
-
-  // ==========================================================
-  // COPY
-  // ==========================================================
+  const referralLink = data?.referralLink;
+  const referralCode = data?.referralCode;
 
   async function copyLink() {
-
-    if (!data?.referralLink) {
-      return;
-    }
+    if (!referralLink) return;
 
     try {
-
-      await navigator.clipboard.writeText(
-        data.referralLink,
-      );
-
-      toast.success(
-        'Referral link copied',
-      );
-
+      await navigator.clipboard.writeText(referralLink);
+      toast.success('Referral link copied');
     } catch {
-
-      toast.error(
-        'Unable to copy referral link',
-      );
-
+      toast.error('Unable to copy referral link');
     }
-
   }
 
-
-  // ==========================================================
-  // SHARE
-  // ==========================================================
-
   async function shareLink() {
-
-    if (!data?.referralLink) {
-      return;
-    }
+    if (!referralLink) return;
 
     if (
       typeof navigator !== 'undefined' &&
       navigator.share
     ) {
-
       try {
-
         await navigator.share({
-          title:
-            'Join Football Prediction Platform',
-
-          text:
-            'Join using my referral link and earn rewards.',
-
-          url:
-            data.referralLink,
+          title: 'Join Football Prediction Platform',
+          text: 'Join using my referral link and earn rewards.',
+          url: referralLink,
         });
-
       } catch {
         // User cancelled native share.
       }
@@ -100,18 +56,10 @@ export function ReferralLinkCard() {
     }
 
     await copyLink();
-
   }
 
-
-  // ==========================================================
-  // LOADING
-  // ==========================================================
-
   if (isLoading) {
-
     return (
-
       <div
         className="
           animate-pulse
@@ -122,7 +70,6 @@ export function ReferralLinkCard() {
           p-3
         "
       >
-
         <div
           className="
             mb-2.5
@@ -131,27 +78,10 @@ export function ReferralLinkCard() {
             gap-2
           "
         >
+          <div className="h-7 w-7 rounded-lg bg-muted/40" />
 
-          <div
-            className="
-              h-7
-              w-7
-              rounded-lg
-              bg-muted/40
-            "
-          />
-
-          <div
-            className="
-              h-3
-              w-24
-              rounded
-              bg-muted/40
-            "
-          />
-
+          <div className="h-3 w-24 rounded bg-muted/40" />
         </div>
-
 
         <div
           className="
@@ -161,67 +91,20 @@ export function ReferralLinkCard() {
             sm:items-center
           "
         >
+          <div className="h-8 rounded-lg bg-muted/30" />
 
-          <div
-            className="
-              h-8
-              rounded-lg
-              bg-muted/30
-            "
-          />
+          <div className="h-8 min-w-0 rounded-lg bg-muted/30" />
 
-          <div
-            className="
-              h-8
-              min-w-0
-              rounded-lg
-              bg-muted/30
-            "
-          />
-
-          <div
-            className="
-              grid
-              grid-cols-2
-              gap-1.5
-            "
-          >
-
-            <div
-              className="
-                h-8
-                w-full
-                rounded-lg
-                bg-muted/30
-              "
-            />
-
-            <div
-              className="
-                h-8
-                w-full
-                rounded-lg
-                bg-muted/30
-              "
-            />
-
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="h-8 rounded-lg bg-muted/30" />
+            <div className="h-8 rounded-lg bg-muted/30" />
           </div>
-
         </div>
-
       </div>
-
     );
-
   }
 
-
-  // ==========================================================
-  // CONTENT
-  // ==========================================================
-
   return (
-
     <div
       className="
         relative
@@ -233,9 +116,6 @@ export function ReferralLinkCard() {
         p-3
       "
     >
-
-      {/* Premium accent */}
-
       <div
         className="
           pointer-events-none
@@ -250,9 +130,6 @@ export function ReferralLinkCard() {
         "
       />
 
-
-      {/* Header */}
-
       <div
         className="
           relative
@@ -262,7 +139,6 @@ export function ReferralLinkCard() {
           gap-2
         "
       >
-
         <div
           className="
             flex
@@ -281,33 +157,16 @@ export function ReferralLinkCard() {
           <Link2 className="h-3.5 w-3.5" />
         </div>
 
-
         <div className="min-w-0">
-
-          <span
-            className="
-              text-xs
-              font-semibold
-            "
-          >
+          <span className="text-xs font-semibold">
             Referral Link
           </span>
 
-          <p
-            className="
-              text-[9px]
-              text-muted-foreground
-            "
-          >
+          <p className="text-[9px] text-muted-foreground">
             Invite users and earn rewards
           </p>
-
         </div>
-
       </div>
-
-
-      {/* Details */}
 
       <div
         className="
@@ -318,9 +177,6 @@ export function ReferralLinkCard() {
           sm:items-center
         "
       >
-
-        {/* Code */}
-
         <div
           className="
             flex
@@ -335,22 +191,9 @@ export function ReferralLinkCard() {
             py-1.5
           "
         >
+          <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
 
-          <Users
-            className="
-              h-3.5
-              w-3.5
-              shrink-0
-              text-primary
-            "
-          />
-
-          <span
-            className="
-              text-[10px]
-              text-muted-foreground
-            "
-          >
+          <span className="text-[10px] text-muted-foreground">
             Code
           </span>
 
@@ -362,13 +205,9 @@ export function ReferralLinkCard() {
               tracking-wider
             "
           >
-            {data?.referralCode || '—'}
+            {referralCode || '—'}
           </span>
-
         </div>
-
-
-        {/* URL */}
 
         <div
           className="
@@ -384,14 +223,7 @@ export function ReferralLinkCard() {
             py-1.5
           "
         >
-
-          <span
-            className="
-              shrink-0
-              text-[10px]
-              text-muted-foreground
-            "
-          >
+          <span className="shrink-0 text-[10px] text-muted-foreground">
             Link
           </span>
 
@@ -403,26 +235,15 @@ export function ReferralLinkCard() {
               text-[11px]
             "
           >
-            {data?.referralLink || '—'}
+            {referralLink || '—'}
           </span>
-
         </div>
 
-
-        {/* Actions */}
-
-        <div
-          className="
-            grid
-            grid-cols-2
-            gap-1.5
-          "
-        >
-
+        <div className="grid grid-cols-2 gap-1.5">
           <Button
             type="button"
             onClick={copyLink}
-            disabled={!data?.referralLink}
+            disabled={!referralLink}
             className="
               h-8
               rounded-lg
@@ -430,23 +251,15 @@ export function ReferralLinkCard() {
               text-[11px]
             "
           >
-            <Copy
-              className="
-                mr-1.5
-                h-3.5
-                w-3.5
-              "
-            />
-
+            <Copy className="mr-1.5 h-3.5 w-3.5" />
             Copy
           </Button>
-
 
           <Button
             type="button"
             variant="outline"
             onClick={shareLink}
-            disabled={!data?.referralLink}
+            disabled={!referralLink}
             className="
               h-8
               rounded-lg
@@ -454,22 +267,11 @@ export function ReferralLinkCard() {
               text-[11px]
             "
           >
-            <Share2
-              className="
-                mr-1.5
-                h-3.5
-                w-3.5
-              "
-            />
-
+            <Share2 className="mr-1.5 h-3.5 w-3.5" />
             Share
           </Button>
-
         </div>
-
       </div>
-
     </div>
-
   );
 }

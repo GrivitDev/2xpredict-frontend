@@ -1,7 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 import { InternalAd } from '@/types/internal-ad';
 
 import { AdWrapper } from '../shared/AdWrapper';
@@ -35,30 +33,13 @@ export function InlineAd({
         border-border/60
         bg-card
         shadow-lg
-        transition-all
+        transition-shadow
         duration-300
-        hover:border-primary/30
         hover:shadow-xl
       "
     >
 
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 12,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: true,
-          amount: .2,
-        }}
-        transition={{
-          duration: .4,
-          ease: 'easeOut',
-        }}
+      <div
         className="
           grid
           md:grid-cols-[42%_58%]
@@ -71,30 +52,22 @@ export function InlineAd({
 
           <div
             className="
-              group/image
               relative
-              min-h-[220px]
+              min-h-[210px]
               overflow-hidden
-
-              sm:min-h-[280px]
-              md:min-h-[340px]
+              sm:min-h-[260px]
+              md:min-h-[320px]
             "
           >
 
-            <motion.div
-              initial={{
-                scale: 1,
-              }}
-              whileHover={{
-                scale: 1.04,
-              }}
-              transition={{
-                duration: .7,
-                ease: 'easeOut',
-              }}
+            <div
               className="
                 absolute
                 inset-0
+                transition-transform
+                duration-500
+                ease-out
+                group-hover:scale-[1.03]
               "
             >
 
@@ -107,9 +80,7 @@ export function InlineAd({
                 "
               />
 
-            </motion.div>
-
-            {/* Image edge fade */}
+            </div>
 
             <div
               className="
@@ -135,13 +106,11 @@ export function InlineAd({
         <div
           className="
             relative
-            min-h-[340px]
+            min-h-[320px]
             overflow-hidden
             bg-black
           "
         >
-
-          {/* Background Image */}
 
           {ad.image && (
 
@@ -161,7 +130,7 @@ export function InlineAd({
                   scale-105
                   object-cover
                   object-center
-                  opacity-30
+                  opacity-25
                 "
               />
 
@@ -169,21 +138,17 @@ export function InlineAd({
 
           )}
 
-          {/* Content Overlay */}
-
           <div
             className="
               pointer-events-none
               absolute
               inset-0
               bg-gradient-to-br
-              from-black/80
+              from-black/85
               via-black/75
               to-black/60
             "
           />
-
-          {/* Ambient Highlight */}
 
           <div
             className="
@@ -194,8 +159,6 @@ export function InlineAd({
             "
           />
 
-          {/* Content */}
-
           <div
             className="
               relative
@@ -204,20 +167,19 @@ export function InlineAd({
               h-full
               flex-col
               p-4
-
               sm:p-5
               lg:p-6
             "
           >
 
-            {/* Header */}
+            {/* HEADER */}
 
             <div
               className="
                 flex
                 items-start
                 justify-between
-                gap-4
+                gap-3
               "
             >
 
@@ -243,7 +205,7 @@ export function InlineAd({
 
             </div>
 
-            {/* Description */}
+            {/* DESCRIPTION */}
 
             <div
               className="
@@ -271,14 +233,13 @@ export function InlineAd({
 
             </div>
 
-            {/* Footer */}
+            {/* FOOTER */}
 
             <div
               className="
                 flex
                 flex-col
                 gap-4
-
                 sm:flex-row
                 sm:items-end
                 sm:justify-between
@@ -319,9 +280,7 @@ export function InlineAd({
 
         </div>
 
-      </motion.div>
-
-      {/* Inner highlight */}
+      </div>
 
       <div
         className="

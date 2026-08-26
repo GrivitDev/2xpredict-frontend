@@ -7,16 +7,12 @@ import {
   useState,
 } from 'react';
 
-import {
-  useSearchParams,
-} from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 import api from '@/lib/axios';
 
 import PredictionTable from '@/components/predictions/PredictionTable';
-
 import PredictionMobileCard from '@/components/predictions/PredictionMobileCard';
-
 import PredictionPagination from '@/components/predictions/PredictionPagination';
 
 import SubscriptionModal from '@/components/predictions/SubscriptionModal';
@@ -28,266 +24,272 @@ import PredictionFilters, {
 import { InternalAds } from '@/components/ads/IntAds/InternalAds';
 
 import { AdPage } from '@/constants/ads/ad-page';
-
 import { AdPosition } from '@/constants/ads/ad-position';
 
 import { PredictionsAds } from '@/components/ads/ExtAds/positions/PredictionsAds';
 
 import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
 
-import {
-  getPredictionAccess,
-} from '@/services/prediction.service';
+import { getPredictionAccess } from '@/services/prediction.service';
 
 
 /* =========================================================
-   SUBSCRIPTION MODAL DATA
+   TYPES
 ========================================================= */
+
+type Plan =
+  | 'free'
+  | 'regular'
+  | 'vip';
+
+type RequiredPlan =
+  | 'regular'
+  | 'vip';
+
+type Feature =
+  | 'prediction'
+  | 'markets';
+
+type PredictionAccess = {
+  allowed: boolean;
+  state: string;
+  purchased?: boolean;
+  plan?: Plan;
+  released?: boolean;
+  releaseAt?: number | null;
+  message?: string | null;
+};
+
+type Prediction = {
+  _id?: string;
+  id?: string;
+
+  homeTeam?: string;
+  awayTeam?: string;
+
+  league?: {
+    name?: string | null;
+  } | null;
+
+  leagueCode?: string | null;
+
+  matchDate?: string | Date | null;
+  date?: string | Date | null;
+  kickoffTimestamp?: string | number | Date | null;
+
+  confidence?: number | string | null;
+
+  accessType?: string | null;
+
+  status?: string | null;
+
+  markets?: Array<
+    | string
+    | {
+        market?: string | null;
+        [key: string]: unknown;
+      }
+  > | null;
+
+  access?: PredictionAccess;
+
+  prediction?: unknown;
+  probabilities?: unknown;
+};
+
+type SubscriptionModalState = {
+  open: boolean;
+  requiredPlan: RequiredPlan;
+  feature: Feature;
+  userPlan: Plan;
+  predictionPlan: Plan;
+  released: boolean;
+  releaseAt: number | null;
+  accessState: string;
+  accessMessage: string | null;
+};
 
 type SubscriptionModalData = {
   predictionId?: string;
 
-  prediction?: any;
+  prediction?: Prediction;
 
-  requiredPlan:
-    | 'regular'
-    | 'vip';
+  requiredPlan: RequiredPlan;
 
-  feature:
-    | 'prediction'
-    | 'markets';
+  feature: Feature;
 
-  userPlan:
-    | 'free'
-    | 'regular'
-    | 'vip';
+  userPlan: Plan;
 
-  predictionPlan:
-    | 'free'
-    | 'regular'
-    | 'vip';
+  predictionPlan: Plan;
 
   released: boolean;
 
-  releaseAt:
-    | number
-    | null;
+  releaseAt: number | null;
 
   accessState: string;
 
-  accessMessage:
-    | string
-    | null;
+  accessMessage: string | null;
 };
 
 
+/* =========================================================
+   CONSTANTS
+========================================================= */
+
+const ITEMS_PER_PAGE = 10;
+
+/*
+ * Do not fire every access request simultaneously.
+ *
+ * This preserves individual authorization while reducing
+ * browser/backend pressure.
+ */
+const ACCESS_CONCURRENCY = 5;
+
+const INITIAL_FILTERS: PredictionFilterState = {
+  search: '',
+  league: 'all',
+  date: 'all',
+  customDate: '',
+  minConfidence: 0,
+  market: 'all',
+  plan: 'all',
+  status: 'all',
+};
+
+const INITIAL_MODAL_STATE: SubscriptionModalState = {
+  open: false,
+  requiredPlan: 'regular',
+  feature: 'prediction',
+  userPlan: 'free',
+  predictionPlan: 'regular',
+  released: true,
+  releaseAt: null,
+  accessState: '',
+  accessMessage: null,
+};
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function getPredictionId(
+  prediction: Prediction,
+): string | null {
+  const id =
+    prediction._id ??
+    prediction.id;
+
+  return id
+    ? String(id)
+    : null;
+}
+
+
+function createDefaultAccess(): PredictionAccess {
+  return {
+    allowed: false,
+    state: 'login_required',
+    purchased: false,
+    plan: 'free',
+    released: false,
+    releaseAt: 0,
+    message:
+      'Please log in to view this prediction.',
+  };
+}
+
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
 function PredictionsPageContent() {
+  /* =======================================================
+     STATE
+  ======================================================= */
 
-  /*
-   * =========================================================
-   * PREDICTIONS
-   * =========================================================
-   */
+  const [predictions, setPredictions] =
+    useState<Prediction[]>([]);
 
-  const [
-    predictions,
-    setPredictions,
-  ] = useState<any[]>([]);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [error, setError] =
+    useState<string | null>(null);
 
-  const [
-    accessLoading,
-    setAccessLoading,
-  ] = useState(false);
+  const [filters, setFilters] =
+    useState<PredictionFilterState>(
+      INITIAL_FILTERS,
+    );
 
-  const [
-    error,
-    setError,
-  ] = useState<string | null>(
-    null,
-  );
+  const [page, setPage] =
+    useState(1);
 
+  const [highlightedId, setHighlightedId] =
+    useState<string | null>(null);
 
-  /*
-   * =========================================================
-   * FILTERS
-   * =========================================================
-   */
-
-  const [
-    filters,
-    setFilters,
-  ] =
-    useState<PredictionFilterState>({
-      search: '',
-      league: 'all',
-      date: 'all',
-      customDate: '',
-      minConfidence: 0,
-      market: 'all',
-      plan: 'all',
-      status: 'all',
-    });
+  const [subscriptionModal, setSubscriptionModal] =
+    useState<SubscriptionModalState>(
+      INITIAL_MODAL_STATE,
+    );
 
 
-  /*
-   * =========================================================
-   * URL
-   * =========================================================
-   */
+  /* =======================================================
+     URL
+  ======================================================= */
 
   const searchParams =
     useSearchParams();
 
   const predictionId =
-    searchParams.get(
-      'prediction',
-    );
+    searchParams.get('prediction');
 
 
-  /*
-   * =========================================================
-   * PAGINATION
-   * =========================================================
-   */
-
-  const [
-    page,
-    setPage,
-  ] = useState(1);
-
-  const ITEMS_PER_PAGE = 10;
-
-
-  /*
-   * =========================================================
-   * HIGHLIGHT
-   * =========================================================
-   */
-
-  const [
-    highlightedId,
-    setHighlightedId,
-  ] = useState<string | null>(
-    null,
-  );
-
-
-  /*
-   * =========================================================
-   * SUBSCRIPTION MODAL
-   * =========================================================
-   */
-
-  const [
-    subscriptionModal,
-    setSubscriptionModal,
-  ] = useState<{
-    open: boolean;
-
-    requiredPlan:
-      | 'regular'
-      | 'vip';
-
-    feature:
-      | 'prediction'
-      | 'markets';
-
-    userPlan:
-      | 'free'
-      | 'regular'
-      | 'vip';
-
-    predictionPlan:
-      | 'free'
-      | 'regular'
-      | 'vip';
-
-    released: boolean;
-
-    releaseAt:
-      | number
-      | null;
-
-    accessState: string;
-
-    accessMessage:
-      | string
-      | null;
-  }>({
-    open: false,
-
-    requiredPlan:
-      'regular',
-
-    feature:
-      'prediction',
-
-    userPlan:
-      'free',
-
-    predictionPlan:
-      'regular',
-
-    released: true,
-
-    releaseAt:
-      null,
-
-    accessState:
-      '',
-
-    accessMessage:
-      null,
-  });
-
-
-  /*
-   * =========================================================
-   * LOAD PREDICTIONS
-   * =========================================================
-   */
+  /* =======================================================
+     LOAD PREDICTIONS
+  ======================================================= */
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
     const fetchPredictions =
       async () => {
-        try {
-          setLoading(true);
-          setError(null);
+        setLoading(true);
+        setError(null);
 
-          const res =
+        try {
+          const response =
             await api.get(
               '/predictions',
             );
 
-          const data =
-            Array.isArray(
-              res.data,
-            )
-              ? res.data
-              : res.data?.data ??
-                [];
-
-          if (!mounted) {
+          if (cancelled) {
             return;
           }
 
-          setPredictions(data);
+          const data =
+            Array.isArray(
+              response.data,
+            )
+              ? response.data
+              : response.data?.data ?? [];
+
+          setPredictions(
+            Array.isArray(data)
+              ? data
+              : [],
+          );
         } catch (error: unknown) {
+          if (cancelled) {
+            return;
+          }
+
           console.error(
             'Failed to load predictions:',
             error,
           );
-
-          if (!mounted) {
-            return;
-          }
 
           setPredictions([]);
 
@@ -298,7 +300,7 @@ function PredictionsPageContent() {
             ),
           );
         } finally {
-          if (mounted) {
+          if (!cancelled) {
             setLoading(false);
           }
         }
@@ -307,16 +309,23 @@ function PredictionsPageContent() {
     fetchPredictions();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, []);
 
 
-  /*
-   * =========================================================
-   * LOAD USER ACCESS
-   * =========================================================
-   */
+  /* =======================================================
+     INDIVIDUAL ACCESS CHECKS
+     
+     Every prediction is still checked independently.
+
+     The difference is that:
+     
+     1. We do not block rendering.
+     2. Only 5 requests run concurrently.
+     3. Each prediction is updated independently.
+     4. We don't wait for all predictions before showing UI.
+  ======================================================= */
 
   useEffect(() => {
     if (
@@ -326,120 +335,112 @@ function PredictionsPageContent() {
       return;
     }
 
-    let mounted = true;
+    let cancelled = false;
 
-    const loadAccess =
+    const checkAccess =
       async () => {
-        try {
-          setAccessLoading(true);
+        let currentIndex = 0;
 
-          const results =
-            await Promise.allSettled(
-              predictions.map(
-                async (
+        const worker =
+          async () => {
+            while (
+              !cancelled
+            ) {
+              const index =
+                currentIndex++;
+
+              if (
+                index >=
+                predictions.length
+              ) {
+                return;
+              }
+
+              const prediction =
+                predictions[index];
+
+              const id =
+                getPredictionId(
                   prediction,
-                ) => {
-                  const id =
-                    prediction._id ??
-                    prediction.id;
+                );
 
-                  if (!id) {
-                    return null;
-                  }
+              if (!id) {
+                continue;
+              }
 
-                  const access =
-                    await getPredictionAccess(
-                      id,
-                    );
+              /*
+               * Don't repeat an access check if this
+               * prediction already contains access data.
+               */
+              if (
+                prediction.access
+              ) {
+                continue;
+              }
 
-                  return {
+              try {
+                const result =
+                  await getPredictionAccess(
                     id,
-                    access,
-                  };
-                },
-              ),
-            );
+                  );
 
-          if (!mounted) {
-            return;
-          }
+                if (
+                  cancelled
+                ) {
+                  return;
+                }
 
-          setPredictions(
-            (current) =>
-              current.map(
-                (prediction) => {
-                  const id =
-                    prediction._id ??
-                    prediction.id;
+                const access =
+                  result?.access ??
+                  createDefaultAccess();
 
-                  const result =
-                    results.find(
-                      (item) =>
-                        item.status ===
-                          'fulfilled' &&
-                        item.value?.id ===
-                          id,
-                    );
+                setPredictions(
+                  (current) =>
+                    current.map(
+                      (item) => {
+                        const itemId =
+                          getPredictionId(
+                            item,
+                          );
 
-                  if (
-                    !result ||
-                    result.status !==
-                      'fulfilled' ||
-                    !result.value
-                  ) {
-                    return {
-                      ...prediction,
-
-                      access: {
-                        allowed: false,
-
-                        state:
-                          'login_required',
-
-                        purchased: false,
-
-                        plan: 'free',
-
-                        released: false,
-
-                        releaseAt: 0,
-
-                        message:
-                          'Please log in to view this prediction.',
-                      },
-                    };
-                  }
-
-                  const accessData =
-                    result.value
-                      .access;
-
-                  return {
-                    ...prediction,
-
-                    access:
-                      accessData.access,
-
-                    ...(accessData.access
-                      ?.allowed &&
-                    accessData.data
-                      ? {
-                          prediction:
-                            accessData.data
-                              ?.prediction ??
-                            undefined,
-
-                          probabilities:
-                            accessData.data
-                              ?.probabilities ??
-                            null,
-
-                          markets:
-                            accessData.data
-                              ?.markets ??
-                            null,
+                        if (
+                          itemId !==
+                          id
+                        ) {
+                          return item;
                         }
-                      : {
+
+                        if (
+                          access.allowed &&
+                          result.data
+                        ) {
+                          return {
+                            ...item,
+
+                            access,
+
+                            prediction:
+                              result.data
+                                ?.prediction ??
+                              undefined,
+
+                            probabilities:
+                              result.data
+                                ?.probabilities ??
+                              null,
+
+                            markets:
+                              result.data
+                                ?.markets ??
+                              null,
+                          };
+                        }
+
+                        return {
+                          ...item,
+
+                          access,
+
                           prediction:
                             undefined,
 
@@ -448,114 +449,166 @@ function PredictionsPageContent() {
 
                           markets:
                             null,
-                        }),
-                  };
-                },
-              ),
+                        };
+                      },
+                    ),
+                );
+              } catch (error) {
+                if (
+                  cancelled
+                ) {
+                  return;
+                }
+
+                console.error(
+                  `Failed to check access for prediction ${id}:`,
+                  error,
+                );
+
+                /*
+                 * Don't block the entire page because
+                 * one prediction's access request failed.
+                 */
+                setPredictions(
+                  (current) =>
+                    current.map(
+                      (item) =>
+                        getPredictionId(
+                          item,
+                        ) === id
+                          ? {
+                              ...item,
+                              access:
+                                createDefaultAccess(),
+                            }
+                          : item,
+                    ),
+                );
+              }
+            }
+          };
+
+        const workers =
+          Math.min(
+            ACCESS_CONCURRENCY,
+            predictions.length,
           );
-        } catch (error) {
-          console.error(
-            'Failed to load prediction access:',
-            error,
-          );
-        } finally {
-          if (mounted) {
-            setAccessLoading(false);
-          }
-        }
+
+        await Promise.all(
+          Array.from(
+            {
+              length: workers,
+            },
+            () => worker(),
+          ),
+        );
       };
 
-    loadAccess();
+    void checkAccess();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, [
     loading,
-    predictions.length,
+    predictions,
   ]);
 
 
-  /*
-   * =========================================================
-   * AVAILABLE LEAGUES
-   * =========================================================
-   */
+  /* =======================================================
+     AVAILABLE LEAGUES
+  ======================================================= */
 
   const leagues =
     useMemo(() => {
-      return Array.from(
-        new Set(
+      const values =
+        new Set<string>();
+
+      for (
+        const prediction of
           predictions
-            .map(
-              (prediction) =>
-                prediction.league?.name ??
-                prediction.leagueCode,
-            )
-            .filter(Boolean),
-        ),
-      ).sort((a, b) =>
-        String(a).localeCompare(
-          String(b),
-        ),
+      ) {
+        const league =
+          prediction.league?.name ??
+          prediction.leagueCode;
+
+        if (league) {
+          values.add(
+            String(league),
+          );
+        }
+      }
+
+      return Array.from(values).sort(
+        (a, b) =>
+          a.localeCompare(b),
       );
-    }, [predictions]);
+    }, [
+      predictions,
+    ]);
 
 
-  /*
-   * =========================================================
-   * AVAILABLE MARKETS
-   * =========================================================
-   */
+  /* =======================================================
+     AVAILABLE MARKETS
+  ======================================================= */
 
   const availableMarkets =
     useMemo(() => {
       const markets =
         new Set<string>();
 
-      predictions.forEach(
-        (prediction) => {
-          const predictionMarkets =
-            Array.isArray(
-              prediction.markets,
-            )
-              ? prediction.markets
-              : [];
+      for (
+        const prediction of
+          predictions
+      ) {
+        if (
+          !Array.isArray(
+            prediction.markets,
+          )
+        ) {
+          continue;
+        }
 
-          predictionMarkets.forEach(
-            (market: any) => {
-              const value =
-                typeof market ===
-                'string'
-                  ? market
-                  : market?.market;
+        for (
+          const market of
+            prediction.markets
+        ) {
+          const value =
+            typeof market ===
+            'string'
+              ? market
+              : market?.market;
 
-              if (value) {
-                markets.add(
-                  String(value),
-                );
-              }
-            },
-          );
-        },
-      );
+          if (value) {
+            markets.add(
+              String(value),
+            );
+          }
+        }
+      }
 
       return Array.from(
         markets,
+      ).sort((a, b) =>
+        a.localeCompare(b),
       );
-    }, [predictions]);
+    }, [
+      predictions,
+    ]);
 
 
-  /*
-   * =========================================================
-   * FILTER PREDICTIONS
-   * =========================================================
-   */
+  /* =======================================================
+     FILTER PREDICTIONS
+  ======================================================= */
 
   const filtered =
     useMemo(() => {
       const now =
         new Date();
+
+      /* ---------------------------------------------------
+         TODAY
+      --------------------------------------------------- */
 
       const todayStart =
         new Date(now);
@@ -568,18 +621,16 @@ function PredictionsPageContent() {
       );
 
       const todayEnd =
-        new Date(
-          todayStart,
-        );
+        new Date(todayStart);
 
       todayEnd.setDate(
         todayEnd.getDate() + 1,
       );
 
 
-      /*
-       * WEEK
-       */
+      /* ---------------------------------------------------
+         WEEK
+      --------------------------------------------------- */
 
       const weekStart =
         new Date(now);
@@ -587,14 +638,13 @@ function PredictionsPageContent() {
       const day =
         weekStart.getDay();
 
-      const diff =
-        day === 0
-          ? -6
-          : 1 - day;
-
       weekStart.setDate(
         weekStart.getDate() +
-          diff,
+          (
+            day === 0
+              ? -6
+              : 1 - day
+          ),
       );
 
       weekStart.setHours(
@@ -605,18 +655,16 @@ function PredictionsPageContent() {
       );
 
       const weekEnd =
-        new Date(
-          weekStart,
-        );
+        new Date(weekStart);
 
       weekEnd.setDate(
         weekEnd.getDate() + 7,
       );
 
 
-      /*
-       * MONTH
-       */
+      /* ---------------------------------------------------
+         MONTH
+      --------------------------------------------------- */
 
       const monthStart =
         new Date(
@@ -633,9 +681,9 @@ function PredictionsPageContent() {
         );
 
 
-      /*
-       * CUSTOM DATE
-       */
+      /* ---------------------------------------------------
+         CUSTOM DATE
+      --------------------------------------------------- */
 
       let customStart:
         | Date
@@ -666,19 +714,24 @@ function PredictionsPageContent() {
       }
 
 
+      /* ---------------------------------------------------
+         SEARCH
+      --------------------------------------------------- */
+
       const searchValue =
         filters.search
           .trim()
           .toLowerCase();
 
 
-      return predictions
-        .filter(
-          (prediction) => {
+      /* ---------------------------------------------------
+         FILTER
+      --------------------------------------------------- */
 
-            /*
-             * SEARCH
-             */
+      const result =
+        predictions.filter(
+          (prediction) => {
+            /* SEARCH */
 
             if (searchValue) {
               const homeTeam =
@@ -695,41 +748,46 @@ function PredictionsPageContent() {
 
               const leagueName =
                 String(
-                  prediction.league?.name ??
+                  prediction.league
+                    ?.name ??
                     prediction.leagueCode ??
                     '',
                 ).toLowerCase();
 
+              const matchesSearch =
+                homeTeam.includes(
+                  searchValue,
+                ) ||
+                awayTeam.includes(
+                  searchValue,
+                ) ||
+                leagueName.includes(
+                  searchValue,
+                );
+
               if (
-                !homeTeam.includes(
-                  searchValue,
-                ) &&
-                !awayTeam.includes(
-                  searchValue,
-                ) &&
-                !leagueName.includes(
-                  searchValue,
-                )
+                !matchesSearch
               ) {
                 return false;
               }
             }
 
 
-            /*
-             * LEAGUE
-             */
+            /* LEAGUE */
 
             if (
               filters.league !==
-                'all'
+              'all'
             ) {
-              const predictionLeague =
-                prediction.league?.name ??
+              const league =
+                prediction.league
+                  ?.name ??
                 prediction.leagueCode;
 
               if (
-                predictionLeague !==
+                String(
+                  league ?? '',
+                ) !==
                 filters.league
               ) {
                 return false;
@@ -737,32 +795,28 @@ function PredictionsPageContent() {
             }
 
 
-            /*
-             * DATE
-             */
+            /* DATE */
 
-            const matchDate =
-              getPredictionDate(
-                prediction,
-              );
+            if (
+              filters.date !==
+              'all'
+            ) {
+              const matchDate =
+                getPredictionDate(
+                  prediction,
+                );
 
-            if (!matchDate) {
-              if (
-                filters.date !==
-                'all'
-              ) {
+              if (!matchDate) {
                 return false;
               }
-            } else {
 
               if (
                 filters.date ===
                   'today' &&
-                !(
-                  matchDate >=
-                    todayStart &&
-                  matchDate <
-                    todayEnd
+                !isWithin(
+                  matchDate,
+                  todayStart,
+                  todayEnd,
                 )
               ) {
                 return false;
@@ -771,11 +825,10 @@ function PredictionsPageContent() {
               if (
                 filters.date ===
                   'week' &&
-                !(
-                  matchDate >=
-                    weekStart &&
-                  matchDate <
-                    weekEnd
+                !isWithin(
+                  matchDate,
+                  weekStart,
+                  weekEnd,
                 )
               ) {
                 return false;
@@ -784,11 +837,10 @@ function PredictionsPageContent() {
               if (
                 filters.date ===
                   'month' &&
-                !(
-                  matchDate >=
-                    monthStart &&
-                  matchDate <
-                    monthEnd
+                !isWithin(
+                  matchDate,
+                  monthStart,
+                  monthEnd,
                 )
               ) {
                 return false;
@@ -799,11 +851,10 @@ function PredictionsPageContent() {
                   'custom' &&
                 customStart &&
                 customEnd &&
-                !(
-                  matchDate >=
-                    customStart &&
-                  matchDate <
-                    customEnd
+                !isWithin(
+                  matchDate,
+                  customStart,
+                  customEnd,
                 )
               ) {
                 return false;
@@ -811,45 +862,36 @@ function PredictionsPageContent() {
             }
 
 
-            /*
-             * CONFIDENCE
-             */
+            /* CONFIDENCE */
 
             if (
               Number(
                 prediction.confidence ??
                   0,
               ) <
-                filters.minConfidence
+              filters.minConfidence
             ) {
               return false;
             }
 
 
-            /*
-             * PLAN
-             */
+            /* PLAN */
 
             if (
               filters.plan !==
-                'all'
-            ) {
-              if (
-                prediction.accessType !==
+                'all' &&
+              prediction.accessType !==
                 filters.plan
-              ) {
-                return false;
-              }
+            ) {
+              return false;
             }
 
 
-            /*
-             * STATUS
-             */
+            /* STATUS */
 
             if (
               filters.status !==
-                'all'
+              'all'
             ) {
               const status =
                 String(
@@ -866,15 +908,13 @@ function PredictionsPageContent() {
             }
 
 
-            /*
-             * MARKET
-             */
+            /* MARKET */
 
             if (
               filters.market !==
                 'all'
             ) {
-              const predictionMarkets =
+              const markets =
                 Array.isArray(
                   prediction.markets,
                 )
@@ -882,8 +922,8 @@ function PredictionsPageContent() {
                   : [];
 
               const hasMarket =
-                predictionMarkets.some(
-                  (market: any) => {
+                markets.some(
+                  (market) => {
                     const value =
                       typeof market ===
                       'string'
@@ -899,55 +939,61 @@ function PredictionsPageContent() {
                   },
                 );
 
-              if (!hasMarket) {
+              if (
+                !hasMarket
+              ) {
                 return false;
               }
             }
 
             return true;
           },
-        )
-        .sort(
-          (a, b) => {
-            const aDate =
-              getPredictionDate(
-                a,
-              )?.getTime() ??
-              Number.MAX_SAFE_INTEGER;
-
-            const bDate =
-              getPredictionDate(
-                b,
-              )?.getTime() ??
-              Number.MAX_SAFE_INTEGER;
-
-            return (
-              aDate - bDate
-            );
-          },
         );
+
+
+      /* ---------------------------------------------------
+         SORT
+      --------------------------------------------------- */
+
+      result.sort(
+        (a, b) => {
+          const aTime =
+            getPredictionDate(
+              a,
+            )?.getTime() ??
+            Number.MAX_SAFE_INTEGER;
+
+          const bTime =
+            getPredictionDate(
+              b,
+            )?.getTime() ??
+            Number.MAX_SAFE_INTEGER;
+
+          return (
+            aTime - bTime
+          );
+        },
+      );
+
+      return result;
     }, [
       predictions,
       filters,
     ]);
 
 
-  /*
-   * =========================================================
-   * RESET PAGE WHEN FILTERS CHANGE
-   * =========================================================
-   */
+  /* =======================================================
+     RESET PAGINATION
+  ======================================================= */
 
   useEffect(() => {
     setPage(1);
   }, [filters]);
 
 
-  /*
-   * =========================================================
-   * PAGINATION
-   * =========================================================
-   */
+  /* =======================================================
+     PAGINATION
+  ======================================================= */
 
   const totalPages =
     Math.ceil(
@@ -956,19 +1002,48 @@ function PredictionsPageContent() {
     );
 
   const paginated =
-    filtered.slice(
-      (page - 1) *
-        ITEMS_PER_PAGE,
-      page *
-        ITEMS_PER_PAGE,
+    useMemo(
+      () =>
+        filtered.slice(
+          (page - 1) *
+            ITEMS_PER_PAGE,
+          page *
+            ITEMS_PER_PAGE,
+        ),
+      [
+        filtered,
+        page,
+      ],
     );
 
 
-  /*
-   * =========================================================
-   * URL → PREDICTION
-   * =========================================================
-   */
+  /* =======================================================
+     RENDER STATES
+     
+     NOTE:
+     There is intentionally NO accessLoading condition here.
+
+     The page is allowed to render while individual
+     prediction access checks are happening.
+  ======================================================= */
+
+  const hasResults =
+    paginated.length > 0;
+
+  const canRenderResults =
+    !loading &&
+    !error &&
+    hasResults;
+
+  const showEmpty =
+    !loading &&
+    !error &&
+    !hasResults;
+
+
+  /* =======================================================
+     URL → PREDICTION
+  ======================================================= */
 
   useEffect(() => {
     if (
@@ -981,10 +1056,9 @@ function PredictionsPageContent() {
     const index =
       filtered.findIndex(
         (prediction) =>
-          prediction._id ===
-            predictionId ||
-          prediction.id ===
-            predictionId,
+          getPredictionId(
+            prediction,
+          ) === predictionId,
       );
 
     if (index === -1) {
@@ -1034,7 +1108,7 @@ function PredictionsPageContent() {
             3000,
           );
         },
-        150,
+        100,
       );
 
     return () => {
@@ -1049,56 +1123,47 @@ function PredictionsPageContent() {
   ]);
 
 
-  /*
-   * =========================================================
-   * OPEN SUBSCRIPTION MODAL
-   *
-   * BOTH DESKTOP TABLE AND MOBILE CARD
-   * USE THIS SAME HANDLER.
-   * =========================================================
-   */
+  /* =======================================================
+     SUBSCRIPTION MODAL
+  ======================================================= */
 
   const openSubscriptionModal =
-    ({
-      predictionId,
-      prediction,
-      requiredPlan,
-      feature,
-      userPlan,
-      predictionPlan,
-      released,
-      releaseAt,
-      accessState,
-      accessMessage,
-    }: SubscriptionModalData) => {
-
+    (
+      data: SubscriptionModalData,
+    ) => {
       setSubscriptionModal({
         open: true,
 
-        requiredPlan,
+        requiredPlan:
+          data.requiredPlan,
 
-        feature,
+        feature:
+          data.feature,
 
-        userPlan,
+        userPlan:
+          data.userPlan,
 
-        predictionPlan,
+        predictionPlan:
+          data.predictionPlan,
 
-        released,
+        released:
+          data.released,
 
-        releaseAt,
+        releaseAt:
+          data.releaseAt,
 
-        accessState,
+        accessState:
+          data.accessState,
 
-        accessMessage,
+        accessMessage:
+          data.accessMessage,
       });
     };
 
 
-  /*
-   * =========================================================
-   * SUBSCRIBE
-   * =========================================================
-   */
+  /* =======================================================
+     SUBSCRIBE
+  ======================================================= */
 
   const handleSubscribe =
     () => {
@@ -1107,18 +1172,16 @@ function PredictionsPageContent() {
     };
 
 
-  /*
-   * =========================================================
-   * RENDER
-   * =========================================================
-   */
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
-    <div
-      className="
-        space-y-8
-      "
-    >
+    <div className="space-y-8">
+
+      {/* =====================================================
+          HERO AD
+      ===================================================== */}
 
       <InternalAds
         page={AdPage.HOME}
@@ -1161,7 +1224,7 @@ function PredictionsPageContent() {
           >
             <p
               className="
-                text-s
+                text-sm
                 font-medium
                 text-red-600
                 dark:text-red-400
@@ -1174,11 +1237,10 @@ function PredictionsPageContent() {
 
 
       {/* =====================================================
-          LOADING
+          INITIAL LOADING
       ===================================================== */}
 
-      {(loading ||
-        accessLoading) && (
+      {loading && (
         <div
           className="
             rounded-3xl
@@ -1190,9 +1252,7 @@ function PredictionsPageContent() {
             text-muted-foreground
           "
         >
-          {loading
-            ? 'Loading predictions...'
-            : 'Checking prediction access...'}
+          Loading predictions...
         </div>
       )}
 
@@ -1201,155 +1261,115 @@ function PredictionsPageContent() {
           EMPTY
       ===================================================== */}
 
-      {!loading &&
-        !accessLoading &&
-        !error &&
-        paginated.length ===
-          0 && (
-          <div
+      {showEmpty && (
+        <div
+          className="
+            rounded-3xl
+            border
+            border-border
+            bg-card
+            p-10
+            text-center
+          "
+        >
+          <h3 className="font-semibold">
+            No predictions found
+          </h3>
+
+          <p
             className="
-              rounded-3xl
-              border
-              border-border
-              bg-card
-              p-10
-              text-center
+              mt-2
+              text-sm
+              text-muted-foreground
             "
           >
-            <h3
-              className="
-                font-semibold
-              "
-            >
-              No predictions found
-            </h3>
-
-            <p
-              className="
-                mt-2
-                text-s
-                text-muted-foreground
-              "
-            >
-              Try changing your
-              filters.
-            </p>
-          </div>
-        )}
+            Try changing your
+            filters.
+          </p>
+        </div>
+      )}
 
 
       {/* =====================================================
           DESKTOP TABLE
       ===================================================== */}
 
-      {!loading &&
-        !accessLoading &&
-        !error &&
-        paginated.length >
-          0 && (
-          <div
-            className="
-              hidden
-              xl:block
-            "
-          >
-            <PredictionTable
-              predictions={
-                paginated
-              }
-
-              highlightedId={
-                highlightedId
-              }
-
-              onSubscriptionRequired={(
-                data,
-              ) => {
-
+      {canRenderResults && (
+        <div className="hidden xl:block">
+          <PredictionTable
+            predictions={paginated}
+            highlightedId={
+              highlightedId
+            }
+            onSubscriptionRequired={
+              (data) => {
                 const prediction =
                   paginated.find(
                     (item) =>
-                      String(
-                        item._id ??
-                        item.id ??
-                        '',
+                      getPredictionId(
+                        item,
                       ) ===
                       data.predictionId,
                   );
-
 
                 openSubscriptionModal({
                   ...data,
                   prediction,
                 });
-
-              }}
-            />
-          </div>
-        )}
+              }
+            }
+          />
+        </div>
+      )}
 
 
       {/* =====================================================
           MOBILE CARDS
       ===================================================== */}
 
-      {!loading &&
-        !accessLoading &&
-        !error &&
-        paginated.length >
-          0 && (
-          <div
-            className="
-              space-y-4
-              xl:hidden
-            "
-          >
-            {paginated.map(
-              (prediction) => {
+      {canRenderResults && (
+        <div
+          className="
+            space-y-4
+            xl:hidden
+          "
+        >
+          {paginated.map(
+            (prediction) => {
+              const id =
+                getPredictionId(
+                  prediction,
+                );
 
-                const id =
-                  prediction._id ??
-                  prediction.id;
+              if (!id) {
+                return null;
+              }
 
-                return (
-                  <PredictionMobileCard
-                    key={id}
-
-                    prediction={
-                      prediction
-                    }
-
-                    highlighted={
-                      highlightedId ===
-                      id
-                    }
-
-                    /*
-                     * THIS WAS THE MISSING PROP.
-                     *
-                     * The mobile card now has
-                     * access to the same modal
-                     * callback as the desktop table.
-                     */
-                    onSubscriptionRequired={(
-                      data,
-                    ) => {
-
+              return (
+                <PredictionMobileCard
+                  key={id}
+                  prediction={
+                    prediction
+                  }
+                  highlighted={
+                    highlightedId ===
+                    id
+                  }
+                  onSubscriptionRequired={
+                    (data) =>
                       openSubscriptionModal({
                         ...data,
-
                         predictionId:
                           id,
-
                         prediction,
-                      });
-                    }}
-                  />
-                );
-              },
-            )}
-          </div>
-        )}
+                      })
+                  }
+                />
+              );
+            },
+          )}
+        </div>
+      )}
 
 
       {/* =====================================================
@@ -1357,9 +1377,7 @@ function PredictionsPageContent() {
       ===================================================== */}
 
       {!loading &&
-        !accessLoading &&
-        filtered.length >
-          0 && (
+        filtered.length > 0 && (
           <PredictionPagination
             page={page}
             totalPages={
@@ -1378,16 +1396,12 @@ function PredictionsPageContent() {
 
       <InternalAds
         page={AdPage.HOME}
-        position={
-          AdPosition.BOTTOM
-        }
+        position={AdPosition.BOTTOM}
       />
 
       <InternalAds
         page={AdPage.HOME}
-        position={
-          AdPosition.POPUP
-        }
+        position={AdPosition.POPUP}
       />
 
 
@@ -1395,56 +1409,46 @@ function PredictionsPageContent() {
           SUBSCRIPTION MODAL
       ===================================================== */}
 
-            <SubscriptionModal
-              open={
-                subscriptionModal.open
-              }
-
-              onClose={() =>
-                setSubscriptionModal(
-                  (current) => ({
-                    ...current,
-                    open: false,
-                  }),
-                )
-              }
-
-              requiredPlan={
-                subscriptionModal.requiredPlan
-              }
-
-              feature={
-                subscriptionModal.feature
-              }
-
-              userPlan={
-                subscriptionModal.userPlan
-              }
-
-              predictionPlan={
-                subscriptionModal.predictionPlan
-              }
-
-              released={
-                subscriptionModal.released
-              }
-
-              releaseAt={
-                subscriptionModal.releaseAt
-              }
-
-              accessState={
-                subscriptionModal.accessState
-              }
-
-              accessMessage={
-                subscriptionModal.accessMessage
-              }
-
-              onSubscribe={
-                handleSubscribe
-              }
-            />
+      <SubscriptionModal
+        open={
+          subscriptionModal.open
+        }
+        onClose={() =>
+          setSubscriptionModal(
+            (current) => ({
+              ...current,
+              open: false,
+            }),
+          )
+        }
+        requiredPlan={
+          subscriptionModal.requiredPlan
+        }
+        feature={
+          subscriptionModal.feature
+        }
+        userPlan={
+          subscriptionModal.userPlan
+        }
+        predictionPlan={
+          subscriptionModal.predictionPlan
+        }
+        released={
+          subscriptionModal.released
+        }
+        releaseAt={
+          subscriptionModal.releaseAt
+        }
+        accessState={
+          subscriptionModal.accessState
+        }
+        accessMessage={
+          subscriptionModal.accessMessage
+        }
+        onSubscribe={
+          handleSubscribe
+        }
+      />
 
     </div>
   );
@@ -1452,13 +1456,12 @@ function PredictionsPageContent() {
 
 
 /* =========================================================
-   MATCH DATE
+   DATE HELPERS
 ========================================================= */
 
 function getPredictionDate(
-  prediction: any,
+  prediction: Prediction,
 ): Date | null {
-
   const value =
     prediction.matchDate ??
     prediction.date ??
@@ -1469,20 +1472,27 @@ function getPredictionDate(
   }
 
   const date =
-    typeof value === 'number'
-      ? new Date(value)
-      : new Date(value);
+    new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-    return null;
-  }
-
-  return date;
+  return Number.isNaN(
+    date.getTime(),
+  )
+    ? null
+    : date;
 }
+
+
+function isWithin(
+  date: Date,
+  start: Date,
+  end: Date,
+): boolean {
+  return (
+    date >= start &&
+    date < end
+  );
+}
+
 
 /* =========================================================
    PAGE

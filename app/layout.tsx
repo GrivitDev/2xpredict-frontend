@@ -168,9 +168,10 @@ export default function RootLayout({
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
-      <body className={cn(
-        "min-h-screen overflow-x-hidden bg-background text-foreground transition-colors duration-300, "
-        )}
+        <body
+          className={cn(
+            'min-h-screen overflow-x-clip bg-background text-foreground transition-colors duration-300'
+          )}
         >
 
           <Script async 

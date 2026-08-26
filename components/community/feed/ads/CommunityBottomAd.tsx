@@ -2,40 +2,31 @@
 
 import { memo } from 'react';
 
-import {InternalAds} from '@/components/ads/IntAds/InternalAds';
-// import ExternalAds from '@/components/ads/ExternalAds';
+import { InternalAds } from '@/components/ads/IntAds/InternalAds';
 
 import {
   getCommunityBottomAd,
 } from './CommunityAdEngine';
 
-export default memo(
+const CommunityBottomAd = memo(
   function CommunityBottomAd() {
-
     const ad =
       getCommunityBottomAd();
 
-    if (ad.internal) {
-
-      return (
-
-        <InternalAds
-          page={ad.page}
-          position={ad.position}
-        />
-
-      );
-
+    if (!ad.internal) {
+      return null;
     }
 
-    // return (
-
-    //   <ExternalAds
-    //     page={ad.page}
-    //     position={ad.position}
-    //   />
-
-    // );
-
+    return (
+      <InternalAds
+        page={ad.page}
+        position={ad.position}
+      />
+    );
   },
 );
+
+CommunityBottomAd.displayName =
+  'CommunityBottomAd';
+
+export default CommunityBottomAd;

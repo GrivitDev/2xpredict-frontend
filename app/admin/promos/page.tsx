@@ -26,195 +26,172 @@ import type {
   Promo,
 } from '@/types/promo';
 
-
-
-
-
 export default async function AdminPromosPage() {
+  const promos: Promo[] = await getPromos();
 
+  const total = promos.length;
 
-  const promos:Promo[] = await getPromos();
+  const active = promos.filter(
+    (promo) => promo.isActive,
+  ).length;
 
+  const referral = promos.filter(
+    (promo) => promo.campaignType === 'referral',
+  ).length;
 
-
-  const total =
-    promos.length;
-
-
-
-  const active =
-    promos.filter(
-      promo => promo.isActive,
-    ).length;
-
-
-
-  const referral =
-    promos.filter(
-      promo =>
-        promo.campaignType === 'referral',
-    ).length;
-
-
-
-  const direct =
-    promos.filter(
-      promo =>
-        promo.campaignType === 'direct',
-    ).length;
-
-
-
+  const direct = promos.filter(
+    (promo) => promo.campaignType === 'direct',
+  ).length;
 
   return (
+    <div
+      className="
+        space-y-6
+        animate-in
+        fade-in
+        slide-in-from-bottom-4
+        duration-500
+        sm:space-y-8
+      "
+    >
+      {/* Header */}
 
-    <div className="space-y-8">
-
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
-      <div className="flex items-center justify-between">
-
-
+      <header
+        className="
+          flex
+          flex-col
+          gap-4
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        "
+      >
         <div>
-
-          <h1 className="text-3xl font-bold">
+          <h1
+            className="
+              text-2xl
+              font-bold
+              tracking-tight
+              sm:text-3xl
+            "
+          >
             Promotions
           </h1>
 
-
-          <p className="text-muted-foreground">
-            Create and manage promotional campaigns
+          <p
+            className="
+              mt-1
+              text-s
+              text-muted-foreground
+              sm:text-base
+            "
+          >
+            Create and manage promotional campaigns.
           </p>
-
         </div>
 
-
-
-        <Button asChild>
-
+        <Button
+          asChild
+          className="w-full sm:w-auto"
+        >
           <Link href="/admin/promos/create">
-
             <Plus className="mr-2 h-4 w-4" />
-
             Create Promo
-
           </Link>
-
         </Button>
+      </header>
 
+      {/* Stats */}
 
+      <div
+        className="
+          grid
+          gap-3
+          sm:grid-cols-2
+          lg:grid-cols-4
+        "
+      >
+        <PromoStat
+          label="Total Promos"
+          value={total}
+        />
+
+        <PromoStat
+          label="Active"
+          value={active}
+        />
+
+        <PromoStat
+          label="Referral Campaigns"
+          value={referral}
+        />
+
+        <PromoStat
+          label="Direct Campaigns"
+          value={direct}
+        />
       </div>
 
-
-
-
-      {/* =====================================================
-          STATS
-      ===================================================== */}
-
-      <div className="grid gap-4 md:grid-cols-4">
-
-
-        <Card>
-
-          <CardContent className="p-6">
-
-            <p className="text-s text-muted-foreground">
-              Total Promos
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {total}
-            </p>
-
-          </CardContent>
-
-        </Card>
-
-
-
-        <Card>
-
-          <CardContent className="p-6">
-
-            <p className="text-s text-muted-foreground">
-              Active
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {active}
-            </p>
-
-          </CardContent>
-
-        </Card>
-
-
-
-        <Card>
-
-          <CardContent className="p-6">
-
-            <p className="text-s text-muted-foreground">
-              Referral Campaigns
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {referral}
-            </p>
-
-          </CardContent>
-
-        </Card>
-
-
-
-        <Card>
-
-          <CardContent className="p-6">
-
-            <p className="text-s text-muted-foreground">
-              Direct Campaigns
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {direct}
-            </p>
-
-          </CardContent>
-
-        </Card>
-
-
-      </div>
-
-
-
-
-      {/* =====================================================
-          PROMOS
-      ===================================================== */}
+      {/* Promos */}
 
       <PromoTable
         promos={promos}
       />
 
-
-
-      {/* =====================================================
-          REWARDS
-      ===================================================== */}
+      {/* Rewards */}
 
       <AdminClaimedRewardsTable />
 
       <PendingCashRewardsTable />
-
-
     </div>
-
   );
+}
 
+function PromoStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <Card
+      className="
+        overflow-hidden
+        border-border
+        bg-card/70
+        shadow-sm
+        backdrop-blur
+      "
+    >
+      <CardContent
+        className="
+          p-4
+          sm:p-5
+        "
+      >
+        <p
+          className="
+            text-xs
+            font-medium
+            text-muted-foreground
+          "
+        >
+          {label}
+        </p>
+
+        <p
+          className="
+            mt-1
+            text-2xl
+            font-bold
+            tracking-tight
+            sm:text-3xl
+          "
+        >
+          {value}
+        </p>
+      </CardContent>
+    </Card>
+  );
 }

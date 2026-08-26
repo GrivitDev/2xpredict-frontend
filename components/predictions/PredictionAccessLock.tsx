@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Clock3,
   Crown,
@@ -39,288 +37,120 @@ export interface PredictionLockInfo {
   requiredPlan?: 'regular' | 'vip';
 }
 
-/* =========================================================
-   PLAN LEVELS
-========================================================= */
-
-export const PLAN_LEVELS: Record<
-  PredictionPlan,
-  number
-> = {
+export const PLAN_LEVELS: Record<PredictionPlan, number> = {
   free: 1,
   regular: 2,
   vip: 3,
 };
 
-
-/* =========================================================
-   NORMALIZE PLAN
-========================================================= */
-
 export function normalizePlan(
   plan?: string,
 ): PredictionPlan {
-  switch (
-    plan?.toLowerCase()
-  ) {
-    case 'vip':
-      return 'vip';
+  const normalized = plan?.toLowerCase();
 
-    case 'regular':
-      return 'regular';
-
-    default:
-      return 'free';
-  }
+  return normalized === 'vip' ||
+    normalized === 'regular'
+    ? normalized
+    : 'free';
 }
-
-
-/* =========================================================
-   LOCK INFORMATION
-========================================================= */
 
 export function getPredictionLockInfo({
   access,
   predictionPlan,
 }: LockInfoParams): PredictionLockInfo {
+  const userPlan = normalizePlan(access.plan);
+  const requiredPlan = normalizePlan(predictionPlan);
+  const state = access.state ?? '';
+  const released = access.released === true;
 
-  const userPlan =
-    normalizePlan(
-      access.plan,
-    );
-
-  const requiredPlan =
-    normalizePlan(
-      predictionPlan,
-    );
-
-  const state =
-    access.state ?? '';
-
-  const released =
-    access.released === true;
-
-
-  /* =======================================================
-     LOGIN
-  ======================================================= */
-
-  if (
-    state ===
-    'login_required'
-  ) {
+  if (state === 'login_required') {
     return {
       title: 'Login required',
-
-      description:
-        'Login to view this prediction.',
-
+      description: 'Login to view this prediction.',
       icon: 'lock',
     };
   }
 
-
-  /* =======================================================
-     USER PLAN IS TOO LOW
-  ======================================================= */
-
   if (
-    state ===
-      'upgrade_required' ||
-    PLAN_LEVELS[userPlan] <
-      PLAN_LEVELS[requiredPlan]
+    state === 'upgrade_required' ||
+    PLAN_LEVELS[userPlan] < PLAN_LEVELS[requiredPlan]
   ) {
-
-    /*
-     * VIP prediction
-     */
-
-    if (
-      requiredPlan ===
-      'vip'
-    ) {
-
-      /*
-       * Regular → VIP
-       */
-
-      if (
-        userPlan ===
-        'regular'
-      ) {
-        return {
-          title:
-            'VIP Required',
-
-          description:
-            'Upgrade to VIP to access this prediction.',
-
-          icon: 'crown',
-
-          requiredPlan:
-            'vip',
-        };
-      }
-
-
-      /*
-       * Free → Regular or VIP
-       */
-
-      return {
-        title:
-          'VIP Access',
-
-        description:
-          'Upgrade to Regular or VIP to access this prediction.',
-
-        icon: 'crown',
-
-        requiredPlan:
-          'vip',
-      };
+    if (requiredPlan === 'vip') {
+      return userPlan === 'regular'
+        ? {
+            title: 'VIP Required',
+            description:
+              'Upgrade to VIP to access this prediction.',
+            icon: 'crown',
+            requiredPlan: 'vip',
+          }
+        : {
+            title: 'VIP Access',
+            description:
+              'Upgrade to Regular or VIP to access this prediction.',
+            icon: 'crown',
+            requiredPlan: 'vip',
+          };
     }
 
-
-    /*
-     * Regular prediction
-     */
-
-    if (
-      requiredPlan ===
-      'regular'
-    ) {
-
+    if (requiredPlan === 'regular') {
       return {
-        title:
-          'Regular Access',
-
+        title: 'Regular Access',
         description:
           'Upgrade to Regular or VIP to access this prediction.',
-
         icon: 'lock',
-
-        requiredPlan:
-          'regular',
+        requiredPlan: 'regular',
       };
     }
   }
 
-
-  /* =======================================================
-     SAME PLAN BUT NOT RELEASED
-  ======================================================= */
-
-  if (
-    state === 'locked' &&
-    !released
-  ) {
-
-    /*
-     * Regular user looking at a Regular
-     * prediction before its release window.
-     */
-
+  if (state === 'locked' && !released) {
     if (
-      requiredPlan ===
-        'regular' &&
-      userPlan ===
-        'regular'
+      requiredPlan === 'regular' &&
+      userPlan === 'regular'
     ) {
-
       return {
-        title:
-          'Not released to Regular',
-
+        title: 'Not released to Regular',
         description:
           'Upgrade to VIP to see this prediction earlier.',
-
         icon: 'crown',
-
-        requiredPlan:
-          'vip',
+        requiredPlan: 'vip',
       };
     }
-
-
-    /*
-     * Free/Regular user looking at VIP
-     * should normally have been caught by
-     * upgrade_required, but keep this safe.
-     */
 
     if (
-      requiredPlan ===
-        'vip' &&
-      userPlan !==
-        'vip'
+      requiredPlan === 'vip' &&
+      userPlan !== 'vip'
     ) {
+      const isRegular = userPlan === 'regular';
 
       return {
-        title:
-          'Not released to your plan',
-
-        description:
-          userPlan ===
-          'regular'
-            ? 'Upgrade to VIP to see this prediction earlier.'
-            : 'Upgrade to Regular or VIP to access this prediction.',
-
-        icon:
-          userPlan ===
-          'regular'
-            ? 'crown'
-            : 'lock',
-
-        requiredPlan:
-          userPlan ===
-          'regular'
-            ? 'vip'
-            : 'regular',
+        title: 'Not released to your plan',
+        description: isRegular
+          ? 'Upgrade to VIP to see this prediction earlier.'
+          : 'Upgrade to Regular or VIP to access this prediction.',
+        icon: isRegular ? 'crown' : 'lock',
+        requiredPlan: isRegular ? 'vip' : 'regular',
       };
     }
 
-
-    /*
-     * Free prediction that simply hasn't
-     * reached its release time.
-     */
-
     return {
-      title:
-        'Not released yet',
-
+      title: 'Not released yet',
       description:
         access.message ??
         'This prediction will be available closer to kickoff.',
-
-      icon:
-        'clock',
+      icon: 'clock',
     };
   }
 
-
-  /* =======================================================
-     FALLBACK
-  ======================================================= */
-
   return {
-    title:
-      'Prediction locked',
-
+    title: 'Prediction locked',
     description:
       access.message ??
       'This prediction is currently unavailable.',
-
-    icon:
-      'lock',
+    icon: 'lock',
   };
 }
-
-
-/* =========================================================
-   ICON
-========================================================= */
 
 export function PredictionLockIcon({
   type,
@@ -329,38 +159,16 @@ export function PredictionLockIcon({
   type: PredictionLockInfo['icon'];
   size?: number;
 }) {
-
-  if (
-    type === 'crown'
-  ) {
-    return (
-      <Crown
-        size={size}
-      />
-    );
+  if (type === 'crown') {
+    return <Crown size={size} />;
   }
 
-  if (
-    type === 'clock'
-  ) {
-    return (
-      <Clock3
-        size={size}
-      />
-    );
+  if (type === 'clock') {
+    return <Clock3 size={size} />;
   }
 
-  return (
-    <Lock
-      size={size}
-    />
-  );
+  return <Lock size={size} />;
 }
-
-
-/* =========================================================
-   RELEASE DATE
-========================================================= */
 
 export function formatReleaseDate(
   timestamp?: number | null,
@@ -369,25 +177,17 @@ export function formatReleaseDate(
     return null;
   }
 
-  const date =
-    new Date(timestamp);
+  const date = new Date(timestamp);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return null;
   }
 
-  return date.toLocaleString(
-    'en-GB',
-    {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    },
-  );
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }

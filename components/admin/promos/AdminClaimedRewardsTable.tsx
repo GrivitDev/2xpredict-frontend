@@ -1,246 +1,276 @@
 'use client';
 
-
 import {
- useQuery,
+  useQuery,
 } from '@tanstack/react-query';
 
-
 import {
- Card,
- CardContent,
- CardHeader,
- CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 
-
 import {
- Badge,
+  Badge,
 } from '@/components/ui/badge';
 
-
 import {
- getAllClaimedRewards,
+  getAllClaimedRewards,
 } from '@/services/admin-promo-rewards.service';
 
+interface ClaimedReward {
+  _id: string;
 
+  userId?: {
+    fullName?: string;
+    username?: string;
+    email?: string;
+  };
 
-export default function AdminClaimedRewardsTable(){
+  promoId?: {
+    campaignType?: string;
+  };
 
+  type: string;
 
-const {
- data:rewards=[],
- isLoading,
-}=useQuery({
+  plan?: string;
 
- queryKey:[
-  'claimed-rewards'
- ],
+  durationDays?: number;
 
- queryFn:getAllClaimedRewards
+  amount?: number;
 
-});
+  claimNumber?: string | number;
 
-
-
-if(isLoading){
-
- return (
-  <p>
-   Loading rewards...
-  </p>
- )
-
+  status?: string;
 }
 
+export default function AdminClaimedRewardsTable() {
+  const {
+    data: rewards = [],
+    isLoading,
+    isError,
+  } = useQuery<ClaimedReward[]>({
+    queryKey: ['claimed-rewards'],
+    queryFn: getAllClaimedRewards,
+  });
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-s text-muted-foreground">
+            Loading rewards...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-return (
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-s text-destructive">
+            Failed to load claimed rewards.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-<Card>
+  if (!rewards.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            All Claimed Rewards
+          </CardTitle>
+        </CardHeader>
 
+        <CardContent>
+          <div
+            className="
+              rounded-xl
+              border
+              border-dashed
+              border-border
+              bg-muted/20
+              p-8
+              text-center
+            "
+          >
+            <p className="text-s font-medium">
+              No claimed rewards found.
+            </p>
 
-<CardHeader>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Claimed promotional rewards will appear here.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-<CardTitle>
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle>
+          All Claimed Rewards
+        </CardTitle>
+      </CardHeader>
 
-All Claimed Rewards
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-s">
+            <thead>
+              <tr
+                className="
+                  border-b
+                  border-border
+                  bg-muted/40
+                "
+              >
+                <TableHeader align="left">
+                  User
+                </TableHeader>
 
-</CardTitle>
+                <TableHeader>
+                  Campaign
+                </TableHeader>
 
-</CardHeader>
+                <TableHeader>
+                  Reward
+                </TableHeader>
 
+                <TableHeader>
+                  Claim
+                </TableHeader>
 
-<CardContent>
+                <TableHeader>
+                  Status
+                </TableHeader>
+              </tr>
+            </thead>
 
-
-<div className="overflow-x-auto">
-
-
-<table className="w-full text-s">
-
-
-<thead>
-
-<tr className="border-b">
-
-<th className="p-3 text-left">
-User
-</th>
-
-
-<th className="p-3">
-Campaign
-</th>
-
-
-<th className="p-3">
-Reward
-</th>
-
-
-<th className="p-3">
-Claim
-</th>
-
-
-<th className="p-3">
-Status
-</th>
-
-
-</tr>
-
-</thead>
-
-
-
-<tbody>
-
-
-{
-rewards.map(
-(reward:any)=>(
-
-
-<tr
-key={reward._id}
-className="border-b"
->
-
-
-<td className="p-3">
-
-<div>
-
-<p className="font-medium">
-
-{
-reward.userId?.fullName ||
-reward.userId?.username
+            <tbody>
+              {rewards.map((reward) => (
+                <RewardRow
+                  key={reward._id}
+                  reward={reward}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
-</p>
+function RewardRow({
+  reward,
+}: {
+  reward: ClaimedReward;
+}) {
+  const userName =
+    reward.userId?.fullName ||
+    reward.userId?.username ||
+    'Unknown user';
 
+  const campaign =
+    reward.promoId?.campaignType ||
+    '—';
 
-<p className="text-muted-foreground">
+  const rewardValue =
+    reward.type === 'subscription'
+      ? [
+          reward.plan,
+          reward.durationDays
+            ? `${reward.durationDays} days`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' ') || 'Subscription'
+      : `₦${Number(
+          reward.amount || 0,
+        ).toLocaleString('en-NG')}`;
 
-{
-reward.userId?.email
+  return (
+    <tr
+      className="
+        border-b
+        border-border/70
+        transition-colors
+        last:border-0
+        hover:bg-muted/30
+      "
+    >
+      <td className="p-3">
+        <div className="min-w-0">
+          <p className="truncate font-medium">
+            {userName}
+          </p>
+
+          {reward.userId?.email && (
+            <p className="truncate text-xs text-muted-foreground">
+              {reward.userId.email}
+            </p>
+          )}
+        </div>
+      </td>
+
+      <td className="p-3 text-center">
+        <span className="capitalize text-muted-foreground">
+          {campaign}
+        </span>
+      </td>
+
+      <td className="p-3 text-center font-medium">
+        {rewardValue}
+      </td>
+
+      <td className="p-3 text-center">
+        <span className="font-mono text-xs">
+          #{reward.claimNumber ?? '—'}
+        </span>
+      </td>
+
+      <td className="p-3 text-center">
+        <Badge variant="secondary">
+          {reward.status || 'Unknown'}
+        </Badge>
+      </td>
+    </tr>
+  );
 }
 
-</p>
-
-
-</div>
-
-</td>
-
-<td className="p-3">
-
-{
-reward.promoId?.campaignType
-
-}
-
-</td>                 
-
-
-
-
-
-<td className="p-3">
-
-
-{
-reward.type==='subscription'
-
-?
-
-`${reward.plan} ${reward.durationDays} days`
-
-:
-
-`₦${reward.amount}`
-
-}
-
-
-</td>
-
-
-
-
-<td className="p-3">
-
-#
-{reward.claimNumber}
-
-</td>
-
-
-
-
-<td className="p-3">
-
-
-<Badge>
-
-{
-reward.status
-}
-
-</Badge>
-
-
-</td>
-
-
-
-</tr>
-
-
-)
-)
-}
-
-
-
-</tbody>
-
-
-</table>
-
-
-</div>
-
-
-</CardContent>
-
-
-</Card>
-
-
-)
-
+function TableHeader({
+  children,
+  align = 'center',
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'center';
+}) {
+  return (
+    <th
+      className={`
+        whitespace-nowrap
+        p-3
+        text-xs
+        font-bold
+        uppercase
+        tracking-wider
+        text-muted-foreground
+        ${
+          align === 'left'
+            ? 'text-left'
+            : 'text-center'
+        }
+      `}
+    >
+      {children}
+    </th>
+  );
 }

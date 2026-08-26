@@ -1,27 +1,11 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
-import {
-  LucideIcon,
-} from 'lucide-react';
-
-import {
-  ReactNode,
-} from 'react';
+import { ReactNode } from 'react';
+import { LucideIcon } from 'lucide-react';
 
 interface Props {
   title: string;
-
   children: ReactNode;
-
   description?: string;
-
   icon: LucideIcon;
-
   highlight?: boolean;
 }
 
@@ -30,59 +14,60 @@ export default function AnalyticsCard({
   children,
   description,
   icon: Icon,
-  highlight,
+  highlight = false,
 }: Props) {
   return (
-    <Card
+    <div
       className={`
-        surface-card
-        transition-all
+        rounded-lg
+        border
+        bg-card
+        p-3
+        shadow-sm
         ${
           highlight
-            ? 'border-primary/40 shadow-sm'
+            ? 'border-primary/40'
             : ''
         }
       `}
     >
-      <CardHeader
-        className="
-          flex
-          flex-row
-          items-center
-          justify-between
-          pb-3
-        "
-      >
-        <CardTitle
-          className="
-            text-s
-            font-medium
-            text-muted-foreground
-          "
-        >
-          {title}
-        </CardTitle>
-
-        <Icon
-          size={20}
-          className="text-primary"
-        />
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        {children}
-
-        {description && (
-          <p
-            className="
-              text-xs
-              text-muted-foreground
-            "
-          >
-            {description}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-muted-foreground">
+            {title}
           </p>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="mt-1.5">
+            {children}
+          </div>
+
+          {description && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {description}
+            </p>
+          )}
+        </div>
+
+        <div
+          className={`
+            flex
+            size-8
+            shrink-0
+            items-center
+            justify-center
+            rounded-md
+            border
+            bg-muted/40
+            ${
+              highlight
+                ? 'border-primary/30 text-primary'
+                : 'text-muted-foreground'
+            }
+          `}
+        >
+          <Icon className="size-4" />
+        </div>
+      </div>
+    </div>
   );
 }

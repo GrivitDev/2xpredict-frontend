@@ -32,7 +32,6 @@ interface Props {
 // ============================================================
 
 const MAX_VISIBLE_MATCHES = 10;
-
 const NIGERIA_TIMEZONE = 'Africa/Lagos';
 
 
@@ -43,21 +42,18 @@ const NIGERIA_TIMEZONE = 'Africa/Lagos';
 function getNigeriaDate(
   date: Date,
 ): string {
-
   return date.toLocaleDateString(
     'en-CA',
     {
       timeZone: NIGERIA_TIMEZONE,
     },
   );
-
 }
 
 
 function formatMatchTime(
   date: string,
 ): string {
-
   return new Date(date).toLocaleTimeString(
     'en-NG',
     {
@@ -67,12 +63,10 @@ function formatMatchTime(
       hour12: false,
     },
   );
-
 }
 
 
 function formatTodayDate(): string {
-
   return new Intl.DateTimeFormat(
     'en-GB',
     {
@@ -83,7 +77,6 @@ function formatTodayDate(): string {
       year: 'numeric',
     },
   ).format(new Date());
-
 }
 
 
@@ -107,46 +100,40 @@ export default function TodayMatches({
 
   const todayMatches = useMemo(() => {
 
-    const today =
-      getNigeriaDate(new Date());
-
-
-    return matches.filter(
-      match => {
-
-        return (
-          getNigeriaDate(
-            new Date(match.date),
-          ) === today
-        );
-
-      },
+    const today = getNigeriaDate(
+      new Date(),
     );
 
-  }, [
-    matches,
-  ]);
+    return matches.filter(
+      match =>
+        getNigeriaDate(
+          new Date(match.date),
+        ) === today,
+    );
+
+  }, [matches]);
 
 
   // ==========================================================
   // VISIBLE MATCHES
   // ==========================================================
 
-  const visibleMatches =
-    expanded
-      ? todayMatches
-      : todayMatches.slice(
-          0,
-          MAX_VISIBLE_MATCHES,
-        );
+  const visibleMatches = expanded
+    ? todayMatches
+    : todayMatches.slice(
+        0,
+        MAX_VISIBLE_MATCHES,
+      );
 
 
   // ==========================================================
   // DATE
   // ==========================================================
 
-  const formattedDate =
-    formatTodayDate();
+  const formattedDate = useMemo(
+    formatTodayDate,
+    [],
+  );
 
 
   // ==========================================================
@@ -154,7 +141,6 @@ export default function TodayMatches({
   // ==========================================================
 
   return (
-
     <section
       className="
         overflow-hidden
@@ -198,7 +184,6 @@ export default function TodayMatches({
             sm:rounded-2xl
           "
         >
-
           <CalendarDays
             size={19}
             className="
@@ -206,11 +191,10 @@ export default function TodayMatches({
               sm:w-[22px]
             "
           />
-
         </div>
 
 
-        <div>
+        <div className="min-w-0">
 
           <h2
             className="
@@ -222,7 +206,6 @@ export default function TodayMatches({
           >
             Matches for Today
           </h2>
-
 
           <p
             className="
@@ -263,11 +246,10 @@ export default function TodayMatches({
             No matches today
           </h3>
 
-
           <p
             className="
               mt-2
-              text-s
+              text-xs
               text-muted-foreground
             "
           >
@@ -285,11 +267,7 @@ export default function TodayMatches({
               MATCH TABLE
           ================================================== */}
 
-          <div
-            className="
-              overflow-x-auto
-            "
-          >
+          <div className="overflow-x-auto">
 
             <table
               className="
@@ -297,13 +275,9 @@ export default function TodayMatches({
                 min-w-[500px]
                 text-[11px]
                 sm:min-w-[650px]
-                sm:text-s
+                sm:text-xs
               "
             >
-
-              {/* ==============================================
-                  TABLE HEADER
-              ============================================== */}
 
               <thead>
 
@@ -320,9 +294,8 @@ export default function TodayMatches({
                   "
                 >
 
-                  {/* TIME */}
-
                   <th
+                    scope="col"
                     className="
                       w-[65px]
                       px-2
@@ -335,10 +308,8 @@ export default function TodayMatches({
                     Time
                   </th>
 
-
-                  {/* HOME */}
-
                   <th
+                    scope="col"
                     className="
                       w-[145px]
                       px-1.5
@@ -351,10 +322,8 @@ export default function TodayMatches({
                     Home
                   </th>
 
-
-                  {/* AWAY */}
-
                   <th
+                    scope="col"
                     className="
                       w-[145px]
                       px-1.5
@@ -367,10 +336,8 @@ export default function TodayMatches({
                     Away
                   </th>
 
-
-                  {/* VENUE */}
-
                   <th
+                    scope="col"
                     className="
                       w-[130px]
                       px-1.5
@@ -388,15 +355,10 @@ export default function TodayMatches({
               </thead>
 
 
-              {/* ==============================================
-                  TABLE BODY
-              ============================================== */}
-
               <tbody>
 
                 {visibleMatches.map(
                   match => (
-
                     <tr
                       key={match.id}
                       className="
@@ -407,9 +369,7 @@ export default function TodayMatches({
                       "
                     >
 
-                      {/* ====================================
-                          TIME
-                      ==================================== */}
+                      {/* TIME */}
 
                       <td
                         className="
@@ -428,9 +388,7 @@ export default function TodayMatches({
                       </td>
 
 
-                      {/* ====================================
-                          HOME
-                      ==================================== */}
+                      {/* HOME */}
 
                       <td
                         className="
@@ -461,9 +419,7 @@ export default function TodayMatches({
                               src={
                                 match.homeTeamBadge
                               }
-                              alt={
-                                `${match.homeTeam} badge`
-                              }
+                              alt={`${match.homeTeam} badge`}
                               width={32}
                               height={32}
                               className="
@@ -488,10 +444,10 @@ export default function TodayMatches({
                                 sm:h-8
                                 sm:w-8
                               "
+                              aria-hidden="true"
                             />
 
                           )}
-
 
                           <span
                             className="
@@ -509,9 +465,7 @@ export default function TodayMatches({
                       </td>
 
 
-                      {/* ====================================
-                          AWAY
-                      ==================================== */}
+                      {/* AWAY */}
 
                       <td
                         className="
@@ -542,9 +496,7 @@ export default function TodayMatches({
                               src={
                                 match.awayTeamBadge
                               }
-                              alt={
-                                `${match.awayTeam} badge`
-                              }
+                              alt={`${match.awayTeam} badge`}
                               width={32}
                               height={32}
                               className="
@@ -569,10 +521,10 @@ export default function TodayMatches({
                                 sm:h-8
                                 sm:w-8
                               "
+                              aria-hidden="true"
                             />
 
                           )}
-
 
                           <span
                             className="
@@ -590,9 +542,7 @@ export default function TodayMatches({
                       </td>
 
 
-                      {/* ====================================
-                          VENUE
-                      ==================================== */}
+                      {/* VENUE */}
 
                       <td
                         className="
@@ -616,14 +566,12 @@ export default function TodayMatches({
                             sm:max-w-none
                           "
                         >
-                          {match.venue ??
-                            'Not available'}
+                          {match.venue ?? 'Not available'}
                         </span>
 
                       </td>
 
                     </tr>
-
                   ),
                 )}
 
@@ -663,7 +611,6 @@ export default function TodayMatches({
                 transition
                 hover:bg-muted/40
                 sm:py-4
-                sm:text-s
               "
             >
 
@@ -671,6 +618,7 @@ export default function TodayMatches({
 
                 <>
                   Show Less
+
                   <ChevronUp
                     size={15}
                   />
@@ -681,6 +629,7 @@ export default function TodayMatches({
                 <>
                   Show All Matches
                   ({todayMatches.length})
+
                   <ChevronDown
                     size={15}
                   />
@@ -697,7 +646,5 @@ export default function TodayMatches({
       )}
 
     </section>
-
   );
-
 }

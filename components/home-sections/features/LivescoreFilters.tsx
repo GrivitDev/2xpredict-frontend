@@ -10,7 +10,6 @@ import {
   Search,
   RotateCcw,
   SlidersHorizontal,
-  X,
 } from 'lucide-react';
 
 type SectionView =
@@ -22,48 +21,335 @@ type SectionView =
   | 'upcoming'
   | 'table';
 
+type ResultFilter =
+  | 'all'
+  | 'home'
+  | 'away'
+  | 'draw';
+
 interface Props {
   search: string;
   selectedDate: string;
   goalFilter: string;
   pointsFilter: string;
-  resultFilter:
-    | 'all'
-    | 'home'
-    | 'away'
-    | 'draw';
-
+  resultFilter: ResultFilter;
   sectionView: SectionView;
 
-  onSearchChange: (
-    value: string,
-  ) => void;
-
-  onDateChange: (
-    value: string,
-  ) => void;
-
-  onGoalFilterChange: (
-    value: string,
-  ) => void;
-
-  onPointsFilterChange: (
-    value: string,
-  ) => void;
-
-  onSectionViewChange: (
-    value: SectionView,
-  ) => void;
-
-  onResultFilterChange: (
-    value:
-      | 'all'
-      | 'home'
-      | 'away'
-      | 'draw',
-  ) => void;
-
+  onSearchChange: (value: string) => void;
+  onDateChange: (value: string) => void;
+  onGoalFilterChange: (value: string) => void;
+  onPointsFilterChange: (value: string) => void;
+  onResultFilterChange: (value: ResultFilter) => void;
+  onSectionViewChange: (value: SectionView) => void;
   onReset: () => void;
+}
+
+const sectionOptions: [SectionView, string][] = [
+  ['all', 'All'],
+  ['predictions', 'Predictions'],
+  ['live', 'Live'],
+  ['today', 'Today'],
+  ['results', 'Results'],
+  ['upcoming', 'Upcoming'],
+  ['table', 'Table'],
+];
+
+const goalOptions = [
+  ['1', '1+'],
+  ['2', '2+'],
+  ['3', '3+'],
+  ['4', '4+'],
+  ['5', '5+'],
+];
+
+const pointsOptions = [
+  ['10', '10+'],
+  ['20', '20+'],
+  ['30', '30+'],
+  ['40', '40+'],
+  ['50', '50+'],
+  ['60', '60+'],
+  ['70', '70+'],
+];
+
+const resultOptions: [ResultFilter, string][] = [
+  ['all', 'Any'],
+  ['home', 'Home Wins'],
+  ['away', 'Away Wins'],
+  ['draw', 'Draws'],
+];
+
+const glassClass = `
+  border-border/70
+  bg-background/60
+  backdrop-blur-md
+  backdrop-saturate-150
+`;
+
+const inputClass = `
+  h-10
+  w-full
+  rounded-lg
+  border
+  border-border
+  bg-background/70
+  px-3
+  text-xs
+  outline-none
+  focus:border-primary
+`;
+
+function SearchBar({
+  search,
+  onSearchChange,
+  mobile = false,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+  mobile?: boolean;
+}) {
+  return (
+    <div
+      className={`
+        relative
+        flex-1
+        ${mobile ? 'min-w-0' : ''}
+      `}
+    >
+      <Search
+        size={18}
+        className="
+          pointer-events-none
+          absolute
+          left-3
+          top-1/2
+          -translate-y-1/2
+          text-muted-foreground
+        "
+      />
+
+      <input
+        type="text"
+        value={search}
+        onChange={(e) =>
+          onSearchChange(e.target.value)
+        }
+        placeholder={
+          mobile
+            ? 'Search...'
+            : 'Search team, league or venue...'
+        }
+        className="
+          h-11
+          w-full
+          rounded-xl
+          border
+          border-border
+          bg-background/50
+          pl-10
+          pr-4
+          text-xs
+          outline-none
+          backdrop-blur-md
+          backdrop-saturate-150
+          transition
+          focus:border-primary
+        "
+      />
+    </div>
+  );
+}
+
+function FilterPanel({
+  selectedDate,
+  goalFilter,
+  pointsFilter,
+  resultFilter,
+  onDateChange,
+  onGoalFilterChange,
+  onPointsFilterChange,
+  onResultFilterChange,
+  onReset,
+}: Pick<
+  Props,
+  | 'selectedDate'
+  | 'goalFilter'
+  | 'pointsFilter'
+  | 'resultFilter'
+  | 'onDateChange'
+  | 'onGoalFilterChange'
+  | 'onPointsFilterChange'
+  | 'onResultFilterChange'
+  | 'onReset'
+>) {
+  return (
+    <div className="space-y-4">
+      {/* DATE */}
+
+      <div>
+        <label
+          className="
+            mb-1
+            block
+            text-xs
+            font-medium
+            text-muted-foreground
+          "
+        >
+          Date
+        </label>
+
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) =>
+            onDateChange(e.target.value)
+          }
+          className={inputClass}
+        />
+      </div>
+
+      {/* GOALS */}
+
+      <div>
+        <label
+          className="
+            mb-1
+            block
+            text-xs
+            font-medium
+            text-muted-foreground
+          "
+        >
+          Goals
+        </label>
+
+        <select
+          value={goalFilter}
+          onChange={(e) =>
+            onGoalFilterChange(e.target.value)
+          }
+          className={`${inputClass} cursor-pointer`}
+        >
+          <option value="">Any</option>
+
+          {goalOptions.map(
+            ([value, label]) => (
+              <option
+                key={value}
+                value={value}
+              >
+                {label}
+              </option>
+            ),
+          )}
+        </select>
+      </div>
+
+      {/* POINTS */}
+
+      <div>
+        <label
+          className="
+            mb-1
+            block
+            text-xs
+            font-medium
+            text-muted-foreground
+          "
+        >
+          Points
+        </label>
+
+        <select
+          value={pointsFilter}
+          onChange={(e) =>
+            onPointsFilterChange(
+              e.target.value,
+            )
+          }
+          className={`${inputClass} cursor-pointer`}
+        >
+          <option value="">Any</option>
+
+          {pointsOptions.map(
+            ([value, label]) => (
+              <option
+                key={value}
+                value={value}
+              >
+                {label}
+              </option>
+            ),
+          )}
+        </select>
+      </div>
+
+      {/* RESULT */}
+
+      <div>
+        <label
+          className="
+            mb-1
+            block
+            text-xs
+            font-medium
+            text-muted-foreground
+          "
+        >
+          Result
+        </label>
+
+        <select
+          value={resultFilter}
+          onChange={(e) =>
+            onResultFilterChange(
+              e.target.value as ResultFilter,
+            )
+          }
+          className={`${inputClass} cursor-pointer`}
+        >
+          {resultOptions.map(
+            ([value, label]) => (
+              <option
+                key={value}
+                value={value}
+              >
+                {label}
+              </option>
+            ),
+          )}
+        </select>
+      </div>
+
+      {/* RESET */}
+
+      <button
+        type="button"
+        onClick={onReset}
+        className="
+          flex
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-lg
+          border
+          border-border
+          px-3
+          py-2
+          text-xs
+          font-medium
+          transition
+          hover:bg-muted
+        "
+      >
+        <RotateCcw size={16} />
+
+        Reset Filters
+      </button>
+    </div>
+  );
 }
 
 export default function LivescoreFilters({
@@ -72,50 +358,49 @@ export default function LivescoreFilters({
   goalFilter,
   pointsFilter,
   resultFilter,
+  sectionView,
   onSearchChange,
   onDateChange,
   onGoalFilterChange,
   onPointsFilterChange,
   onResultFilterChange,
-  sectionView,
   onSectionViewChange,
   onReset,
 }: Props) {
-
-  const [
-    showSearch,
-    setShowSearch,
-  ] = useState(false);
-
   const [
     showFilters,
     setShowFilters,
   ] = useState(false);
 
-  const filterRef =
+  const desktopFilterRef =
     useRef<HTMLDivElement>(null);
 
-
-  // ==========================================================
-  // CLOSE FILTER WHEN CLICKING OUTSIDE
-  // ==========================================================
+  const mobileFilterRef =
+    useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-
     function handleClickOutside(
       event: MouseEvent,
     ) {
-
       const target =
         event.target as Node;
 
+      const clickedInsideDesktop =
+        desktopFilterRef.current?.contains(
+          target,
+        );
+
+      const clickedInsideMobile =
+        mobileFilterRef.current?.contains(
+          target,
+        );
+
       if (
-        filterRef.current &&
-        !filterRef.current.contains(target)
+        !clickedInsideDesktop &&
+        !clickedInsideMobile
       ) {
         setShowFilters(false);
       }
-
     }
 
     document.addEventListener(
@@ -129,18 +414,33 @@ export default function LivescoreFilters({
         handleClickOutside,
       );
     };
-
   }, []);
 
+  const filterContent = (
+    <FilterPanel
+      selectedDate={selectedDate}
+      goalFilter={goalFilter}
+      pointsFilter={pointsFilter}
+      resultFilter={resultFilter}
+      onDateChange={onDateChange}
+      onGoalFilterChange={
+        onGoalFilterChange
+      }
+      onPointsFilterChange={
+        onPointsFilterChange
+      }
+      onResultFilterChange={
+        onResultFilterChange
+      }
+      onReset={() => {
+        onReset();
+        setShowFilters(false);
+      }}
+    />
+  );
 
   return (
-
-    <section
-      className="
-        space-y-4
-      "
-    >
-
+    <section className="space-y-4">
       {/* ====================================================
           DESKTOP
       ==================================================== */}
@@ -153,781 +453,143 @@ export default function LivescoreFilters({
           md:flex
         "
       >
-
         {/* SEARCH */}
 
-        <div
-          className="
-            relative
-            flex-1
-          "
-        >
+        <SearchBar
+          search={search}
+          onSearchChange={onSearchChange}
+        />
 
-          <Search
-            size={18}
-            className="
-              absolute
-              left-3
-              top-1/2
-              -translate-y-1/2
-              text-muted-foreground
-            "
-          />
-
-          <input
-            type="text"
-            value={search}
-            onChange={(e) =>
-              onSearchChange(
-                e.target.value,
-              )
-            }
-            placeholder="
-              Search team, league or venue...
-            "
-            className="
-              h-11
-              w-full
-              rounded-xl
-              border
-              border-border
-              bg-transparent
-              pl-10
-              pr-4
-              text-xs
-              outline-none
-              transition
-              focus:border-primary
-            "
-          />
-
-        </div>
-
-
-        {/* ==================================================
-            DESKTOP FILTER
-        ================================================== */}
+        {/* FILTER */}
 
         <div
-          ref={filterRef}
-          className="
-            relative
-          "
+          ref={desktopFilterRef}
+          className="relative"
         >
-
           <button
             type="button"
             onClick={() =>
               setShowFilters(
-                current => !current,
+                (current) => !current,
               )
             }
-            className="
+            className={`
               inline-flex
               h-11
               items-center
               gap-2
               rounded-xl
               border
-              border-border
-              bg-transparent
               px-4
               text-xs
               font-medium
               transition
               hover:bg-muted/50
-            "
+              ${glassClass}
+            `}
           >
-
             <SlidersHorizontal
               size={18}
             />
 
             Filters
-
           </button>
 
-
           {showFilters && (
-
             <div
-              className="
+              className={`
                 absolute
                 right-0
                 top-14
-                z-50
+                z-[100]
                 w-72
                 rounded-xl
                 border
-                border-border
-                bg-popover
                 p-4
-                shadow-lg
-              "
+                shadow-xl
+                ${glassClass}
+              `}
             >
-
-              <div
-                className="
-                  space-y-4
-                "
-              >
-
-                {/* DATE */}
-
-                <div>
-
-                  <label
-                    className="
-                      mb-1
-                      block
-                      text-xs
-                      font-medium
-                      text-muted-foreground
-                    "
-                  >
-                    Date
-                  </label>
-
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) =>
-                      onDateChange(
-                        e.target.value,
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  />
-
-                </div>
-
-
-                {/* GOALS */}
-
-                <div>
-
-                  <label
-                    className="
-                      mb-1
-                      block
-                      text-xs
-                      font-medium
-                      text-muted-foreground
-                    "
-                  >
-                    Goals
-                  </label>
-
-                  <select
-                    value={goalFilter}
-                    onChange={(e) =>
-                      onGoalFilterChange(
-                        e.target.value,
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  >
-
-                    <option value="">
-                      Any
-                    </option>
-
-                    <option value="1">
-                      1+
-                    </option>
-
-                    <option value="2">
-                      2+
-                    </option>
-
-                    <option value="3">
-                      3+
-                    </option>
-
-                    <option value="4">
-                      4+
-                    </option>
-
-                    <option value="5">
-                      5+
-                    </option>
-
-                  </select>
-
-                </div>
-
-
-                {/* POINTS */}
-
-                <div>
-
-                  <label
-                    className="
-                      mb-1
-                      block
-                      text-xs
-                      font-medium
-                      text-muted-foreground
-                    "
-                  >
-                    Points
-                  </label>
-
-                  <select
-                    value={pointsFilter}
-                    onChange={(e) =>
-                      onPointsFilterChange(
-                        e.target.value,
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  >
-
-                    <option value="">
-                      Any
-                    </option>
-
-                    <option value="10">
-                      10+
-                    </option>
-
-                    <option value="20">
-                      20+
-                    </option>
-
-                    <option value="30">
-                      30+
-                    </option>
-
-                    <option value="40">
-                      40+
-                    </option>
-
-                    <option value="50">
-                      50+
-                    </option>
-
-                    <option value="60">
-                      60+
-                    </option>
-
-                    <option value="70">
-                      70+
-                    </option>
-
-                  </select>
-
-                </div>
-
-
-                {/* RESULT */}
-
-                <div>
-
-                  <label
-                    className="
-                      mb-1
-                      block
-                      text-xs
-                      font-medium
-                      text-muted-foreground
-                    "
-                  >
-                    Result
-                  </label>
-
-                  <select
-                    value={resultFilter}
-                    onChange={(e) =>
-                      onResultFilterChange(
-                        e.target.value as
-                          | 'all'
-                          | 'home'
-                          | 'away'
-                          | 'draw',
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  >
-
-                    <option value="all">
-                      Any
-                    </option>
-
-                    <option value="home">
-                      Home Wins
-                    </option>
-
-                    <option value="away">
-                      Away Wins
-                    </option>
-
-                    <option value="draw">
-                      Draws
-                    </option>
-
-                  </select>
-
-                </div>
-
-
-                {/* RESET */}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    onReset();
-                    setShowFilters(false);
-                  }}
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    justify-center
-                    gap-2
-                    rounded-lg
-                    border
-                    border-border
-                    px-3
-                    py-2
-                    text-xs
-                    font-medium
-                    transition
-                    hover:bg-muted
-                  "
-                >
-
-                  <RotateCcw
-                    size={16}
-                  />
-
-                  Reset Filters
-
-                </button>
-
-              </div>
-
+              {filterContent}
             </div>
-
           )}
-
         </div>
-
       </div>
-
 
       {/* ====================================================
           MOBILE
       ==================================================== */}
 
-      <div
-        className="
-          md:hidden
-        "
-      >
-
+      <div className="md:hidden">
         <div
           className="
             flex
             items-center
-            justify-between
+            gap-2
           "
         >
+          {/* SEARCH BAR */}
 
-          {/* SEARCH BUTTON */}
+          <SearchBar
+            search={search}
+            onSearchChange={onSearchChange}
+            mobile
+          />
 
-          <button
-            type="button"
-            onClick={() =>
-              setShowSearch(
-                current => !current,
-              )
-            }
-            className="
-              flex
-              h-10
-              w-10
-              items-center
-              justify-center
-              rounded-lg
-              border
-              border-border
-            "
-          >
-
-            {showSearch ? (
-              <X size={18} />
-            ) : (
-              <Search size={18} />
-            )}
-
-          </button>
-
-
-          {/* MOBILE FILTER */}
+          {/* FILTER BUTTON */}
 
           <div
-            className="
-              relative
-            "
+            ref={mobileFilterRef}
+            className="relative shrink-0"
           >
-
             <button
               type="button"
+              aria-label="Open filters"
               onClick={() =>
                 setShowFilters(
-                  current => !current,
+                  (current) => !current,
                 )
               }
-              className="
-                inline-flex
-                h-10
+              className={`
+                flex
+                h-11
+                w-11
                 items-center
-                gap-2
-                rounded-lg
+                justify-center
+                rounded-xl
                 border
-                border-border
-                px-4
-                text-xs
-                font-medium
-              "
+                transition
+                hover:bg-muted/50
+                ${glassClass}
+              `}
             >
-
               <SlidersHorizontal
-                size={17}
+                size={18}
               />
-
-              Filters
-
             </button>
 
-
             {showFilters && (
-
               <div
-                className="
+                className={`
                   absolute
                   right-0
                   top-12
-                  z-50
+                  z-[100]
                   w-72
+                  max-w-[calc(100vw-2rem)]
                   rounded-xl
                   border
-                  border-border
-                  bg-popover
                   p-4
-                  shadow-lg
-                "
+                  shadow-xl
+                  ${glassClass}
+                `}
               >
-
-                <div
-                  className="
-                    space-y-4
-                  "
-                >
-
-                  {/* DATE */}
-
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) =>
-                      onDateChange(
-                        e.target.value,
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  />
-
-
-                  {/* GOALS */}
-
-                  <select
-                    value={goalFilter}
-                    onChange={(e) =>
-                      onGoalFilterChange(
-                        e.target.value,
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  >
-
-                    <option value="">
-                      Goals
-                    </option>
-
-                    <option value="1">
-                      1+
-                    </option>
-
-                    <option value="2">
-                      2+
-                    </option>
-
-                    <option value="3">
-                      3+
-                    </option>
-
-                    <option value="4">
-                      4+
-                    </option>
-
-                    <option value="5">
-                      5+
-                    </option>
-
-                  </select>
-
-
-                  {/* POINTS */}
-
-                  <select
-                    value={pointsFilter}
-                    onChange={(e) =>
-                      onPointsFilterChange(
-                        e.target.value,
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  >
-
-                    <option value="">
-                      Points
-                    </option>
-
-                    <option value="10">
-                      10+
-                    </option>
-
-                    <option value="20">
-                      20+
-                    </option>
-
-                    <option value="30">
-                      30+
-                    </option>
-
-                    <option value="40">
-                      40+
-                    </option>
-
-                    <option value="50">
-                      50+
-                    </option>
-
-                    <option value="60">
-                      60+
-                    </option>
-
-                    <option value="70">
-                      70+
-                    </option>
-
-                  </select>
-
-
-                  {/* RESULT */}
-
-                  <select
-                    value={resultFilter}
-                    onChange={(e) =>
-                      onResultFilterChange(
-                        e.target.value as
-                          | 'all'
-                          | 'home'
-                          | 'away'
-                          | 'draw',
-                      )
-                    }
-                    className="
-                      h-10
-                      w-full
-                      rounded-lg
-                      border
-                      border-border
-                      bg-background
-                      px-3
-                      text-xs
-                    "
-                  >
-
-                    <option value="all">
-                      Result
-                    </option>
-
-                    <option value="home">
-                      Home Wins
-                    </option>
-
-                    <option value="away">
-                      Away Wins
-                    </option>
-
-                    <option value="draw">
-                      Draws
-                    </option>
-
-                  </select>
-
-
-                  {/* RESET */}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onReset();
-                      setShowFilters(false);
-                    }}
-                    className="
-                      flex
-                      w-full
-                      items-center
-                      justify-center
-                      gap-2
-                      rounded-lg
-                      border
-                      border-border
-                      py-2
-                      text-xs
-                      font-medium
-                      hover:bg-muted
-                    "
-                  >
-
-                    <RotateCcw
-                      size={16}
-                    />
-
-                    Reset Filters
-
-                  </button>
-
-                </div>
-
+                {filterContent}
               </div>
-
             )}
-
           </div>
-
         </div>
-
-
-        {/* MOBILE SEARCH */}
-
-        {showSearch && (
-
-          <div
-            className="
-              relative
-              mt-3
-            "
-          >
-
-            <Search
-              size={18}
-              className="
-                absolute
-                left-3
-                top-1/2
-                -translate-y-1/2
-                text-muted-foreground
-              "
-            />
-
-            <input
-              type="text"
-              value={search}
-              onChange={(e) =>
-                onSearchChange(
-                  e.target.value,
-                )
-              }
-              placeholder="Search..."
-              className="
-                h-11
-                w-full
-                rounded-xl
-                border
-                border-border
-                bg-transparent
-                pl-10
-                pr-4
-                text-xs
-                outline-none
-                focus:border-primary
-              "
-            />
-
-          </div>
-
-        )}
-
       </div>
-
 
       {/* ====================================================
           SECTION SELECTOR
@@ -950,25 +612,13 @@ export default function LivescoreFilters({
           md:justify-end
         "
       >
-
-        {[
-          ['all', 'All'],
-          ['predictions', 'Predictions'],
-          ['live', 'Live'],
-          ['today', 'Today'],
-          ['results', 'Results'],
-          ['upcoming', 'Upcoming'],
-          ['table', 'Table'],
-        ].map(
+        {sectionOptions.map(
           ([value, label]) => (
-
             <button
               key={value}
               type="button"
               onClick={() =>
-                onSectionViewChange(
-                  value as SectionView,
-                )
+                onSectionViewChange(value)
               }
               className={`
                 min-w-0
@@ -1007,13 +657,9 @@ export default function LivescoreFilters({
             >
               {label}
             </button>
-
           ),
         )}
-
       </div>
-
     </section>
-
   );
 }

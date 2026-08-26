@@ -8,8 +8,6 @@ import {
 
 import { useRouter } from 'next/navigation';
 
-import { motion } from 'framer-motion';
-
 import {
   ArrowRight,
   CheckCircle2,
@@ -54,20 +52,16 @@ export default function VerifyOtpModal({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Shows automatically after 1 minute.
   const [showSpamNotice, setShowSpamNotice] =
     useState(false);
 
   const code = otp.join('');
   const isComplete = code.length === 6;
 
-  /*
-   * Show the reminder exactly 1 minute
-   * after this component is mounted.
-   *
-   * This does not check the OTP or make
-   * any API request.
-   */
+  // =====================================================
+  // SPAM / JUNK REMINDER
+  // =====================================================
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setShowSpamNotice(true);
@@ -78,9 +72,10 @@ export default function VerifyOtpModal({
     };
   }, []);
 
-  /*
-   * Resend countdown
-   */
+  // =====================================================
+  // RESEND COUNTDOWN
+  // =====================================================
+
   useEffect(() => {
     if (countdown <= 0) return;
 
@@ -92,6 +87,10 @@ export default function VerifyOtpModal({
       window.clearTimeout(timer);
     };
   }, [countdown]);
+
+  // =====================================================
+  // OTP INPUT
+  // =====================================================
 
   const handleChange = (
     value: string,
@@ -111,6 +110,10 @@ export default function VerifyOtpModal({
     }
   };
 
+  // =====================================================
+  // KEYBOARD NAVIGATION
+  // =====================================================
+
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number,
@@ -122,11 +125,31 @@ export default function VerifyOtpModal({
     ) {
       inputRefs.current[index - 1]?.focus();
     }
+
+    if (
+      e.key === 'ArrowLeft' &&
+      index > 0
+    ) {
+      inputRefs.current[index - 1]?.focus();
+    }
+
+    if (
+      e.key === 'ArrowRight' &&
+      index < 5
+    ) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
+
+  // =====================================================
+  // PASTE OTP
+  // =====================================================
 
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
   ) => {
+    e.preventDefault();
+
     const pasted = e.clipboardData
       .getData('text')
       .replace(/\D/g, '')
@@ -134,25 +157,42 @@ export default function VerifyOtpModal({
 
     if (!pasted) return;
 
-    const newOtp = [...otp];
+    const newOtp = [
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+    ];
 
-    pasted.split('').forEach((value, index) => {
-      newOtp[index] = value;
-    });
+    pasted.split('').forEach(
+      (value, index) => {
+        newOtp[index] = value;
+      },
+    );
 
     setOtp(newOtp);
     setError('');
 
-    inputRefs.current[
-      Math.min(pasted.length, 5)
-    ]?.focus();
+    const nextIndex = Math.min(
+      pasted.length,
+      5,
+    );
+
+    inputRefs.current[nextIndex]?.focus();
   };
+
+  // =====================================================
+  // VERIFY OTP
+  // =====================================================
 
   const handleVerify = async () => {
     if (!isComplete) {
       setError(
         'Please enter the complete 6 digit verification code.',
       );
+
       return;
     }
 
@@ -175,14 +215,23 @@ export default function VerifyOtpModal({
         router.push('/login');
       }, 1500);
     } catch (error: any) {
+      const message =
+        error?.response?.data?.message;
+
       setError(
-        error?.response?.data?.message ||
-          'Verification failed. Please try again.',
+        Array.isArray(message)
+          ? message[0]
+          : message ||
+              'Verification failed. Please try again.',
       );
     } finally {
       setLoading(false);
     }
   };
+
+  // =====================================================
+  // RESEND OTP
+  // =====================================================
 
   const handleResend = async () => {
     try {
@@ -199,11 +248,19 @@ export default function VerifyOtpModal({
 
       setCountdown(30);
 
+      // Restart the one-minute reminder
+      setShowSpamNotice(false);
+
       onResend?.();
     } catch (error: any) {
+      const message =
+        error?.response?.data?.message;
+
       setError(
-        error?.response?.data?.message ||
-          'Unable to resend OTP.',
+        Array.isArray(message)
+          ? message[0]
+          : message ||
+              'Unable to resend OTP.',
       );
     } finally {
       setResending(false);
@@ -211,22 +268,7 @@ export default function VerifyOtpModal({
   };
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 20,
-        scale: 0.98,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-        scale: 1,
-      }}
-      transition={{
-        duration: 0.4,
-      }}
-      className="w-full max-w-md"
-    >
+    <div className="w-full max-w-md">
       <div
         className="
           relative
@@ -241,8 +283,8 @@ export default function VerifyOtpModal({
           sm:p-6
         "
       >
-
         {/* TOP LINE */}
+
         <div
           className="
             absolute
@@ -257,8 +299,8 @@ export default function VerifyOtpModal({
         />
 
         {/* HEADER */}
-        <div className="text-center">
 
+        <div className="text-center">
           <div className="mb-3 flex justify-center">
             <div className="rounded-xl bg-primary/10 p-2.5">
               <Mail className="h-7 w-7 text-primary" />
@@ -269,24 +311,40 @@ export default function VerifyOtpModal({
             Verify Email
           </h1>
 
-          <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+          <p
+            className="
+              mt-1.5
+              text-xs
+              leading-5
+              text-muted-foreground
+            "
+          >
             Enter the 6 digit code sent to
             <br />
+
             <span className="font-semibold text-foreground">
               {email}
             </span>
           </p>
-
         </div>
 
         {/* OTP INPUTS */}
-        <div className="mt-6 flex justify-center gap-1.5 sm:gap-2">
 
+        <div
+          className="
+            mt-6
+            flex
+            justify-center
+            gap-1.5
+            sm:gap-2
+          "
+        >
           {otp.map((digit, index) => (
             <input
               key={index}
               ref={(element) => {
-                inputRefs.current[index] = element;
+                inputRefs.current[index] =
+                  element;
               }}
               value={digit}
               onChange={(e) =>
@@ -296,11 +354,19 @@ export default function VerifyOtpModal({
                 )
               }
               onKeyDown={(e) =>
-                handleKeyDown(e, index)
+                handleKeyDown(
+                  e,
+                  index,
+                )
               }
               onPaste={handlePaste}
               maxLength={1}
               inputMode="numeric"
+              autoComplete={
+                index === 0
+                  ? 'one-time-code'
+                  : 'off'
+              }
               aria-label={`Verification digit ${
                 index + 1
               }`}
@@ -326,18 +392,30 @@ export default function VerifyOtpModal({
               `}
             />
           ))}
-
         </div>
 
         {/* COMPLETE */}
+
         {isComplete && !error && (
-          <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-green-500">
+          <div
+            className="
+              mt-3
+              flex
+              items-center
+              justify-center
+              gap-1.5
+              text-xs
+              text-green-500
+            "
+          >
             <CheckCircle2 className="h-3.5 w-3.5" />
+
             Code complete
           </div>
         )}
 
         {/* ERROR */}
+
         {error && (
           <div
             className="
@@ -351,20 +429,33 @@ export default function VerifyOtpModal({
               bg-destructive/10
               p-3
               text-destructive
-              animate-in
-              slide-in-from-top-2
             "
             role="alert"
+            aria-live="assertive"
           >
-            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <TriangleAlert
+              className="
+                mt-0.5
+                h-4
+                w-4
+                shrink-0
+              "
+            />
 
-            <p className="text-xs font-medium leading-5">
+            <p
+              className="
+                text-xs
+                font-medium
+                leading-5
+              "
+            >
               {error}
             </p>
           </div>
         )}
 
         {/* SUCCESS */}
+
         {success && (
           <div
             className="
@@ -378,24 +469,32 @@ export default function VerifyOtpModal({
               bg-green-500/10
               p-3
               text-green-500
-              animate-in
-              slide-in-from-top-2
             "
             role="status"
+            aria-live="polite"
           >
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            <CheckCircle2
+              className="
+                mt-0.5
+                h-4
+                w-4
+                shrink-0
+              "
+            />
 
-            <p className="text-xs font-medium leading-5">
+            <p
+              className="
+                text-xs
+                font-medium
+                leading-5
+              "
+            >
               {success}
             </p>
           </div>
         )}
 
-        {/* =====================================================
-            SPAM / JUNK REMINDER
-            Appears automatically after exactly 1 minute.
-            Positioned directly ABOVE the Verify button.
-        ===================================================== */}
+        {/* SPAM / JUNK REMINDER */}
 
         {showSpamNotice && (
           <div
@@ -411,24 +510,33 @@ export default function VerifyOtpModal({
               p-3
               text-amber-600
               shadow-sm
-              animate-in
-              slide-in-from-top-2
-              fade-in
-              duration-500
               dark:text-amber-400
             "
             role="status"
             aria-live="polite"
           >
-            <MailWarning className="mt-0.5 h-4 w-4 shrink-0" />
+            <MailWarning
+              className="
+                mt-0.5
+                h-4
+                w-4
+                shrink-0
+              "
+            />
 
             <div className="min-w-0">
-
               <p className="text-xs font-bold">
                 Haven&apos;t received the code?
               </p>
 
-              <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+              <p
+                className="
+                  mt-0.5
+                  text-[11px]
+                  leading-4
+                  text-muted-foreground
+                "
+              >
                 Check your{' '}
                 <span className="font-semibold text-foreground">
                   Spam
@@ -437,21 +545,23 @@ export default function VerifyOtpModal({
                 <span className="font-semibold text-foreground">
                   Junk
                 </span>{' '}
-                folder. If you still cannot receive it,
-                you can register again after 30 minutes.
+                folder. If you still cannot
+                receive it, you can register
+                again after 30 minutes.
               </p>
-
             </div>
           </div>
         )}
 
         {/* VERIFY BUTTON */}
+
         <button
           type="button"
           onClick={handleVerify}
           disabled={
             loading ||
-            !isComplete
+            !isComplete ||
+            !!success
           }
           className="
             mt-4
@@ -467,7 +577,7 @@ export default function VerifyOtpModal({
             text-s
             font-bold
             text-primary-foreground
-            transition-all
+            transition
             hover:opacity-90
             active:scale-[0.98]
             disabled:pointer-events-none
@@ -490,21 +600,30 @@ export default function VerifyOtpModal({
 
               Verifying...
             </>
+          ) : success ? (
+            <>
+              <CheckCircle2 className="h-4 w-4" />
+
+              Verified
+            </>
           ) : (
             <>
               Verify Email
+
               <ArrowRight className="h-4 w-4" />
             </>
           )}
         </button>
 
         {/* RESEND */}
+
         <button
           type="button"
           onClick={handleResend}
           disabled={
             resending ||
-            countdown > 0
+            countdown > 0 ||
+            !!success
           }
           className="
             mt-2
@@ -530,20 +649,32 @@ export default function VerifyOtpModal({
         </button>
 
         {/* FOOTER */}
-        <p className="mt-4 text-center text-xs text-muted-foreground">
+
+        <p
+          className="
+            mt-4
+            text-center
+            text-xs
+            text-muted-foreground
+          "
+        >
           Wrong email address?{' '}
+
           <button
             type="button"
             onClick={() =>
               router.push('/register')
             }
-            className="font-semibold text-primary hover:opacity-80"
+            className="
+              font-semibold
+              text-primary
+              hover:opacity-80
+            "
           >
             Register again
           </button>
         </p>
-
       </div>
-    </motion.div>
+    </div>
   );
 }

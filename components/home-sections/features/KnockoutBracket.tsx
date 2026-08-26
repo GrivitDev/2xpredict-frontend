@@ -1,11 +1,7 @@
 'use client';
 
-import {
-  useMemo,
-  useState,
-} from 'react';
-
 import Image from 'next/image';
+import { useMemo, useState } from 'react';
 
 import {
   Clock3,
@@ -18,15 +14,9 @@ import type {
   KnockoutStage,
 } from '@/services/sports.service';
 
-
-// ============================================================
-// TYPES
-// ============================================================
-
 interface Props {
   stages: KnockoutStage[];
 }
-
 
 type BracketRound =
   | 'FINAL'
@@ -36,257 +26,133 @@ type BracketRound =
   | 'ROUND_OF_16'
   | 'ROUND_OF_32';
 
+const LIVE_STATUSES = new Set([
+  'IN_PLAY',
+  'PAUSED',
+  'LIVE',
+]);
 
-// ============================================================
-// HELPERS
-// ============================================================
-
-const isLiveStatus = (
-  status?: string,
-): boolean => {
-
-  return (
-    status === 'IN_PLAY' ||
-    status === 'PAUSED' ||
-    status === 'LIVE'
-  );
-
+const ROUND_LABELS: Record<BracketRound, string> = {
+  FINAL: 'Final',
+  THIRD_PLACE: 'Third Place',
+  SEMI_FINALS: 'Semi-finals',
+  QUARTER_FINALS: 'Quarter-finals',
+  ROUND_OF_16: 'Round of 16',
+  ROUND_OF_32: 'Round of 32',
 };
 
-
-const isFinishedStatus = (
-  status?: string,
-): boolean => {
-
-  return status === 'FINISHED';
-
-};
-
+const ROUND_ORDER: BracketRound[] = [
+  'FINAL',
+  'THIRD_PLACE',
+  'SEMI_FINALS',
+  'QUARTER_FINALS',
+  'ROUND_OF_16',
+  'ROUND_OF_32',
+];
 
 const getRoundType = (
   stage?: string,
 ): BracketRound | null => {
-
   switch (stage) {
-
     case 'FINAL':
       return 'FINAL';
-
     case 'THIRD_PLACE':
       return 'THIRD_PLACE';
-
     case 'SEMI_FINALS':
       return 'SEMI_FINALS';
-
     case 'QUARTER_FINALS':
       return 'QUARTER_FINALS';
-
     case 'LAST_16':
     case 'ROUND_OF_16':
       return 'ROUND_OF_16';
-
     case 'ROUND_OF_32':
       return 'ROUND_OF_32';
-
     default:
       return null;
-
   }
-
 };
 
+const isLiveStatus = (status?: string) =>
+  !!status && LIVE_STATUSES.has(status);
 
-const getRoundLabel = (
-  round: BracketRound,
-): string => {
+const isFinishedStatus = (status?: string) =>
+  status === 'FINISHED';
 
-  switch (round) {
-
-    case 'FINAL':
-      return 'Final';
-
-    case 'THIRD_PLACE':
-      return 'Third Place';
-
-    case 'SEMI_FINALS':
-      return 'Semi-finals';
-
-    case 'QUARTER_FINALS':
-      return 'Quarter-finals';
-
-    case 'ROUND_OF_16':
-      return 'Round of 16';
-
-    case 'ROUND_OF_32':
-      return 'Round of 32';
-
-  }
-
-};
-
-
-const formatMatchDate = (
+const formatDate = (
   date: string,
-): string => {
+  options: Intl.DateTimeFormatOptions,
+  fallback: string,
+) => {
+  const parsed = new Date(date);
 
-  const parsed =
-    new Date(date);
-
-
-  if (
-    Number.isNaN(
-      parsed.getTime(),
-    )
-  ) {
-
-    return '--';
-
+  if (Number.isNaN(parsed.getTime())) {
+    return fallback;
   }
-
 
   return new Intl.DateTimeFormat(
     'en-GB',
     {
       timeZone: 'UTC',
+      ...options,
+    },
+  ).format(parsed);
+};
+
+const formatMatchDate = (date: string) =>
+  formatDate(
+    date,
+    {
       day: '2-digit',
       month: 'short',
     },
-  ).format(parsed);
-
-};
-
-
-const formatKickoffTime = (
-  date: string,
-): string => {
-
-  const parsed =
-    new Date(date);
-
-
-  if (
-    Number.isNaN(
-      parsed.getTime(),
-    )
-  ) {
-
-    return '--:-- UTC';
-
-  }
-
-
-  return (
-    new Intl.DateTimeFormat(
-      'en-GB',
-      {
-        timeZone: 'UTC',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      },
-    ).format(parsed) +
-    ' UTC'
+    '--',
   );
 
-};
-
+const formatKickoffTime = (date: string) =>
+  `${formatDate(
+    date,
+    {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    },
+    '--:--',
+  )} UTC`;
 
 const getStatusLabel = (
   match: KnockoutMatch,
-): string => {
-
-  if (
-    isLiveStatus(
-      match.status,
-    )
-  ) {
-
-    if (
-      match.minute != null
-    ) {
-
-      if (
-        match.injuryTime &&
+) => {
+  if (isLiveStatus(match.status)) {
+    if (match.minute != null) {
+      return match.injuryTime &&
         match.injuryTime > 0
-      ) {
-
-        return `${match.minute}'+${match.injuryTime}`;
-
-      }
-
-      return `${match.minute}'`;
-
+        ? `${match.minute}'+${match.injuryTime}`
+        : `${match.minute}'`;
     }
 
     return 'LIVE';
-
   }
 
-
-  if (
-    isFinishedStatus(
-      match.status,
-    )
-  ) {
-
-    return 'FT';
-
-  }
-
-
-  return 'Upcoming';
-
+  return isFinishedStatus(match.status)
+    ? 'FT'
+    : 'Upcoming';
 };
-
 
 const getWinner = (
   match: KnockoutMatch,
 ): 'home' | 'away' | null => {
-
-  if (
-    !isFinishedStatus(
-      match.status,
-    )
-  ) {
-
+  if (!isFinishedStatus(match.status)) {
     return null;
-
   }
 
+  const home = match.homeScore ?? 0;
+  const away = match.awayScore ?? 0;
 
-  const home =
-    match.homeScore ?? 0;
-
-  const away =
-    match.awayScore ?? 0;
-
-
-  if (
-    home > away
-  ) {
-
-    return 'home';
-
-  }
-
-
-  if (
-    away > home
-  ) {
-
-    return 'away';
-
-  }
-
+  if (home > away) return 'home';
+  if (away > home) return 'away';
 
   return null;
-
 };
-
-
-// ============================================================
-// TEAM
-// ============================================================
 
 function Team({
   name,
@@ -297,14 +163,7 @@ function Team({
   crest?: string;
   winner?: boolean;
 }) {
-
-  const teamName =
-    name?.trim() ||
-    'TBD';
-
-
   return (
-
     <div
       className="
         flex
@@ -314,7 +173,6 @@ function Team({
         gap-1
       "
     >
-
       <div
         className={`
           flex
@@ -327,20 +185,12 @@ function Team({
           border
           ${
             winner
-              ? `
-                border-yellow-500/30
-                bg-yellow-500/10
-              `
-              : `
-                border-border/50
-                bg-muted/30
-              `
+              ? 'border-yellow-500/30 bg-yellow-500/10'
+              : 'border-border/50 bg-muted/30'
           }
         `}
       >
-
         {crest ? (
-
           <Image
             src={crest}
             alt=""
@@ -352,9 +202,7 @@ function Team({
               object-contain
             "
           />
-
         ) : (
-
           <Trophy
             className="
               h-4
@@ -362,11 +210,8 @@ function Team({
               text-muted-foreground
             "
           />
-
         )}
-
       </div>
-
 
       <span
         className="
@@ -380,30 +225,19 @@ function Team({
           text-foreground
         "
       >
-        {teamName}
+        {name?.trim() || 'TBD'}
       </span>
-
     </div>
-
   );
-
 }
-
-
-// ============================================================
-// MATCH CARD
-// ============================================================
 
 function MatchCard({
   match,
 }: {
   match?: KnockoutMatch;
 }) {
-
   if (!match) {
-
     return (
-
       <div
         className="
           flex
@@ -422,26 +256,14 @@ function MatchCard({
       >
         Match pending
       </div>
-
     );
-
   }
 
-
-  const winner =
-    getWinner(
-      match,
-    );
-
-
-  const live =
-    isLiveStatus(
-      match.status,
-    );
-
+  const live = isLiveStatus(match.status);
+  const finished = isFinishedStatus(match.status);
+  const winner = getWinner(match);
 
   return (
-
     <article
       className="
         w-full
@@ -457,11 +279,6 @@ function MatchCard({
         hover:shadow-md
       "
     >
-
-      {/* ==================================================
-          DATE + STATUS
-      ================================================== */}
-
       <div
         className="
           mb-2
@@ -471,7 +288,6 @@ function MatchCard({
           gap-2
         "
       >
-
         <div
           className="
             flex
@@ -481,20 +297,9 @@ function MatchCard({
             text-muted-foreground
           "
         >
-
-          <Clock3
-            className="
-              h-3
-              w-3
-            "
-          />
-
-          {formatMatchDate(
-            match.date,
-          )}
-
+          <Clock3 className="h-3 w-3" />
+          {formatMatchDate(match.date)}
         </div>
-
 
         <span
           className={`
@@ -508,27 +313,14 @@ function MatchCard({
             font-bold
             ${
               live
-                ? `
-                  bg-red-500/10
-                  text-red-500
-                `
-                : isFinishedStatus(
-                    match.status,
-                  )
-                  ? `
-                    bg-muted
-                    text-muted-foreground
-                  `
-                  : `
-                    bg-yellow-500/10
-                    text-yellow-500
-                  `
+                ? 'bg-red-500/10 text-red-500'
+                : finished
+                  ? 'bg-muted text-muted-foreground'
+                  : 'bg-yellow-500/10 text-yellow-500'
             }
           `}
         >
-
           {live && (
-
             <span
               className="
                 h-1.5
@@ -538,21 +330,11 @@ function MatchCard({
                 bg-current
               "
             />
-
           )}
 
-          {getStatusLabel(
-            match,
-          )}
-
+          {getStatusLabel(match)}
         </span>
-
       </div>
-
-
-      {/* ==================================================
-          KICKOFF
-      ================================================== */}
 
       <div
         className="
@@ -564,15 +346,8 @@ function MatchCard({
           text-muted-foreground
         "
       >
-        {formatKickoffTime(
-          match.date,
-        )}
+        {formatKickoffTime(match.date)}
       </div>
-
-
-      {/* ==================================================
-          TEAMS + SCORE
-      ================================================== */}
 
       <div
         className="
@@ -582,21 +357,11 @@ function MatchCard({
           gap-2
         "
       >
-
         <Team
-          name={
-            match.homeTeam
-          }
-          crest={
-            match.homeTeamBadge
-          }
-          winner={
-            winner === 'home'
-          }
+          name={match.homeTeam}
+          crest={match.homeTeamBadge}
+          winner={winner === 'home'}
         />
-
-
-        {/* SCORE */}
 
         <div
           className="
@@ -607,7 +372,6 @@ function MatchCard({
             pt-2
           "
         >
-
           <span
             className="
               whitespace-nowrap
@@ -618,7 +382,6 @@ function MatchCard({
               text-foreground
             "
           >
-
             {match.homeScore ?? 0}
 
             <span
@@ -631,36 +394,18 @@ function MatchCard({
             </span>
 
             {match.awayScore ?? 0}
-
           </span>
-
         </div>
 
-
         <Team
-          name={
-            match.awayTeam
-          }
-          crest={
-            match.awayTeamBadge
-          }
-          winner={
-            winner === 'away'
-          }
+          name={match.awayTeam}
+          crest={match.awayTeamBadge}
+          winner={winner === 'away'}
         />
-
       </div>
-
     </article>
-
   );
-
 }
-
-
-// ============================================================
-// ROUND HEADER
-// ============================================================
 
 function RoundHeader({
   round,
@@ -673,18 +418,12 @@ function RoundHeader({
   active: boolean;
   onClick: () => void;
 }) {
-
-  const isFinal =
-    round === 'FINAL';
-
+  const isFinal = round === 'FINAL';
 
   return (
-
     <button
       type="button"
-      onClick={
-        onClick
-      }
+      onClick={onClick}
       className={`
         mx-auto
         flex
@@ -698,46 +437,18 @@ function RoundHeader({
         transition
         ${
           isFinal
-            ? `
-              border-yellow-500/30
-              bg-yellow-500/[0.08]
-            `
+            ? 'border-yellow-500/30 bg-yellow-500/[0.08]'
             : active
-              ? `
-                border-primary/30
-                bg-primary/[0.06]
-              `
-              : `
-                border-border/60
-                bg-muted/20
-                hover:bg-muted/40
-              `
+              ? 'border-primary/30 bg-primary/[0.06]'
+              : 'border-border/60 bg-muted/20 hover:bg-muted/40'
         }
       `}
     >
-
       {isFinal ? (
-
-        <Trophy
-          className="
-            h-4
-            w-4
-            text-yellow-500
-          "
-        />
-
+        <Trophy className="h-4 w-4 text-yellow-500" />
       ) : (
-
-        <GitBranch
-          className="
-            h-4
-            w-4
-            text-muted-foreground
-          "
-        />
-
+        <GitBranch className="h-4 w-4 text-muted-foreground" />
       )}
-
 
       <span
         className="
@@ -746,11 +457,8 @@ function RoundHeader({
           text-foreground
         "
       >
-        {getRoundLabel(
-          round,
-        )}
+        {ROUND_LABELS[round]}
       </span>
-
 
       <span
         className="
@@ -764,26 +472,22 @@ function RoundHeader({
       >
         {count}
       </span>
-
     </button>
-
   );
-
 }
-
-
-// ============================================================
-// CONNECTOR
-// ============================================================
 
 function BranchConnector({
   childCount,
 }: {
   childCount: number;
 }) {
+  const branchPositions = Array.from(
+    { length: childCount },
+    (_, index) =>
+      `${((index + 0.5) / childCount) * 100}%`,
+  );
 
   return (
-
     <div
       aria-hidden="true"
       className="
@@ -794,9 +498,6 @@ function BranchConnector({
         max-w-6xl
       "
     >
-
-      {/* Parent vertical */}
-
       <div
         className="
           absolute
@@ -808,9 +509,6 @@ function BranchConnector({
           bg-border
         "
       />
-
-
-      {/* Horizontal branch */}
 
       <div
         className="
@@ -829,58 +527,22 @@ function BranchConnector({
         }}
       />
 
-
-      {/* Child branches */}
-
-      {Array.from({
-        length:
-          childCount,
-      }).map(
-        (_, index) => {
-
-          const left =
-            (
-              index +
-              0.5
-            ) /
-            childCount *
-            100;
-
-
-          return (
-
-            <div
-              key={
-                index
-              }
-              className="
-                absolute
-                top-3
-                h-3
-                w-px
-                bg-border
-              "
-              style={{
-                left:
-                  `${left}%`,
-              }}
-            />
-
-          );
-
-        },
-      )}
-
+      {branchPositions.map((left) => (
+        <div
+          key={left}
+          className="
+            absolute
+            top-3
+            h-3
+            w-px
+            bg-border
+          "
+          style={{ left }}
+        />
+      ))}
     </div>
-
   );
-
 }
-
-
-// ============================================================
-// ROUND GRID
-// ============================================================
 
 function RoundGrid({
   matches,
@@ -889,20 +551,12 @@ function RoundGrid({
   matches: KnockoutMatch[];
   columns: number;
 }) {
-
-  const safeMatches =
-    Array.from(
-      {
-        length:
-          columns,
-      },
-      (_, index) =>
-        matches[index],
-    );
-
+  const visibleMatches = Array.from(
+    { length: columns },
+    (_, index) => matches[index],
+  );
 
   return (
-
     <div
       className="
         mx-auto
@@ -916,145 +570,93 @@ function RoundGrid({
           `repeat(${columns}, minmax(140px, 1fr))`,
       }}
     >
-
-      {safeMatches.map(
-        (
-          match,
-          index,
-        ) => (
-
-          <div
-            key={
-              match?.id ??
-              `empty-${index}`
-            }
-          >
-
-            <MatchCard
-              match={
-                match
-              }
-            />
-
-          </div>
-
-        ),
-      )}
-
+      {visibleMatches.map((match, index) => (
+        <div
+          key={
+            match?.id ??
+            `empty-${index}`
+          }
+        >
+          <MatchCard match={match} />
+        </div>
+      ))}
     </div>
-
   );
-
 }
 
-
-// ============================================================
-// COMPONENT
-// ============================================================
+const ROUND_CONFIG: {
+  round: BracketRound;
+  columns: number;
+  connector?: number;
+}[] = [
+  {
+    round: 'SEMI_FINALS',
+    columns: 2,
+    connector: 2,
+  },
+  {
+    round: 'QUARTER_FINALS',
+    columns: 4,
+    connector: 4,
+  },
+  {
+    round: 'ROUND_OF_16',
+    columns: 8,
+    connector: 8,
+  },
+  {
+    round: 'ROUND_OF_32',
+    columns: 16,
+    connector: 16,
+  },
+];
 
 export default function KnockoutBracket({
   stages,
 }: Props) {
+  const rounds = useMemo(() => {
+    const grouped = Object.fromEntries(
+      ROUND_ORDER.map((round) => [round, []]),
+    ) as Record<
+      BracketRound,
+      KnockoutMatch[]
+    >;
 
-  const rounds =
-    useMemo(() => {
+    for (const stage of stages) {
+      const round = getRoundType(stage.stage);
 
-      const grouped: Record<
-        BracketRound,
-        KnockoutMatch[]
-      > = {
-
-        FINAL: [],
-
-        THIRD_PLACE: [],
-
-        SEMI_FINALS: [],
-
-        QUARTER_FINALS: [],
-
-        ROUND_OF_16: [],
-
-        ROUND_OF_32: [],
-
-      };
-
-
-      for (
-        const stage of stages
-      ) {
-
-        const round =
-          getRoundType(
-            stage.stage,
-          );
-
-
-        if (!round) {
-          continue;
-        }
-
-
-        grouped[
-          round
-        ].push(
-          ...(
-            stage.matches ??
-            []
-          ),
+      if (round) {
+        grouped[round].push(
+          ...(stage.matches ?? []),
         );
-
       }
+    }
 
+    return grouped;
+  }, [stages]);
 
-      return grouped;
+  const [activeRound, setActiveRound] =
+    useState<BracketRound | null>(null);
 
-    }, [
-      stages,
-    ]);
-
-
-  const [
-    activeRound,
-    setActiveRound,
-  ] = useState<
-    BracketRound | null
-  >(null);
-
-
-  const hasAny =
-    Object.values(
-      rounds,
-    ).some(
-      value =>
-        value.length > 0,
-    );
-
+  const hasAny = ROUND_ORDER.some(
+    (round) => rounds[round].length > 0,
+  );
 
   const scrollToRound = (
     round: BracketRound,
   ) => {
-
-    setActiveRound(
-      round,
-    );
-
+    setActiveRound(round);
 
     document
-      .getElementById(
-        `knockout-${round}`,
-      )
+      .getElementById(`knockout-${round}`)
       ?.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
       });
-
   };
 
-
   if (!hasAny) {
-
     return (
-
       <section
         className="
           rounded-3xl
@@ -1066,7 +668,6 @@ export default function KnockoutBracket({
           shadow-xl
         "
       >
-
         <GitBranch
           className="
             mx-auto
@@ -1096,16 +697,43 @@ export default function KnockoutBracket({
         >
           No knockout matches have been published yet.
         </p>
-
       </section>
-
     );
-
   }
 
+  const renderRound = (
+    round: BracketRound,
+    columns: number,
+  ) => {
+    const matches = rounds[round];
+
+    if (!matches.length) {
+      return null;
+    }
+
+    return (
+      <div
+        id={`knockout-${round}`}
+        className="scroll-mt-24"
+      >
+        <RoundHeader
+          round={round}
+          count={matches.length}
+          active={activeRound === round}
+          onClick={() => scrollToRound(round)}
+        />
+
+        <div className="mt-2">
+          <RoundGrid
+            matches={matches}
+            columns={columns}
+          />
+        </div>
+      </div>
+    );
+  };
 
   return (
-
     <section
       className="
         relative
@@ -1120,11 +748,6 @@ export default function KnockoutBracket({
         sm:p-4
       "
     >
-
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
       <div
         className="
           relative
@@ -1135,7 +758,6 @@ export default function KnockoutBracket({
           gap-2
         "
       >
-
         <div
           className="
             flex
@@ -1148,19 +770,10 @@ export default function KnockoutBracket({
             text-yellow-500
           "
         >
-
-          <GitBranch
-            className="
-              h-4
-              w-4
-            "
-          />
-
+          <GitBranch className="h-4 w-4" />
         </div>
 
-
         <div>
-
           <h2
             className="
               text-base
@@ -1171,7 +784,6 @@ export default function KnockoutBracket({
             Knockout Stage
           </h2>
 
-
           <p
             className="
               text-xs
@@ -1180,15 +792,8 @@ export default function KnockoutBracket({
           >
             Follow the tournament path
           </p>
-
         </div>
-
       </div>
-
-
-      {/* ======================================================
-          BRACKET SCROLLER
-      ====================================================== */}
 
       <div
         className="
@@ -1197,69 +802,34 @@ export default function KnockoutBracket({
           pb-2
         "
       >
-
         <div
           className="
             min-w-[760px]
             px-1
           "
         >
-
-          {/* ==================================================
-              FINAL
-          ================================================== */}
-
           <div
             id="knockout-FINAL"
             className="
-              scroll-mt-24
               mx-auto
               w-[220px]
+              scroll-mt-24
             "
           >
-
             <RoundHeader
               round="FINAL"
-              count={
-                rounds.FINAL.length
-              }
-              active={
-                activeRound ===
-                'FINAL'
-              }
-              onClick={() =>
-                scrollToRound(
-                  'FINAL',
-                )
-              }
+              count={rounds.FINAL.length}
+              active={activeRound === 'FINAL'}
+              onClick={() => scrollToRound('FINAL')}
             />
 
-
-            <div
-              className="
-                mt-2
-              "
-            >
-
-              <MatchCard
-                match={
-                  rounds.FINAL[0]
-                }
-              />
-
+            <div className="mt-2">
+              <MatchCard match={rounds.FINAL[0]} />
             </div>
-
           </div>
 
-
-          {/* ==================================================
-              THIRD PLACE
-          ================================================== */}
-
           {rounds.THIRD_PLACE.length > 0 && (
-
             <>
-
               <div
                 className="
                   mx-auto
@@ -1267,289 +837,63 @@ export default function KnockoutBracket({
                   w-[220px]
                 "
               >
-
                 <RoundHeader
                   round="THIRD_PLACE"
-                  count={
-                    rounds.THIRD_PLACE.length
-                  }
+                  count={rounds.THIRD_PLACE.length}
                   active={
-                    activeRound ===
-                    'THIRD_PLACE'
+                    activeRound === 'THIRD_PLACE'
                   }
                   onClick={() =>
-                    scrollToRound(
-                      'THIRD_PLACE',
-                    )
+                    scrollToRound('THIRD_PLACE')
                   }
                 />
-
               </div>
-
 
               <div
                 id="knockout-THIRD_PLACE"
                 className="
-                  scroll-mt-24
                   mx-auto
                   w-[220px]
+                  scroll-mt-24
                 "
               >
-
                 <MatchCard
-                  match={
-                    rounds
-                      .THIRD_PLACE[0]
-                  }
+                  match={rounds.THIRD_PLACE[0]}
                 />
-
               </div>
-
             </>
-
           )}
 
+          {ROUND_CONFIG.map(
+            ({
+              round,
+              columns,
+              connector,
+            }) => {
+              const matches = rounds[round];
 
-          {/* ==================================================
-              TREE ROOT → SEMI FINALS
-          ================================================== */}
-
-          <BranchConnector
-            childCount={2}
-          />
-
-
-          {/* ==================================================
-              SEMI FINALS
-          ================================================== */}
-
-          <div
-            id="knockout-SEMI_FINALS"
-            className="
-              scroll-mt-24
-            "
-          >
-
-            <RoundHeader
-              round="SEMI_FINALS"
-              count={
-                rounds.SEMI_FINALS.length
+              if (!matches.length) {
+                return null;
               }
-              active={
-                activeRound ===
-                'SEMI_FINALS'
-              }
-              onClick={() =>
-                scrollToRound(
-                  'SEMI_FINALS',
-                )
-              }
-            />
 
-
-            <div
-              className="
-                mt-2
-              "
-            >
-
-              <RoundGrid
-                matches={
-                  rounds.SEMI_FINALS
-                }
-                columns={2}
-              />
-
-            </div>
-
-          </div>
-
-
-          {/* ==================================================
-              QUARTER FINALS
-          ================================================== */}
-
-          <BranchConnector
-            childCount={4}
-          />
-
-
-          <div
-            id="knockout-QUARTER_FINALS"
-            className="
-              scroll-mt-24
-            "
-          >
-
-            <RoundHeader
-              round="QUARTER_FINALS"
-              count={
-                rounds
-                  .QUARTER_FINALS
-                  .length
-              }
-              active={
-                activeRound ===
-                'QUARTER_FINALS'
-              }
-              onClick={() =>
-                scrollToRound(
-                  'QUARTER_FINALS',
-                )
-              }
-            />
-
-
-            <div
-              className="
-                mt-2
-              "
-            >
-
-              <RoundGrid
-                matches={
-                  rounds
-                    .QUARTER_FINALS
-                }
-                columns={4}
-              />
-
-            </div>
-
-          </div>
-
-
-          {/* ==================================================
-              ROUND OF 16
-          ================================================== */}
-
-          {rounds.ROUND_OF_16.length > 0 && (
-
-            <>
-
-              <BranchConnector
-                childCount={8}
-              />
-
-
-              <div
-                id="knockout-ROUND_OF_16"
-                className="
-                  scroll-mt-24
-                "
-              >
-
-                <RoundHeader
-                  round="ROUND_OF_16"
-                  count={
-                    rounds
-                      .ROUND_OF_16
-                      .length
-                  }
-                  active={
-                    activeRound ===
-                    'ROUND_OF_16'
-                  }
-                  onClick={() =>
-                    scrollToRound(
-                      'ROUND_OF_16',
-                    )
-                  }
-                />
-
-
-                <div
-                  className="
-                    mt-2
-                  "
-                >
-
-                  <RoundGrid
-                    matches={
-                      rounds
-                        .ROUND_OF_16
+              return (
+                <div key={round}>
+                  <BranchConnector
+                    childCount={
+                      connector ?? columns
                     }
-                    columns={8}
                   />
 
+                  {renderRound(
+                    round,
+                    columns,
+                  )}
                 </div>
-
-              </div>
-
-            </>
-
+              );
+            },
           )}
-
-
-          {/* ==================================================
-              ROUND OF 32
-          ================================================== */}
-
-          {rounds.ROUND_OF_32.length > 0 && (
-
-            <>
-
-              <BranchConnector
-                childCount={16}
-              />
-
-
-              <div
-                id="knockout-ROUND_OF_32"
-                className="
-                  scroll-mt-24
-                "
-              >
-
-                <RoundHeader
-                  round="ROUND_OF_32"
-                  count={
-                    rounds
-                      .ROUND_OF_32
-                      .length
-                  }
-                  active={
-                    activeRound ===
-                    'ROUND_OF_32'
-                  }
-                  onClick={() =>
-                    scrollToRound(
-                      'ROUND_OF_32',
-                    )
-                  }
-                />
-
-
-                <div
-                  className="
-                    mt-2
-                  "
-                >
-
-                  <RoundGrid
-                    matches={
-                      rounds
-                        .ROUND_OF_32
-                    }
-                    columns={16}
-                  />
-
-                </div>
-
-              </div>
-
-            </>
-
-          )}
-
         </div>
-
       </div>
-
-
-      {/* ======================================================
-          LEGEND
-      ====================================================== */}
 
       <div
         className="
@@ -1567,7 +911,6 @@ export default function KnockoutBracket({
           text-muted-foreground
         "
       >
-
         <span
           className="
             flex
@@ -1575,7 +918,6 @@ export default function KnockoutBracket({
             gap-1.5
           "
         >
-
           <span
             className="
               h-2
@@ -1584,11 +926,8 @@ export default function KnockoutBracket({
               bg-yellow-500
             "
           />
-
           Winner
-
         </span>
-
 
         <span
           className="
@@ -1597,7 +936,6 @@ export default function KnockoutBracket({
             gap-1.5
           "
         >
-
           <span
             className="
               h-2
@@ -1607,11 +945,8 @@ export default function KnockoutBracket({
               bg-red-500
             "
           />
-
           Live
-
         </span>
-
 
         <span
           className="
@@ -1620,7 +955,6 @@ export default function KnockoutBracket({
             gap-1.5
           "
         >
-
           <span
             className="
               h-2
@@ -1629,15 +963,9 @@ export default function KnockoutBracket({
               bg-muted-foreground
             "
           />
-
           Upcoming
-
         </span>
-
       </div>
-
     </section>
-
   );
-
 }

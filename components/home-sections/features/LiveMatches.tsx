@@ -28,9 +28,7 @@ import {
 // ============================================================
 
 interface Props {
-
   matches: Match[];
-
 }
 
 
@@ -43,286 +41,78 @@ function LiveMatchClock({
 }: {
   match: Match;
 }) {
+  const [now, setNow] = useState(() => Date.now());
 
-  // ==========================================================
-  // LOCAL TICK
-  // ==========================================================
+  const anchorRef = useRef({
+    minute: match.minute ?? null,
+    timestamp: Date.now(),
+  });
 
-  const [
-    now,
-    setNow,
-  ] = useState(
-    () => Date.now(),
-  );
+  const statusRef = useRef(match.status);
 
-
-  // ==========================================================
-  // API ANCHOR
-  //
-  // Every API minute gets its own timestamp.
-  //
-  // Example:
-  //
-  // minute = 62
-  // anchor = 22:10:00
-  //
-  // At 22:10:15:
-  // elapsed = 15
-  //
-  // Display:
-  // 62:15
-  // ==========================================================
-
-  const anchorRef =
-    useRef<{
-      minute: number | null;
-
-      timestamp: number;
-    }>({
-
-      minute:
-        match.minute ?? null,
-
-      timestamp:
-        Date.now(),
-
-    });
-
-
-  // ==========================================================
-  // RE-ANCHOR WHEN API MINUTE CHANGES
-  // ==========================================================
-
+  // Re-anchor when the provider's minute changes.
   useEffect(() => {
+    const minute = match.minute ?? null;
 
-    const providerMinute =
-      match.minute ?? null;
-
-
-    if (
-      anchorRef.current.minute !==
-      providerMinute
-    ) {
-
+    if (anchorRef.current.minute !== minute) {
       anchorRef.current = {
-
-        minute:
-          providerMinute,
-
-        timestamp:
-          Date.now(),
-
+        minute,
+        timestamp: Date.now(),
       };
 
-
-      setNow(
-        Date.now(),
-      );
-
+      setNow(Date.now());
     }
+  }, [match.minute]);
 
-  }, [
-    match.minute,
-  ]);
-
-
-  // ==========================================================
-  // ALSO RESET WHEN MATCH STATUS CHANGES
-  //
-  // This handles:
-  //
-  // IN_PLAY -> PAUSED
-  // PAUSED  -> IN_PLAY
-  // ==========================================================
-
-  const statusRef =
-    useRef(
-      match.status,
-    );
-
-
+  // Re-anchor when match status changes.
   useEffect(() => {
-
-    if (
-      statusRef.current !==
-      match.status
-    ) {
-
-      statusRef.current =
-        match.status;
-
+    if (statusRef.current !== match.status) {
+      statusRef.current = match.status;
 
       anchorRef.current = {
-
-        minute:
-          match.minute ?? null,
-
-        timestamp:
-          Date.now(),
-
+        minute: match.minute ?? null,
+        timestamp: Date.now(),
       };
 
-
-      setNow(
-        Date.now(),
-      );
-
+      setNow(Date.now());
     }
+  }, [match.status, match.minute]);
 
-  }, [
-    match.status,
-    match.minute,
-  ]);
-
-
-  // ==========================================================
-  // ONE SECOND TICK
-  // ==========================================================
-
+  // One shared local tick per mounted live match.
   useEffect(() => {
-
-    const interval =
-      window.setInterval(
-        () => {
-
-          setNow(
-            Date.now(),
-          );
-
-        },
-        1000,
-      );
-
-
-    return () => {
-
-      window.clearInterval(
-        interval,
-      );
-
-    };
-
-  }, []);
-
-
-  // ==========================================================
-  // ELAPSED SECONDS FROM API ANCHOR
-  // ==========================================================
-
-  const elapsedSeconds =
-    Math.floor(
-      Math.max(
-        0,
-        now -
-        anchorRef.current.timestamp,
-      ) /
+    const interval = window.setInterval(
+      () => setNow(Date.now()),
       1000,
     );
 
+    return () => window.clearInterval(interval);
+  }, []);
 
-  // ==========================================================
-  // PROVIDER CLOCK
-  // ==========================================================
+  const elapsedSeconds = Math.floor(
+    Math.max(
+      0,
+      now - anchorRef.current.timestamp,
+    ) / 1000,
+  );
 
-  const clock =
-    getProviderMatchClock(
-      match,
-      elapsedSeconds,
-    );
+  const clock = getProviderMatchClock(
+    match,
+    elapsedSeconds,
+  );
 
-
-  // ==========================================================
-  // PHASE LABEL
-  // ==========================================================
-
-  let phaseLabel =
-    '';
-
-
-  switch (
-    clock.phase
-  ) {
-
-    case 'FIRST_HALF':
-
-      phaseLabel =
-        '1st Half';
-
-      break;
-
-
-    case 'HALFTIME':
-
-      phaseLabel =
-        'Half Time';
-
-      break;
-
-
-    case 'SECOND_HALF':
-
-      phaseLabel =
-        '2nd Half';
-
-      break;
-
-
-    case 'EXTRA_TIME_FIRST_HALF':
-
-      phaseLabel =
-        'ET 1st Half';
-
-      break;
-
-
-    case 'EXTRA_TIME_HALFTIME':
-
-      phaseLabel =
-        'ET Half Time';
-
-      break;
-
-
-    case 'EXTRA_TIME_SECOND_HALF':
-
-      phaseLabel =
-        'ET 2nd Half';
-
-      break;
-
-
-    case 'PENALTIES':
-
-      phaseLabel =
-        'Penalties';
-
-      break;
-
-
-    case 'FULL_TIME':
-
-      phaseLabel =
-        'Full Time';
-
-      break;
-
-
-    case 'NOT_STARTED':
-
-      phaseLabel =
-        'Not Started';
-
-      break;
-
-  }
-
-
-  // ==========================================================
-  // RENDER
-  // ==========================================================
+  const phaseLabels: Record<string, string> = {
+    FIRST_HALF: '1st Half',
+    HALFTIME: 'Half Time',
+    SECOND_HALF: '2nd Half',
+    EXTRA_TIME_FIRST_HALF: 'ET 1st Half',
+    EXTRA_TIME_HALFTIME: 'ET Half Time',
+    EXTRA_TIME_SECOND_HALF: 'ET 2nd Half',
+    PENALTIES: 'Penalties',
+    FULL_TIME: 'Full Time',
+    NOT_STARTED: 'Not Started',
+  };
 
   return (
-
     <div
       className="
         flex
@@ -331,7 +121,6 @@ function LiveMatchClock({
         text-right
       "
     >
-
       <span
         className="
           text-sm
@@ -342,11 +131,8 @@ function LiveMatchClock({
           sm:text-base
         "
       >
-        {
-          clock.display
-        }
+        {clock.display}
       </span>
-
 
       <span
         className="
@@ -356,13 +142,85 @@ function LiveMatchClock({
           text-muted-foreground
         "
       >
-        {phaseLabel}
+        {phaseLabels[clock.phase] ?? ''}
       </span>
-
     </div>
-
   );
+}
 
+
+// ============================================================
+// TEAM
+// ============================================================
+
+function LiveTeam({
+  name,
+  badge,
+}: {
+  name: string;
+  badge?: string;
+}) {
+  return (
+    <div
+      className="
+        flex
+        min-w-0
+        flex-col
+        items-center
+        gap-1
+      "
+    >
+      <div
+        className="
+          flex
+          h-8
+          w-8
+          shrink-0
+          items-center
+          justify-center
+          overflow-hidden
+        "
+      >
+        {badge ? (
+          <Image
+            src={badge}
+            alt={name}
+            width={32}
+            height={32}
+            className="
+              h-8
+              w-8
+              object-contain
+            "
+          />
+        ) : (
+          <span
+            className="
+              h-2
+              w-2
+              rounded-full
+              bg-muted-foreground/40
+            "
+          />
+        )}
+      </div>
+
+      <span
+        className="
+          line-clamp-2
+          min-h-[2rem]
+          w-full
+          text-center
+          text-xs
+          font-semibold
+          leading-tight
+          text-foreground
+        "
+      >
+        {name}
+      </span>
+    </div>
+  );
 }
 
 
@@ -373,91 +231,35 @@ function LiveMatchClock({
 export default function LiveMatches({
   matches,
 }: Props) {
+  const [expanded, setExpanded] = useState(false);
 
-  const [
-    expanded,
-    setExpanded,
-  ] = useState(false);
-
-
-  // ==========================================================
-  // SORT
-  // ==========================================================
-
-  const sortedMatches =
-    useMemo(() => {
-
-      return [
-        ...matches,
-      ].sort(
-        (
-          a,
-          b,
-        ) =>
+  const sortedMatches = useMemo(
+    () =>
+      [...matches].sort(
+        (a, b) =>
           a.kickoffTimestamp -
           b.kickoffTimestamp,
-      );
+      ),
+    [matches],
+  );
 
-    }, [
-      matches,
-    ]);
+  const dateHeader = useMemo(() => {
+    const firstMatch = sortedMatches[0];
 
+    return firstMatch
+      ? formatLiveDate(firstMatch.date)
+      : '';
+  }, [sortedMatches]);
 
-  // ==========================================================
-  // DATE HEADER
-  // ==========================================================
+  const visibleMatches = expanded
+    ? sortedMatches
+    : sortedMatches.slice(0, 6);
 
-  const dateHeader =
-    useMemo(() => {
-
-      const firstMatch =
-        sortedMatches[0];
-
-
-      if (!firstMatch) {
-
-        return '';
-
-      }
-
-
-      return formatLiveDate(
-        firstMatch.date,
-      );
-
-    }, [
-      sortedMatches,
-    ]);
-
-
-  // ==========================================================
-  // VISIBLE MATCHES
-  // ==========================================================
-
-  const visibleMatches =
-    expanded
-      ? sortedMatches
-      : sortedMatches.slice(
-          0,
-          6,
-        );
-
-
-  // ==========================================================
-  // EMPTY
-  // ==========================================================
-
-  if (
-    !matches.length
-  ) {
-
+  if (!matches.length) {
     return null;
-
   }
 
-
   return (
-
     <section
       className="
         relative
@@ -472,7 +274,6 @@ export default function LiveMatches({
         sm:p-4
       "
     >
-
       {/* ======================================================
           GLOW
       ====================================================== */}
@@ -491,7 +292,6 @@ export default function LiveMatches({
         "
       />
 
-
       {/* ======================================================
           HEADER
       ====================================================== */}
@@ -506,7 +306,6 @@ export default function LiveMatches({
           gap-3
         "
       >
-
         <div
           className="
             flex
@@ -515,7 +314,6 @@ export default function LiveMatches({
             gap-2.5
           "
         >
-
           <div
             className="
               flex
@@ -531,23 +329,10 @@ export default function LiveMatches({
               sm:w-9
             "
           >
-
-            <Radio
-              className="
-                h-4
-                w-4
-              "
-            />
-
+            <Radio className="h-4 w-4" />
           </div>
 
-
-          <div
-            className="
-              min-w-0
-            "
-          >
-
+          <div className="min-w-0">
             <h2
               className="
                 text-sm
@@ -556,9 +341,8 @@ export default function LiveMatches({
                 sm:text-base
               "
             >
-              Live Now
+              Live Matches
             </h2>
-
 
             <p
               className="
@@ -568,11 +352,8 @@ export default function LiveMatches({
             >
               Matches currently in play
             </p>
-
           </div>
-
         </div>
-
 
         <span
           className="
@@ -588,16 +369,13 @@ export default function LiveMatches({
         >
           {matches.length} Live
         </span>
-
       </div>
-
 
       {/* ======================================================
           UTC DATE
       ====================================================== */}
 
       {dateHeader && (
-
         <div
           className="
             relative
@@ -614,9 +392,7 @@ export default function LiveMatches({
         >
           {dateHeader}
         </div>
-
       )}
-
 
       {/* ======================================================
           MATCH GRID
@@ -632,440 +408,224 @@ export default function LiveMatches({
           lg:grid-cols-3
         "
       >
+        {visibleMatches.map(match => (
+          <article
+            key={match.id}
+            className="
+              min-w-0
+              overflow-hidden
+              rounded-xl
+              border
+              border-border
+              bg-background/40
+              transition-colors
+              hover:bg-muted/30
+            "
+          >
+            <div className="p-2.5">
 
-        {visibleMatches.map(
-          match => (
-
-            <article
-              key={
-                match.id
-              }
-              className="
-                min-w-0
-                overflow-hidden
-                rounded-xl
-                border
-                border-border
-                bg-background/40
-                transition-colors
-                hover:bg-muted/30
-              "
-            >
+              {/* ==================================================
+                  STATUS + CLOCK
+              ================================================== */}
 
               <div
                 className="
-                  p-2.5
+                  mb-2.5
+                  flex
+                  items-start
+                  justify-between
+                  gap-2
                 "
               >
+                <div
+                  className="
+                    inline-flex
+                    items-center
+                    gap-1.5
+                    rounded-full
+                    bg-red-500/10
+                    px-2
+                    py-0.5
+                    text-xs
+                    font-semibold
+                    text-red-500
+                  "
+                >
+                  <span
+                    className="
+                      h-1.5
+                      w-1.5
+                      animate-pulse
+                      rounded-full
+                      bg-red-500
+                    "
+                  />
 
-                {/* ==================================================
-                    STATUS + CLOCK
-                ================================================== */}
+                  LIVE
+                </div>
+
+                <LiveMatchClock match={match} />
+              </div>
+
+              {/* ==================================================
+                  TEAMS
+              ================================================== */}
+
+              <div
+                className="
+                  grid
+                  grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
+                  items-center
+                  gap-1.5
+                "
+              >
+                <LiveTeam
+                  name={match.homeTeam}
+                  badge={match.homeTeamBadge}
+                />
+
+                {/* SCORE */}
 
                 <div
                   className="
-                    mb-2.5
                     flex
-                    items-start
-                    justify-between
-                    gap-2
+                    min-w-[58px]
+                    items-center
+                    justify-center
                   "
                 >
-
-                  <div
+                  <span
                     className="
-                      inline-flex
-                      items-center
-                      gap-1.5
-                      rounded-full
-                      bg-red-500/10
-                      px-2
-                      py-0.5
-                      text-xs
-                      font-semibold
-                      text-red-500
+                      text-lg
+                      font-black
+                      leading-none
+                      tabular-nums
+                      text-foreground
+                      sm:text-xl
                     "
                   >
+                    {match.homeScore ?? 0}
 
                     <span
                       className="
-                        h-1.5
-                        w-1.5
-                        animate-pulse
-                        rounded-full
-                        bg-red-500
+                        mx-1
+                        text-muted-foreground
                       "
-                    />
+                    >
+                      -
+                    </span>
 
-                    LIVE
-
-                  </div>
-
-
-                  <LiveMatchClock
-                    match={
-                      match
-                    }
-                  />
-
+                    {match.awayScore ?? 0}
+                  </span>
                 </div>
 
+                <LiveTeam
+                  name={match.awayTeam}
+                  badge={match.awayTeamBadge}
+                />
+              </div>
 
-                {/* ==================================================
-                    TEAMS
-                ================================================== */}
+              {/* ==================================================
+                  FOOTER
+              ================================================== */}
 
+              <div
+                className="
+                  mt-2.5
+                  flex
+                  min-w-0
+                  items-center
+                  justify-between
+                  gap-2
+                  border-t
+                  border-border/40
+                  pt-2
+                "
+              >
                 <div
                   className="
-                    grid
-                    grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
+                    flex
+                    min-w-0
                     items-center
                     gap-1.5
                   "
                 >
-
-                  {/* HOME */}
-
                   <div
                     className="
                       flex
-                      min-w-0
-                      flex-col
-                      items-center
-                      gap-1
-                    "
-                  >
-
-                    <div
-                      className="
-                        flex
-                        h-8
-                        w-8
-                        shrink-0
-                        items-center
-                        justify-center
-                        overflow-hidden
-                      "
-                    >
-
-                      {match.homeTeamBadge ? (
-
-                        <Image
-                          src={
-                            match.homeTeamBadge
-                          }
-                          alt={
-                            match.homeTeam
-                          }
-                          width={32}
-                          height={32}
-                          className="
-                            h-8
-                            w-8
-                            object-contain
-                          "
-                        />
-
-                      ) : (
-
-                        <span
-                          className="
-                            h-2
-                            w-2
-                            rounded-full
-                            bg-muted-foreground/40
-                          "
-                        />
-
-                      )}
-
-                    </div>
-
-
-                    <span
-                      className="
-                        line-clamp-2
-                        min-h-[2rem]
-                        w-full
-                        text-center
-                        text-xs
-                        font-semibold
-                        leading-tight
-                        text-foreground
-                      "
-                    >
-                      {
-                        match.homeTeam
-                      }
-                    </span>
-
-                  </div>
-
-
-                  {/* SCORE */}
-
-                  <div
-                    className="
-                      flex
-                      min-w-[58px]
+                      h-6
+                      w-6
+                      shrink-0
                       items-center
                       justify-center
+                      overflow-hidden
+                      rounded-md
+                      bg-muted/50
                     "
                   >
-
-                    <span
-                      className="
-                        text-lg
-                        font-black
-                        leading-none
-                        tabular-nums
-                        text-foreground
-                        sm:text-xl
-                      "
-                    >
-
-                      {
-                        match.homeScore ??
-                        0
-                      }
-
+                    {match.league?.emblem ? (
+                      <Image
+                        src={match.league.emblem}
+                        alt=""
+                        width={20}
+                        height={20}
+                        className="
+                          h-5
+                          w-5
+                          object-contain
+                        "
+                      />
+                    ) : (
                       <span
                         className="
-                          mx-1
-                          text-muted-foreground
+                          h-1.5
+                          w-1.5
+                          rounded-full
+                          bg-muted-foreground/40
                         "
-                      >
-                        -
-                      </span>
-
-                      {
-                        match.awayScore ??
-                        0
-                      }
-
-                    </span>
-
+                      />
+                    )}
                   </div>
-
-
-                  {/* AWAY */}
-
-                  <div
-                    className="
-                      flex
-                      min-w-0
-                      flex-col
-                      items-center
-                      gap-1
-                    "
-                  >
-
-                    <div
-                      className="
-                        flex
-                        h-8
-                        w-8
-                        shrink-0
-                        items-center
-                        justify-center
-                        overflow-hidden
-                      "
-                    >
-
-                      {match.awayTeamBadge ? (
-
-                        <Image
-                          src={
-                            match.awayTeamBadge
-                          }
-                          alt={
-                            match.awayTeam
-                          }
-                          width={32}
-                          height={32}
-                          className="
-                            h-8
-                            w-8
-                            object-contain
-                          "
-                        />
-
-                      ) : (
-
-                        <span
-                          className="
-                            h-2
-                            w-2
-                            rounded-full
-                            bg-muted-foreground/40
-                          "
-                        />
-
-                      )}
-
-                    </div>
-
-
-                    <span
-                      className="
-                        line-clamp-2
-                        min-h-[2rem]
-                        w-full
-                        text-center
-                        text-xs
-                        font-semibold
-                        leading-tight
-                        text-foreground
-                      "
-                    >
-                      {
-                        match.awayTeam
-                      }
-                    </span>
-
-                  </div>
-
-                </div>
-
-
-                {/* ==================================================
-                    FOOTER
-                ================================================== */}
-
-                <div
-                  className="
-                    mt-2.5
-                    flex
-                    min-w-0
-                    items-center
-                    justify-between
-                    gap-2
-                    border-t
-                    border-border/40
-                    pt-2
-                  "
-                >
-
-                  <div
-                    className="
-                      flex
-                      min-w-0
-                      items-center
-                      gap-1.5
-                    "
-                  >
-
-                    <div
-                      className="
-                        flex
-                        h-6
-                        w-6
-                        shrink-0
-                        items-center
-                        justify-center
-                        overflow-hidden
-                        rounded-md
-                        bg-muted/50
-                      "
-                    >
-
-                      {match.league?.emblem ? (
-
-                        <Image
-                          src={
-                            match.league.emblem
-                          }
-                          alt=""
-                          width={20}
-                          height={20}
-                          className="
-                            h-5
-                            w-5
-                            object-contain
-                          "
-                        />
-
-                      ) : (
-
-                        <span
-                          className="
-                            h-1.5
-                            w-1.5
-                            rounded-full
-                            bg-muted-foreground/40
-                          "
-                        />
-
-                      )}
-
-                    </div>
-
-
-                    <span
-                      className="
-                        min-w-0
-                        truncate
-                        text-xs
-                        font-medium
-                        text-muted-foreground
-                      "
-                    >
-                      {
-                        match.league?.name ||
-                        'Football'
-                      }
-                    </span>
-
-                  </div>
-
 
                   <span
                     className="
-                      shrink-0
+                      min-w-0
+                      truncate
                       text-xs
-                      font-semibold
-                      tabular-nums
-                      text-foreground
+                      font-medium
+                      text-muted-foreground
                     "
-                    title={
-                      formatKickoffTime(
-                        match.date,
-                      )
-                    }
                   >
-                    {
-                      formatKickoffTime(
-                        match.date,
-                      )
-                    }
+                    {match.league?.name || 'Football'}
                   </span>
-
                 </div>
 
+                <span
+                  className="
+                    shrink-0
+                    text-xs
+                    font-semibold
+                    tabular-nums
+                    text-foreground
+                  "
+                  title={formatKickoffTime(match.date)}
+                >
+                  {formatKickoffTime(match.date)}
+                </span>
               </div>
-
-            </article>
-
-          ),
-        )}
-
+            </div>
+          </article>
+        ))}
       </div>
-
 
       {/* ======================================================
           SHOW MORE / LESS
       ====================================================== */}
 
       {matches.length > 6 && (
-
         <button
           type="button"
-          onClick={() =>
-            setExpanded(
-              current =>
-                !current,
-            )
-          }
+          onClick={() => setExpanded(current => !current)}
           className="
             mt-2.5
             flex
@@ -1085,49 +645,19 @@ export default function LiveMatches({
             hover:bg-muted/40
           "
         >
-
           {expanded ? (
-
             <>
-
               Show Less
-
-              <ChevronUp
-                className="
-                  h-4
-                  w-4
-                "
-              />
-
+              <ChevronUp className="h-4 w-4" />
             </>
-
           ) : (
-
             <>
-
-              Show All
-              {' '}
-              {matches.length}
-              {' '}
-              Live Matches
-
-              <ChevronDown
-                className="
-                  h-4
-                  w-4
-                "
-              />
-
+              Show All {matches.length} Live Matches
+              <ChevronDown className="h-4 w-4" />
             </>
-
           )}
-
         </button>
-
       )}
-
     </section>
-
   );
-
 }

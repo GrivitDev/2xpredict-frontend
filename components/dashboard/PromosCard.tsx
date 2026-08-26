@@ -25,7 +25,6 @@ export function PromosCard({
 }: {
   items?: PromoItem[];
 }) {
-
   if (!items.length) {
     return (
       <div
@@ -45,7 +44,6 @@ export function PromosCard({
         "
       >
         <div className="space-y-1">
-
           <Gift
             className="
               mx-auto
@@ -64,29 +62,26 @@ export function PromosCard({
           >
             No active promos right now.
           </p>
-
         </div>
       </div>
     );
   }
 
-
   return (
     <div className="space-y-2.5">
-
       {items.slice(0, 3).map((item, index) => {
-
-        const left =
-          daysLeft(item.endDate);
+        const left = daysLeft(item.endDate);
 
         const isCash =
           item.rewardType === 'cash';
 
-        const reward =
-          isCash
-            ? `₦${item.rewardAmount?.toLocaleString('en-NG') || 0}`
-            : item.rewardPlan || 'Subscription';
-
+        const reward = isCash
+          ? `₦${
+              item.rewardAmount?.toLocaleString(
+                'en-NG',
+              ) || 0
+            }`
+          : item.rewardPlan || 'Subscription';
 
         return (
           <div
@@ -95,60 +90,16 @@ export function PromosCard({
               `${item.name}-${index}`
             }
             className="
-              group
-              relative
               overflow-hidden
               rounded-2xl
               border
               border-border/60
               bg-card
               shadow-sm
-              transition-all
-              duration-200
-              hover:-translate-y-0.5
-              hover:border-primary/25
-              hover:shadow-md
             "
           >
-
-            {/* ==================================================
-                PREMIUM ACCENT
-                ================================================== */}
-
             <div
               className="
-                absolute
-                inset-y-0
-                left-0
-                w-0.5
-                bg-gradient-to-b
-                from-primary
-                via-primary/60
-                to-transparent
-              "
-            />
-
-
-            {/* Subtle background glow */}
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                -right-10
-                -top-10
-                h-24
-                w-24
-                rounded-full
-                bg-primary/10
-                blur-3xl
-              "
-            />
-
-
-            <div
-              className="
-                relative
                 flex
                 min-w-0
                 items-start
@@ -157,10 +108,7 @@ export function PromosCard({
                 py-3.5
               "
             >
-
-              {/* ==================================================
-                  ICON
-                  ================================================== */}
+              {/* Icon */}
 
               <div
                 className="
@@ -181,20 +129,9 @@ export function PromosCard({
                 <Gift className="h-5 w-5" />
               </div>
 
+              {/* Content */}
 
-              {/* ==================================================
-                  CONTENT
-                  ================================================== */}
-
-              <div
-                className="
-                  min-w-0
-                  flex-1
-                "
-              >
-
-                {/* Title */}
-
+              <div className="min-w-0 flex-1">
                 <div
                   className="
                     flex
@@ -203,7 +140,6 @@ export function PromosCard({
                     gap-1.5
                   "
                 >
-
                   <p
                     className="
                       min-w-0
@@ -216,7 +152,6 @@ export function PromosCard({
                     {item.name || 'Promotion'}
                   </p>
 
-
                   <Sparkles
                     className="
                       h-3.5
@@ -225,11 +160,7 @@ export function PromosCard({
                       text-primary
                     "
                   />
-
                 </div>
-
-
-                {/* Description */}
 
                 <p
                   className="
@@ -244,11 +175,6 @@ export function PromosCard({
                     'Available promotion'}
                 </p>
 
-
-                {/* ==================================================
-                    META
-                    ================================================== */}
-
                 <div
                   className="
                     mt-2.5
@@ -258,7 +184,6 @@ export function PromosCard({
                     gap-2
                   "
                 >
-
                   {/* Reward */}
 
                   <div
@@ -275,7 +200,6 @@ export function PromosCard({
                       py-1
                     "
                   >
-
                     {isCash ? (
                       <Wallet
                         className="
@@ -305,9 +229,7 @@ export function PromosCard({
                     >
                       {reward}
                     </span>
-
                   </div>
-
 
                   {/* Expiry */}
 
@@ -321,7 +243,6 @@ export function PromosCard({
                       text-muted-foreground
                     "
                   >
-
                     <Clock
                       className="
                         h-3.5
@@ -331,7 +252,6 @@ export function PromosCard({
                     />
 
                     <span className="truncate">
-
                       {left === null
                         ? fmtDate(item.endDate)
                         : `${left} day${
@@ -339,19 +259,12 @@ export function PromosCard({
                               ? ''
                               : 's'
                           } left`}
-
                     </span>
-
                   </div>
-
                 </div>
-
               </div>
 
-
-              {/* ==================================================
-                  DESKTOP REWARD
-                  ================================================== */}
+              {/* Desktop Reward */}
 
               <div
                 className="
@@ -361,7 +274,6 @@ export function PromosCard({
                   sm:block
                 "
               >
-
                 <p
                   className="
                     text-[10px]
@@ -374,7 +286,6 @@ export function PromosCard({
                   Reward
                 </p>
 
-
                 <p
                   className="
                     mt-1
@@ -385,16 +296,11 @@ export function PromosCard({
                 >
                   {reward}
                 </p>
-
               </div>
-
             </div>
-
           </div>
         );
-
       })}
-
     </div>
   );
 }

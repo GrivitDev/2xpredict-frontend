@@ -14,27 +14,29 @@ export default function PostMessageInput({
   return (
     <Textarea
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={(event) =>
+        onChange(event.target.value)
+      }
       placeholder="Share your football thoughts..."
       aria-label="Post message"
       className="
-        min-h-32
+        min-h-28
         w-full
         resize-none
         rounded-xl
         border-border
-        bg-background/60
-        px-4
-        py-3
-        text-s
-        leading-6
+        bg-background
+        px-3
+        py-2.5
+        text-xs
+        leading-5
         shadow-sm
-        transition-colors
         placeholder:text-muted-foreground
         focus-visible:border-primary
+        focus-visible:ring-1
         focus-visible:ring-primary/20
-        sm:min-h-[140px]
-        sm:text-base
+        sm:min-h-32
+        sm:text-sm
       "
     />
   );

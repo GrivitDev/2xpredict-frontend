@@ -46,7 +46,6 @@ export default function RevenueSection({
       highlight: true,
       hasDollar: true,
     },
-
     {
       title: 'VIP Revenue',
       revenue: revenue.vipRevenue,
@@ -55,7 +54,6 @@ export default function RevenueSection({
       highlight: true,
       hasDollar: true,
     },
-
     {
       title: 'Regular Revenue',
       revenue: revenue.regularRevenue,
@@ -63,7 +61,6 @@ export default function RevenueSection({
       icon: CreditCard,
       hasDollar: true,
     },
-
     {
       title: 'Prediction Revenue',
       revenue: revenue.predictionRevenue,
@@ -74,39 +71,19 @@ export default function RevenueSection({
   ];
 
   return (
-    <section
-      className="
-        space-y-4
-      "
-    >
+    <section className="space-y-3">
       <div>
-        <h2
-          className="
-            text-xl
-            font-semibold
-          "
-        >
+        <h2 className="text-lg font-semibold tracking-tight">
           Revenue Analytics
         </h2>
 
-        <p
-          className="
-            text-s
-            text-muted-foreground
-          "
-        >
-          Payment performance overview
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Payment performance overview.
         </p>
 
         {!loading && !error && (
-          <p
-            className="
-              mt-1
-              text-xs
-              text-muted-foreground
-            "
-          >
-            Exchange Rate: $1 ≈ ₦
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            $1 ≈ ₦
             {rate.toLocaleString(undefined, {
               maximumFractionDigits: 2,
             })}
@@ -117,10 +94,9 @@ export default function RevenueSection({
       <div
         className="
           grid
-          grid-cols-1
-          md:grid-cols-2
-          xl:grid-cols-4
-          gap-5
+          grid-cols-2
+          gap-2
+          lg:grid-cols-4
         "
       >
         {cards.map((card) => (
@@ -132,33 +108,49 @@ export default function RevenueSection({
             highlight={card.highlight}
           >
             {card.hasDollar ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-s">
+              <div className="space-y-2">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-2
+                    text-[11px]
+                  "
+                >
                   <span className="text-muted-foreground">
-                    USD Revenue
+                    USD
                   </span>
 
-                  <span className="font-semibold">
+                  <span className="font-medium tabular-nums">
                     {formatDollar(card.revenue.USD)}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-s">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-2
+                    text-[11px]
+                  "
+                >
                   <span className="text-muted-foreground">
-                    NGN Revenue
+                    NGN
                   </span>
 
-                  <span className="font-semibold">
+                  <span className="font-medium tabular-nums">
                     {formatNaira(card.revenue.NGN)}
                   </span>
                 </div>
 
-                <div className="border-t pt-3">
-                  <p className="text-xs text-muted-foreground">
-                    Total (₦ Equivalent)
+                <div className="border-t pt-2">
+                  <p className="text-[10px] text-muted-foreground">
+                    NGN Equivalent
                   </p>
 
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="mt-0.5 text-xl font-semibold tracking-tight tabular-nums">
                     {loading || error
                       ? '--'
                       : formatNaira(
@@ -168,23 +160,31 @@ export default function RevenueSection({
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-s">
+              <div className="space-y-2">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-2
+                    text-[11px]
+                  "
+                >
                   <span className="text-muted-foreground">
-                    NGN Revenue
+                    NGN
                   </span>
 
-                  <span className="font-semibold">
+                  <span className="font-medium tabular-nums">
                     {formatNaira(card.revenue.NGN)}
                   </span>
                 </div>
 
-                <div className="border-t pt-3">
-                  <p className="text-xs text-muted-foreground">
+                <div className="border-t pt-2">
+                  <p className="text-[10px] text-muted-foreground">
                     Total Revenue
                   </p>
 
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="mt-0.5 text-xl font-semibold tracking-tight tabular-nums">
                     {formatNaira(card.revenue.NGN)}
                   </p>
                 </div>

@@ -22,23 +22,25 @@ export default function CommunityError({
     <div
       className="
         w-full
-        px-4
-        py-8
-        sm:px-6
-        sm:py-10
+        px-3
+        py-4
+        sm:px-4
+        sm:py-5
       "
     >
       <div
         className="
           mx-auto
-          max-w-xl
-          rounded-2xl
+          max-w-lg
+          rounded-xl
           border
           border-destructive/20
           bg-destructive/5
-          p-6
+          px-4
+          py-4
           text-center
-          sm:p-8
+          sm:px-5
+          sm:py-5
         "
         role="alert"
       >
@@ -46,7 +48,7 @@ export default function CommunityError({
           className="
             mx-auto
             flex
-            size-10
+            size-8
             items-center
             justify-center
             rounded-full
@@ -55,18 +57,19 @@ export default function CommunityError({
           "
         >
           <AlertTriangle
-            className="size-5"
+            className="size-4"
             aria-hidden="true"
           />
         </div>
 
         <h3
           className="
-            mt-4
-            text-lg
+            mt-2.5
+            text-sm
             font-semibold
-            tracking-tight
+            leading-tight
             text-foreground
+            sm:text-base
           "
         >
           Unable to load community
@@ -75,11 +78,12 @@ export default function CommunityError({
         <p
           className="
             mx-auto
-            mt-2
+            mt-1
             max-w-md
-            text-s
-            leading-6
+            text-xs
+            leading-5
             text-muted-foreground
+            sm:text-sm
           "
         >
           {message}
@@ -90,17 +94,22 @@ export default function CommunityError({
           variant="outline"
           onClick={onRetry}
           className="
-            mt-5
-            gap-2
-            rounded-xl
+            mt-3
+            h-8
+            gap-1.5
+            rounded-lg
             bg-background
-            shadow-sm
-            transition-all
+            px-3
+            text-xs
+            shadow-none
+            transition-colors
             active:scale-[0.98]
+            sm:h-9
+            sm:text-sm
           "
         >
           <RefreshCcw
-            className="size-4"
+            className="size-3.5"
             aria-hidden="true"
           />
 

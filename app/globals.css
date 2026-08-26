@@ -1274,3 +1274,15 @@ html {
 .animate-loader-message {
   animation: loader-message 5s ease-in-out forwards;
 }
+
+
+:root {
+  --navbar-offset: 5.25rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --navbar-offset: 6rem;
+  }
+}
+

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Trophy,
 } from 'lucide-react';
+
 import {
   LEAGUE_CATALOG,
 } from '@/constants/leagues';
@@ -33,25 +34,21 @@ export default function ManualPredictionForm({
     event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
-
     setError('');
 
     if (
       !homeTeam.trim() ||
       !awayTeam.trim() ||
-      !leagueCode.trim() ||
+      !leagueCode ||
       !matchDate
     ) {
-      setError(
-        'Please complete all fields before creating a prediction.',
-      );
-
+      setError('Complete all fixture fields before continuing.');
       return;
     }
 
     onCreateMatch({
       id: `manual-${Date.now()}`,
-      leagueCode: leagueCode.trim().toUpperCase(),
+      leagueCode: leagueCode.toUpperCase(),
       homeTeam: homeTeam.trim(),
       awayTeam: awayTeam.trim(),
       date: matchDate,
@@ -69,329 +66,219 @@ export default function ManualPredictionForm({
       onSubmit={handleCreate}
       className="
         overflow-hidden
-        rounded-3xl
+        rounded-2xl
         border
-        border-border
+        border-border/70
         bg-card
         shadow-sm
       "
     >
+      {/* Header */}
       <div
         className="
+          flex
+          items-center
+          justify-between
+          gap-4
           border-b
-          border-border
-          bg-gradient-to-br
-          from-primary/[0.10]
-          via-card
-          to-card
-          p-5
-          sm:p-6
+          border-border/60
+          px-4
+          py-3
+          sm:px-5
         "
       >
-        <div
-          className="
-            flex
-            flex-col
-            gap-4
-            sm:flex-row
-            sm:items-start
-            sm:justify-between
-          "
-        >
-          <div className="flex items-start gap-4">
-            <div
-              className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
-                rounded-2xl
-                bg-primary/15
-                text-primary
-              "
-            >
-              <Trophy className="h-6 w-6" />
-            </div>
-
-            <div>
-              <h2 className="text-lg font-bold sm:text-xl">
-                Manual Prediction
-              </h2>
-
-              <p className="mt-1 max-w-xl text-s leading-6 text-muted-foreground">
-                Create a fixture manually when it is unavailable
-                through the football API.
-              </p>
-            </div>
-          </div>
-
-          <span
+        <div className="flex min-w-0 items-center gap-3">
+          <div
             className="
-              inline-flex
-              w-fit
+              flex
+              size-9
+              shrink-0
               items-center
-              gap-2
-              rounded-full
+              justify-center
+              rounded-lg
               bg-primary/10
-              px-3
-              py-1.5
-              text-xs
-              font-semibold
               text-primary
             "
           >
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Admin tool
-          </span>
+            <Trophy className="size-4" />
+          </div>
+
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold">
+              Manual Prediction
+            </h2>
+
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              Add a fixture unavailable through the football API.
+            </p>
+          </div>
         </div>
+
+        <span
+          className="
+            hidden
+            shrink-0
+            items-center
+            gap-1.5
+            rounded-full
+            bg-primary/10
+            px-2.5
+            py-1
+            text-[10px]
+            font-semibold
+            text-primary
+            sm:inline-flex
+          "
+        >
+          <ShieldCheck className="size-3" />
+          Admin
+        </span>
       </div>
 
-      <div className="space-y-6 p-5 sm:p-6">
+      <div className="space-y-4 p-4 sm:p-5">
+        {/* Error */}
         {error && (
           <div
             role="alert"
             className="
               flex
-              items-start
-              gap-3
-              rounded-2xl
+              items-center
+              gap-2
+              rounded-lg
               border
-              border-destructive/25
-              bg-destructive/10
-              p-4
-              text-s
+              border-destructive/20
+              bg-destructive/5
+              px-3
+              py-2.5
+              text-xs
               text-destructive
             "
           >
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-
-            <p>{error}</p>
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        <div>
-          <div className="mb-3">
-            <h3 className="font-semibold">
-              Fixture Details
-            </h3>
+        {/* Fields */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Home Team"
+            value={homeTeam}
+            placeholder="e.g. Arsenal"
+            onChange={setHomeTeam}
+          />
 
-            <p className="mt-1 text-s text-muted-foreground">
-              Enter the teams, competition, and scheduled kick-off.
-            </p>
+          <Field
+            label="Away Team"
+            value={awayTeam}
+            placeholder="e.g. Chelsea"
+            onChange={setAwayTeam}
+          />
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="league"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              League
+            </label>
+
+            <select
+              id="league"
+              value={leagueCode}
+              onChange={(event) =>
+                setLeagueCode(event.target.value)
+              }
+              className="
+                h-10
+                w-full
+                rounded-lg
+                border
+                border-input
+                bg-background
+                px-3
+                text-sm
+                outline-none
+                transition
+                focus:ring-2
+                focus:ring-primary/20
+              "
+            >
+              <option value="">
+                Select a league
+              </option>
+
+              {LEAGUE_CATALOG.map((league) => (
+                <option
+                  key={league.code}
+                  value={league.code}
+                >
+                  {league.name} — {league.country}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="block">
-              <span
-                className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-                Home Team
-              </span>
-
-              <input
-                type="text"
-                placeholder="e.g. Arsenal"
-                value={homeTeam}
-                onChange={(event) =>
-                  setHomeTeam(event.target.value)
-                }
-                className="
-                  mt-2
-                  h-12
-                  w-full
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  px-4
-                  text-s
-                  font-medium
-                  outline-none
-                  transition
-                  placeholder:text-muted-foreground
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              />
+          <div className="space-y-1.5">
+            <label
+              htmlFor="match-date"
+              className="
+                flex
+                items-center
+                gap-1.5
+                text-xs
+                font-medium
+                text-muted-foreground
+              "
+            >
+              <CalendarDays className="size-3.5" />
+              Kick-off
             </label>
 
-            <label className="block">
-              <span
-                className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-                Away Team
-              </span>
-
-              <input
-                type="text"
-                placeholder="e.g. Chelsea"
-                value={awayTeam}
-                onChange={(event) =>
-                  setAwayTeam(event.target.value)
-                }
-                className="
-                  mt-2
-                  h-12
-                  w-full
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  px-4
-                  text-s
-                  font-medium
-                  outline-none
-                  transition
-                  placeholder:text-muted-foreground
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              />
-            </label>
-
-            <label className="block">
-              <span
-                className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-                League
-              </span>
-
-              <select
-                value={leagueCode}
-                onChange={(event) =>
-                  setLeagueCode(event.target.value)
-                }
-                className="
-                  mt-2
-                  h-12
-                  w-full
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  px-4
-                  text-s
-                  font-medium
-                  outline-none
-                  transition
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              >
-                <option value="">
-                  Select a league
-                </option>
-
-                {LEAGUE_CATALOG.map((league) => (
-                  <option
-                    key={league.code}
-                    value={league.code}
-                  >
-                    {league.name} — {league.country}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block">
-              <span
-                className="
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
-                <CalendarDays className="h-3.5 w-3.5" />
-                Kick-off Date & Time
-              </span>
-
-              <input
-                type="datetime-local"
-                value={matchDate}
-                onChange={(event) =>
-                  setMatchDate(event.target.value)
-                }
-                className="
-                  mt-2
-                  h-12
-                  w-full
-                  rounded-xl
-                  border
-                  border-input
-                  bg-background
-                  px-4
-                  text-s
-                  font-medium
-                  outline-none
-                  transition
-                  focus-visible:ring-2
-                  focus-visible:ring-primary/30
-                "
-              />
-            </label>
+            <input
+              id="match-date"
+              type="datetime-local"
+              value={matchDate}
+              onChange={(event) =>
+                setMatchDate(event.target.value)
+              }
+              className="
+                h-10
+                w-full
+                rounded-lg
+                border
+                border-input
+                bg-background
+                px-3
+                text-sm
+                outline-none
+                transition
+                focus:ring-2
+                focus:ring-primary/20
+              "
+            />
           </div>
         </div>
 
+        {/* Preview */}
         <div
           className="
-            overflow-hidden
-            rounded-2xl
+            rounded-xl
             border
-            border-primary/15
-            bg-primary/[0.05]
+            border-border/70
+            bg-muted/20
+            px-3
+            py-3
           "
         >
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              border-b
-              border-primary/10
-              px-4
-              py-3
-            "
-          >
-            <p
-              className="
-                text-xs
-                font-bold
-                uppercase
-                tracking-[0.16em]
-                text-primary
-              "
-            >
-              Fixture Preview
-            </p>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Preview
+            </span>
 
-            <span className="text-xs text-muted-foreground">
-              {leagueCode.trim()
-                ? leagueCode.trim().toUpperCase()
+            <span className="text-[10px] font-medium text-primary">
+              {leagueCode
+                ? leagueCode.toUpperCase()
                 : 'League pending'}
             </span>
           </div>
@@ -399,19 +286,17 @@ export default function ManualPredictionForm({
           <div
             className="
               grid
-              grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
+              grid-cols-[1fr_auto_1fr]
               items-center
-              gap-3
-              p-4
-              sm:p-5
+              gap-2
             "
           >
             <div className="min-w-0 text-right">
-              <p className="truncate text-s font-bold sm:text-base">
+              <p className="truncate text-sm font-semibold">
                 {homeTeam.trim() || 'Home Team'}
               </p>
 
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 Home
               </p>
             </div>
@@ -419,16 +304,15 @@ export default function ManualPredictionForm({
             <span
               className="
                 flex
-                h-10
-                w-10
+                size-8
                 items-center
                 justify-center
                 rounded-full
                 border
-                border-primary/25
+                border-primary/20
                 bg-background
-                text-xs
-                font-black
+                text-[10px]
+                font-bold
                 text-primary
               "
             >
@@ -436,11 +320,11 @@ export default function ManualPredictionForm({
             </span>
 
             <div className="min-w-0">
-              <p className="truncate text-s font-bold sm:text-base">
+              <p className="truncate text-sm font-semibold">
                 {awayTeam.trim() || 'Away Team'}
               </p>
 
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 Away
               </p>
             </div>
@@ -448,50 +332,98 @@ export default function ManualPredictionForm({
         </div>
       </div>
 
+      {/* Footer */}
       <div
         className="
           flex
-          flex-col
-          gap-3
+          flex-col-reverse
+          gap-2
           border-t
-          border-border
-          bg-muted/20
-          px-5
-          py-4
+          border-border/60
+          bg-muted/10
+          px-4
+          py-3
           sm:flex-row
           sm:items-center
           sm:justify-between
-          sm:px-6
+          sm:px-5
         "
       >
-        <p className="text-xs text-muted-foreground">
-          The fixture will be created with a scheduled status.
+        <p className="text-[11px] text-muted-foreground">
+          Creates a scheduled fixture.
         </p>
 
         <button
           type="submit"
           className="
             inline-flex
-            h-11
+            h-9
             items-center
             justify-center
-            gap-2
-            rounded-xl
+            gap-1.5
+            rounded-lg
             bg-primary
-            px-5
-            text-s
+            px-4
+            text-xs
             font-semibold
             text-primary-foreground
             shadow-sm
             transition
-            hover:brightness-110
+            hover:opacity-90
             active:scale-[0.98]
           "
         >
-          <Plus className="h-4 w-4" />
-          Create Manual Prediction
+          <Plus className="size-3.5" />
+          Create Prediction
         </button>
       </div>
     </form>
+  );
+}
+
+interface FieldProps {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}
+
+function Field({
+  label,
+  value,
+  placeholder,
+  onChange,
+}: FieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-muted-foreground">
+        {label}
+      </label>
+
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className="
+          h-10
+          w-full
+          rounded-lg
+          border
+          border-input
+          bg-background
+          px-3
+          text-sm
+          font-medium
+          outline-none
+          transition
+          placeholder:text-muted-foreground
+          focus:ring-2
+          focus:ring-primary/20
+        "
+      />
+    </div>
   );
 }

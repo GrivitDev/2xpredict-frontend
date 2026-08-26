@@ -2,40 +2,31 @@
 
 import { memo } from 'react';
 
-// import { ExternalAds } from '@/components/ads/ExtAds/ExternalAds';
-import {InternalAds} from '@/components/ads/IntAds/InternalAds';
+import { InternalAds } from '@/components/ads/IntAds/InternalAds';
 
 import {
   getCommunityFeedAd,
 } from './CommunityAdEngine';
 
-export default memo(
+const CommunityFeedAd = memo(
   function CommunityFeedAd() {
-
     const ad =
       getCommunityFeedAd();
 
-    if (ad.internal) {
-
-      return (
-
-        <InternalAds
-          page={ad.page}
-          position={ad.position}
-        />
-
-      );
-
+    if (!ad.internal) {
+      return null;
     }
 
-    // return (
-
-    //   <ExternalAds
-    //     page={ad.page}
-    //     position={ad.position}
-    //   />
-
-    // );
-
+    return (
+      <InternalAds
+        page={ad.page}
+        position={ad.position}
+      />
+    );
   },
 );
+
+CommunityFeedAd.displayName =
+  'CommunityFeedAd';
+
+export default CommunityFeedAd;

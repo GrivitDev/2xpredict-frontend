@@ -6,14 +6,16 @@ import {
 } from 'react';
 
 import {
-  Moon,
-  Sun,
-  Monitor,
   Check,
+  Monitor,
+  Moon,
   Sparkles,
+  Sun,
 } from 'lucide-react';
 
-import { useTheme } from 'next-themes';
+import {
+  useTheme,
+} from 'next-themes';
 
 import {
   DropdownMenu,
@@ -22,63 +24,81 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { Button } from '@/components/ui/button';
+import {
+  Button,
+} from '@/components/ui/button';
+
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+
+const THEMES = [
+  {
+    name: 'Light',
+    description: 'Bright interface',
+    value: 'light',
+    icon: Sun,
+  },
+  {
+    name: 'Dark',
+    description: 'Easy on the eyes',
+    value: 'dark',
+    icon: Moon,
+  },
+  {
+    name: 'System',
+    description: 'Follow device settings',
+    value: 'system',
+    icon: Monitor,
+  },
+] as const;
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function ThemeSwitcher() {
+
   const {
     theme,
     setTheme,
   } = useTheme();
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [
+    mounted,
+    setMounted,
+  ] = useState(false);
+
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+
   if (!mounted) {
     return null;
   }
 
-  const themes = [
-    {
-      name: 'Light',
-      description: 'Bright interface',
-      value: 'light',
-      icon: Sun,
-      tone: 'amber',
-    },
-    {
-      name: 'Dark',
-      description: 'Easy on the eyes',
-      value: 'dark',
-      icon: Moon,
-      tone: 'blue',
-    },
-    {
-      name: 'System',
-      description: 'Follow device settings',
-      value: 'system',
-      icon: Monitor,
-      tone: 'slate',
-    },
-  ] as const;
 
   const activeTheme =
-    themes.find(
-      (item) => item.value === theme,
-    ) ?? themes[2];
+    THEMES.find(
+      item => item.value === theme,
+    ) ?? THEMES[2];
 
-  const ActiveIcon = activeTheme.icon;
+  const ActiveIcon =
+    activeTheme.icon;
+
 
   return (
+
     <DropdownMenu>
-      {/* =====================================================================
-          TRIGGER
-      ====================================================================== */}
+
+      {/* TRIGGER */}
 
       <DropdownMenuTrigger asChild>
+
         <Button
           variant="ghost"
           aria-label="Change theme"
@@ -95,17 +115,14 @@ export default function ThemeSwitcher() {
             shadow-sm
             transition-all
             duration-300
-
             hover:border-primary/30
             hover:bg-secondary
             hover:shadow-md
-
             focus-visible:border-primary
             focus-visible:ring-2
             focus-visible:ring-primary/20
           "
         >
-          {/* Active indicator */}
 
           <span
             className="
@@ -124,8 +141,6 @@ export default function ThemeSwitcher() {
               group-hover:opacity-100
             "
           />
-
-          {/* Icon container */}
 
           <span
             className="
@@ -153,12 +168,13 @@ export default function ThemeSwitcher() {
               "
             />
           </span>
+
         </Button>
+
       </DropdownMenuTrigger>
 
-      {/* =====================================================================
-          DROPDOWN
-      ====================================================================== */}
+
+      {/* DROPDOWN */}
 
       <DropdownMenuContent
         align="end"
@@ -177,9 +193,8 @@ export default function ThemeSwitcher() {
           dark:shadow-black/40
         "
       >
-        {/* -------------------------------------------------------------------
-            HEADER
-        -------------------------------------------------------------------- */}
+
+        {/* HEADER */}
 
         <div
           className="
@@ -194,6 +209,7 @@ export default function ThemeSwitcher() {
             py-3
           "
         >
+
           <div
             className="
               pointer-events-none
@@ -230,6 +246,7 @@ export default function ThemeSwitcher() {
               gap-3
             "
           >
+
             <span
               className="
                 flex
@@ -249,6 +266,7 @@ export default function ThemeSwitcher() {
             </span>
 
             <div className="min-w-0">
+
               <p
                 className="
                   text-s
@@ -268,22 +286,27 @@ export default function ThemeSwitcher() {
               >
                 Choose your preferred theme
               </p>
+
             </div>
+
           </div>
+
         </div>
 
-        {/* -------------------------------------------------------------------
-            OPTIONS
-        -------------------------------------------------------------------- */}
+
+        {/* OPTIONS */}
 
         <div className="space-y-1">
-          {themes.map((item) => {
+
+          {THEMES.map(item => {
+
             const Icon = item.icon;
 
             const active =
               theme === item.value;
 
             return (
+
               <DropdownMenuItem
                 key={item.value}
                 onClick={() =>
@@ -298,7 +321,6 @@ export default function ThemeSwitcher() {
                   outline-none
                   transition-all
                   duration-200
-
                   ${
                     active
                       ? `
@@ -318,7 +340,8 @@ export default function ThemeSwitcher() {
                   }
                 `}
               >
-                {/* Icon */}
+
+                {/* ICON */}
 
                 <span
                   className={`
@@ -332,7 +355,6 @@ export default function ThemeSwitcher() {
                     border
                     transition-all
                     duration-200
-
                     ${
                       active
                         ? `
@@ -352,7 +374,8 @@ export default function ThemeSwitcher() {
                   <Icon className="h-4 w-4" />
                 </span>
 
-                {/* Text */}
+
+                {/* TEXT */}
 
                 <div
                   className="
@@ -361,6 +384,7 @@ export default function ThemeSwitcher() {
                     flex-1
                   "
                 >
+
                   <span
                     className="
                       block
@@ -382,11 +406,14 @@ export default function ThemeSwitcher() {
                   >
                     {item.description}
                   </span>
+
                 </div>
 
-                {/* Active check */}
+
+                {/* ACTIVE */}
 
                 {active && (
+
                   <span
                     className="
                       ml-2
@@ -403,15 +430,19 @@ export default function ThemeSwitcher() {
                   >
                     <Check className="h-3.5 w-3.5" />
                   </span>
+
                 )}
+
               </DropdownMenuItem>
+
             );
+
           })}
+
         </div>
 
-        {/* -------------------------------------------------------------------
-            CURRENT THEME
-        -------------------------------------------------------------------- */}
+
+        {/* CURRENT THEME */}
 
         <div
           className="
@@ -425,6 +456,7 @@ export default function ThemeSwitcher() {
             pt-2
           "
         >
+
           <span
             className="
               text-[10px]
@@ -450,8 +482,12 @@ export default function ThemeSwitcher() {
           >
             {activeTheme.name}
           </span>
+
         </div>
+
       </DropdownMenuContent>
+
     </DropdownMenu>
+
   );
 }

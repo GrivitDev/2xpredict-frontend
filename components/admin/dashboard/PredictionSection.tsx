@@ -22,20 +22,23 @@ export default function PredictionSection({
   predictions,
 }: Props) {
   return (
-    <section className="space-y-4">
+    <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-lg font-semibold tracking-tight">
           Prediction Performance
         </h2>
+
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Overview of prediction activity and results.
+        </p>
       </div>
 
       <div
         className="
           grid
-          grid-cols-1
-          md:grid-cols-2
-          xl:grid-cols-4
-          gap-5
+          grid-cols-2
+          gap-2
+          lg:grid-cols-4
         "
       >
         <AnalyticsCard
@@ -43,7 +46,7 @@ export default function PredictionSection({
           icon={Target}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.totalPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -52,7 +55,7 @@ export default function PredictionSection({
           title="VIP Predictions"
           icon={Crown}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.vipPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -61,7 +64,7 @@ export default function PredictionSection({
           title="Regular Predictions"
           icon={Users}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.regularPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -70,7 +73,7 @@ export default function PredictionSection({
           title="Free Predictions"
           icon={Target}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.freePredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -80,7 +83,7 @@ export default function PredictionSection({
           icon={CheckCircle}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.wonPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -89,7 +92,7 @@ export default function PredictionSection({
           title="Lost"
           icon={XCircle}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.lostPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -98,7 +101,7 @@ export default function PredictionSection({
           title="Void"
           icon={ShieldAlert}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.voidPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -107,7 +110,7 @@ export default function PredictionSection({
           title="Pending"
           icon={Clock}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {predictions.pendingPredictions.toLocaleString()}
           </p>
         </AnalyticsCard>

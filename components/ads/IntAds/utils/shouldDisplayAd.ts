@@ -12,7 +12,6 @@ export function shouldDisplayAd(
 
   switch (trigger) {
     case AdTrigger.ALWAYS:
-
     case AdTrigger.EVERY_VISIT:
       return true;
 
@@ -20,18 +19,22 @@ export function shouldDisplayAd(
       const key =
         `ad-session-${adId}`;
 
-      if (
-        sessionStorage.getItem(key)
-      ) {
-        return false;
+      try {
+        if (
+          sessionStorage.getItem(key)
+        ) {
+          return false;
+        }
+
+        sessionStorage.setItem(
+          key,
+          '1',
+        );
+
+        return true;
+      } catch {
+        return true;
       }
-
-      sessionStorage.setItem(
-        key,
-        '1',
-      );
-
-      return true;
     }
 
     case AdTrigger.ONCE_PER_DAY: {
@@ -41,19 +44,23 @@ export function shouldDisplayAd(
       const today =
         new Date().toDateString();
 
-      if (
-        localStorage.getItem(key) ===
-        today
-      ) {
-        return false;
+      try {
+        if (
+          localStorage.getItem(key) ===
+          today
+        ) {
+          return false;
+        }
+
+        localStorage.setItem(
+          key,
+          today,
+        );
+
+        return true;
+      } catch {
+        return true;
       }
-
-      localStorage.setItem(
-        key,
-        today,
-      );
-
-      return true;
     }
 
     default:

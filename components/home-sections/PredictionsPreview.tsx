@@ -29,8 +29,14 @@ import PredictionPreviewCard from './PredictionPreviewCard';
 import {
   useAuth,
 } from '@/providers/auth-provider';
-import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
-import { toast } from 'sonner';
+
+import {
+  getApiErrorMessage,
+} from '@/lib/getApiErrorMessage';
+
+import {
+  toast,
+} from 'sonner';
 
 
 // ============================================================
@@ -38,19 +44,14 @@ import { toast } from 'sonner';
 // ============================================================
 
 interface PredictionsPreviewProps {
-
   search: string;
-
   selectedDate: string;
-
   goalFilter: string;
-
   resultFilter:
     | 'all'
     | 'home'
     | 'away'
     | 'draw';
-
 }
 
 
@@ -62,39 +63,51 @@ const INITIAL_VISIBLE_COUNT = 10;
 
 
 // ============================================================
+// HELPERS
+// ============================================================
+
+function getPredictionDate(
+  prediction: PredictionDetails,
+): string | undefined {
+
+  if (
+    typeof prediction.matchId === 'object' &&
+    prediction.matchId !== null
+  ) {
+
+    return (
+      prediction.matchId as {
+        utcDate?: string;
+      }
+    ).utcDate;
+
+  }
+
+  return (
+    prediction.match?.utcDate ??
+    prediction.matchDate ??
+    prediction.date
+  );
+}
+
+
+// ============================================================
 // COMPONENT
 // ============================================================
 
 export default function PredictionsPreview({
-
   search,
-
   selectedDate,
-
   goalFilter,
-
   resultFilter,
-
 }: PredictionsPreviewProps) {
 
-
-  // ==========================================================
-  // ROUTER
-  // ==========================================================
-
-  const router =
-    useRouter();
-
-
-  // ==========================================================
-  // AUTH
-  // ==========================================================
+  const router = useRouter();
 
   const {
     user,
     loading: authLoading,
-  } =
-    useAuth();
+  } = useAuth();
 
 
   // ==========================================================
@@ -104,214 +117,136 @@ export default function PredictionsPreview({
   const [
     predictions,
     setPredictions,
-  ] =
-    useState<PredictionDetails[]>([]);
-
+  ] = useState<PredictionDetails[]>([]);
 
   const [
     loading,
     setLoading,
-  ] =
-    useState(true);
-
+  ] = useState(true);
 
   const [
     error,
     setError,
-  ] =
-    useState(false);
-
+  ] = useState(false);
 
   const [
     expanded,
     setExpanded,
-  ] =
-    useState(false);
-
+  ] = useState(false);
 
   const [
     openingPredictionId,
     setOpeningPredictionId,
-  ] =
-    useState<string | null>(null);
+  ] = useState<string | null>(null);
 
 
   // ==========================================================
-  // LOAD ALL PREDICTIONS
+  // LOAD PREDICTIONS
   // ==========================================================
 
-  const loadPredictions =
-    useCallback(
-      async () => {
+  const loadPredictions = useCallback(
+    async () => {
 
-        try {
+      try {
 
-          setLoading(true);
+        setLoading(true);
+        setError(false);
 
-          setError(false);
+        const response =
+          await getPredictions();
 
+        let data: PredictionDetails[] = [];
 
-          const response =
-            await getPredictions();
+        if (Array.isArray(response)) {
 
+          data = response;
 
-          // --------------------------------------------------
-          // NORMALIZE RESPONSE
-          // --------------------------------------------------
+        } else if (
+          Array.isArray(response?.data)
+        ) {
 
-          let data:
-            PredictionDetails[] = [];
+          data = response.data;
 
+        } else if (
+          Array.isArray(response?.predictions)
+        ) {
 
-          if (
-            Array.isArray(response)
-          ) {
-
-            data =
-              response;
-
-          } else if (
-            Array.isArray(
-              response?.data,
-            )
-          ) {
-
-            data =
-              response.data;
-
-          } else if (
-            Array.isArray(
-              response?.predictions,
-            )
-          ) {
-
-            data =
-              response.predictions;
-
-          }
-
-
-          // --------------------------------------------------
-          // VALID PREDICTIONS
-          // --------------------------------------------------
-
-            const validPredictions =
-              data.filter(
-                prediction =>
-                  Boolean(
-                    prediction?._id,
-                  ),
-              );
-
-
-          // --------------------------------------------------
-          // REMOVE PAST PREDICTIONS
-          // --------------------------------------------------
-
-          const now =
-            Date.now();
-
-
-          const upcomingPredictions =
-            validPredictions
-              .filter(
-                prediction => {
-
-                  const dateValue =
-                    (typeof prediction.matchId === 'object' &&
-                    prediction.matchId !== null
-                      ? (prediction.matchId as { utcDate?: string }).utcDate
-                      : undefined) ??
-                    prediction.matchDate ??
-                    prediction.date;
-
-
-                  if (
-                    !dateValue
-                  ) {
-
-                    return false;
-
-                  }
-
-
-                  const timestamp =
-                    new Date(
-                      dateValue,
-                    ).getTime();
-
-
-                  if (
-                    Number.isNaN(timestamp)
-                  ) {
-
-                    return false;
-
-                  }
-
-
-                  return timestamp >= now;
-
-                },
-              )
-              .sort(
-                (
-                  first,
-                  second,
-                ) => {
-
-                  const firstDate =
-                    new Date(
-                      first.match?.utcDate ??
-                      first.matchDate ??
-                      first.date,
-                    ).getTime();
-
-
-                  const secondDate =
-                    new Date(
-                      second.match?.utcDate ??
-                      second.matchDate ??
-                      second.date,
-                    ).getTime();
-
-
-                  return (
-                    firstDate -
-                    secondDate
-                  );
-
-                },
-              );
-
-
-          setPredictions(
-            upcomingPredictions,
-          );
-
-
-        } catch (err) {
-
-          console.error(
-            'Failed to load predictions:',
-            err,
-          );
-
-
-          setError(true);
-
-          setPredictions([]);
-
-
-        } finally {
-
-          setLoading(false);
+          data = response.predictions;
 
         }
 
-      },
-      [],
-    );
+
+        const now = Date.now();
+
+        const upcoming =
+          data
+            .filter(
+              prediction =>
+                Boolean(prediction?._id),
+            )
+            .filter(
+              prediction => {
+
+                const dateValue =
+                  getPredictionDate(
+                    prediction,
+                  );
+
+                if (!dateValue) {
+                  return false;
+                }
+
+                const timestamp =
+                  new Date(
+                    dateValue,
+                  ).getTime();
+
+                return (
+                  !Number.isNaN(timestamp) &&
+                  timestamp >= now
+                );
+
+              },
+            )
+            .sort(
+              (a, b) => {
+
+                const first =
+                  new Date(
+                    getPredictionDate(a) ?? '',
+                  ).getTime();
+
+                const second =
+                  new Date(
+                    getPredictionDate(b) ?? '',
+                  ).getTime();
+
+                return first - second;
+
+              },
+            );
+
+        setPredictions(upcoming);
+
+      } catch (err) {
+
+        console.error(
+          'Failed to load predictions:',
+          err,
+        );
+
+        setError(true);
+        setPredictions([]);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+    [],
+  );
 
 
   // ==========================================================
@@ -320,18 +255,14 @@ export default function PredictionsPreview({
 
   useEffect(
     () => {
-
       loadPredictions();
-
     },
-    [
-      loadPredictions,
-    ],
+    [loadPredictions],
   );
 
 
   // ==========================================================
-  // FILTER PREDICTIONS
+  // FILTER
   // ==========================================================
 
   const filteredPredictions =
@@ -343,6 +274,10 @@ export default function PredictionsPreview({
             .trim()
             .toLowerCase();
 
+        const minimumGoals =
+          goalFilter
+            ? Number(goalFilter)
+            : null;
 
         return predictions.filter(
           prediction => {
@@ -353,37 +288,25 @@ export default function PredictionsPreview({
 
             if (query) {
 
-              const homeTeam =
+              const matchesSearch =
                 prediction.homeTeam
-                  ?.toLowerCase() ?? '';
+                  ?.toLowerCase()
+                  .includes(query) ||
 
-
-              const awayTeam =
                 prediction.awayTeam
-                  ?.toLowerCase() ?? '';
+                  ?.toLowerCase()
+                  .includes(query) ||
 
-
-              const league =
                 prediction.league?.name
-                  ?.toLowerCase() ?? '';
+                  ?.toLowerCase()
+                  .includes(query) ||
 
-
-              const venue =
                 prediction.venue
-                  ?.toLowerCase() ?? '';
+                  ?.toLowerCase()
+                  .includes(query);
 
-
-              const found =
-                homeTeam.includes(query) ||
-                awayTeam.includes(query) ||
-                league.includes(query) ||
-                venue.includes(query);
-
-
-              if (!found) {
-
+              if (!matchesSearch) {
                 return false;
-
               }
 
             }
@@ -396,25 +319,20 @@ export default function PredictionsPreview({
             if (selectedDate) {
 
               const dateValue =
-                prediction.match?.utcDate ??
-                prediction.matchDate ??
-                prediction.date;
-
+                getPredictionDate(
+                  prediction,
+                );
 
               if (!dateValue) {
-
                 return false;
-
               }
-
 
               const predictionDate =
                 new Date(
                   dateValue,
                 )
                   .toISOString()
-                  .split('T')[0];
-
+                  .slice(0, 10);
 
               if (
                 predictionDate !==
@@ -432,21 +350,15 @@ export default function PredictionsPreview({
             // GOALS
             // ----------------------------------------------
 
-            if (goalFilter) {
-
-              const goals =
+            if (
+              minimumGoals !== null &&
+              (
                 (prediction.homeScore ?? 0) +
-                (prediction.awayScore ?? 0);
+                (prediction.awayScore ?? 0)
+              ) < minimumGoals
+            ) {
 
-
-              if (
-                goals <
-                Number(goalFilter)
-              ) {
-
-                return false;
-
-              }
+              return false;
 
             }
 
@@ -459,41 +371,31 @@ export default function PredictionsPreview({
               resultFilter !== 'all'
             ) {
 
-              const homeScore =
+              const home =
                 prediction.homeScore ?? 0;
 
-
-              const awayScore =
+              const away =
                 prediction.awayScore ?? 0;
-
 
               if (
                 resultFilter === 'home' &&
-                homeScore <= awayScore
+                home <= away
               ) {
-
                 return false;
-
               }
-
 
               if (
                 resultFilter === 'away' &&
-                awayScore <= homeScore
+                away <= home
               ) {
-
                 return false;
-
               }
-
 
               if (
                 resultFilter === 'draw' &&
-                homeScore !== awayScore
+                home !== away
               ) {
-
                 return false;
-
               }
 
             }
@@ -520,45 +422,21 @@ export default function PredictionsPreview({
   // ==========================================================
 
   const visiblePredictions =
-    useMemo(
-      () => {
-
-        if (
-          expanded
-        ) {
-
-          return filteredPredictions;
-
-        }
-
-
-        return filteredPredictions.slice(
+    expanded
+      ? filteredPredictions
+      : filteredPredictions.slice(
           0,
           INITIAL_VISIBLE_COUNT,
         );
 
-      },
-      [
-        filteredPredictions,
-        expanded,
-      ],
-    );
-
 
   // ==========================================================
-  // FILTER CHANGE
-  // ==========================================================
-  //
-  // Whenever filtering changes, collapse the list back to
-  // the first 10 results.
-  //
+  // RESET EXPANSION WHEN FILTERS CHANGE
   // ==========================================================
 
   useEffect(
     () => {
-
       setExpanded(false);
-
     },
     [
       search,
@@ -570,25 +448,18 @@ export default function PredictionsPreview({
 
 
   // ==========================================================
-  // GO TO DASHBOARD
+  // VIEW ALL
   // ==========================================================
 
   const handleViewAll =
     useCallback(
       () => {
 
-        if (
-          authLoading
-        ) {
-
+        if (authLoading) {
           return;
-
         }
 
-
-        if (
-          user
-        ) {
+        if (user) {
 
           router.push(
             '/dashboard/predictions',
@@ -597,7 +468,6 @@ export default function PredictionsPreview({
           return;
 
         }
-
 
         router.push(
           '/login?redirect=/dashboard/predictions',
@@ -616,143 +486,109 @@ export default function PredictionsPreview({
   // OPEN PREDICTION
   // ==========================================================
 
-const handlePredictionClick =
-  useCallback(
-    async (
-      prediction: PredictionDetails,
-    ) => {
+  const handlePredictionClick =
+    useCallback(
+      async (
+        prediction: PredictionDetails,
+      ) => {
 
-      const predictionId =
-        prediction._id;
+        const predictionId =
+          prediction._id;
 
+        if (!predictionId) {
 
-      // ======================================================
-      // INVALID PREDICTION
-      // ======================================================
-
-      if (!predictionId) {
-
-        console.error(
-          'Prediction is missing its database ID:',
-          prediction,
-        );
-
-        toast.error(
-          'Unable to open prediction',
-          {
-            description:
-              'This prediction does not have a valid database ID.',
-          },
-        );
-
-        return;
-
-      }
-
-
-      // ======================================================
-      // AUTHENTICATION STILL LOADING
-      // ======================================================
-
-      if (authLoading) {
-
-        toast.info(
-          'Checking your account...',
-        );
-
-        return;
-
-      }
-
-
-      // ======================================================
-      // LOGIN REQUIRED
-      // ======================================================
-
-      const dashboardUrl =
-        `/dashboard/predictions?prediction=${encodeURIComponent(
-          predictionId,
-        )}`;
-
-
-      if (!user) {
-
-        router.push(
-          `/login?redirect=${encodeURIComponent(
-            dashboardUrl,
-          )}`,
-        );
-
-        return;
-
-      }
-
-
-      // ======================================================
-      // CHECK ACCESS
-      // ======================================================
-
-      try {
-
-        setOpeningPredictionId(
-          predictionId,
-        );
-
-
-        await getPredictionAccess(
-          predictionId,
-        );
-
-
-        // ====================================================
-        // SUCCESS
-        // Dashboard handles opening the modal.
-        // ====================================================
-
-        router.push(
-          dashboardUrl,
-        );
-
-
-      } catch (error: unknown) {
-
-        console.error(
-          'Unable to access prediction:',
-          error,
-        );
-
-
-        const message =
-          getApiErrorMessage(
-            error,
-            'Unable to open this prediction. Please try again.',
+          toast.error(
+            'Unable to open prediction',
+            {
+              description:
+                'This prediction does not have a valid database ID.',
+            },
           );
 
+          return;
 
-        toast.error(
-          'Unable to open prediction',
-          {
-            description: message,
-          },
-        );
+        }
 
 
-      } finally {
+        if (authLoading) {
 
-        setOpeningPredictionId(
-          null,
-        );
+          toast.info(
+            'Checking your account...',
+          );
 
-      }
+          return;
 
-    },
-    [
-      authLoading,
-      user,
-      router,
-    ],
-  );
-  
+        }
+
+
+        const dashboardUrl =
+          `/dashboard/predictions?prediction=${encodeURIComponent(
+            predictionId,
+          )}`;
+
+
+        if (!user) {
+
+          router.push(
+            `/login?redirect=${encodeURIComponent(
+              dashboardUrl,
+            )}`,
+          );
+
+          return;
+
+        }
+
+
+        try {
+
+          setOpeningPredictionId(
+            predictionId,
+          );
+
+          await getPredictionAccess(
+            predictionId,
+          );
+
+          router.push(
+            dashboardUrl,
+          );
+
+        } catch (err: unknown) {
+
+          console.error(
+            'Unable to access prediction:',
+            err,
+          );
+
+          toast.error(
+            'Unable to open prediction',
+            {
+              description:
+                getApiErrorMessage(
+                  err,
+                  'Unable to open this prediction. Please try again.',
+                ),
+            },
+          );
+
+        } finally {
+
+          setOpeningPredictionId(
+            null,
+          );
+
+        }
+
+      },
+      [
+        authLoading,
+        user,
+        router,
+      ],
+    );
+
+
   // ==========================================================
   // RENDER
   // ==========================================================
@@ -763,62 +599,51 @@ const handlePredictionClick =
       className="
         relative
         overflow-hidden
+        rounded-3xl
         bg-background
         py-4
         text-foreground
-        transition-colors
-        duration-300
         sm:py-4
         lg:py-4
-        rounded-3xl
       "
     >
 
       {/* ====================================================
-          BACKGROUND DECORATION
+          LIGHTWEIGHT BACKGROUND DECORATION
       ==================================================== */}
 
       <div
         className="
           pointer-events-none
           absolute
-          inset-0
-          overflow-hidden
+          left-1/2
+          top-0
+          h-[300px]
+          w-[300px]
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          bg-primary/10
+          blur-2xl
         "
-      >
+      />
 
-        <div
-          className="
-            absolute
-            left-1/2
-            top-0
-            h-[420px]
-            w-[420px]
-            -translate-x-1/2
-            -translate-y-1/2
-            rounded-full
-            bg-primary/10
-            blur-3xl
-          "
-        />
 
-        <div
-          className="
-            absolute
-            bottom-0
-            right-0
-            h-[280px]
-            w-[280px]
-            translate-x-1/3
-            translate-y-1/3
-            rounded-full
-            bg-primary/5
-            blur-3xl
-          "
-        />
-
-      </div>
-
+      <div
+        className="
+          pointer-events-none
+          absolute
+          bottom-0
+          right-0
+          h-[180px]
+          w-[180px]
+          translate-x-1/3
+          translate-y-1/3
+          rounded-full
+          bg-primary/5
+          blur-2xl
+        "
+      />
 
 
       {/* ====================================================
@@ -853,43 +678,30 @@ const handlePredictionClick =
           "
         >
 
-          <div
+          <h2
             className="
-              max-w-2xl
+              text-2xl
+              font-bold
+              tracking-tight
+              text-foreground
+              sm:text-3xl
             "
           >
 
+            Our Latest{' '}
 
-
-            {/* TITLE */}
-
-            <h2
+            <span
               className="
-                text-2xl
-                font-bold
-                tracking-tight
-                text-foreground
-                sm:text-3xl
+                text-primary
               "
             >
+              Predictions
+            </span>
 
-              Our Latest {' '}
-
-              <span
-                className="
-                  text-primary
-                "
-              >
-                Predictions
-              </span>
-
-            </h2>
-
-          </div>
+          </h2>
 
 
-
-          {/* DASHBOARD BUTTON */}
+          {/* DASHBOARD */}
 
           <button
             type="button"
@@ -912,8 +724,7 @@ const handlePredictionClick =
               font-semibold
               text-foreground
               shadow-sm
-              transition-all
-              duration-200
+              transition
               hover:border-primary/40
               hover:bg-primary/5
               hover:shadow-md
@@ -922,189 +733,170 @@ const handlePredictionClick =
             "
           >
 
-            {
-              authLoading
-                ? 'Checking access...'
-                : 'View Predictions in Dashboard'
-            }
+            {authLoading
+              ? 'Checking access...'
+              : 'View Predictions in Dashboard'}
 
+            {authLoading ? (
 
-            {
-              authLoading
-                ? (
+              <Loader2
+                className="
+                  h-4
+                  w-4
+                  animate-spin
+                "
+              />
 
-                  <Loader2
-                    className="
-                      h-4
-                      w-4
-                      animate-spin
-                    "
-                  />
+            ) : (
 
-                )
-                : (
+              <ArrowRight
+                className="
+                  h-4
+                  w-4
+                  transition-transform
+                  group-hover:translate-x-1
+                "
+              />
 
-                  <ArrowRight
-                    className="
-                      h-4
-                      w-4
-                      transition-transform
-                      duration-200
-                      group-hover:translate-x-1
-                    "
-                  />
-
-                )
-            }
+            )}
 
           </button>
 
         </div>
 
 
-
         {/* ==================================================
             LOADING
         ================================================== */}
 
-        {
-          loading && (
+        {loading && (
+
+          <div
+            className="
+              grid
+              min-h-[260px]
+              place-items-center
+              rounded-2xl
+              border
+              border-border
+              bg-card/50
+            "
+          >
 
             <div
               className="
-                grid
-                min-h-[260px]
-                place-items-center
-                rounded-2xl
-                border
-                border-border
-                bg-card/50
+                flex
+                items-center
+                gap-3
+                text-s
+                text-muted-foreground
               "
             >
 
-              <div
+              <Loader2
                 className="
-                  flex
-                  items-center
-                  gap-3
-                  text-s
-                  text-muted-foreground
+                  h-5
+                  w-5
+                  animate-spin
+                  text-primary
                 "
-              >
+              />
 
-                <Loader2
-                  className="
-                    h-5
-                    w-5
-                    animate-spin
-                    text-primary
-                  "
-                />
-
-                Loading predictions...
-
-              </div>
+              Loading predictions...
 
             </div>
 
-          )
-        }
+          </div>
 
+        )}
 
 
         {/* ==================================================
             ERROR
         ================================================== */}
 
-        {
-          !loading &&
-          error && (
+        {!loading && error && (
 
-            <div
+          <div
+            className="
+              flex
+              flex-col
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-border
+              bg-card/70
+              p-8
+              text-center
+            "
+          >
+
+            <p
               className="
-                flex
-                flex-col
+                text-s
+                font-semibold
+                text-foreground
+              "
+            >
+              Unable to load predictions.
+            </p>
+
+            <p
+              className="
+                mt-2
+                text-s
+                text-muted-foreground
+              "
+            >
+              Something went wrong while loading
+              the latest predictions.
+            </p>
+
+            <button
+              type="button"
+              onClick={loadPredictions}
+              className="
+                mt-5
+                inline-flex
                 items-center
-                justify-center
-                rounded-2xl
+                gap-2
+                rounded-xl
                 border
                 border-border
-                bg-card/70
-                p-8
-                text-center
+                bg-background
+                px-4
+                py-2
+                text-s
+                font-semibold
+                text-foreground
+                transition
+                hover:border-primary/40
+                hover:bg-primary/5
               "
             >
 
-              <p
+              <RefreshCw
                 className="
-                  text-s
-                  font-semibold
-                  text-foreground
+                  h-4
+                  w-4
                 "
-              >
-                Unable to load predictions.
-              </p>
+              />
 
+              Try again
 
-              <p
-                className="
-                  mt-2
-                  text-s
-                  text-muted-foreground
-                "
-              >
-                Something went wrong while loading
-                the latest predictions.
-              </p>
+            </button>
 
+          </div>
 
-              <button
-                type="button"
-                onClick={loadPredictions}
-                className="
-                  mt-5
-                  inline-flex
-                  items-center
-                  gap-2
-                  rounded-xl
-                  border
-                  border-border
-                  bg-background
-                  px-4
-                  py-2
-                  text-s
-                  font-semibold
-                  text-foreground
-                  transition-colors
-                  hover:border-primary/40
-                  hover:bg-primary/5
-                "
-              >
-
-                <RefreshCw
-                  className="
-                    h-4
-                    w-4
-                  "
-                />
-
-                Try again
-
-              </button>
-
-            </div>
-
-          )
-        }
-
+        )}
 
 
         {/* ==================================================
             EMPTY
         ================================================== */}
 
-        {
-          !loading &&
+        {!loading &&
           !error &&
           filteredPredictions.length === 0 && (
 
@@ -1126,37 +918,29 @@ const handlePredictionClick =
                   text-foreground
                 "
               >
-
-                No upcoming predictions available.
-
+                No Latest predictions available.
               </p>
-
 
               <p
                 className="
                   mt-2
                   text-s
                   text-muted-foreground
-                "
+              "
               >
-
-                Try adjusting your search or filters.
-
+                Check Back Later.
               </p>
 
             </div>
 
-          )
-        }
-
+          )}
 
 
         {/* ==================================================
             PREDICTIONS
         ================================================== */}
 
-        {
-          !loading &&
+        {!loading &&
           !error &&
           filteredPredictions.length > 0 && (
 
@@ -1172,174 +956,151 @@ const handlePredictionClick =
                 "
               >
 
-                {
-                  visiblePredictions.map(
-                    (
-                      prediction,
-                    ) => {
+                {visiblePredictions.map(
+                  prediction => {
 
                     const predictionId =
                       prediction._id;
 
+                    const isOpening =
+                      openingPredictionId ===
+                      predictionId;
 
-                      const isOpening =
-                        openingPredictionId ===
-                        predictionId;
 
+                    return (
 
-                      return (
+                      <div
+                        key={predictionId}
+                        className="
+                          relative
+                        "
+                      >
 
-                        <div
-                          key={predictionId}
-                          className="
-                            relative
-                          "
-                        >
+                        <PredictionPreviewCard
+                          prediction={prediction}
+                          onClick={() => {
 
-                          <PredictionPreviewCard
-                            prediction={
-                              prediction
+                            if (!isOpening) {
+
+                              handlePredictionClick(
+                                prediction,
+                              );
+
                             }
-                            onClick={() => {
 
-                              if (
-                                !isOpening
-                              ) {
-
-                                handlePredictionClick(
-                                  prediction,
-                                );
-
-                              }
-
-                            }}
-                          />
+                          }}
+                        />
 
 
-                          {
-                            isOpening && (
+                        {isOpening && (
 
-                              <div
-                                className="
-                                  pointer-events-none
-                                  absolute
-                                  inset-0
-                                  flex
-                                  items-center
-                                  justify-center
-                                  rounded-2xl
-                                  bg-background/60
-                                  backdrop-blur-[2px]
-                                "
-                              >
+                          <div
+                            className="
+                              pointer-events-none
+                              absolute
+                              inset-0
+                              flex
+                              items-center
+                              justify-center
+                              rounded-2xl
+                              bg-background/60
+                              backdrop-blur-[2px]
+                            "
+                          >
 
-                                <Loader2
-                                  className="
-                                    h-5
-                                    w-5
-                                    animate-spin
-                                    text-primary
-                                  "
-                                />
+                            <Loader2
+                              className="
+                                h-5
+                                w-5
+                                animate-spin
+                                text-primary
+                              "
+                            />
 
-                              </div>
+                          </div>
 
-                            )
-                          }
+                        )}
 
-                        </div>
+                      </div>
 
-                      );
+                    );
 
-                    },
-                  )
-                }
+                  },
+                )}
 
               </div>
 
 
-
               {/* =================================================
-                  SHOW MORE / SHOW LESS
+                  SHOW MORE / LESS
               ================================================= */}
 
-              {
-                filteredPredictions.length >
+              {filteredPredictions.length >
                 INITIAL_VISIBLE_COUNT && (
 
-                  <div
+                <div
+                  className="
+                    mt-7
+                    flex
+                    justify-center
+                  "
+                >
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpanded(
+                        current => !current,
+                      )
+                    }
                     className="
-                      mt-7
-                      flex
-                      justify-center
+                      group
+                      inline-flex
+                      items-center
+                      gap-2
+                      rounded-xl
+                      border
+                      border-border
+                      bg-card
+                      px-5
+                      py-2.5
+                      text-s
+                      font-semibold
+                      text-foreground
+                      shadow-sm
+                      transition
+                      hover:border-primary/40
+                      hover:bg-primary/5
+                      hover:shadow-md
                     "
                   >
 
-                    <button
-                      type="button"
-                      onClick={() => {
+                    {expanded
+                      ? 'Show less'
+                      : `Show all ${filteredPredictions.length} predictions`}
 
-                        setExpanded(
-                          current =>
-                            !current,
-                        );
+                    <ChevronDown
+                      className={`
+                        h-4
+                        w-4
+                        transition-transform
+                        ${
+                          expanded
+                            ? 'rotate-180'
+                            : ''
+                        }
+                      `}
+                    />
 
-                      }}
-                      className="
-                        group
-                        inline-flex
-                        items-center
-                        gap-2
-                        rounded-xl
-                        border
-                        border-border
-                        bg-card
-                        px-5
-                        py-2.5
-                        text-s
-                        font-semibold
-                        text-foreground
-                        shadow-sm
-                        transition-all
-                        duration-200
-                        hover:border-primary/40
-                        hover:bg-primary/5
-                        hover:shadow-md
-                      "
-                    >
+                  </button>
 
-                      {
-                        expanded
-                          ? 'Show less'
-                          : `Show all ${filteredPredictions.length} predictions`
-                      }
+                </div>
 
-
-                      <ChevronDown
-                        className={`
-                          h-4
-                          w-4
-                          transition-transform
-                          duration-200
-                          ${
-                            expanded
-                              ? 'rotate-180'
-                              : ''
-                          }
-                        `}
-                      />
-
-                    </button>
-
-                  </div>
-
-                )
-              }
+              )}
 
             </>
 
-          )
-        }
+          )}
 
       </div>
 

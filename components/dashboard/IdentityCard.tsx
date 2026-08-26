@@ -25,10 +25,7 @@ export function IdentityCard({
   phoneNumber?: string | null;
   plan?: string | null;
 }) {
-
-  const currentPlan =
-    plan?.toLowerCase() || 'free';
-
+  const currentPlan = plan?.toLowerCase() || 'free';
 
   const membership =
     currentPlan === 'vip'
@@ -61,15 +58,11 @@ export function IdentityCard({
               'border-border/70 bg-muted/30',
           };
 
-
-  const MembershipIcon =
-    membership.icon;
-
+  const MembershipIcon = membership.icon;
 
   return (
     <div
       className="
-        relative
         overflow-hidden
         rounded-2xl
         border
@@ -78,28 +71,7 @@ export function IdentityCard({
         shadow-sm
       "
     >
-
-      {/* ======================================================
-          PREMIUM ACCENT
-          ====================================================== */}
-
-      <div
-        className="
-          absolute
-          inset-x-0
-          top-0
-          h-px
-          bg-gradient-to-r
-          from-transparent
-          via-primary/70
-          to-transparent
-        "
-      />
-
-
-      {/* ======================================================
-          PROFILE
-          ====================================================== */}
+      {/* Profile */}
 
       <div
         className="
@@ -110,7 +82,6 @@ export function IdentityCard({
           py-3.5
         "
       >
-
         {/* Avatar */}
 
         <div
@@ -127,7 +98,6 @@ export function IdentityCard({
             ${membership.avatarClass}
           `}
         >
-
           <UserRound
             className="
               h-5
@@ -135,9 +105,6 @@ export function IdentityCard({
               text-muted-foreground
             "
           />
-
-
-          {/* Membership indicator */}
 
           <div
             className={`
@@ -156,7 +123,6 @@ export function IdentityCard({
               ${membership.badgeClass}
             `}
           >
-
             <MembershipIcon
               className={`
                 h-3
@@ -164,21 +130,12 @@ export function IdentityCard({
                 ${membership.iconClass}
               `}
             />
-
           </div>
-
         </div>
-
 
         {/* Identity */}
 
-        <div
-          className="
-            min-w-0
-            flex-1
-          "
-        >
-
+        <div className="min-w-0 flex-1">
           <div
             className="
               flex
@@ -187,7 +144,6 @@ export function IdentityCard({
               gap-2
             "
           >
-
             <h3
               className="
                 min-w-0
@@ -200,7 +156,6 @@ export function IdentityCard({
             >
               {name || 'User'}
             </h3>
-
 
             <span
               className={`
@@ -218,9 +173,7 @@ export function IdentityCard({
             >
               {membership.label}
             </span>
-
           </div>
-
 
           <p
             className="
@@ -230,19 +183,12 @@ export function IdentityCard({
               text-muted-foreground
             "
           >
-            {username
-              ? `@${username}`
-              : 'No username'}
+            {username ? `@${username}` : 'No username'}
           </p>
-
         </div>
-
       </div>
 
-
-      {/* ======================================================
-          CONTACT INFORMATION
-          ====================================================== */}
+      {/* Contact */}
 
       <div
         className="
@@ -253,144 +199,93 @@ export function IdentityCard({
           bg-muted/[0.025]
         "
       >
+        <ContactItem
+          icon={<Mail className="h-3.5 w-3.5" />}
+          label="Email"
+          value={email || 'Not provided'}
+        />
 
-        {/* Email */}
-
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            gap-2.5
-            px-4
-            py-3
-          "
-        >
-
-          <div
-            className="
-              flex
-              h-7
-              w-7
-              shrink-0
-              items-center
-              justify-center
-              rounded-lg
-              border
-              border-primary/10
-              bg-primary/10
-              text-primary
-            "
-          >
-            <Mail className="h-3.5 w-3.5" />
-          </div>
+        <ContactItem
+          icon={<Phone className="h-3.5 w-3.5" />}
+          label="Phone"
+          value={phoneNumber || 'Not provided'}
+          bordered
+        />
+      </div>
+    </div>
+  );
+}
 
 
-          <div
-            className="
-              min-w-0
-              flex-1
-            "
-          >
+// ============================================================
+// CONTACT ITEM
+// ============================================================
 
-            <p
-              className="
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-wider
-                text-muted-foreground
-              "
-            >
-              Email
-            </p>
-
-            <p
-              className="
-                mt-0.5
-                truncate
-                text-xs
-                font-medium
-              "
-            >
-              {email || 'Not provided'}
-            </p>
-
-          </div>
-
-        </div>
-
-
-        {/* Phone */}
-
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            gap-2.5
-            border-l
-            border-border/50
-            px-4
-            py-3
-          "
-        >
-
-          <div
-            className="
-              flex
-              h-7
-              w-7
-              shrink-0
-              items-center
-              justify-center
-              rounded-lg
-              border
-              border-primary/10
-              bg-primary/10
-              text-primary
-            "
-          >
-            <Phone className="h-3.5 w-3.5" />
-          </div>
-
-
-          <div
-            className="
-              min-w-0
-              flex-1
-            "
-          >
-
-            <p
-              className="
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-wider
-                text-muted-foreground
-              "
-            >
-              Phone
-            </p>
-
-            <p
-              className="
-                mt-0.5
-                truncate
-                text-xs
-                font-medium
-              "
-            >
-              {phoneNumber || 'Not provided'}
-            </p>
-
-          </div>
-
-        </div>
-
+function ContactItem({
+  icon,
+  label,
+  value,
+  bordered = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  bordered?: boolean;
+}) {
+  return (
+    <div
+      className={`
+        flex
+        min-w-0
+        items-center
+        gap-2.5
+        px-4
+        py-3
+        ${bordered ? 'border-l border-border/50' : ''}
+      `}
+    >
+      <div
+        className="
+          flex
+          h-7
+          w-7
+          shrink-0
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-primary/10
+          bg-primary/10
+          text-primary
+        "
+      >
+        {icon}
       </div>
 
+      <div className="min-w-0 flex-1">
+        <p
+          className="
+            text-[10px]
+            font-medium
+            uppercase
+            tracking-wider
+            text-muted-foreground
+          "
+        >
+          {label}
+        </p>
+
+        <p
+          className="
+            mt-0.5
+            truncate
+            text-xs
+            font-medium
+          "
+        >
+          {value}
+        </p>
+      </div>
     </div>
   );
 }

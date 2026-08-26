@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  motion,
-  useReducedMotion,
-} from 'framer-motion';
-
-import type {
-  ReactNode,
-} from 'react';
+import type { ReactNode } from 'react';
 
 interface StadiumBackgroundProps {
   children: ReactNode;
@@ -16,9 +9,6 @@ interface StadiumBackgroundProps {
 export default function StadiumBackground({
   children,
 }: StadiumBackgroundProps) {
-  const shouldReduceMotion =
-    useReducedMotion();
-
   return (
     <section
       className="
@@ -29,7 +19,7 @@ export default function StadiumBackground({
         bg-background
       "
     >
-      {/* Ambient background decoration */}
+      {/* Lightweight ambient background */}
       <div
         aria-hidden="true"
         className="
@@ -40,44 +30,21 @@ export default function StadiumBackground({
           overflow-hidden
         "
       >
-        <motion.div
-          animate={
-            shouldReduceMotion
-              ? undefined
-              : {
-                  opacity: [
-                    0.2,
-                    0.35,
-                    0.2,
-                  ],
-                  scale: [
-                    1,
-                    1.04,
-                    1,
-                  ],
-                }
-          }
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+        <div
           className="
             absolute
-            -top-48
+            -top-40
             left-1/2
-            h-[28rem]
-            w-[28rem]
+            size-[22rem]
             -translate-x-1/2
             rounded-full
-            bg-primary/10
+            bg-primary/8
             blur-3xl
-            sm:h-[36rem]
-            sm:w-[36rem]
+            sm:size-[30rem]
           "
         />
 
-        {/* Soft page vignette */}
+        {/* Subtle vignette */}
         <div
           className="
             absolute
@@ -85,22 +52,22 @@ export default function StadiumBackground({
             bg-[radial-gradient(
               circle_at_50%_0%,
               transparent_0%,
-              transparent_35%,
-              var(--background)_85%
+              transparent_40%,
+              var(--background)_90%
             )]
-            opacity-80
+            opacity-70
           "
         />
 
-        {/* Subtle lower ambient glow */}
+        {/* Lower ambient glow */}
         <div
           className="
             absolute
             inset-x-0
             bottom-0
-            h-48
+            h-32
             bg-gradient-to-t
-            from-primary/5
+            from-primary/4
             to-transparent
           "
         />

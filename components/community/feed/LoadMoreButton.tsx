@@ -1,10 +1,6 @@
 'use client';
 
 import {
-  motion,
-} from 'framer-motion';
-
-import {
   ChevronDown,
   LoaderCircle,
 } from 'lucide-react';
@@ -29,24 +25,13 @@ export default function LoadMoreButton({
   }
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 8,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: 0.25,
-      }}
+    <div
       className="
         flex
         justify-center
-        px-4
-        pt-6
-        sm:pt-8
+        px-3
+        pt-4
+        sm:pt-5
       "
     >
       <Button
@@ -55,55 +40,54 @@ export default function LoadMoreButton({
         disabled={loading}
         variant="outline"
         className="
-          h-11
-          gap-2
+          h-9
+          gap-1.5
           rounded-full
           border-border
-          bg-background/60
-          px-5
-          text-s
+          bg-background/70
+          px-4
+          text-xs
           font-medium
           shadow-sm
           transition-colors
           hover:bg-muted
           disabled:opacity-60
-          sm:h-12
-          sm:px-6
-          sm:text-base
+          sm:h-10
+          sm:px-5
+          sm:text-sm
         "
       >
         {loading ? (
           <>
             <LoaderCircle
               className="
-                size-4
+                size-3.5
                 animate-spin
-                sm:size-[18px]
+                sm:size-4
               "
               aria-hidden="true"
             />
 
             <span>
-              Loading more...
+              Loading...
             </span>
           </>
         ) : (
           <>
             <span>
-              Load more discussions
+              Load more
             </span>
 
             <ChevronDown
               className="
-                size-4
-                transition-transform
-                group-hover:translate-y-0.5
+                size-3.5
+                sm:size-4
               "
               aria-hidden="true"
             />
           </>
         )}
       </Button>
-    </motion.div>
+    </div>
   );
 }

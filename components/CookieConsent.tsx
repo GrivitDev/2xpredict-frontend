@@ -4,25 +4,19 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Cookie } from 'lucide-react';
 
+type Consent = 'accepted' | 'rejected';
+
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie-consent');
-
-    if (!consent) {
-      setVisible(true);
-    }
+    setVisible(
+      !localStorage.getItem('cookie-consent'),
+    );
   }, []);
 
-  const saveConsent = (
-    value: 'accepted' | 'rejected'
-  ) => {
-    localStorage.setItem(
-      'cookie-consent',
-      value
-    );
-
+  const saveConsent = (value: Consent) => {
+    localStorage.setItem('cookie-consent', value);
     setVisible(false);
   };
 
@@ -47,6 +41,7 @@ export default function CookieConsent() {
       "
     >
       <div className="flex gap-4 p-5">
+
         <div
           className="
             hidden
@@ -65,6 +60,7 @@ export default function CookieConsent() {
         </div>
 
         <div className="min-w-0 flex-1">
+
           <h3 className="text-base font-semibold">
             Your Privacy Matters
           </h3>
@@ -109,9 +105,8 @@ export default function CookieConsent() {
             "
           >
             <button
-              onClick={() =>
-                saveConsent('rejected')
-              }
+              type="button"
+              onClick={() => saveConsent('rejected')}
               className="
                 rounded-xl
                 border
@@ -128,9 +123,8 @@ export default function CookieConsent() {
             </button>
 
             <button
-              onClick={() =>
-                saveConsent('accepted')
-              }
+              type="button"
+              onClick={() => saveConsent('accepted')}
               className="
                 rounded-xl
                 bg-primary
@@ -145,6 +139,7 @@ export default function CookieConsent() {
             >
               Accept Cookies
             </button>
+
           </div>
         </div>
       </div>

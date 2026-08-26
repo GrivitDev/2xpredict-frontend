@@ -1,55 +1,35 @@
 'use client';
 
-import {
-  motion,
-} from 'framer-motion';
-
 export default function ReplySkeleton() {
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-      }}
-      animate={{
-        opacity: 1,
-      }}
+    <div
       className="
         relative
         overflow-hidden
-        rounded-xl
+        rounded-lg
         border
-        border-border
+        border-border/70
         bg-muted/30
-        px-3
-        py-3
-        sm:px-4
+        px-2.5
+        py-2
       "
       aria-hidden="true"
     >
       {/* SHIMMER */}
 
-      <motion.div
+      <div
         className="
+          pointer-events-none
           absolute
           inset-y-0
           -left-1/2
           w-1/2
+          animate-[shimmer_1.8s_linear_infinite]
           bg-gradient-to-r
           from-transparent
           via-primary/10
           to-transparent
         "
-        animate={{
-          x: [
-            '-100%',
-            '300%',
-          ],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
       />
 
       {/* CONTENT */}
@@ -59,14 +39,14 @@ export default function ReplySkeleton() {
           relative
           flex
           items-start
-          gap-3
+          gap-2
         "
       >
         {/* AVATAR */}
 
         <div
           className="
-            size-8
+            size-7
             shrink-0
             rounded-full
             bg-muted
@@ -77,7 +57,7 @@ export default function ReplySkeleton() {
           className="
             min-w-0
             flex-1
-            space-y-2
+            space-y-1.5
           "
         >
           {/* USER INFO */}
@@ -86,13 +66,13 @@ export default function ReplySkeleton() {
             className="
               flex
               items-center
-              gap-2
+              gap-1.5
             "
           >
             <div
               className="
-                h-3
-                w-24
+                h-2.5
+                w-20
                 rounded-full
                 bg-muted
               "
@@ -100,8 +80,8 @@ export default function ReplySkeleton() {
 
             <div
               className="
-                h-3
-                w-16
+                h-2.5
+                w-12
                 rounded-full
                 bg-muted
               "
@@ -110,14 +90,10 @@ export default function ReplySkeleton() {
 
           {/* MESSAGE */}
 
-          <div
-            className="
-              space-y-2
-            "
-          >
+          <div className="space-y-1.5">
             <div
               className="
-                h-3
+                h-2.5
                 w-full
                 rounded-full
                 bg-muted
@@ -126,8 +102,8 @@ export default function ReplySkeleton() {
 
             <div
               className="
-                h-3
-                w-2/3
+                h-2.5
+                w-3/5
                 rounded-full
                 bg-muted
               "
@@ -135,6 +111,6 @@ export default function ReplySkeleton() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -38,30 +38,17 @@ export default function CreateDiscussionModal({
   onOpenChange,
   createPost,
 }: Props) {
-  const [
-    title,
-    setTitle,
-  ] = useState('');
-
-  const [
-    message,
-    setMessage,
-  ] = useState('');
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function submit() {
-    const trimmedMessage =
-      message.trim();
+    const trimmedMessage = message.trim();
 
     if (!trimmedMessage) {
       toast.error(
         'Please write something before publishing your discussion.',
       );
-
       return;
     }
 
@@ -80,7 +67,6 @@ export default function CreateDiscussionModal({
 
       setTitle('');
       setMessage('');
-
       onOpenChange(false);
     } catch (error) {
       console.error(
@@ -96,12 +82,8 @@ export default function CreateDiscussionModal({
     }
   }
 
-  function handleOpenChange(
-    nextOpen: boolean,
-  ) {
-    if (loading) {
-      return;
-    }
+  function handleOpenChange(nextOpen: boolean) {
+    if (loading) return;
 
     onOpenChange(nextOpen);
   }
@@ -118,10 +100,10 @@ export default function CreateDiscussionModal({
           rounded-2xl
           border-border
           bg-card
-          p-5
-          shadow-xl
+          p-4
+          shadow-lg
           sm:max-w-lg
-          sm:p-6
+          sm:p-5
         "
       >
         <DialogHeader className="space-y-1">
@@ -130,17 +112,18 @@ export default function CreateDiscussionModal({
               text-lg
               font-semibold
               tracking-tight
-              sm:text-xl
+              text-foreground
             "
           >
-            Start Football Discussion ⚽
+            Start Football Discussion
           </DialogTitle>
 
           <DialogDescription
             className="
-              text-s
-              leading-6
+              text-xs
+              leading-5
               text-muted-foreground
+              sm:text-sm
             "
           >
             Share your thoughts and start a
@@ -148,12 +131,7 @@ export default function CreateDiscussionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div
-          className="
-            mt-5
-            space-y-4
-          "
-        >
+        <div className="mt-4 space-y-3">
           <PostTitleInput
             value={title}
             onChange={setTitle}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import LeaderboardTable from './LeaderboardTable';
 
@@ -19,118 +19,123 @@ type LeaderboardType =
   | 'buyers'
   | 'referrals';
 
+const tabs = [
+  {
+    label: 'Subscribers',
+    value: 'subscribers',
+  },
+  {
+    label: 'VIP',
+    value: 'vip',
+  },
+  {
+    label: 'Regular',
+    value: 'regular',
+  },
+  {
+    label: 'Buyers',
+    value: 'buyers',
+  },
+  {
+    label: 'Referrals',
+    value: 'referrals',
+  },
+] as const;
+
 export default function LeaderboardSection({
   leaderboards,
 }: Props) {
-  const [
-    activeLeaderboard,
-    setActiveLeaderboard,
-  ] = useState<LeaderboardType>('subscribers');
+  const [activeLeaderboard, setActiveLeaderboard] =
+    useState<LeaderboardType>('subscribers');
 
-  const tabs = [
-    {
-      label: 'Subscribers',
-      value: 'subscribers',
-    },
-    {
-      label: 'VIP',
-      value: 'vip',
-    },
-    {
-      label: 'Regular',
-      value: 'regular',
-    },
-    {
-      label: 'Buyers',
-      value: 'buyers',
-    },
-    {
-      label: 'Referrals',
-      value: 'referrals',
-    },
-  ] as const;
+  let table;
 
-  const table = useMemo(() => {
-    switch (activeLeaderboard) {
-      case 'vip':
-        return {
-          title: 'Top VIP Subscribers',
-          users: leaderboards.topVipSubscribers,
-          metric: 'totalVipSubscriptions' as const,
-        };
+  switch (activeLeaderboard) {
+    case 'vip':
+      table = {
+        title: 'Top VIP Subscribers',
+        users: leaderboards.topVipSubscribers,
+        metric: 'totalVipSubscriptions' as const,
+      };
+      break;
 
-      case 'regular':
-        return {
-          title: 'Top Regular Subscribers',
-          users: leaderboards.topRegularSubscribers,
-          metric: 'totalRegularSubscriptions' as const,
-        };
+    case 'regular':
+      table = {
+        title: 'Top Regular Subscribers',
+        users: leaderboards.topRegularSubscribers,
+        metric: 'totalRegularSubscriptions' as const,
+      };
+      break;
 
-      case 'buyers':
-        return {
-          title: 'Top Prediction Buyers',
-          users: leaderboards.topPredictionBuyers,
-          metric: 'totalPurchases' as const,
-        };
+    case 'buyers':
+      table = {
+        title: 'Top Prediction Buyers',
+        users: leaderboards.topPredictionBuyers,
+        metric: 'totalPurchases' as const,
+      };
+      break;
 
-      case 'referrals':
-        return {
-          title: 'Top Referrers',
-          users: leaderboards.topReferrers,
-          metric: 'successfulReferrals' as const,
-        };
+    case 'referrals':
+      table = {
+        title: 'Top Referrers',
+        users: leaderboards.topReferrers,
+        metric: 'successfulReferrals' as const,
+      };
+      break;
 
-      default:
-        return {
-          title: 'Top Subscribers',
-          users: leaderboards.topSubscribers,
-          metric: 'totalSubscriptions' as const,
-        };
-    }
-  }, [activeLeaderboard, leaderboards]);
+    default:
+      table = {
+        title: 'Top Subscribers',
+        users: leaderboards.topSubscribers,
+        metric: 'totalSubscriptions' as const,
+      };
+  }
 
   return (
-    <section className="space-y-1">
+    <section className="space-y-2">
+      <div
+        className="
+          flex
+          gap-0.5
+          overflow-x-auto
+          rounded-lg
+          border
+          bg-muted/40
+          p-0.5
+          scrollbar-none
+        "
+      >
+        {tabs.map((tab) => {
+          const active =
+            activeLeaderboard === tab.value;
 
-<div
-  className="
-    flex
-    w-full
-    flex-wrap
-    items-center
-    rounded-lg
-    border
-    bg-muted/50
-    p-1
-    gap-1
-  "
->
-  {tabs.map((tab) => (
-    <button
-      key={tab.value}
-      onClick={() => setActiveLeaderboard(tab.value)}
-      className={`
-        flex-1
-        min-w-[120px]
-        rounded-md
-        px-4
-        py-1
-        text-s
-        font-medium
-        text-center
-        transition-all
-        duration-200
-        ${
-          activeLeaderboard === tab.value
-            ? 'bg-primary text-primary-foreground shadow-sm'
-            : 'text-muted-foreground hover:bg-background hover:text-foreground'
-        }
-      `}
-    >
-      {tab.label}
-    </button>
-  ))}
-</div>
+          return (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() =>
+                setActiveLeaderboard(tab.value)
+              }
+              className={`
+                h-7
+                shrink-0
+                rounded-md
+                px-3
+                text-[11px]
+                font-medium
+                transition-colors
+                ${
+                  active
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }
+              `}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
       <LeaderboardTable
         title={table.title}

@@ -1,9 +1,5 @@
 'use client';
 
-import {
-  motion,
-} from 'framer-motion';
-
 import type {
   CommunityPost,
   CommunityReply,
@@ -38,7 +34,6 @@ export default function CommunityDiscussionCard({
   loadReplies,
   createReply,
 }: Props) {
-
   const displayName =
     post.fullName?.trim() ||
     post.username;
@@ -46,71 +41,53 @@ export default function CommunityDiscussionCard({
   const initial =
     displayName
       ?.charAt(0)
-      .toUpperCase() ??
-    '?';
+      .toUpperCase() || '?';
 
   return (
-
-    <motion.article
-      initial={{
-        opacity: 0,
-        y: 8,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: 0.25,
-      }}
+    <article
       className="
         overflow-hidden
-        rounded-2xl
+        rounded-lg
         border
         border-border
         bg-card
         shadow-sm
-        transition-all
-        duration-200
+        md:transition-shadow
+        md:duration-200
         md:hover:border-primary/20
         md:hover:shadow-md
       "
     >
-
       <div
         className="
-          p-4
-          sm:p-5
+          p-3
+          sm:p-4
         "
       >
-
-        {/* Header */}
+        {/* HEADER */}
 
         <div
           className="
             flex
-            items-start
-            gap-3
+            items-center
+            gap-2.5
           "
         >
-
           <div
             className="
               flex
-              h-10
-              w-10
+              size-9
               shrink-0
               items-center
               justify-center
               rounded-full
               bg-primary/10
-              text-s
+              text-sm
               font-semibold
               text-primary
               ring-1
               ring-primary/10
-              sm:h-11
-              sm:w-11
+              sm:size-10
             "
             aria-hidden="true"
           >
@@ -123,12 +100,12 @@ export default function CommunityDiscussionCard({
               flex-1
             "
           >
-
             <p
               className="
                 truncate
-                text-s
+                text-sm
                 font-semibold
+                leading-tight
                 text-foreground
               "
             >
@@ -138,90 +115,65 @@ export default function CommunityDiscussionCard({
             <p
               className="
                 truncate
-                text-xs
+                text-[11px]
+                leading-tight
                 text-muted-foreground
               "
             >
               @{post.username}
             </p>
-
           </div>
-
         </div>
 
-        {/* Title */}
+        {/* TITLE */}
 
-        {
-          post.title?.trim() && (
-
-            <h2
-              className="
-                mt-5
-                break-words
-                text-xl
-                font-semibold
-                leading-tight
-                tracking-tight
-                text-foreground
-                sm:text-2xl
-              "
-            >
-              {post.title}
-            </h2>
-
-          )
-        }
-
-        {/* Message */}
-
-        <div
-          className="
-            mt-3
-          "
-        >
-
-          <p
+        {post.title?.trim() && (
+          <h2
             className="
-              whitespace-pre-wrap
+              mt-3
               break-words
-              text-s
-              leading-7
+              text-lg
+              font-semibold
+              leading-tight
+              tracking-tight
               text-foreground
-              sm:text-base
+              sm:text-xl
             "
           >
-            {post.message}
-          </p>
+            {post.title}
+          </h2>
+        )}
 
-        </div>
+        {/* MESSAGE */}
 
+        <p
+          className="
+            mt-2
+            whitespace-pre-wrap
+            break-words
+            text-sm
+            leading-6
+            text-foreground
+            sm:text-[15px]
+            sm:leading-6
+          "
+        >
+          {post.message}
+        </p>
       </div>
 
-<CommunityReactionBar
-  reactions={post.reactions}
-  onReact={onReact}
-/>
-
-      <ReplySection
-        replyCount={
-          post.replyCount
-        }
-        replies={
-          replies
-        }
-        loading={
-          repliesLoading
-        }
-        loadReplies={
-          loadReplies
-        }
-        createReply={
-          createReply
-        }
+      <CommunityReactionBar
+        reactions={post.reactions}
+        onReact={onReact}
       />
 
-    </motion.article>
-
+      <ReplySection
+        replyCount={post.replyCount}
+        replies={replies}
+        loading={repliesLoading}
+        loadReplies={loadReplies}
+        createReply={createReply}
+      />
+    </article>
   );
-
 }

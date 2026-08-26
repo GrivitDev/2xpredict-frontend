@@ -41,6 +41,24 @@ import PredictionDateFilter, {
   type PredictionDateFilter as PredictionDateFilterType,
 } from '@/components/admin/predictions/PredictionDateFilter';
 
+
+// ============================================================
+// TYPES
+// ============================================================
+
+type PredictionPayload = {
+  confidence: number | string;
+  probabilities: unknown;
+  markets: unknown;
+  accessType: unknown;
+  price?: number | string;
+};
+
+
+// ============================================================
+// HELPERS
+// ============================================================
+
 function formatFixtureDate(date: string) {
   const fixtureDate = new Date(date);
 
@@ -60,11 +78,89 @@ function formatFixtureDate(date: string) {
   };
 }
 
-export default function CreatePredictionPage() {
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
+function getWeekRange(date: Date, offset = 0) {
+  const day = date.getDay();
 
-  const [selectedLeague, setSelectedLeague] = useState('');
+  const mondayOffset =
+    day === 0
+      ? -6
+      : 1 - day;
+
+  const from = new Date(date);
+
+  from.setDate(
+    date.getDate() +
+      mondayOffset +
+      offset * 7,
+  );
+
+  from.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
+  const to = new Date(from);
+
+  to.setDate(
+    from.getDate() + 6,
+  );
+
+  to.setHours(
+    23,
+    59,
+    59,
+    999,
+  );
+
+  return {
+    from,
+    to,
+  };
+}
+
+function getDayStart(date: Date) {
+  const result = new Date(date);
+
+  result.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
+  return result;
+}
+
+function getDayEnd(date: Date) {
+  const result = new Date(date);
+
+  result.setHours(
+    23,
+    59,
+    59,
+    999,
+  );
+
+  return result;
+}
+
+
+// ============================================================
+// PAGE
+// ============================================================
+
+export default function CreatePredictionPage() {
+  const [leagues, setLeagues] =
+    useState<League[]>([]);
+
+  const [matches, setMatches] =
+    useState<Match[]>([]);
+
+  const [selectedLeague, setSelectedLeague] =
+    useState('');
+
   const [selectedMatch, setSelectedMatch] =
     useState<Match | null>(null);
 
@@ -80,59 +176,67 @@ export default function CreatePredictionPage() {
   const [submitting, setSubmitting] =
     useState(false);
 
-    const [
-  dateFilter,
-  setDateFilter,
-] = useState<PredictionDateFilterType>('all');
+  const [dateFilter, setDateFilter] =
+    useState<PredictionDateFilterType>('all');
 
-const [
-  customFrom,
-  setCustomFrom,
-] = useState('');
+  const [customFrom, setCustomFrom] =
+    useState('');
 
-const [
-  customTo,
-  setCustomTo,
-] = useState('');
+  const [customTo, setCustomTo] =
+    useState('');
 
-  const [error, setError] = useState('');
+  const [error, setError] =
+    useState('');
 
-  /*
-    Stores the match IDs that already have
-    predictions created for them.
-  */
   const [createdMatchIds, setCreatedMatchIds] =
-    useState<Set<string>>(new Set());
+    useState<Set<string>>(
+      new Set(),
+    );
 
-  const currentLeague = leagues.find(
-    (league) => league.code === selectedLeague,
-  );
+  const currentLeague =
+    leagues.find(
+      (league) =>
+        league.code === selectedLeague,
+    );
 
   // ============================================================
   // LOAD LEAGUES
   // ============================================================
 
   useEffect(() => {
+    let mounted = true;
+
     const loadLeagues = async () => {
       try {
         setLoadingLeagues(true);
         setError('');
 
-        const data = await getLeagues();
+        const data =
+          await getLeagues();
 
-        setLeagues(data || []);
+        if (mounted) {
+          setLeagues(data || []);
+        }
       } catch (err) {
         console.error(err);
 
-        setError(
-          'Unable to load leagues. Please try again.',
-        );
+        if (mounted) {
+          setError(
+            'Unable to load leagues. Please try again.',
+          );
+        }
       } finally {
-        setLoadingLeagues(false);
+        if (mounted) {
+          setLoadingLeagues(false);
+        }
       }
     };
 
     loadLeagues();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ============================================================
@@ -140,37 +244,48 @@ const [
   // ============================================================
 
   useEffect(() => {
-    const loadCreatedPredictions = async () => {
-      try {
-        const response =
-          await api.get('/predictions');
+    let mounted = true;
 
-        const predictions =
-          response.data || [];
+    const loadCreatedPredictions =
+      async () => {
+        try {
+          const response =
+            await api.get('/predictions');
 
-        const matchIds =
-          new Set<string>(
-            predictions
-              .map(
-                (prediction: any) =>
-                  prediction.matchId,
-              )
-              .filter(Boolean)
-              .map(String),
+          const predictions =
+            response.data || [];
+
+          const matchIds =
+            new Set<string>(
+              predictions
+                .map(
+                  (prediction: {
+                    matchId?: string | number;
+                  }) =>
+                    prediction.matchId,
+                )
+                .filter(Boolean)
+                .map(String),
+            );
+
+          if (mounted) {
+            setCreatedMatchIds(
+              matchIds,
+            );
+          }
+        } catch (err) {
+          console.error(
+            'Failed to load existing predictions:',
+            err,
           );
-
-        setCreatedMatchIds(
-          matchIds,
-        );
-      } catch (err) {
-        console.error(
-          'Failed to load existing predictions:',
-          err,
-        );
-      }
-    };
+        }
+      };
 
     loadCreatedPredictions();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ============================================================
@@ -206,177 +321,96 @@ const [
     }
   };
 
-  const filteredMatches = useMemo(() => {
-  if (!matches.length) {
-    return [];
-  }
+  // ============================================================
+  // FILTER FIXTURES
+  // ============================================================
 
-  if (dateFilter === 'all') {
-    return matches;
-  }
+  const filteredMatches =
+    useMemo(() => {
+      if (
+        !matches.length ||
+        dateFilter === 'all'
+      ) {
+        return matches;
+      }
 
-  const now = new Date();
+      const now = new Date();
 
-  const startOfDay = (date: Date) => {
-    const result = new Date(date);
+      let from: Date;
+      let to: Date;
 
-    result.setHours(
-      0,
-      0,
-      0,
-      0,
-    );
+      if (dateFilter === 'this-week') {
+        ({
+          from,
+          to,
+        } = getWeekRange(now));
+      } else if (
+        dateFilter === 'next-week'
+      ) {
+        ({
+          from,
+          to,
+        } = getWeekRange(now, 1));
+      } else if (
+        dateFilter === 'this-month'
+      ) {
+        from = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          1,
+        );
 
-    return result;
-  };
+        to = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+        );
 
-  const endOfDay = (date: Date) => {
-    const result = new Date(date);
+        to = getDayEnd(to);
+      } else {
+        if (!customFrom) {
+          return matches;
+        }
 
-    result.setHours(
-      23,
-      59,
-      59,
-      999,
-    );
+        from = new Date(
+          `${customFrom}T00:00:00`,
+        );
 
-    return result;
-  };
+        to = customTo
+          ? new Date(
+              `${customTo}T23:59:59`,
+            )
+          : getDayEnd(from);
+      }
 
-  let from: Date;
-  let to: Date;
+      from = getDayStart(from);
+      to = getDayEnd(to);
 
+      return matches.filter(
+        (match) => {
+          const matchDate =
+            new Date(match.date);
 
-  // THIS WEEK
-
-  if (dateFilter === 'this-week') {
-
-    const day =
-      now.getDay();
-
-    const mondayOffset =
-      day === 0
-        ? -6
-        : 1 - day;
-
-    from = new Date(now);
-
-    from.setDate(
-      now.getDate() +
-      mondayOffset
-    );
-
-    to = new Date(from);
-
-    to.setDate(
-      from.getDate() + 6
-    );
-
-  }
-
-
-  // NEXT WEEK
-
-  else if (dateFilter === 'next-week') {
-
-    const day =
-      now.getDay();
-
-    const mondayOffset =
-      day === 0
-        ? -6
-        : 1 - day;
-
-    from = new Date(now);
-
-    from.setDate(
-      now.getDate() +
-      mondayOffset +
-      7
-    );
-
-    to = new Date(from);
-
-    to.setDate(
-      from.getDate() + 6
-    );
-
-  }
-
-
-  // THIS MONTH
-
-  else if (dateFilter === 'this-month') {
-
-    from = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1
-    );
-
-    to = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0
-    );
-
-  }
-
-
-  // CUSTOM
-
-  else {
-
-    if (!customFrom) {
-      return matches;
-    }
-
-    from = new Date(
-      `${customFrom}T00:00:00`
-    );
-
-    to = customTo
-      ? new Date(
-          `${customTo}T23:59:59`
-        )
-      : endOfDay(from);
-
-  }
-
-
-  from = startOfDay(from);
-  to = endOfDay(to);
-
-
-  return matches.filter(
-    (match) => {
-
-      const matchDate =
-        new Date(match.date);
-
-      return (
-        matchDate >= from &&
-        matchDate <= to
+          return (
+            matchDate >= from &&
+            matchDate <= to
+          );
+        },
       );
+    }, [
+      matches,
+      dateFilter,
+      customFrom,
+      customTo,
+    ]);
 
-    }
-  );
-
-}, [
-  matches,
-  dateFilter,
-  customFrom,
-  customTo,
-]);
   // ============================================================
-  // OPEN MODAL
+  // MODAL
   // ============================================================
 
-  const openModal = (match: Match) => {
-    /*
-      Prevent opening the prediction modal if
-      this match already has a prediction.
-    */
+  const openModal = (
+    match: Match,
+  ) => {
     if (
       createdMatchIds.has(
         String(match.id),
@@ -389,20 +423,12 @@ const [
     setShowModal(true);
   };
 
-  // ============================================================
-  // MANUAL MATCH
-  // ============================================================
-
   const handleManualMatch = (
     match: Match,
   ) => {
     setSelectedMatch(match);
     setShowModal(true);
   };
-
-  // ============================================================
-  // CLOSE MODAL
-  // ============================================================
 
   const closeModal = () => {
     setSelectedMatch(null);
@@ -414,17 +440,12 @@ const [
   // ============================================================
 
   const handleSubmit = async (
-    payload: any,
+    payload: PredictionPayload,
   ) => {
     if (!selectedMatch) {
       return;
     }
 
-    /*
-      API fixtures include `league`.
-      Manual fixtures only include `leagueCode`,
-      so this fallback prevents a runtime error.
-    */
     const matchLeague =
       selectedMatch.league || {
         code:
@@ -494,10 +515,6 @@ const [
           selectedMatch.date,
       });
 
-      /*
-        Immediately mark the match as predicted
-        without requiring a page refresh.
-      */
       setCreatedMatchIds(
         (previous) => {
           const next =
@@ -518,19 +535,32 @@ const [
       );
 
       closeModal();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error =
+        err as {
+          response?: {
+            data?: {
+              message?: string;
+            };
+          };
+        };
+
       console.error(
-        err?.response?.data || err,
+        error?.response?.data || err,
       );
 
       toast.error(
-        err?.response?.data?.message ||
+        error?.response?.data?.message ||
           'Failed to create prediction.',
       );
     } finally {
       setSubmitting(false);
     }
   };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
     <div
@@ -541,13 +571,9 @@ const [
         min-w-0
         space-y-8
         pb-8
-        animate-in
-        fade-in
-        slide-in-from-bottom-4
-        duration-500
       "
     >
-      {/* Page Hero */}
+      {/* HERO */}
 
       <section
         className="
@@ -631,9 +657,10 @@ const [
                   sm:text-base
                 "
               >
-                Build expert football predictions from live
-                fixtures, or create a manual fixture when it
-                is not available through the football API.
+                Build expert football predictions from
+                live fixtures, or create a manual fixture
+                when it is not available through the
+                football API.
               </p>
             </div>
           </div>
@@ -684,21 +711,22 @@ const [
           "
         >
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-
           <p>{error}</p>
         </div>
       )}
-<div className="mt-6">
-  <PredictionDateFilter
-    value={dateFilter}
-    onChange={setDateFilter}
-    customFrom={customFrom}
-    customTo={customTo}
-    onCustomFromChange={setCustomFrom}
-    onCustomToChange={setCustomTo}
-  />
-</div>
-      {/* API Fixtures */}
+
+      {/* DATE FILTER */}
+
+      <PredictionDateFilter
+        value={dateFilter}
+        onChange={setDateFilter}
+        customFrom={customFrom}
+        customTo={customTo}
+        onCustomFromChange={setCustomFrom}
+        onCustomToChange={setCustomTo}
+      />
+
+      {/* API FIXTURES */}
 
       <section
         className="
@@ -845,12 +873,8 @@ const [
             >
               {currentLeague.emblem ? (
                 <Image
-                  src={
-                    currentLeague.emblem
-                  }
-                  alt={
-                    currentLeague.name
-                  }
+                  src={currentLeague.emblem}
+                  alt={currentLeague.name}
                   width={40}
                   height={40}
                   className="object-contain"
@@ -883,8 +907,10 @@ const [
                 text-muted-foreground
               "
             >
-            {filteredMatches.length} fixture
-            {filteredMatches.length === 1 ? '' : 's'}
+              {filteredMatches.length} fixture
+              {filteredMatches.length === 1
+                ? ''
+                : 's'}
             </span>
           </div>
         )}
@@ -897,42 +923,39 @@ const [
           {!loadingMatches &&
             selectedLeague &&
             matches.length === 0 && (
-              <div
-                className="
-                  rounded-2xl
-                  border
-                  border-dashed
-                  border-border
-                  bg-muted/20
-                  p-10
-                  text-center
-                "
-              >
-                <CalendarDays className="mx-auto h-7 w-7 text-muted-foreground" />
-
-                <p className="mt-3 font-semibold">
-                  No upcoming fixtures found
-                </p>
-
-                <p className="mt-1 text-s text-muted-foreground">
-                  Try another league or create the fixture
-                  manually.
-                </p>
-              </div>
+              <EmptyState
+                icon={
+                  <CalendarDays className="mx-auto h-7 w-7 text-muted-foreground" />
+                }
+                title="No upcoming fixtures found"
+                description="Try another league or create the fixture manually."
+              />
             )}
 
           {!loadingMatches &&
-            matches.length > 0 && (
+            selectedLeague &&
+            matches.length > 0 &&
+            filteredMatches.length === 0 && (
+              <EmptyState
+                icon={
+                  <CalendarDays className="mx-auto h-7 w-7 text-muted-foreground" />
+                }
+                title="No fixtures match this filter"
+                description="Try another date range or choose a different filter."
+              />
+            )}
+
+          {!loadingMatches &&
+            filteredMatches.length > 0 && (
               <div className="grid gap-4">
-                {filteredMatches.map((match) => (
+                {filteredMatches.map(
+                  (match) => (
                     <FixtureCard
                       key={match.id}
                       match={match}
-                      alreadyCreated={
-                        createdMatchIds.has(
-                          String(match.id),
-                        )
-                      }
+                      alreadyCreated={createdMatchIds.has(
+                        String(match.id),
+                      )}
                       onCreate={() =>
                         openModal(match)
                       }
@@ -944,32 +967,18 @@ const [
 
           {!selectedLeague &&
             !loadingLeagues && (
-              <div
-                className="
-                  rounded-2xl
-                  border
-                  border-dashed
-                  border-border
-                  bg-muted/20
-                  p-10
-                  text-center
-                "
-              >
-                <Trophy className="mx-auto h-7 w-7 text-muted-foreground" />
-
-                <p className="mt-3 font-semibold">
-                  Choose a league to begin
-                </p>
-
-                <p className="mt-1 text-s text-muted-foreground">
-                  Upcoming fixtures will appear here.
-                </p>
-              </div>
+              <EmptyState
+                icon={
+                  <Trophy className="mx-auto h-7 w-7 text-muted-foreground" />
+                }
+                title="Choose a league to begin"
+                description="Upcoming fixtures will appear here."
+              />
             )}
         </div>
       </section>
 
-      {/* Manual Fixture */}
+      {/* MANUAL FIXTURE */}
 
       <section className="space-y-4">
         <div className="flex items-start gap-3 px-1">
@@ -995,16 +1004,14 @@ const [
             </h2>
 
             <p className="mt-1 text-s text-muted-foreground">
-              Use this when a fixture is unavailable through
-              the football API.
+              Use this when a fixture is unavailable
+              through the football API.
             </p>
           </div>
         </div>
 
         <ManualPredictionForm
-          onCreateMatch={
-            handleManualMatch
-          }
+          onCreateMatch={handleManualMatch}
         />
       </section>
 
@@ -1020,6 +1027,7 @@ const [
     </div>
   );
 }
+
 
 // ============================================================
 // SECTION HEADER
@@ -1093,6 +1101,7 @@ function SectionHeader({
   );
 }
 
+
 // ============================================================
 // METRIC
 // ============================================================
@@ -1127,6 +1136,46 @@ function Metric({
   );
 }
 
+
+// ============================================================
+// EMPTY STATE
+// ============================================================
+
+function EmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div
+      className="
+        rounded-2xl
+        border
+        border-dashed
+        border-border
+        bg-muted/20
+        p-10
+        text-center
+      "
+    >
+      {icon}
+
+      <p className="mt-3 font-semibold">
+        {title}
+      </p>
+
+      <p className="mt-1 text-s text-muted-foreground">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+
 // ============================================================
 // LOADING FIXTURES
 // ============================================================
@@ -1152,6 +1201,7 @@ function LoadingFixtures() {
     </div>
   );
 }
+
 
 // ============================================================
 // FIXTURE CARD
@@ -1196,9 +1246,6 @@ function FixtureCard({
         "
       >
         <div className="min-w-0 flex-1">
-
-          {/* Predicted indicator */}
-
           {alreadyCreated && (
             <div
               className="
@@ -1212,7 +1259,6 @@ function FixtureCard({
               "
             >
               <ShieldCheck className="h-3.5 w-3.5" />
-
               Predicted
             </div>
           )}
@@ -1276,7 +1322,6 @@ function FixtureCard({
           >
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays className="h-3.5 w-3.5 text-primary" />
-
               {formattedDate.date}
             </span>
 
@@ -1353,6 +1398,7 @@ function FixtureCard({
     </article>
   );
 }
+
 
 // ============================================================
 // TEAM

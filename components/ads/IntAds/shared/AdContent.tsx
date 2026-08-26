@@ -23,7 +23,6 @@ export function AdContent({
   centered = false,
   light = false,
 }: Props) {
-
   const containerRef =
     useRef<HTMLDivElement>(null);
 
@@ -31,15 +30,14 @@ export function AdContent({
     useState(1);
 
   useEffect(() => {
-
-    const element = containerRef.current;
+    const element =
+      containerRef.current;
 
     if (!element) {
       return;
     }
 
     const updateScale = () => {
-
       const height =
         element.scrollHeight;
 
@@ -50,13 +48,6 @@ export function AdContent({
         return;
       }
 
-      /*
-       * Compact responsive scaling.
-       *
-       * Short content stays slightly larger.
-       * Long content scales down gracefully.
-       */
-
       const idealHeight =
         width < 640
           ? 280
@@ -65,27 +56,34 @@ export function AdContent({
       const calculatedScale =
         idealHeight / height;
 
-      const scale = Math.min(
-        1.08,
-        Math.max(
-          0.82,
-          calculatedScale,
-        ),
+      const scale =
+        Math.min(
+          1.08,
+          Math.max(
+            0.82,
+            calculatedScale,
+          ),
+        );
+
+      setContentScale(
+        (current) =>
+          current === scale
+            ? current
+            : scale,
       );
-
-      setContentScale(scale);
-
     };
 
     updateScale();
 
     const observer =
-      new ResizeObserver(updateScale);
+      new ResizeObserver(
+        updateScale,
+      );
 
     observer.observe(element);
 
-    return () => observer.disconnect();
-
+    return () =>
+      observer.disconnect();
   }, [
     ad.title,
     ad.subTitle,
@@ -94,23 +92,20 @@ export function AdContent({
   ]);
 
   return (
-
     <div
       ref={containerRef}
       style={{
-        '--ad-content-scale': contentScale,
+        '--ad-content-scale':
+          contentScale,
       } as React.CSSProperties}
       className={[
         'relative',
         'space-y-2.5',
-        'transition-all',
-        'duration-300',
         centered
           ? 'text-center'
           : 'text-left',
       ].join(' ')}
     >
-
       <AdTitle
         ad={ad}
         centered={centered}
@@ -126,9 +121,6 @@ export function AdContent({
         ad={ad}
         light={light}
       />
-
     </div>
-
   );
-
 }

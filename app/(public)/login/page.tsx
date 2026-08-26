@@ -23,10 +23,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { InternalAds } from '@/components/ads/IntAds/InternalAds';
-import { AdPage } from '@/constants/ads/ad-page';
-import { AdPosition } from '@/constants/ads/ad-position';
-
 export default function LoginPage() {
   const router = useRouter();
 
@@ -135,7 +131,7 @@ export default function LoginPage() {
       "
     >
       {/* ======================================== */}
-      {/* BACKGROUND */}
+      {/* LIGHTWEIGHT BACKGROUND */}
       {/* ======================================== */}
 
       <div
@@ -154,8 +150,7 @@ export default function LoginPage() {
             h-[420px]
             w-[420px]
             rounded-full
-            bg-primary/15
-            blur-[150px]
+            bg-primary/10
           "
         />
 
@@ -167,8 +162,7 @@ export default function LoginPage() {
             h-[420px]
             w-[420px]
             rounded-full
-            bg-cyan-500/10
-            blur-[150px]
+            bg-cyan-500/5
           "
         />
 
@@ -183,15 +177,6 @@ export default function LoginPage() {
           "
         />
       </div>
-
-      {/* ======================================== */}
-      {/* POPUP AD */}
-      {/* ======================================== */}
-
-      <InternalAds
-        page={AdPage.HOME}
-        position={AdPosition.POPUP}
-      />
 
       {/* ======================================== */}
       {/* MAIN CONTENT */}
@@ -310,7 +295,7 @@ export default function LoginPage() {
                 className="
                   mt-4
                   max-w-md
-                  text-s
+                  text-sm
                   leading-6
                   text-muted-foreground
                 "
@@ -367,10 +352,9 @@ export default function LoginPage() {
                 rounded-2xl
                 border
                 border-border/70
-                bg-card/75
+                bg-card
                 p-5
                 shadow-2xl
-                backdrop-blur-2xl
                 sm:p-6
               "
             >
@@ -388,7 +372,6 @@ export default function LoginPage() {
                     w-24
                     items-center
                     justify-center
-
                   "
                 >
                   <Image
@@ -396,7 +379,11 @@ export default function LoginPage() {
                     alt="2xPredict"
                     width={82}
                     height={82}
-                    className="h-45 w-45 object-contain"
+                    className="
+                      h-[82px]
+                      w-[82px]
+                      object-contain
+                    "
                     priority
                   />
                 </div>
@@ -472,12 +459,11 @@ export default function LoginPage() {
                       rounded-xl
                       border
                       border-input
-                      bg-background/70
+                      bg-background
                       pl-10
                       pr-4
-                      text-s
+                      text-sm
                       outline-none
-                      transition
                       placeholder:text-muted-foreground
                       focus:border-primary/50
                       focus:ring-2
@@ -536,12 +522,11 @@ export default function LoginPage() {
                       rounded-xl
                       border
                       border-input
-                      bg-background/70
+                      bg-background
                       pl-10
                       pr-11
-                      text-s
+                      text-sm
                       outline-none
-                      transition
                       placeholder:text-muted-foreground
                       focus:border-primary/50
                       focus:ring-2
@@ -562,9 +547,13 @@ export default function LoginPage() {
                       top-1/2
                       -translate-y-1/2
                       text-muted-foreground
-                      transition
                       hover:text-foreground
                     "
+                    aria-label={
+                      showPassword
+                        ? 'Hide password'
+                        : 'Show password'
+                    }
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -634,7 +623,6 @@ export default function LoginPage() {
                     text-xs
                     font-semibold
                     text-primary
-                    transition
                     hover:underline
                   "
                 >
@@ -650,7 +638,6 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 className="
-                  group
                   flex
                   h-12
                   w-full
@@ -659,23 +646,18 @@ export default function LoginPage() {
                   gap-2
                   rounded-xl
                   bg-primary
-                  text-s
+                  text-sm
                   font-bold
                   text-primary-foreground
                   shadow-lg
                   shadow-primary/20
-                  transition-all
-                  duration-200
-                  hover:-translate-y-0.5
-                  hover:shadow-xl
-                  hover:shadow-primary/25
                   disabled:cursor-not-allowed
                   disabled:opacity-60
-                  disabled:hover:translate-y-0
                 "
               >
                 {loading ? (
                   <>
+                    {/* Native CSS loader */}
                     <div
                       className="
                         h-4
@@ -694,14 +676,7 @@ export default function LoginPage() {
                   <>
                     Login
 
-                    <ArrowRight
-                      className="
-                        h-4
-                        w-4
-                        transition-transform
-                        group-hover:translate-x-1
-                      "
-                    />
+                    <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </button>
@@ -758,10 +733,9 @@ function StatCard({
         rounded-xl
         border
         border-border/70
-        bg-card/60
+        bg-card
         p-3
         shadow-sm
-        backdrop-blur-xl
       "
     >
       <div className="mb-2 text-primary">

@@ -9,9 +9,7 @@ import {
 interface Props {
   requiredPlan?: string;
 
-  feature?:
-    | 'prediction'
-    | 'markets';
+  feature?: 'prediction' | 'markets';
 
   title?: string;
 
@@ -29,13 +27,10 @@ export default function SubscriptionLock({
 }: Props) {
   const isVip =
     String(requiredPlan ?? '')
-      .toLowerCase() ===
-    'vip';
+      .trim()
+      .toLowerCase() === 'vip';
 
-  const plan =
-    isVip
-      ? 'VIP'
-      : 'Regular';
+  const plan = isVip ? 'VIP' : 'Regular';
 
   const featureName =
     feature === 'markets'
@@ -90,6 +85,7 @@ export default function SubscriptionLock({
             bg-primary/10
             text-primary
           "
+          aria-hidden="true"
         >
           {isVip ? (
             <Crown size={11} />
@@ -108,8 +104,7 @@ export default function SubscriptionLock({
               text-primary
             "
           >
-            {title ??
-              `${plan} Required`}
+            {title ?? `${plan} Required`}
           </span>
 
           <span
@@ -120,14 +115,14 @@ export default function SubscriptionLock({
               text-muted-foreground
             "
           >
-            {description ??
-              `Unlock ${featureName}`}
+            {description ?? `Unlock ${featureName}`}
           </span>
         </span>
       </span>
 
       <ChevronRight
         size={13}
+        aria-hidden="true"
         className="
           shrink-0
           text-muted-foreground

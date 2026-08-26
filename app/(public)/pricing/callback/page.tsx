@@ -30,10 +30,9 @@ export default function PaymentCallbackPage() {
   const [status, setStatus] =
     useState<VerificationState>('verifying');
 
-  const [message, setMessage] =
-    useState(
-      'Please wait while we confirm your payment.',
-    );
+  const [message, setMessage] = useState(
+    'Please wait while we confirm your payment.',
+  );
 
   const [reference, setReference] =
     useState<string | null>(null);
@@ -92,9 +91,7 @@ export default function PaymentCallbackPage() {
         // PENDING
         // =================================================
 
-        if (
-          result.status === 'pending'
-        ) {
+        if (result.status === 'pending') {
           setStatus('pending');
 
           setMessage(
@@ -126,7 +123,7 @@ export default function PaymentCallbackPage() {
         );
 
         const errorMessage =
-          error.response?.data?.message ??
+          error?.response?.data?.message ??
           'We were unable to verify your payment at this time. Please try again.';
 
         setStatus('failed');
@@ -146,102 +143,81 @@ export default function PaymentCallbackPage() {
   // =====================================================
 
   useEffect(() => {
-    const controller =
-      new AbortController();
+    const controller = new AbortController();
 
-    const processCallback =
-      async () => {
-        // ===============================================
-        // READ CALLBACK PARAMETERS
-        // ===============================================
-
-        const searchParams =
-          new URLSearchParams(
-            window.location.search,
-          );
-
-        const gatewayParam =
-          searchParams.get('gateway');
-
-        const referenceParam =
-          searchParams.get('reference');
-
-        // ===============================================
-        // VALIDATE GATEWAY
-        // ===============================================
-
-        if (
-          gatewayParam !== 'paystack' &&
-          gatewayParam !== 'opay'
-        ) {
-          setStatus('failed');
-
-          setMessage(
-            'We could not identify the payment gateway used for this transaction.',
-          );
-
-          return;
-        }
-
-        // ===============================================
-        // VALIDATE REFERENCE
-        // ===============================================
-
-        if (!referenceParam) {
-          setStatus('failed');
-
-          setMessage(
-            'We could not find a payment reference for this transaction.',
-          );
-
-          return;
-        }
-
-        // ===============================================
-        // VALID CALLBACK
-        // ===============================================
-
-        const selectedGateway:
-          PaymentGateway =
-          gatewayParam;
-
-        setGateway(
-          selectedGateway,
+    const processCallback = async () => {
+      const searchParams =
+        new URLSearchParams(
+          window.location.search,
         );
 
-        setReference(
-          referenceParam,
+      const gatewayParam =
+        searchParams.get('gateway');
+
+      const referenceParam =
+        searchParams.get('reference');
+
+      // =================================================
+      // VALIDATE GATEWAY
+      // =================================================
+
+      if (
+        gatewayParam !== 'paystack' &&
+        gatewayParam !== 'opay'
+      ) {
+        setStatus('failed');
+
+        setMessage(
+          'We could not identify the payment gateway used for this transaction.',
         );
 
-        // ===============================================
-        // VERIFY PAYMENT
-        // ===============================================
+        return;
+      }
 
-        await verifyPayment(
-          selectedGateway,
-          referenceParam,
-          controller.signal,
+      // =================================================
+      // VALIDATE REFERENCE
+      // =================================================
+
+      if (!referenceParam) {
+        setStatus('failed');
+
+        setMessage(
+          'We could not find a payment reference for this transaction.',
         );
-      };
 
-      // Start asynchronously so the effect itself
-      // does not synchronously call setState().
-      void processCallback();
+        return;
+      }
 
-      return () => {
-        controller.abort();
-      };
+      const selectedGateway: PaymentGateway =
+        gatewayParam;
+
+      setGateway(selectedGateway);
+      setReference(referenceParam);
+
+      // =================================================
+      // VERIFY
+      // =================================================
+
+      await verifyPayment(
+        selectedGateway,
+        referenceParam,
+        controller.signal,
+      );
+    };
+
+    void processCallback();
+
+    return () => {
+      controller.abort();
+    };
   }, [verifyPayment]);
 
   // =====================================================
   // MANUAL RETRY
   // =====================================================
 
-  function handleRetry() {
-    if (
-      !gateway ||
-      !reference
-    ) {
+  const handleRetry = () => {
+    if (!gateway || !reference) {
       return;
     }
 
@@ -257,7 +233,60 @@ export default function PaymentCallbackPage() {
       gateway,
       reference,
     );
-  }
+  };
+
+  // =====================================================
+  // SHARED CARD
+  // =====================================================
+
+  const cardClassName = `
+    w-full
+    max-w-lg
+    rounded-2xl
+    border
+    border-border/70
+    bg-card/80
+    p-6
+    shadow-xl
+    backdrop-blur-xl
+    sm:p-8
+  `;
+
+  const primaryButtonClassName = `
+    flex
+    w-full
+    items-center
+    justify-center
+    gap-2
+    rounded-xl
+    bg-primary
+    px-5
+    py-3
+    text-s
+    font-semibold
+    text-primary-foreground
+    transition
+    hover:bg-primary/90
+    disabled:pointer-events-none
+    disabled:opacity-50
+  `;
+
+  const secondaryButtonClassName = `
+    flex
+    w-full
+    items-center
+    justify-center
+    gap-2
+    rounded-xl
+    border
+    border-border
+    px-5
+    py-3
+    text-s
+    font-semibold
+    transition
+    hover:bg-muted
+  `;
 
   // =====================================================
   // VERIFYING
@@ -265,90 +294,29 @@ export default function PaymentCallbackPage() {
 
   if (status === 'verifying') {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-          px-6
-          py-16
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-lg
-            rounded-3xl
-            border
-            bg-card
-            p-8
-            text-center
-            shadow-xl
-            sm:p-10
-          "
-        >
-          <div
-            className="
-              mx-auto
-              flex
-              h-20
-              w-20
-              items-center
-              justify-center
-              rounded-full
-              bg-primary/10
-            "
-          >
+      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
+        <div className={cardClassName}>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <Loader2
-              size={38}
-              className="
-                animate-spin
-                text-primary
-              "
+              className="animate-spin text-primary"
+              size={32}
             />
           </div>
 
-          <h1
-            className="
-              mt-6
-              text-2xl
-              font-black
-              sm:text-3xl
-            "
-          >
-            Verifying Your Payment
-          </h1>
+          <div className="mt-5 text-center">
+            <h1 className="text-2xl font-black tracking-tight">
+              Verifying Your Payment
+            </h1>
 
-          <p
-            className="
-              mx-auto
-              mt-4
-              max-w-md
-              text-s
-              leading-6
-              text-muted-foreground
-              sm:text-base
-            "
-          >
-            {message}
-          </p>
+            <p className="mx-auto mt-3 max-w-md text-s leading-6 text-muted-foreground">
+              {message}
+            </p>
+          </div>
 
-          <div
-            className="
-              mt-8
-              flex
-              items-center
-              justify-center
-              gap-2
-              text-s
-              text-muted-foreground
-            "
-          >
+          <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
             <ShieldCheck
-              size={18}
-              className="text-primary"
+              size={16}
+              className="shrink-0 text-primary"
             />
 
             <span>
@@ -357,15 +325,9 @@ export default function PaymentCallbackPage() {
             </span>
           </div>
 
-          <p
-            className="
-              mt-6
-              text-xs
-              text-muted-foreground
-            "
-          >
-            Please do not close or refresh
-            this page.
+          <p className="mt-4 text-center text-[11px] text-muted-foreground">
+            Please do not close or refresh this
+            page.
           </p>
         </div>
       </main>
@@ -378,138 +340,44 @@ export default function PaymentCallbackPage() {
 
   if (status === 'success') {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-          px-6
-          py-16
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-lg
-            rounded-3xl
-            border
-            bg-card
-            p-8
-            text-center
-            shadow-xl
-            sm:p-10
-          "
-        >
-          <div
-            className="
-              mx-auto
-              flex
-              h-20
-              w-20
-              items-center
-              justify-center
-              rounded-full
-              bg-primary/10
-            "
-          >
+      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
+        <div className={cardClassName}>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
             <CheckCircle2
-              size={42}
-              className="text-primary"
+              size={34}
+              className="text-green-500"
             />
           </div>
 
-          <h1
-            className="
-              mt-6
-              text-2xl
-              font-black
-              sm:text-3xl
-            "
-          >
-            Payment Successful
-          </h1>
+          <div className="mt-5 text-center">
+            <h1 className="text-2xl font-black tracking-tight">
+              Payment Successful
+            </h1>
 
-          <p
-            className="
-              mx-auto
-              mt-4
-              max-w-md
-              text-s
-              leading-6
-              text-muted-foreground
-              sm:text-base
-            "
-          >
-            {message}
-          </p>
+            <p className="mx-auto mt-3 max-w-md text-s leading-6 text-muted-foreground">
+              {message}
+            </p>
+          </div>
 
           {reference && (
-            <div
-              className="
-                mt-6
-                rounded-2xl
-                border
-                bg-muted/40
-                p-4
-                text-left
-              "
-            >
-              <p
-                className="
-                  text-xs
-                  font-medium
-                  text-muted-foreground
-                "
-              >
+            <div className="mt-6 rounded-xl border border-border/60 bg-muted/30 p-3.5">
+              <p className="text-[11px] font-medium text-muted-foreground">
                 Payment Reference
               </p>
 
-              <p
-                className="
-                  mt-1
-                  break-all
-                  font-mono
-                  text-s
-                  font-semibold
-                "
-              >
+              <p className="mt-1 break-all font-mono text-xs font-semibold">
                 {reference}
               </p>
             </div>
           )}
 
           {transactionId && (
-            <div
-              className="
-                mt-3
-                rounded-2xl
-                border
-                bg-muted/40
-                p-4
-                text-left
-              "
-            >
-              <p
-                className="
-                  text-xs
-                  font-medium
-                  text-muted-foreground
-                "
-              >
+            <div className="mt-2.5 rounded-xl border border-border/60 bg-muted/30 p-3.5">
+              <p className="text-[11px] font-medium text-muted-foreground">
                 Transaction ID
               </p>
 
-              <p
-                className="
-                  mt-1
-                  break-all
-                  font-mono
-                  text-s
-                  font-semibold
-                "
-              >
+              <p className="mt-1 break-all font-mono text-xs font-semibold">
                 {transactionId}
               </p>
             </div>
@@ -517,26 +385,10 @@ export default function PaymentCallbackPage() {
 
           <Link
             href="/dashboard"
-            className="
-              mt-8
-              flex
-              w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              bg-primary
-              px-6
-              py-3
-              font-semibold
-              text-primary-foreground
-              transition
-              hover:bg-primary/90
-            "
+            className={`${primaryButtonClassName} mt-6`}
           >
             Go to Dashboard
-
-            <ArrowRight size={18} />
+            <ArrowRight size={17} />
           </Link>
         </div>
       </main>
@@ -549,160 +401,53 @@ export default function PaymentCallbackPage() {
 
   if (status === 'pending') {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-          px-6
-          py-16
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-lg
-            rounded-3xl
-            border
-            bg-card
-            p-8
-            text-center
-            shadow-xl
-            sm:p-10
-          "
-        >
-          <div
-            className="
-              mx-auto
-              flex
-              h-20
-              w-20
-              items-center
-              justify-center
-              rounded-full
-              bg-amber-500/10
-            "
-          >
+      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
+        <div className={cardClassName}>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
             <Clock3
-              size={40}
+              size={34}
               className="text-amber-500"
             />
           </div>
 
-          <h1
-            className="
-              mt-6
-              text-2xl
-              font-black
-              sm:text-3xl
-            "
-          >
-            Payment Still Processing
-          </h1>
+          <div className="mt-5 text-center">
+            <h1 className="text-2xl font-black tracking-tight">
+              Payment Still Processing
+            </h1>
 
-          <p
-            className="
-              mx-auto
-              mt-4
-              max-w-md
-              text-s
-              leading-6
-              text-muted-foreground
-              sm:text-base
-            "
-          >
-            {message}
-          </p>
+            <p className="mx-auto mt-3 max-w-md text-s leading-6 text-muted-foreground">
+              {message}
+            </p>
+          </div>
 
           {reference && (
-            <div
-              className="
-                mt-6
-                rounded-2xl
-                border
-                bg-muted/40
-                p-4
-                text-left
-              "
-            >
-              <p
-                className="
-                  text-xs
-                  font-medium
-                  text-muted-foreground
-                "
-              >
+            <div className="mt-6 rounded-xl border border-border/60 bg-muted/30 p-3.5">
+              <p className="text-[11px] font-medium text-muted-foreground">
                 Payment Reference
               </p>
 
-              <p
-                className="
-                  mt-1
-                  break-all
-                  font-mono
-                  text-s
-                  font-semibold
-                "
-              >
+              <p className="mt-1 break-all font-mono text-xs font-semibold">
                 {reference}
               </p>
             </div>
           )}
 
-          <div
-            className="
-              mt-8
-              flex
-              flex-col
-              gap-3
-            "
-          >
+          <div className="mt-6 space-y-2.5">
             <button
               type="button"
               onClick={handleRetry}
-              className="
-                flex
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-xl
-                bg-primary
-                px-6
-                py-3
-                font-semibold
-                text-primary-foreground
-                transition
-                hover:bg-primary/90
-              "
+              className={primaryButtonClassName}
             >
-              <RefreshCw size={18} />
-
+              <RefreshCw size={17} />
               Check Payment Again
             </button>
 
             <Link
               href="/dashboard"
-              className="
-                flex
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-xl
-                border
-                px-6
-                py-3
-                font-semibold
-                transition
-                hover:bg-muted
-              "
+              className={secondaryButtonClassName}
             >
               Go to Dashboard
-
-              <ArrowRight size={18} />
+              <ArrowRight size={17} />
             </Link>
           </div>
         </div>
@@ -715,159 +460,52 @@ export default function PaymentCallbackPage() {
   // =====================================================
 
   return (
-    <main
-      className="
-        flex
-        min-h-screen
-        items-center
-        justify-center
-        bg-background
-        px-6
-        py-16
-      "
-    >
-      <div
-        className="
-          w-full
-          max-w-lg
-          rounded-3xl
-          border
-          bg-card
-          p-8
-          text-center
-          shadow-xl
-          sm:p-10
-        "
-      >
-        <div
-          className="
-            mx-auto
-            flex
-            h-20
-            w-20
-            items-center
-            justify-center
-            rounded-full
-            bg-destructive/10
-          "
-        >
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
+      <div className={cardClassName}>
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircle
-            size={42}
+            size={34}
             className="text-destructive"
           />
         </div>
 
-        <h1
-          className="
-            mt-6
-            text-2xl
-            font-black
-            sm:text-3xl
-          "
-        >
-          Payment Not Successful
-        </h1>
+        <div className="mt-5 text-center">
+          <h1 className="text-2xl font-black tracking-tight">
+            Payment Not Successful
+          </h1>
 
-        <p
-          className="
-            mx-auto
-            mt-4
-            max-w-md
-            text-s
-            leading-6
-            text-muted-foreground
-            sm:text-base
-          "
-        >
-          {message}
-        </p>
+          <p className="mx-auto mt-3 max-w-md text-s leading-6 text-muted-foreground">
+            {message}
+          </p>
+        </div>
 
         {reference && (
-          <div
-            className="
-              mt-6
-              rounded-2xl
-              border
-              bg-muted/40
-              p-4
-              text-left
-            "
-          >
-            <p
-              className="
-                text-xs
-                font-medium
-                text-muted-foreground
-              "
-            >
+          <div className="mt-6 rounded-xl border border-border/60 bg-muted/30 p-3.5 text-left">
+            <p className="text-[11px] font-medium text-muted-foreground">
               Payment Reference
             </p>
 
-            <p
-              className="
-                mt-1
-                break-all
-                font-mono
-                text-s
-                font-semibold
-              "
-            >
+            <p className="mt-1 break-all font-mono text-xs font-semibold">
               {reference}
             </p>
           </div>
         )}
 
-        <div
-          className="
-            mt-8
-            flex
-            flex-col
-            gap-3
-          "
-        >
+        <div className="mt-6 space-y-2.5">
           <button
             type="button"
             onClick={handleRetry}
-            className="
-              flex
-              w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              bg-primary
-              px-6
-              py-3
-              font-semibold
-              text-primary-foreground
-              transition
-              hover:bg-primary/90
-            "
+            className={primaryButtonClassName}
           >
-            <RefreshCw size={18} />
-
+            <RefreshCw size={17} />
             Try Verification Again
           </button>
 
           <Link
             href="/pricing"
-            className="
-              flex
-              w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              border
-              px-6
-              py-3
-              font-semibold
-              transition
-              hover:bg-muted
-            "
+            className={secondaryButtonClassName}
           >
-            <Home size={18} />
-
+            <Home size={17} />
             Return to Pricing
           </Link>
 
@@ -878,11 +516,10 @@ export default function PaymentCallbackPage() {
               w-full
               items-center
               justify-center
-              gap-2
               rounded-xl
-              px-6
-              py-3
-              text-s
+              px-5
+              py-2.5
+              text-xs
               font-medium
               text-muted-foreground
               transition

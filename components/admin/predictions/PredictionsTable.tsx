@@ -20,7 +20,7 @@ interface Props {
   onSelect: (prediction: AdminPrediction) => void;
 }
 
-const statusOrder: Record<string, number> = {
+const STATUS_ORDER: Record<string, number> = {
   'In Play': 0,
   Upcoming: 1,
   'Needs Settlement': 2,
@@ -28,20 +28,18 @@ const statusOrder: Record<string, number> = {
 };
 
 function formatAdminDate(date: string) {
-  const matchDate = new Date(date);
+  const value = new Date(date);
 
   return {
-    day: matchDate.toLocaleDateString('en-US', {
+    day: value.toLocaleDateString('en-US', {
       weekday: 'short',
     }),
-
-    date: matchDate.toLocaleDateString('en-US', {
+    date: value.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
     }),
-
-    time: matchDate.toLocaleTimeString('en-US', {
+    time: value.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -50,31 +48,32 @@ function formatAdminDate(date: string) {
 }
 
 function getStatusClasses(status: string) {
-  if (status === 'Settled') {
-    return 'bg-emerald-500/10 text-emerald-600';
-  }
+  switch (status) {
+    case 'Settled':
+      return 'bg-emerald-500/10 text-emerald-600';
 
-  if (status === 'In Play') {
-    return 'bg-blue-500/10 text-blue-600';
-  }
+    case 'In Play':
+      return 'bg-blue-500/10 text-blue-600';
 
-  if (status === 'Needs Settlement') {
-    return 'bg-amber-500/10 text-amber-600';
-  }
+    case 'Needs Settlement':
+      return 'bg-amber-500/10 text-amber-600';
 
-  return 'bg-muted text-muted-foreground';
+    default:
+      return 'bg-muted text-muted-foreground';
+  }
 }
 
 function getAccessClasses(accessType: string) {
-  if (accessType === 'vip') {
-    return 'bg-yellow-500/15 text-yellow-700';
-  }
+  switch (accessType) {
+    case 'vip':
+      return 'bg-yellow-500/15 text-yellow-700';
 
-  if (accessType === 'regular') {
-    return 'bg-blue-500/15 text-blue-700';
-  }
+    case 'regular':
+      return 'bg-blue-500/15 text-blue-700';
 
-  return 'bg-emerald-500/15 text-emerald-700';
+    default:
+      return 'bg-emerald-500/15 text-emerald-700';
+  }
 }
 
 function getPredictionHero(prediction: AdminPrediction) {
@@ -105,14 +104,22 @@ function getPredictionHero(prediction: AdminPrediction) {
   }
 }
 
+function getSortedPredictions(
+  predictions: AdminPrediction[],
+) {
+  return [...predictions].sort(
+    (first, second) =>
+      (STATUS_ORDER[getMatchStatus(first)] ?? 99) -
+      (STATUS_ORDER[getMatchStatus(second)] ?? 99),
+  );
+}
+
 export default function PredictionsTable({
   predictions,
   onSelect,
 }: Props) {
-  const sortedPredictions = [...predictions].sort(
-    (first, second) =>
-      (statusOrder[getMatchStatus(first)] ?? 99) -
-      (statusOrder[getMatchStatus(second)] ?? 99),
+  const sortedPredictions = getSortedPredictions(
+    predictions,
   );
 
   if (!sortedPredictions.length) {
@@ -151,13 +158,18 @@ export default function PredictionsTable({
         shadow-sm
       "
     >
-      {/* Mobile cards */}
+      {/* MOBILE */}
 
       <div className="space-y-3 p-3 lg:hidden">
         {sortedPredictions.map((prediction) => {
-          const date = formatAdminDate(prediction.matchDate);
+          const date = formatAdminDate(
+            prediction.matchDate,
+          );
+
           const status = getMatchStatus(prediction);
-          const predictionHero = getPredictionHero(prediction);
+
+          const predictionHero =
+            getPredictionHero(prediction);
 
           const leagueName =
             prediction.league?.name ||
@@ -204,19 +216,7 @@ export default function PredictionsTable({
                   </p>
                 </div>
 
-                <span
-                  className={`
-                    shrink-0
-                    rounded-full
-                    px-2.5
-                    py-1
-                    text-xs
-                    font-semibold
-                    ${getStatusClasses(status)}
-                  `}
-                >
-                  {status}
-                </span>
+                <StatusBadge status={status} />
               </div>
 
               <div
@@ -228,56 +228,18 @@ export default function PredictionsTable({
                   gap-3
                 "
               >
-                <div className="flex min-w-0 items-center justify-end gap-2">
-                  <span className="truncate text-right text-s font-semibold">
-                    {prediction.homeTeam}
-                  </span>
+                <TeamRow
+                  name={prediction.homeTeam}
+                  badge={prediction.homeTeamBadge}
+                  align="right"
+                />
 
-                  {prediction.homeTeamBadge && (
-                    <Image
-                      src={prediction.homeTeamBadge}
-                      alt={prediction.homeTeam}
-                      width={26}
-                      height={26}
-                      className="shrink-0 object-contain"
-                    />
-                  )}
-                </div>
+                <VsBadge />
 
-                <span
-                  className="
-                    flex
-                    h-8
-                    w-8
-                    items-center
-                    justify-center
-                    rounded-full
-                    border
-                    border-border
-                    bg-muted/50
-                    text-[10px]
-                    font-black
-                    text-muted-foreground
-                  "
-                >
-                  VS
-                </span>
-
-                <div className="flex min-w-0 items-center gap-2">
-                  {prediction.awayTeamBadge && (
-                    <Image
-                      src={prediction.awayTeamBadge}
-                      alt={prediction.awayTeam}
-                      width={26}
-                      height={26}
-                      className="shrink-0 object-contain"
-                    />
-                  )}
-
-                  <span className="truncate text-s font-semibold">
-                    {prediction.awayTeam}
-                  </span>
-                </div>
+                <TeamRow
+                  name={prediction.awayTeam}
+                  badge={prediction.awayTeamBadge}
+                />
               </div>
 
               <div
@@ -312,27 +274,16 @@ export default function PredictionsTable({
                   </div>
                 </div>
 
-                <span
-                  className={`
-                    h-fit
-                    rounded-full
-                    px-2.5
-                    py-1
-                    text-xs
-                    font-semibold
-                    capitalize
-                    ${getAccessClasses(prediction.accessType)}
-                  `}
-                >
-                  {prediction.accessType}
-                </span>
+                <AccessBadge
+                  accessType={prediction.accessType}
+                />
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Desktop table */}
+      {/* DESKTOP */}
 
       <div className="hidden overflow-hidden lg:block">
         <table className="w-full table-fixed border-collapse text-left">
@@ -344,13 +295,8 @@ export default function PredictionsTable({
             <col className="w-[10%]" />
             <col className="w-[12%]" />
           </colgroup>
-          <thead
-            className="
-              border-b
-              border-border
-              bg-muted/50
-            "
-          >
+
+          <thead className="border-b border-border bg-muted/50">
             <tr>
               <TableHeader>Date & Time</TableHeader>
               <TableHeader>League</TableHeader>
@@ -363,9 +309,14 @@ export default function PredictionsTable({
 
           <tbody>
             {sortedPredictions.map((prediction) => {
-              const date = formatAdminDate(prediction.matchDate);
+              const date = formatAdminDate(
+                prediction.matchDate,
+              );
+
               const status = getMatchStatus(prediction);
-              const predictionHero = getPredictionHero(prediction);
+
+              const predictionHero =
+                getPredictionHero(prediction);
 
               const leagueName =
                 prediction.league?.name ||
@@ -385,49 +336,25 @@ export default function PredictionsTable({
                   "
                 >
                   <td className="px-5 py-4">
-                    <div className="text-s font-semibold">
+                    <p className="text-s font-semibold">
                       {date.day}
-                    </div>
+                    </p>
 
-                    <div className="mt-1 text-s text-muted-foreground">
+                    <p className="mt-1 text-s text-muted-foreground">
                       {date.date}
-                    </div>
+                    </p>
 
-                    <div className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {date.time}
-                    </div>
+                    </p>
                   </td>
 
                   <td className="max-w-[190px] px-4 py-4">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div
-                        className="
-                          flex
-                          h-9
-                          w-9
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-xl
-                          border
-                          border-border
-                          bg-background
-                        "
-                      >
-                        {prediction.league?.emblem ? (
-                          <Image
-                            src={prediction.league.emblem}
-                            alt={`${leagueName} emblem`}
-                            width={24}
-                            height={24}
-                            className="object-contain"
-                          />
-                        ) : (
-                          <span className="text-xs font-black text-primary">
-                            L
-                          </span>
-                        )}
-                      </div>
+                      <LeagueEmblem
+                        src={prediction.league?.emblem}
+                        name={leagueName}
+                      />
 
                       <span className="truncate text-s font-semibold">
                         {leagueName}
@@ -508,42 +435,16 @@ export default function PredictionsTable({
                   </td>
 
                   <td className="px-4 py-4">
-                    <span
-                      className={`
-                        inline-flex
-                        rounded-full
-                        px-3
-                        py-1.5
-                        text-xs
-                        font-semibold
-                        capitalize
-                        ${getAccessClasses(prediction.accessType)}
-                      `}
-                    >
-                      {prediction.accessType}
-                    </span>
+                    <AccessBadge
+                      accessType={prediction.accessType}
+                    />
                   </td>
 
                   <td className="px-5 py-4">
-                    <span
-                      className={`
-                        inline-flex
-                        items-center
-                        gap-2
-                        rounded-full
-                        px-3
-                        py-1.5
-                        text-xs
-                        font-semibold
-                        ${getStatusClasses(status)}
-                      `}
-                    >
-                      {status === 'In Play' && (
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-                      )}
-
-                      {status}
-                    </span>
+                    <StatusBadge
+                      status={status}
+                      showIndicator
+                    />
                   </td>
                 </tr>
               );
@@ -555,40 +456,136 @@ export default function PredictionsTable({
   );
 }
 
-function TableHeader({
-  children,
+function LeagueEmblem({
+  src,
+  name,
 }: {
-  children: React.ReactNode;
+  src?: string;
+  name: string;
 }) {
   return (
-    <th
+    <div
       className="
-        whitespace-nowrap
-        px-4
-        py-4
-        text-xs
-        font-bold
-        uppercase
-        tracking-wider
-        text-muted-foreground
-        first:px-5
-        last:px-5
+        flex
+        h-9
+        w-9
+        shrink-0
+        items-center
+        justify-center
+        rounded-xl
+        border
+        border-border
+        bg-background
       "
     >
-      {children}
-    </th>
+      {src ? (
+        <Image
+          src={src}
+          alt={`${name} emblem`}
+          width={24}
+          height={24}
+          className="object-contain"
+        />
+      ) : (
+        <span className="text-xs font-black text-primary">
+          L
+        </span>
+      )}
+    </div>
+  );
+}
+
+function StatusBadge({
+  status,
+  showIndicator = false,
+}: {
+  status: string;
+  showIndicator?: boolean;
+}) {
+  return (
+    <span
+      className={`
+        inline-flex
+        shrink-0
+        items-center
+        gap-2
+        rounded-full
+        px-2.5
+        py-1
+        text-xs
+        font-semibold
+        ${getStatusClasses(status)}
+      `}
+    >
+      {showIndicator && status === 'In Play' && (
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+      )}
+
+      {status}
+    </span>
+  );
+}
+
+function AccessBadge({
+  accessType,
+}: {
+  accessType: string;
+}) {
+  return (
+    <span
+      className={`
+        inline-flex
+        h-fit
+        shrink-0
+        rounded-full
+        px-2.5
+        py-1
+        text-xs
+        font-semibold
+        capitalize
+        ${getAccessClasses(accessType)}
+      `}
+    >
+      {accessType}
+    </span>
+  );
+}
+
+function VsBadge() {
+  return (
+    <span
+      className="
+        flex
+        h-8
+        w-8
+        shrink-0
+        items-center
+        justify-center
+        rounded-full
+        border
+        border-border
+        bg-muted/50
+        text-[10px]
+        font-black
+        text-muted-foreground
+      "
+    >
+      VS
+    </span>
   );
 }
 
 function TeamRow({
   name,
   badge,
+  align = 'left',
 }: {
   name: string;
   badge?: string;
+  align?: 'left' | 'right';
 }) {
-  return (
-    <div className="flex min-w-0 items-center gap-2">
+  const content = (
+    <>
       <div
         className="
           flex
@@ -617,6 +614,79 @@ function TeamRow({
       <span className="truncate text-s font-medium">
         {name}
       </span>
+    </>
+  );
+
+  return (
+    <div
+      className={`
+        flex
+        min-w-0
+        items-center
+        gap-2
+        ${align === 'right' ? 'justify-end' : ''}
+      `}
+    >
+      {align === 'right' ? (
+        <>
+          <span className="truncate text-right text-s font-medium">
+            {name}
+          </span>
+
+          {badge ? (
+            <Image
+              src={badge}
+              alt={name}
+              width={20}
+              height={20}
+              className="shrink-0 object-contain"
+            />
+          ) : (
+            <span
+              className="
+                flex
+                h-6
+                w-6
+                shrink-0
+                items-center
+                justify-center
+                text-[10px]
+                font-bold
+                text-muted-foreground
+              "
+            >
+              •
+            </span>
+          )}
+        </>
+      ) : (
+        content
+      )}
     </div>
+  );
+}
+
+function TableHeader({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <th
+      className="
+        whitespace-nowrap
+        px-4
+        py-4
+        text-xs
+        font-bold
+        uppercase
+        tracking-wider
+        text-muted-foreground
+        first:px-5
+        last:px-5
+      "
+    >
+      {children}
+    </th>
   );
 }

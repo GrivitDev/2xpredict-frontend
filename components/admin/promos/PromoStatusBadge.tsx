@@ -1,93 +1,62 @@
 import { Badge } from '@/components/ui/badge';
 
-import { Promo } from '@/types/promo';
-
-
+import type { Promo } from '@/types/promo';
 
 interface PromoStatusBadgeProps {
-
-  promo:Promo;
-
+  promo: Promo;
 }
 
+type PromoStatus =
+  | 'Active'
+  | 'Upcoming'
+  | 'Expired'
+  | 'Disabled';
 
+const STATUS_CLASSES: Record<PromoStatus, string> = {
+  Active:
+    'border-success/20 bg-success/10 text-success',
+
+  Upcoming:
+    'border-info/20 bg-info/10 text-info',
+
+  Expired:
+    'bg-muted text-muted-foreground',
+
+  Disabled:
+    'border-destructive/20 bg-destructive/10 text-destructive',
+};
+
+function getPromoStatus(promo: Promo): PromoStatus {
+  if (!promo.isActive) {
+    return 'Disabled';
+  }
+
+  const now = Date.now();
+  const startDate = new Date(promo.startDate).getTime();
+  const endDate = new Date(promo.endDate).getTime();
+
+  if (now < startDate) {
+    return 'Upcoming';
+  }
+
+  if (now >= endDate) {
+    return 'Expired';
+  }
+
+  return 'Active';
+}
 
 export default function PromoStatusBadge({
   promo,
-}:PromoStatusBadgeProps) {
-
-
-  const now = new Date();
-
-
-  const startDate = new Date(
-    promo.startDate,
-  );
-
-
-  const endDate = new Date(
-    promo.endDate,
-  );
-
-
-
-  let status:
-    | 'Active'
-    | 'Upcoming'
-    | 'Expired'
-    | 'Disabled';
-
-
-
-  if (!promo.isActive) {
-
-    status = 'Disabled';
-
-  } else if (now < startDate) {
-
-    status = 'Upcoming';
-
-  } else if (now > endDate) {
-
-    status = 'Expired';
-
-  } else {
-
-    status = 'Active';
-
-  }
-
-
-
-  const variants = {
-
-    Active:
-      'bg-success/10 text-success border-success/20',
-
-    Upcoming:
-      'bg-info/10 text-info border-info/20',
-
-    Expired:
-      'bg-muted text-muted-foreground',
-
-    Disabled:
-      'bg-destructive/10 text-destructive border-destructive/20',
-
-  };
-
-
+}: PromoStatusBadgeProps) {
+  const status = getPromoStatus(promo);
 
   return (
-
     <Badge
       variant="outline"
-      className={variants[status]}
+      className={STATUS_CLASSES[status]}
     >
-
       {status}
-
     </Badge>
-
   );
-
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import {
   CalendarDays,
   BadgeCheck,
@@ -24,25 +22,21 @@ type Currency = 'NGN' | 'USD';
 
 
 // ============================================================
-// CURRENCY FORMATTER
+// CURRENCY
 // ============================================================
 
 function formatCurrency(
   amount: number,
   currency: Currency,
 ) {
-
   return new Intl.NumberFormat(
-    currency === 'NGN'
-      ? 'en-NG'
-      : 'en-US',
+    currency === 'NGN' ? 'en-NG' : 'en-US',
     {
       style: 'currency',
       currency,
       maximumFractionDigits: 0,
     },
   ).format(amount);
-
 }
 
 
@@ -53,9 +47,7 @@ function formatCurrency(
 function useCountdown(
   expiryDate?: string | Date | null,
 ) {
-
   const calculate = () => {
-
     if (!expiryDate) {
       return {
         days: 0,
@@ -65,11 +57,9 @@ function useCountdown(
       };
     }
 
-
     const difference =
       new Date(expiryDate).getTime() -
       Date.now();
-
 
     if (difference <= 0) {
       return {
@@ -80,52 +70,35 @@ function useCountdown(
       };
     }
 
-
     return {
       days: Math.floor(
-        difference /
-          (1000 * 60 * 60 * 24),
+        difference / 86400000,
       ),
 
       hours: Math.floor(
-        (difference /
-          (1000 * 60 * 60)) %
-          24,
+        (difference / 3600000) % 24,
       ),
 
       minutes: Math.floor(
-        (difference /
-          (1000 * 60)) %
-          60,
+        (difference / 60000) % 60,
       ),
 
       seconds: Math.floor(
-        (difference / 1000) %
-          60,
+        (difference / 1000) % 60,
       ),
     };
   };
 
-
-  const [
-    time,
-    setTime,
-  ] = useState(calculate);
-
+  const [time, setTime] =
+    useState(calculate);
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(calculate());
+    }, 1000);
 
-    const timer =
-      setInterval(() => {
-        setTime(calculate());
-      }, 1000);
-
-
-    return () =>
-      clearInterval(timer);
-
+    return () => clearInterval(timer);
   }, [expiryDate]);
-
 
   return time;
 }
@@ -138,65 +111,47 @@ function useCountdown(
 function getPlanTheme(
   plan?: string | null,
 ) {
-
-  const current =
-    plan?.toLowerCase();
-
+  const current = plan?.toLowerCase();
 
   if (current === 'vip') {
-
     return {
       title: 'VIP Membership',
       icon: Crown,
       label: 'VIP',
       iconClass: 'text-amber-500',
-      borderClass:
-        'border-amber-500/25',
+      borderClass: 'border-amber-500/25',
       iconWrapper:
         'border-amber-500/25 bg-amber-500/10',
       labelClass:
         'text-amber-600 dark:text-amber-400',
-      headerClass:
-        'bg-amber-500/[0.035]',
+      headerClass: 'bg-amber-500/[0.035]',
     };
-
   }
 
-
   if (current === 'regular') {
-
     return {
       title: 'Regular Membership',
       icon: BadgeCheck,
       label: 'Regular',
       iconClass: 'text-primary',
-      borderClass:
-        'border-primary/25',
+      borderClass: 'border-primary/25',
       iconWrapper:
         'border-primary/25 bg-primary/10',
-      labelClass:
-        'text-primary',
-      headerClass:
-        'bg-primary/[0.035]',
+      labelClass: 'text-primary',
+      headerClass: 'bg-primary/[0.035]',
     };
-
   }
-
 
   return {
     title: 'Free Membership',
     icon: UserRound,
     label: 'Free',
-    iconClass:
-      'text-muted-foreground',
-    borderClass:
-      'border-border/60',
+    iconClass: 'text-muted-foreground',
+    borderClass: 'border-border/60',
     iconWrapper:
       'border-border/60 bg-muted/30',
-    labelClass:
-      'text-muted-foreground',
-    headerClass:
-      'bg-muted/[0.025]',
+    labelClass: 'text-muted-foreground',
+    headerClass: 'bg-muted/[0.025]',
   };
 }
 
@@ -218,18 +173,14 @@ export function PlanCard({
   revenue?: number | null;
   currency?: Currency;
 }) {
-
   const countdown =
     useCountdown(expiresAt);
-
 
   const theme =
     getPlanTheme(plan);
 
-
   const PlanIcon =
     theme.icon;
-
 
   const formattedRevenue =
     formatCurrency(
@@ -237,11 +188,28 @@ export function PlanCard({
       currency,
     );
 
+  const countdownItems = [
+    {
+      value: countdown.days,
+      label: 'Days',
+    },
+    {
+      value: countdown.hours,
+      label: 'Hours',
+    },
+    {
+      value: countdown.minutes,
+      label: 'Minutes',
+    },
+    {
+      value: countdown.seconds,
+      label: 'Seconds',
+    },
+  ];
 
   return (
     <div
       className="
-        relative
         overflow-hidden
         rounded-2xl
         border
@@ -250,29 +218,7 @@ export function PlanCard({
         shadow-sm
       "
     >
-
-      {/* ======================================================
-          PREMIUM ACCENT
-          ====================================================== */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-x-0
-          top-0
-          h-px
-          bg-gradient-to-r
-          from-transparent
-          via-primary/70
-          to-transparent
-        "
-      />
-
-
-      {/* ======================================================
-          HEADER
-          ====================================================== */}
+      {/* HEADER */}
 
       <div
         className={`
@@ -286,9 +232,6 @@ export function PlanCard({
           ${theme.headerClass}
         `}
       >
-
-        {/* Plan icon */}
-
         <div
           className={`
             flex
@@ -302,7 +245,6 @@ export function PlanCard({
             ${theme.iconWrapper}
           `}
         >
-
           <PlanIcon
             className={`
               h-5
@@ -310,27 +252,10 @@ export function PlanCard({
               ${theme.iconClass}
             `}
           />
-
         </div>
 
-
-        {/* Plan information */}
-
-        <div
-          className="
-            min-w-0
-            flex-1
-          "
-        >
-
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
-
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
             <span
               className={`
                 text-[10px]
@@ -343,7 +268,6 @@ export function PlanCard({
               {theme.label}
             </span>
 
-
             <span
               className="
                 h-1
@@ -353,7 +277,6 @@ export function PlanCard({
               "
             />
 
-
             <span
               className="
                 text-xs
@@ -362,9 +285,7 @@ export function PlanCard({
             >
               Active
             </span>
-
           </div>
-
 
           <h3
             className="
@@ -377,11 +298,7 @@ export function PlanCard({
           >
             {theme.title}
           </h3>
-
         </div>
-
-
-        {/* Start date */}
 
         <div
           className="
@@ -391,7 +308,6 @@ export function PlanCard({
             sm:block
           "
         >
-
           <p
             className="
               text-[10px]
@@ -404,7 +320,6 @@ export function PlanCard({
             Started
           </p>
 
-
           <p
             className="
               mt-0.5
@@ -414,25 +329,12 @@ export function PlanCard({
           >
             {fmtDate(startDate)}
           </p>
-
         </div>
-
       </div>
 
+      {/* EXPIRY */}
 
-      {/* ======================================================
-          EXPIRY / COUNTDOWN
-          ====================================================== */}
-
-      <div
-        className="
-          px-4
-          py-3
-        "
-      >
-
-        {/* Expiry header */}
-
+      <div className="px-4 py-3">
         <div
           className="
             mb-2
@@ -442,7 +344,6 @@ export function PlanCard({
             gap-3
           "
         >
-
           <div
             className="
               flex
@@ -451,7 +352,6 @@ export function PlanCard({
               gap-2
             "
           >
-
             <CalendarDays
               className="
                 h-4
@@ -461,7 +361,6 @@ export function PlanCard({
               "
             />
 
-
             <div
               className="
                 flex
@@ -470,7 +369,6 @@ export function PlanCard({
                 gap-1.5
               "
             >
-
               <span
                 className="
                   text-xs
@@ -479,7 +377,6 @@ export function PlanCard({
               >
                 Expires
               </span>
-
 
               <span
                 className="
@@ -490,11 +387,8 @@ export function PlanCard({
               >
                 {fmtDate(expiresAt)}
               </span>
-
             </div>
-
           </div>
-
 
           <span
             className="
@@ -515,11 +409,7 @@ export function PlanCard({
           >
             Active
           </span>
-
         </div>
-
-
-        {/* Countdown */}
 
         <div
           className="
@@ -532,80 +422,54 @@ export function PlanCard({
             bg-muted/20
           "
         >
-
-          {[
-            {
-              value: countdown.days,
-              label: 'Days',
-            },
-            {
-              value: countdown.hours,
-              label: 'Hours',
-            },
-            {
-              value: countdown.minutes,
-              label: 'Minutes',
-            },
-            {
-              value: countdown.seconds,
-              label: 'Seconds',
-            },
-          ].map((item, index) => (
-
-            <div
-              key={item.label}
-              className={`
-                flex
-                flex-col
-                items-center
-                justify-center
-                gap-0.5
-                px-2
-                py-2
-                ${
-                  index !== 0
-                    ? 'border-l border-border/50'
-                    : ''
-                }
-              `}
-            >
-
-              <span
-                className="
-                  text-base
-                  font-bold
-                  leading-none
-                  tabular-nums
-                "
+          {countdownItems.map(
+            (item, index) => (
+              <div
+                key={item.label}
+                className={`
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  gap-0.5
+                  px-2
+                  py-2
+                  ${
+                    index !== 0
+                      ? 'border-l border-border/50'
+                      : ''
+                  }
+                `}
               >
-                {String(
-                  item.value,
-                ).padStart(2, '0')}
-              </span>
+                <span
+                  className="
+                    text-base
+                    font-bold
+                    leading-none
+                    tabular-nums
+                  "
+                >
+                  {String(
+                    item.value,
+                  ).padStart(2, '0')}
+                </span>
 
-
-              <span
-                className="
-                  text-[10px]
-                  font-medium
-                  text-muted-foreground
-                "
-              >
-                {item.label}
-              </span>
-
-            </div>
-
-          ))}
-
+                <span
+                  className="
+                    text-[10px]
+                    font-medium
+                    text-muted-foreground
+                  "
+                >
+                  {item.label}
+                </span>
+              </div>
+            ),
+          )}
         </div>
-
       </div>
 
-
-      {/* ======================================================
-          STATS
-          ====================================================== */}
+      {/* STATS */}
 
       <div
         className="
@@ -616,159 +480,104 @@ export function PlanCard({
           bg-muted/[0.025]
         "
       >
+        <StatItem
+          icon={
+            <CircleDollarSign className="h-4 w-4" />
+          }
+          label="Value"
+          value={formattedRevenue}
+        />
 
-        {/* Value */}
-
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            gap-2.5
-            px-4
-            py-3
+        <StatItem
+          icon={
+            <BadgeCheck className="h-4 w-4" />
+          }
+          label="Status"
+          value="Active"
+          bordered
+          valueClass="
+            text-emerald-600
+            dark:text-emerald-400
           "
-        >
-
-          <div
-            className="
-              flex
-              h-8
-              w-8
-              shrink-0
-              items-center
-              justify-center
-              rounded-lg
-              border
-              border-primary/10
-              bg-primary/10
-              text-primary
-            "
-          >
-
-            <CircleDollarSign
-              className="
-                h-4
-                w-4
-              "
-            />
-
-          </div>
+        />
+      </div>
+    </div>
+  );
+}
 
 
-          <div
-            className="
-              min-w-0
-            "
-          >
+// ============================================================
+// STAT ITEM
+// ============================================================
 
-            <p
-              className="
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-wider
-                text-muted-foreground
-              "
-            >
-              Value
-            </p>
-
-
-            <p
-              className="
-                mt-0.5
-                truncate
-                text-sm
-                font-semibold
-              "
-            >
-              {formattedRevenue}
-            </p>
-
-          </div>
-
-        </div>
-
-
-        {/* Status */}
-
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            gap-2.5
-            border-l
-            border-border/50
-            px-4
-            py-3
-          "
-        >
-
-          <div
-            className="
-              flex
-              h-8
-              w-8
-              shrink-0
-              items-center
-              justify-center
-              rounded-lg
-              border
-              border-emerald-500/10
-              bg-emerald-500/10
-              text-emerald-500
-            "
-          >
-
-            <BadgeCheck
-              className="
-                h-4
-                w-4
-              "
-            />
-
-          </div>
-
-
-          <div
-            className="
-              min-w-0
-            "
-          >
-
-            <p
-              className="
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-wider
-                text-muted-foreground
-              "
-            >
-              Status
-            </p>
-
-
-            <p
-              className="
-                mt-0.5
-                text-sm
-                font-semibold
-                text-emerald-600
-                dark:text-emerald-400
-              "
-            >
-              Active
-            </p>
-
-          </div>
-
-        </div>
-
+function StatItem({
+  icon,
+  label,
+  value,
+  bordered = false,
+  valueClass = '',
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  bordered?: boolean;
+  valueClass?: string;
+}) {
+  return (
+    <div
+      className={`
+        flex
+        min-w-0
+        items-center
+        gap-2.5
+        px-4
+        py-3
+        ${bordered ? 'border-l border-border/50' : ''}
+      `}
+    >
+      <div
+        className="
+          flex
+          h-8
+          w-8
+          shrink-0
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-primary/10
+          bg-primary/10
+          text-primary
+        "
+      >
+        {icon}
       </div>
 
+      <div className="min-w-0">
+        <p
+          className="
+            text-[10px]
+            font-medium
+            uppercase
+            tracking-wider
+            text-muted-foreground
+          "
+        >
+          {label}
+        </p>
+
+        <p
+          className={`
+            mt-0.5
+            truncate
+            text-sm
+            font-semibold
+            ${valueClass}
+          `}
+        >
+          {value}
+        </p>
+      </div>
     </div>
   );
 }

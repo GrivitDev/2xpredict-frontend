@@ -20,7 +20,6 @@ interface UserRecord {
   status: string;
   role: string;
   isVip?: boolean;
-
   attention?: {
     required?: boolean;
     count?: number;
@@ -33,33 +32,31 @@ interface UsersTableProps {
 }
 
 function getInitials(name?: string) {
-  if (!name) {
-    return 'U';
-  }
-
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
+  return (
+    name
+      ?.split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase() || 'U'
+  );
 }
 
 function getStatusClasses(status: string) {
-  if (status === 'active') {
-    return 'bg-emerald-500/10 text-emerald-600';
-  }
+  switch (status) {
+    case 'active':
+      return 'bg-emerald-500/10 text-emerald-600';
 
-  if (status === 'suspended') {
-    return 'bg-amber-500/10 text-amber-600';
-  }
+    case 'suspended':
+      return 'bg-amber-500/10 text-amber-600';
 
-  if (status === 'pending') {
-    return 'bg-blue-500/10 text-blue-600';
-  }
+    case 'pending':
+      return 'bg-blue-500/10 text-blue-600';
 
-  return 'bg-destructive/10 text-destructive';
+    default:
+      return 'bg-destructive/10 text-destructive';
+  }
 }
 
 function getRoleDetails(user: UserRecord) {
@@ -86,22 +83,24 @@ function getRoleDetails(user: UserRecord) {
   };
 }
 
+function getIssueCount(user: UserRecord) {
+  return user.attention?.count || 1;
+}
+
 export default function UsersTable({
   users,
   loading,
 }: UsersTableProps) {
   const router = useRouter();
 
-  const openUser = (userId: string) => {
-    router.push(`/admin/users/${userId}`);
+  const openUser = (id: string) => {
+    router.push(`/admin/users/${id}`);
   };
 
   if (loading) {
     return (
       <div className="space-y-3 p-4 sm:p-5">
-        {Array.from({
-          length: 5,
-        }).map((_, index) => (
+        {Array.from({ length: 5 }, (_, index) => (
           <div
             key={index}
             className="
@@ -160,11 +159,13 @@ export default function UsersTable({
 
   return (
     <>
-      {/* Mobile cards */}
+      {/* Mobile */}
 
       <div className="space-y-3 p-3 lg:hidden">
         {users.map((user) => {
           const role = getRoleDetails(user);
+          const hasAttention = user.attention?.required;
+          const issueCount = getIssueCount(user);
 
           return (
             <button
@@ -181,13 +182,12 @@ export default function UsersTable({
                 text-left
                 shadow-sm
                 transition
+                hover:bg-muted/30
                 active:scale-[0.99]
               "
             >
               <div className="flex items-start gap-3">
-                <Avatar
-                  name={user.fullName}
-                />
+                <Avatar name={user.fullName} />
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-3">
@@ -204,15 +204,7 @@ export default function UsersTable({
                     <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
                   </div>
 
-                  <div
-                    className="
-                      mt-4
-                      flex
-                      flex-wrap
-                      items-center
-                      gap-2
-                    "
-                  >
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <span
                       className={`
                         rounded-full
@@ -245,42 +237,10 @@ export default function UsersTable({
                       {role.label}
                     </span>
 
-                    {user.attention?.required ? (
-                      <span
-                        className="
-                          inline-flex
-                          items-center
-                          gap-1.5
-                          rounded-full
-                          bg-destructive/10
-                          px-2.5
-                          py-1
-                          text-xs
-                          font-semibold
-                          text-destructive
-                        "
-                      >
-                        <AlertTriangle className="h-3.5 w-3.5" />
-
-                        {user.attention.count || 1} issue
-                        {(user.attention.count || 1) > 1
-                          ? 's'
-                          : ''}
-                      </span>
-                    ) : (
-                      <span
-                        className="
-                          inline-flex
-                          items-center
-                          gap-1.5
-                          text-xs
-                          text-emerald-600
-                        "
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Healthy
-                      </span>
-                    )}
+                    <AttentionStatus
+                      required={hasAttention}
+                      count={issueCount}
+                    />
                   </div>
                 </div>
               </div>
@@ -289,7 +249,7 @@ export default function UsersTable({
         })}
       </div>
 
-      {/* Desktop table */}
+      {/* Desktop */}
 
       <div className="hidden overflow-hidden lg:block">
         <table className="w-full table-fixed text-left">
@@ -300,13 +260,7 @@ export default function UsersTable({
             <col className="w-[20%]" />
           </colgroup>
 
-          <thead
-            className="
-              border-b
-              border-border
-              bg-muted/40
-            "
-          >
+          <thead className="border-b border-border bg-muted/40">
             <tr>
               <TableHeader>User</TableHeader>
               <TableHeader>Attention</TableHeader>
@@ -318,6 +272,8 @@ export default function UsersTable({
           <tbody>
             {users.map((user) => {
               const role = getRoleDetails(user);
+              const hasAttention = user.attention?.required;
+              const issueCount = getIssueCount(user);
 
               return (
                 <tr
@@ -363,53 +319,11 @@ export default function UsersTable({
                   </td>
 
                   <td className="px-4 py-4">
-                    {user.attention?.required ? (
-                      <span
-                        className="
-                          inline-flex
-                          items-center
-                          gap-2
-                          rounded-full
-                          border
-                          border-destructive/25
-                          bg-destructive/10
-                          px-3
-                          py-1.5
-                          text-xs
-                          font-semibold
-                          text-destructive
-                        "
-                      >
-                        <span
-                          className="
-                            h-1.5
-                            w-1.5
-                            animate-pulse
-                            rounded-full
-                            bg-destructive
-                          "
-                        />
-
-                        {user.attention.count || 1} issue
-                        {(user.attention.count || 1) > 1
-                          ? 's'
-                          : ''}
-                      </span>
-                    ) : (
-                      <span
-                        className="
-                          inline-flex
-                          items-center
-                          gap-2
-                          text-xs
-                          font-semibold
-                          text-emerald-600
-                        "
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        Healthy
-                      </span>
-                    )}
+                    <AttentionStatus
+                      required={hasAttention}
+                      count={issueCount}
+                      desktop
+                    />
                   </td>
 
                   <td className="px-4 py-4">
@@ -451,6 +365,66 @@ export default function UsersTable({
         </table>
       </div>
     </>
+  );
+}
+
+function AttentionStatus({
+  required,
+  count,
+  desktop = false,
+}: {
+  required?: boolean;
+  count: number;
+  desktop?: boolean;
+}) {
+  if (required) {
+    return (
+      <span
+        className={`
+          inline-flex
+          items-center
+          gap-2
+          rounded-full
+          ${
+            desktop
+              ? 'border border-destructive/25 bg-destructive/10 px-3 py-1.5'
+              : 'bg-destructive/10 px-2.5 py-1'
+          }
+          text-xs
+          font-semibold
+          text-destructive
+        `}
+      >
+        <span
+          className="
+            h-1.5
+            w-1.5
+            animate-pulse
+            rounded-full
+            bg-destructive
+          "
+        />
+
+        {count} issue{count > 1 ? 's' : ''}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="
+        inline-flex
+        items-center
+        gap-1.5
+        text-xs
+        font-semibold
+        text-emerald-600
+      "
+    >
+      <CheckCircle2 className="h-3.5 w-3.5" />
+
+      Healthy
+    </span>
   );
 }
 

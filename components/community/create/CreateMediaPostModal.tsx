@@ -1,12 +1,8 @@
 'use client';
 
-import {
-  useState,
-} from 'react';
+import { useState } from 'react';
 
-import {
-  toast,
-} from 'sonner';
+import { toast } from 'sonner';
 
 import {
   Dialog,
@@ -16,9 +12,7 @@ import {
 } from '@/components/ui/dialog';
 
 import PostMessageInput from './PostMessageInput';
-
 import MediaUploader from './MediaUploader';
-
 import PostSubmitButton from './PostSubmitButton';
 
 import {
@@ -27,223 +21,90 @@ import {
   type CreatePostPayload,
 } from '@/services/community.service';
 
-import {
-  uploadService,
-} from '@/services/uploads.service';
-
+import { uploadService } from '@/services/uploads.service';
 
 interface Props {
-
   open: boolean;
-
-  onOpenChange: (
-    open: boolean,
-  ) => void;
-
+  onOpenChange: (open: boolean) => void;
   createPost: (
     data: CreatePostPayload,
   ) => Promise<void>;
-
 }
 
-
 export default function CreateMediaPostModal({
-
   open,
-
   onOpenChange,
-
   createPost,
-
 }: Props) {
-
-
-  const [
-    message,
-    setMessage,
-  ] = useState('');
-
-
-  const [
-    media,
-    setMedia,
-  ] = useState<
-    File | undefined
-  >();
-
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
-
+  const [message, setMessage] = useState('');
+  const [media, setMedia] = useState<File>();
+  const [loading, setLoading] = useState(false);
 
   async function submit() {
-
-
     if (!media) {
-
       toast.error(
         'Please select a photo or video to share.',
       );
-
       return;
-
     }
 
-
     try {
-
-      setLoading(
-        true,
-      );
-
-
-      /*
-       * Upload the selected
-       * media only when the
-       * user clicks Post.
-       */
+      setLoading(true);
 
       const uploaded =
-        await uploadService
-          .uploadCommunityMedia(
-            media,
-          );
-
-
-      /*
-       * Create the community
-       * post using the uploaded
-       * Cloudinary media.
-       */
+        await uploadService.uploadCommunityMedia(
+          media,
+        );
 
       await createPost({
-
-        type:
-          CommunityPostType.MEDIA,
-
-        message:
-          message.trim(),
-
+        type: CommunityPostType.MEDIA,
+        message: message.trim(),
         media: {
-
-          type:
-            media.type.startsWith(
-              'image/',
-            )
-              ? CommunityMediaType.IMAGE
-              : CommunityMediaType.VIDEO,
-
-          url:
-            uploaded.url,
-
-          publicId:
-            uploaded.publicId,
-
+          type: media.type.startsWith('image/')
+            ? CommunityMediaType.IMAGE
+            : CommunityMediaType.VIDEO,
+          url: uploaded.url,
+          publicId: uploaded.publicId,
         },
-
       });
-
-
-      /*
-       * The entire operation
-       * succeeded:
-       *
-       * Upload ✓
-       * Post creation ✓
-       */
 
       toast.success(
         'Your match moment was posted successfully.',
       );
 
-
-      setMessage(
-        '',
-      );
-
-
-      setMedia(
-        undefined,
-      );
-
-
-      onOpenChange(
-        false,
-      );
-
-
+      setMessage('');
+      setMedia(undefined);
+      onOpenChange(false);
     } catch (error) {
-
       console.error(
         'Failed to create media post:',
         error,
       );
 
-
       toast.error(
         'Could not post your match moment. Please try again.',
       );
-
-
     } finally {
-
-      setLoading(
-        false,
-      );
-
+      setLoading(false);
     }
-
   }
 
+  function handleOpenChange(nextOpen: boolean) {
+    if (loading) return;
 
-  function handleOpenChange(
-    nextOpen: boolean,
-  ) {
-
-    if (
-      loading
-    ) {
-
-      return;
-
+    if (!nextOpen) {
+      setMessage('');
+      setMedia(undefined);
     }
 
-
-    if (
-      !nextOpen
-    ) {
-
-      setMessage(
-        '',
-      );
-
-      setMedia(
-        undefined,
-      );
-
-    }
-
-
-    onOpenChange(
-      nextOpen,
-    );
-
+    onOpenChange(nextOpen);
   }
-
 
   return (
-
     <Dialog
-      open={
-        open
-      }
-      onOpenChange={
-        handleOpenChange
-      }
+      open={open}
+      onOpenChange={handleOpenChange}
     >
-
       <DialogContent
         className="
           max-h-[90vh]
@@ -251,94 +112,56 @@ export default function CreateMediaPostModal({
           rounded-2xl
           border-border
           bg-card
-          p-5
-          shadow-xl
+          p-4
+          shadow-lg
           sm:max-w-lg
-          sm:p-6
+          sm:p-5
         "
       >
-
-        <DialogHeader
-          className="
-            space-y-1
-          "
-        >
-
+        <DialogHeader className="space-y-1">
           <DialogTitle
             className="
               text-lg
               font-semibold
               tracking-tight
-              sm:text-xl
+              text-foreground
             "
           >
-            Share Match Moment 📸
+            Share Match Moment
           </DialogTitle>
-
 
           <p
             className="
-              text-s
+              text-xs
+              leading-5
               text-muted-foreground
+              sm:text-sm
             "
           >
             Share a photo or video from the game
             with the community.
           </p>
-
         </DialogHeader>
 
-
-        <div
-          className="
-            mt-5
-            space-y-5
-          "
-        >
-
+        <div className="mt-4 space-y-3">
           <MediaUploader
-            onFileSelected={
-              setMedia
-            }
-            disabled={
-              loading
-            }
+            onFileSelected={setMedia}
+            disabled={loading}
           />
-
 
           <PostMessageInput
-            value={
-              message
-            }
-            onChange={
-              setMessage
-            }
+            value={message}
+            onChange={setMessage}
           />
 
-
           <PostSubmitButton
-            loading={
-              loading
-            }
-            onClick={
-              submit
-            }
+            loading={loading}
+            onClick={submit}
           >
-
-            {
-              loading
-                ? 'Posting...'
-                : 'Post'
-            }
-
+            {loading ? 'Posting...' : 'Post'}
           </PostSubmitButton>
-
         </div>
-
       </DialogContent>
-
     </Dialog>
-
   );
-
 }

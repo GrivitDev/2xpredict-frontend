@@ -26,11 +26,16 @@ export function sortAds(
       const orderB =
         displayB?.displayOrder ?? 1;
 
-      if (orderA !== orderB) {
+      if (
+        orderA !== orderB
+      ) {
         return orderA - orderB;
       }
 
-      return b.priority - a.priority;
+      return (
+        (b.priority ?? 0) -
+        (a.priority ?? 0)
+      );
     },
   );
 }

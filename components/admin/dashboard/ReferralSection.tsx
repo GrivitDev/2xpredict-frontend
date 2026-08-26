@@ -18,24 +18,31 @@ export default function ReferralSection({
   referrals,
 }: Props) {
   return (
-    <section className="space-y-6">
+    <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-lg font-semibold tracking-tight">
           Referral Program
         </h2>
 
-        <p className="text-s text-muted-foreground">
-          Referral growth and reward tracking
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Referral growth and reward tracking.
         </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-3">
+      <div
+        className="
+          grid
+          grid-cols-2
+          gap-2
+          lg:grid-cols-3
+        "
+      >
         <AnalyticsCard
           title="Total Referrals"
           icon={UserPlus}
           highlight
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {referrals.totalReferrals.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -44,7 +51,7 @@ export default function ReferralSection({
           title="Rewarded"
           icon={Gift}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {referrals.rewardedReferrals.toLocaleString()}
           </p>
         </AnalyticsCard>
@@ -53,7 +60,7 @@ export default function ReferralSection({
           title="Pending Rewards"
           icon={Clock}
         >
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-semibold tracking-tight">
             {referrals.pendingRewards.toLocaleString()}
           </p>
         </AnalyticsCard>

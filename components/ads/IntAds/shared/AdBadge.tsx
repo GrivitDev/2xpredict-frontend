@@ -1,23 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 export function AdBadge() {
-
   return (
-
-    <motion.div
-      initial={{
-        opacity: 0,
-        x: -8,
-      }}
-      animate={{
-        opacity: 1,
-        x: 0,
-      }}
-      transition={{
-        duration: .3,
-      }}
+    <div
       className="
         inline-flex
         items-center
@@ -32,22 +17,18 @@ export function AdBadge() {
         supports-[backdrop-filter]:bg-background/70
       "
     >
-
       <span
         className="
+          whitespace-nowrap
           text-[10px]
           font-semibold
           uppercase
           tracking-[0.28em]
           text-primary
-          whitespace-nowrap
         "
       >
         Sponsored
       </span>
-
-    </motion.div>
-
+    </div>
   );
-
 }

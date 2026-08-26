@@ -16,128 +16,74 @@ import {
   PredictionMarketOptions,
 } from '@/lib/prediction-market-config';
 
-
-// ============================================================
-// TYPES
-// ============================================================
-
 interface Props {
   prediction: any;
-
   onSubscriptionRequired?: () => void;
 }
 
 interface BackendMarket {
   market?: string;
   selection?: string;
-
   [key: string]: any;
 }
 
+type Plan =
+  | 'free'
+  | 'regular'
+  | 'vip';
 
-// ============================================================
-// COMPONENT
-// ============================================================
+type MarketLockInfo = {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  showReleaseDate: boolean;
+};
 
 export default function PredictionMarketsCell({
   prediction,
   onSubscriptionRequired,
 }: Props) {
-
-  const [
-    expanded,
-    setExpanded,
-  ] = useState(false);
-
-
-  // ==========================================================
-  // ACCESS
-  // ==========================================================
+  const [expanded, setExpanded] =
+    useState(false);
 
   const access =
     prediction?.access ?? {};
 
-
-  const userPlan =
-    normalizePlan(
-      access.plan ??
-      prediction?.userPlan ??
-      'free',
-    );
-
+  const userPlan = normalizePlan(
+    access.plan ??
+      prediction?.userPlan,
+  );
 
   const predictionPlan =
     normalizePlan(
-      prediction?.accessType ??
-      'free',
+      prediction?.accessType,
     );
-
 
   const canView =
     access.allowed === true;
 
-
   const released =
     access.released === true;
 
-
   const releaseAt =
-    access.releaseAt ??
-    null;
-
+    access.releaseAt ?? null;
 
   const accessState =
-    access.state ??
-    '';
-
+    access.state ?? '';
 
   const accessMessage =
-    access.message ??
-    null;
-
-
-  // ==========================================================
-  // MARKETS
-  // ==========================================================
-  //
-  // IMPORTANT:
-  //
-  // We DO NOT decide which markets a user gets here.
-  //
-  // The backend already controls the markets returned to
-  // the frontend.
-  //
-  // Therefore:
-  //
-  // Free    -> normally receives no markets
-  // Regular -> backend decides which markets are returned
-  // VIP     -> backend decides / returns all accessible markets
-  //
-  // The frontend simply renders what it receives.
-  //
-  // ==========================================================
+    access.message ?? null;
 
   const markets: BackendMarket[] =
-    Array.isArray(
-      prediction?.markets,
-    )
+    Array.isArray(prediction?.markets)
       ? prediction.markets
       : [];
 
-
-  // ==========================================================
-  // PREDICTION-LEVEL ACCESS LOCK
-  // ==========================================================
-  //
-  // This is different from the Regular market limitation.
-  //
-  // If the entire prediction is locked, show the normal
-  // subscription/access message.
-  //
-  // ==========================================================
+  /* =========================================================
+     PREDICTION ACCESS LOCK
+  ========================================================= */
 
   if (!canView) {
-
     const lockInfo =
       getMarketLockInfo({
         userPlan,
@@ -148,13 +94,10 @@ export default function PredictionMarketsCell({
         accessMessage,
       });
 
-
     return (
       <button
         type="button"
-        onClick={
-          onSubscriptionRequired
-        }
+        onClick={onSubscriptionRequired}
         className="
           group
           w-full
@@ -173,15 +116,7 @@ export default function PredictionMarketsCell({
           focus:ring-primary/30
         "
       >
-
-        <div
-          className="
-            flex
-            items-center
-            gap-2
-          "
-        >
-
+        <div className="flex items-center gap-2">
           <span
             className="
               flex
@@ -198,13 +133,7 @@ export default function PredictionMarketsCell({
             {lockInfo.icon}
           </span>
 
-
-          <div
-            className="
-              min-w-0
-            "
-          >
-
+          <div className="min-w-0">
             <p
               className="
                 truncate
@@ -216,7 +145,6 @@ export default function PredictionMarketsCell({
               {lockInfo.title}
             </p>
 
-
             <p
               className="
                 mt-0.5
@@ -226,58 +154,39 @@ export default function PredictionMarketsCell({
             >
               {lockInfo.description}
             </p>
-
           </div>
-
         </div>
-
 
         {releaseAt &&
           !released &&
           lockInfo.showReleaseDate && (
-
-          <p
-            className="
-              mt-2
-              border-t
-              border-primary/10
-              pt-1.5
-              text-[8px]
-              text-muted-foreground
-            "
-          >
-            Available from{' '}
-            {formatReleaseDate(
-              releaseAt,
-            )}
-          </p>
-
-        )}
-
+            <p
+              className="
+                mt-2
+                border-t
+                border-primary/10
+                pt-1.5
+                text-[8px]
+                text-muted-foreground
+              "
+            >
+              Available from{' '}
+              {formatReleaseDate(releaseAt)}
+            </p>
+          )}
       </button>
     );
   }
 
-
-  // ==========================================================
-  // FREE USER
-  // ==========================================================
-  //
-  // Free users do not get markets.
-  //
-  // This remains explicit on the frontend even if the backend
-  // normally returns an empty markets array for them.
-  //
-  // ==========================================================
+  /* =========================================================
+     FREE USER
+  ========================================================= */
 
   if (userPlan === 'free') {
-
     return (
       <button
         type="button"
-        onClick={
-          onSubscriptionRequired
-        }
+        onClick={onSubscriptionRequired}
         className="
           group
           w-full
@@ -296,15 +205,7 @@ export default function PredictionMarketsCell({
           focus:ring-primary/30
         "
       >
-
-        <div
-          className="
-            flex
-            items-center
-            gap-2
-          "
-        >
-
+        <div className="flex items-center gap-2">
           <span
             className="
               flex
@@ -321,13 +222,7 @@ export default function PredictionMarketsCell({
             <Lock size={11} />
           </span>
 
-
-          <div
-            className="
-              min-w-0
-            "
-          >
-
+          <div className="min-w-0">
             <p
               className="
                 truncate
@@ -339,7 +234,6 @@ export default function PredictionMarketsCell({
               Markets Locked
             </p>
 
-
             <p
               className="
                 mt-0.5
@@ -350,27 +244,17 @@ export default function PredictionMarketsCell({
               Upgrade to Regular to view
               prediction markets.
             </p>
-
           </div>
-
         </div>
-
       </button>
     );
   }
 
+  /* =========================================================
+     NO MARKETS
+  ========================================================= */
 
-  // ==========================================================
-  // NO MARKETS
-  // ==========================================================
-  //
-  // This can happen for example when the backend has no
-  // markets configured for the prediction.
-  //
-  // ==========================================================
-
-  if (markets.length === 0) {
-
+  if (!markets.length) {
     return (
       <div
         className="
@@ -388,159 +272,74 @@ export default function PredictionMarketsCell({
     );
   }
 
-
-  // ==========================================================
-  // VIP
-  // ==========================================================
-  //
-  // VIP gets whatever markets the backend returns.
-  //
-  // We only control presentation here.
-  //
-  // If there are more than 3, VIP can expand them.
-  //
-  // ==========================================================
+  /* =========================================================
+     MARKET DISPLAY
+  ========================================================= */
 
   const isVip =
     userPlan === 'vip';
 
-
-  const canExpand =
-    isVip &&
-    markets.length > 3;
-
-
-  const visibleMarkets =
-    canExpand && expanded
-      ? markets
-      : markets.slice(
-          0,
-          3,
-        );
-
-
-  // ==========================================================
-  // REGULAR
-  // ==========================================================
-  //
-  // IMPORTANT:
-  //
-  // We DO NOT:
-  //
-  // - slice to 3
-  // - choose the first 3
-  // - inspect market types
-  // - determine which markets are allowed
-  //
-  // The backend has already selected the markets.
-  //
-  // Therefore we simply render the entire markets array
-  // returned by the backend.
-  //
-  // The Regular user still gets the VIP upgrade message
-  // underneath.
-  //
-  // ==========================================================
-
   const isRegular =
     userPlan === 'regular';
 
+  const canExpand =
+    isVip && markets.length > 3;
 
   const marketsToRender =
     isRegular
       ? markets
-      : visibleMarkets;
-
-
-  // ==========================================================
-  // RENDER
-  // ==========================================================
+      : canExpand && expanded
+        ? markets
+        : markets.slice(0, 3);
 
   return (
-    <div
-      className="
-        space-y-2
-      "
-    >
-
-      {/* ====================================================
-          MARKETS
-      ==================================================== */}
-
-      <div
-        className="
-          space-y-1.5
-        "
-      >
-
+    <div className="space-y-2">
+      <div className="space-y-1.5">
         {marketsToRender.map(
-          (
-            market,
-            index,
-          ) => {
-
-            const display =
-              resolveMarketDisplay(
+          (market, index) => (
+            <div
+              key={getMarketKey(
                 market,
-              );
-
-
-            return (
-              <div
-                key={
-                  getMarketKey(
-                    market,
-                    index,
-                  )
-                }
+                index,
+              )}
+              className="
+                flex
+                min-w-0
+                items-start
+                gap-2
+              "
+            >
+              <span
                 className="
-                  flex
+                  mt-1
+                  h-1.5
+                  w-1.5
+                  shrink-0
+                  rounded-full
+                  bg-primary
+                "
+              />
+
+              <span
+                className="
                   min-w-0
-                  items-start
-                  gap-2
+                  text-[11px]
+                  leading-tight
                 "
               >
-
-                <span
-                  className="
-                    mt-1
-                    h-1.5
-                    w-1.5
-                    shrink-0
-                    rounded-full
-                    bg-primary
-                  "
-                />
-
-
-                <span
-                  className="
-                    min-w-0
-                    text-[11px]
-                    leading-tight
-                  "
-                >
-                  {display}
-                </span>
-
-              </div>
-            );
-          },
+                {resolveMarketDisplay(
+                  market,
+                )}
+              </span>
+            </div>
+          ),
         )}
-
       </div>
 
-
-      {/* ====================================================
-          REGULAR → VIP
-      ==================================================== */}
       {isRegular && (
-
         <button
           type="button"
-          onClick={
-            onSubscriptionRequired
-          }
+          onClick={onSubscriptionRequired}
           className="
             inline-flex
             w-full
@@ -561,7 +360,6 @@ export default function PredictionMarketsCell({
             focus:ring-primary/30
           "
         >
-
           <Crown
             size={12}
             className="
@@ -569,7 +367,6 @@ export default function PredictionMarketsCell({
               text-primary
             "
           />
-
 
           <span
             className="
@@ -583,24 +380,15 @@ export default function PredictionMarketsCell({
             Upgrade to VIP to see all
             available markets
           </span>
-
         </button>
-
       )}
 
-
-      {/* ====================================================
-          VIP EXPAND / COLLAPSE
-      ==================================================== */}
-
       {canExpand && (
-
         <button
           type="button"
           onClick={() =>
             setExpanded(
-              current =>
-                !current,
+              current => !current,
             )
           }
           className="
@@ -613,153 +401,75 @@ export default function PredictionMarketsCell({
             hover:underline
           "
         >
-
           {expanded ? (
             <>
-              <ChevronUp
-                size={13}
-              />
-
+              <ChevronUp size={13} />
               Show Less
             </>
           ) : (
             <>
-              <ChevronDown
-                size={13}
-              />
-
-              +
-              {markets.length - 3}
-              {' '}
-              More
+              <ChevronDown size={13} />
+              +{markets.length - 3} More
             </>
           )}
-
         </button>
-
       )}
-
     </div>
   );
 }
 
-
-// ============================================================
-// MARKET DISPLAY RESOLVER
-// ============================================================
+/* =========================================================
+   MARKET DISPLAY
+========================================================= */
 
 function resolveMarketDisplay(
   market:
     | BackendMarket
     | string,
 ): string {
-
-  // ==========================================================
-  // STRING
-  // ==========================================================
-
-  if (
-    typeof market ===
-    'string'
-  ) {
-
-    return resolveStringMarket(
-      market,
-    );
+  if (typeof market === 'string') {
+    return resolveStringMarket(market);
   }
 
-
-  // ==========================================================
-  // VALUES
-  // ==========================================================
-
   const marketValue =
-    String(
-      market.market ??
-      '',
-    ).trim();
-
+    String(market.market ?? '').trim();
 
   const selectionValue =
     String(
-      market.selection ??
-      '',
+      market.selection ?? '',
     ).trim();
 
-
-  if (
-    !marketValue &&
-    !selectionValue
-  ) {
-
+  if (!marketValue && !selectionValue) {
     return 'Unknown market';
   }
 
-
-  // ==========================================================
-  // MARKET CONFIG
-  // ==========================================================
-
   const marketConfig =
-    findMarketConfig(
-      marketValue,
-    );
-
-
-  // ==========================================================
-  // UNKNOWN MARKET
-  // ==========================================================
+    findMarketConfig(marketValue);
 
   if (!marketConfig) {
-
-    if (
-      marketValue &&
+    return marketValue &&
       selectionValue
-    ) {
-
-      return formatFallbackMarket(
-        marketValue,
-        selectionValue,
-      );
-    }
-
-
-    return (
-      selectionValue ||
-      marketValue ||
-      'Unknown market'
-    );
+      ? formatFallbackMarket(
+          marketValue,
+          selectionValue,
+        )
+      : selectionValue ||
+          marketValue ||
+          'Unknown market';
   }
-
 
   const marketLabel =
     marketConfig.label;
 
-
-  // ==========================================================
-  // DYNAMIC PLAYER MARKETS
-  // ==========================================================
-
   if (
     isDynamicPlayerMarket(
-      String(
-        marketConfig.value,
-      ),
+      String(marketConfig.value),
     )
   ) {
-
-    if (selectionValue) {
-
-      return `${marketLabel}: ${selectionValue}`;
-    }
-
-    return marketLabel;
+    return selectionValue
+      ? `${marketLabel}: ${selectionValue}`
+      : marketLabel;
   }
-
-
-  // ==========================================================
-  // NORMAL SELECTION
-  // ==========================================================
 
   const selectionConfig =
     findSelectionConfig(
@@ -767,48 +477,24 @@ function resolveMarketDisplay(
       selectionValue,
     );
 
-
   if (selectionConfig) {
-
     return `${marketLabel}: ${selectionConfig.label}`;
   }
 
-
-  // ==========================================================
-  // UNKNOWN SELECTION
-  // ==========================================================
-
-  if (selectionValue) {
-
-    return `${marketLabel}: ${selectionValue}`;
-  }
-
-
-  // ==========================================================
-  // MARKET ONLY
-  // ==========================================================
-
-  return marketLabel;
+  return selectionValue
+    ? `${marketLabel}: ${selectionValue}`
+    : marketLabel;
 }
 
-
-// ============================================================
-// STRING MARKET RESOLVER
-// ============================================================
+/* =========================================================
+   STRING MARKET
+========================================================= */
 
 function resolveStringMarket(
   value: string,
 ): string {
-
   const normalized =
-    normalizeIdentifier(
-      value,
-    );
-
-
-  // ==========================================================
-  // DIRECT MARKET
-  // ==========================================================
+    normalizeIdentifier(value);
 
   const market =
     PredictionMarketOptions.find(
@@ -816,106 +502,61 @@ function resolveStringMarket(
         normalizeIdentifier(
           String(item.value),
         ) === normalized ||
-
         normalizeIdentifier(
           item.label,
         ) === normalized,
     );
 
-
   if (market) {
-
     return market.label;
   }
 
-
-  // ==========================================================
-  // DIRECT SELECTION
-  // ==========================================================
-
   for (
-    const marketOption
-    of PredictionMarketOptions
+    const option of PredictionMarketOptions
   ) {
-
     const selection =
-      marketOption.selections.find(
+      option.selections.find(
         item =>
           normalizeIdentifier(
             item.value,
           ) === normalized ||
-
           normalizeIdentifier(
             item.label,
           ) === normalized,
       );
 
-
     if (selection) {
-
       return selection.label;
     }
   }
 
-
-  // ==========================================================
-  // FALLBACK
-  // ==========================================================
-
   return value;
 }
 
-
-// ============================================================
-// FIND MARKET CONFIG
-// ============================================================
+/* =========================================================
+   CONFIG LOOKUPS
+========================================================= */
 
 function findMarketConfig(
   value: string,
 ) {
-
   const normalized =
-    normalizeIdentifier(
-      value,
-    );
-
+    normalizeIdentifier(value);
 
   if (!normalized) {
-
     return undefined;
   }
 
-
   return PredictionMarketOptions.find(
-    item => {
-
-      const enumValue =
-        normalizeIdentifier(
-          String(item.value),
-        );
-
-
-      const enumLabel =
-        normalizeIdentifier(
-          item.label,
-        );
-
-
-      return (
-        enumValue ===
-          normalized ||
-
-        enumLabel ===
-          normalized
-      );
-    },
+    item =>
+      normalizeIdentifier(
+        String(item.value),
+      ) === normalized ||
+      normalizeIdentifier(
+        item.label,
+      ) === normalized,
   );
 }
-
-
-// ============================================================
-// FIND SELECTION CONFIG
-// ============================================================
 
 function findSelectionConfig(
   selections: {
@@ -924,159 +565,86 @@ function findSelectionConfig(
   }[],
   value: string,
 ) {
-
   const normalized =
-    normalizeIdentifier(
-      value,
-    );
-
+    normalizeIdentifier(value);
 
   if (!normalized) {
-
     return undefined;
   }
 
-
   return selections.find(
-    selection => {
-
-      const enumValue =
-        normalizeIdentifier(
-          selection.value,
-        );
-
-
-      const enumLabel =
-        normalizeIdentifier(
-          selection.label,
-        );
-
-
-      return (
-        enumValue ===
-          normalized ||
-
-        enumLabel ===
-          normalized
-      );
-    },
+    selection =>
+      normalizeIdentifier(
+        selection.value,
+      ) === normalized ||
+      normalizeIdentifier(
+        selection.label,
+      ) === normalized,
   );
 }
 
-
-// ============================================================
-// NORMALIZE IDENTIFIER
-// ============================================================
+/* =========================================================
+   NORMALIZATION
+========================================================= */
 
 function normalizeIdentifier(
   value: string,
 ): string {
-
-  return String(
-    value ?? '',
-  )
+  return String(value ?? '')
     .trim()
     .toUpperCase()
+    .replace(/[\s\-\/+]+/g, '_')
+    .replace(/[^A-Z0-9_]/g, '');
+}
+
+function formatIdentifier(
+  value: string,
+): string {
+  return String(value ?? '')
+    .replace(/[_\-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
     .replace(
-      /[\s\-\/+]+/g,
-      '_',
-    )
-    .replace(
-      /[^A-Z0-9_]/g,
-      '',
+      /\b\w/g,
+      char => char.toUpperCase(),
     );
 }
 
+/* =========================================================
+   PLAYER MARKETS
+========================================================= */
 
-// ============================================================
-// DYNAMIC PLAYER MARKET
-// ============================================================
+const DYNAMIC_PLAYER_MARKETS =
+  new Set([
+    'ANYTIME_GOALSCORER',
+    'FIRST_GOALSCORER',
+    'PLAYER_SHOTS',
+    'PLAYER_SHOTS_ON_TARGET',
+    'PLAYER_ASSISTS',
+  ]);
 
 function isDynamicPlayerMarket(
-  marketValue: string,
+  value: string,
 ): boolean {
-
-  const normalized =
-    normalizeIdentifier(
-      marketValue,
-    );
-
-
-  return (
-    normalized ===
-      'ANYTIME_GOALSCORER' ||
-
-    normalized ===
-      'FIRST_GOALSCORER' ||
-
-    normalized ===
-      'PLAYER_SHOTS' ||
-
-    normalized ===
-      'PLAYER_SHOTS_ON_TARGET' ||
-
-    normalized ===
-      'PLAYER_ASSISTS'
+  return DYNAMIC_PLAYER_MARKETS.has(
+    normalizeIdentifier(value),
   );
 }
 
-
-// ============================================================
-// FALLBACK FORMAT
-// ============================================================
+/* =========================================================
+   FALLBACK
+========================================================= */
 
 function formatFallbackMarket(
   market: string,
   selection: string,
 ): string {
-
-  const marketLabel =
-    formatIdentifier(
-      market,
-    );
-
-
-  const selectionLabel =
-    formatIdentifier(
-      selection,
-    );
-
-
-  return `${marketLabel}: ${selectionLabel}`;
+  return `${formatIdentifier(market)}: ${formatIdentifier(selection)}`;
 }
 
-
-// ============================================================
-// FORMAT UNKNOWN IDENTIFIER
-// ============================================================
-
-function formatIdentifier(
-  value: string,
-): string {
-
-  return String(
-    value ?? '',
-  )
-    .replace(
-      /[_\-]+/g,
-      ' ',
-    )
-    .replace(
-      /\s+/g,
-      ' ',
-    )
-    .trim()
-    .replace(
-      /\b\w/g,
-      character =>
-        character.toUpperCase(),
-    );
-}
-
-
-// ============================================================
-// MARKET KEY
-// ============================================================
+/* =========================================================
+   MARKET KEY
+========================================================= */
 
 function getMarketKey(
   market:
@@ -1084,15 +652,9 @@ function getMarketKey(
     | string,
   index: number,
 ): string {
-
-  if (
-    typeof market ===
-    'string'
-  ) {
-
+  if (typeof market === 'string') {
     return `${market}-${index}`;
   }
-
 
   return [
     market.market ?? '',
@@ -1101,48 +663,32 @@ function getMarketKey(
   ].join('-');
 }
 
-
-// ============================================================
-// PLAN NORMALIZER
-// ============================================================
+/* =========================================================
+   PLAN
+========================================================= */
 
 function normalizePlan(
   value: any,
-): 'free' | 'regular' | 'vip' {
-
+): Plan {
   const normalized =
-    String(
-      value ?? 'free',
-    )
+    String(value ?? 'free')
       .trim()
       .toLowerCase();
 
-
-  if (
-    normalized ===
-    'vip'
-  ) {
-
+  if (normalized === 'vip') {
     return 'vip';
   }
 
-
-  if (
-    normalized ===
-    'regular'
-  ) {
-
+  if (normalized === 'regular') {
     return 'regular';
   }
-
 
   return 'free';
 }
 
-
-// ============================================================
-// MARKET LOCK INFO
-// ============================================================
+/* =========================================================
+   LOCK INFORMATION
+========================================================= */
 
 function getMarketLockInfo({
   userPlan,
@@ -1152,303 +698,132 @@ function getMarketLockInfo({
   accessState,
   accessMessage,
 }: {
-  userPlan:
-    | 'free'
-    | 'regular'
-    | 'vip';
-
-  predictionPlan:
-    | 'free'
-    | 'regular'
-    | 'vip';
-
+  userPlan: Plan;
+  predictionPlan: Plan;
   released: boolean;
-
-  releaseAt:
-    | number
-    | null;
-
+  releaseAt: number | null;
   accessState: string;
-
-  accessMessage?:
-    | string
-    | null;
-}) {
-
-  // ==========================================================
-  // LOGIN
-  // ==========================================================
-
-  if (
-    accessState ===
-    'login_required'
-  ) {
-
+  accessMessage?: string | null;
+}): MarketLockInfo {
+  if (accessState === 'login_required') {
     return {
-      title:
-        'Login required',
-
+      title: 'Login required',
       description:
         'Login to view these markets.',
-
-      icon: (
-        <Lock size={11} />
-      ),
-
-      showReleaseDate:
-        false,
+      icon: <Lock size={11} />,
+      showReleaseDate: false,
     };
   }
-
-
-  // ==========================================================
-  // UPGRADE REQUIRED
-  // ==========================================================
 
   if (
     accessState ===
     'upgrade_required'
   ) {
-
-    if (
-      predictionPlan ===
-      'vip'
-    ) {
-
+    if (predictionPlan === 'vip') {
       return {
-        title:
-          'VIP Required',
-
+        title: 'VIP Required',
         description:
           'Upgrade to VIP to access these markets.',
-
-        icon: (
-          <Crown size={11} />
-        ),
-
-        showReleaseDate:
-          false,
+        icon: <Crown size={11} />,
+        showReleaseDate: false,
       };
     }
 
-
-    if (
-      predictionPlan ===
-      'regular'
-    ) {
-
+    if (predictionPlan === 'regular') {
       return {
-        title:
-          'Regular Required',
-
+        title: 'Regular Required',
         description:
           'Upgrade to Regular or VIP to access these markets.',
-
-        icon: (
-          <Lock size={11} />
-        ),
-
-        showReleaseDate:
-          !released,
+        icon: <Lock size={11} />,
+        showReleaseDate: !released,
       };
     }
   }
 
-
-  // ==========================================================
-  // RELEASE WINDOW
-  // ==========================================================
-
   if (
-    accessState ===
-      'locked' &&
+    accessState === 'locked' &&
     !released
   ) {
-
-    // --------------------------------------------------------
-    // REGULAR USER
-    // --------------------------------------------------------
-
     if (
-      userPlan ===
-        'regular' &&
-      predictionPlan ===
-        'regular'
+      userPlan === 'regular' &&
+      predictionPlan === 'regular'
     ) {
-
       return {
-        title:
-          'Not Released to Regular',
-
+        title: 'Not Released to Regular',
         description:
           'Upgrade to VIP to see these markets earlier.',
-
-        icon: (
-          <Crown size={11} />
-        ),
-
-        showReleaseDate:
-          true,
+        icon: <Crown size={11} />,
+        showReleaseDate: true,
       };
     }
 
-
-    // --------------------------------------------------------
-    // VIP
-    // --------------------------------------------------------
-
     if (
-      userPlan ===
-      'vip'
+      userPlan === 'vip' ||
+      (userPlan === 'free' &&
+        predictionPlan === 'free')
     ) {
-
       return {
-        title:
-          'Not Released Yet',
-
+        title: 'Not Released Yet',
         description:
           accessMessage ??
           'These markets will be available closer to kickoff.',
-
-        icon: (
-          <Clock3 size={11} />
+        icon: <Clock3 size={11} />,
+        showReleaseDate: Boolean(
+          releaseAt,
         ),
-
-        showReleaseDate:
-          Boolean(
-            releaseAt,
-          ),
       };
     }
-
-
-    // --------------------------------------------------------
-    // FREE
-    // --------------------------------------------------------
-
-    if (
-      userPlan ===
-        'free' &&
-      predictionPlan ===
-        'free'
-    ) {
-
-      return {
-        title:
-          'Not Released Yet',
-
-        description:
-          accessMessage ??
-          'These markets will be available closer to kickoff.',
-
-        icon: (
-          <Clock3 size={11} />
-        ),
-
-        showReleaseDate:
-          Boolean(
-            releaseAt,
-          ),
-      };
-    }
-
-
-    // --------------------------------------------------------
-    // GENERIC
-    // --------------------------------------------------------
 
     return {
-      title:
-        'Not Released Yet',
-
+      title: 'Not Released Yet',
       description:
         accessMessage ??
         'These markets will be available closer to kickoff.',
-
-      icon: (
-        <Clock3 size={11} />
+      icon: <Clock3 size={11} />,
+      showReleaseDate: Boolean(
+        releaseAt,
       ),
-
-      showReleaseDate:
-        Boolean(
-          releaseAt,
-        ),
     };
   }
 
-
-  // ==========================================================
-  // FALLBACK
-  // ==========================================================
+  const isVip =
+    predictionPlan === 'vip';
 
   return {
-    title:
-      predictionPlan ===
-      'vip'
-        ? 'VIP Required'
-        : 'Markets Locked',
-
+    title: isVip
+      ? 'VIP Required'
+      : 'Markets Locked',
     description:
       accessMessage ??
       'Upgrade your subscription to access these markets.',
-
-    icon:
-      predictionPlan ===
-      'vip'
-        ? (
-          <Crown size={11} />
-        )
-        : (
-          <Lock size={11} />
-        ),
-
-    showReleaseDate:
-      false,
+    icon: isVip
+      ? <Crown size={11} />
+      : <Lock size={11} />,
+    showReleaseDate: false,
   };
 }
 
-
-// ============================================================
-// RELEASE DATE
-// ============================================================
+/* =========================================================
+   RELEASE DATE
+========================================================= */
 
 function formatReleaseDate(
   timestamp: number,
 ): string {
+  const date = new Date(timestamp);
 
-  const date =
-    new Date(
-      timestamp,
-    );
-
-
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-
+  if (Number.isNaN(date.getTime())) {
     return 'later';
   }
-
 
   return date.toLocaleString(
     'en-GB',
     {
-      day:
-        '2-digit',
-
-      month:
-        'short',
-
-      hour:
-        '2-digit',
-
-      minute:
-        '2-digit',
-
-      hour12:
-        false,
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
     },
   );
 }

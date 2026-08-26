@@ -1,15 +1,8 @@
 export default function LoadingState() {
   return (
-    <div
-      className="
-        animate-pulse
-        space-y-3
-      "
-    >
+    <div className="space-y-3">
 
-      {/* ======================================================
-          PROFILE
-          ====================================================== */}
+      {/* PROFILE */}
 
       <div
         className="
@@ -20,7 +13,6 @@ export default function LoadingState() {
           bg-card
         "
       >
-
         <div
           className="
             flex
@@ -30,9 +22,6 @@ export default function LoadingState() {
             py-3.5
           "
         >
-
-          {/* Avatar */}
-
           <div
             className="
               h-11
@@ -43,8 +32,6 @@ export default function LoadingState() {
             "
           />
 
-          {/* Identity */}
-
           <div
             className="
               min-w-0
@@ -52,7 +39,6 @@ export default function LoadingState() {
               space-y-2
             "
           >
-
             <div
               className="
                 h-4
@@ -70,11 +56,8 @@ export default function LoadingState() {
                 bg-muted/40
               "
             />
-
           </div>
-
         </div>
-
 
         {/* Contact */}
 
@@ -86,9 +69,7 @@ export default function LoadingState() {
             border-border/50
           "
         >
-
           {[1, 2].map((item) => (
-
             <div
               key={item}
               className={`
@@ -97,10 +78,13 @@ export default function LoadingState() {
                 gap-2.5
                 px-4
                 py-3
-                ${item === 2 ? 'border-l border-border/50' : ''}
+                ${
+                  item === 2
+                    ? 'border-l border-border/50'
+                    : ''
+                }
               `}
             >
-
               <div
                 className="
                   h-7
@@ -118,7 +102,6 @@ export default function LoadingState() {
                   space-y-1.5
                 "
               >
-
                 <div
                   className="
                     h-2.5
@@ -137,21 +120,13 @@ export default function LoadingState() {
                     bg-muted/50
                   "
                 />
-
               </div>
-
             </div>
-
           ))}
-
         </div>
-
       </div>
 
-
-      {/* ======================================================
-          MEMBERSHIP + PROMOS
-          ====================================================== */}
+      {/* MEMBERSHIP + PROMOS */}
 
       <div
         className="
@@ -160,9 +135,7 @@ export default function LoadingState() {
           xl:grid-cols-2
         "
       >
-
         {[1, 2].map((item) => (
-
           <div
             key={item}
             className="
@@ -174,11 +147,8 @@ export default function LoadingState() {
               p-4
             "
           >
-
             <div className="space-y-4">
-
               <div className="flex items-center gap-3">
-
                 <div
                   className="
                     h-9
@@ -189,7 +159,6 @@ export default function LoadingState() {
                 />
 
                 <div className="flex-1 space-y-2">
-
                   <div
                     className="
                       h-3.5
@@ -207,14 +176,10 @@ export default function LoadingState() {
                       bg-muted/40
                     "
                   />
-
                 </div>
-
               </div>
 
-
               <div className="space-y-2">
-
                 <div
                   className="
                     h-3
@@ -232,21 +197,13 @@ export default function LoadingState() {
                     bg-muted/40
                   "
                 />
-
               </div>
-
             </div>
-
           </div>
-
         ))}
-
       </div>
 
-
-      {/* ======================================================
-          TOP PREDICTIONS
-          ====================================================== */}
+      {/* TOP PREDICTIONS */}
 
       <div
         className="
@@ -256,9 +213,7 @@ export default function LoadingState() {
           xl:grid-cols-3
         "
       >
-
         {[1, 2, 3].map((item) => (
-
           <div
             key={item}
             className="
@@ -270,13 +225,9 @@ export default function LoadingState() {
               p-4
             "
           >
-
             <div className="space-y-4">
 
-              {/* Header */}
-
               <div className="flex items-center gap-3">
-
                 <div
                   className="
                     h-9
@@ -294,7 +245,6 @@ export default function LoadingState() {
                     space-y-2
                   "
                 >
-
                   <div
                     className="
                       h-3.5
@@ -312,16 +262,10 @@ export default function LoadingState() {
                       bg-muted/40
                     "
                   />
-
                 </div>
-
               </div>
 
-
-              {/* Content */}
-
               <div className="space-y-2">
-
                 <div
                   className="
                     h-3
@@ -339,11 +283,7 @@ export default function LoadingState() {
                     bg-muted/40
                   "
                 />
-
               </div>
-
-
-              {/* Footer */}
 
               <div
                 className="
@@ -352,7 +292,6 @@ export default function LoadingState() {
                   justify-between
                 "
               >
-
                 <div
                   className="
                     h-5
@@ -370,15 +309,11 @@ export default function LoadingState() {
                     bg-muted/40
                   "
                 />
-
               </div>
 
             </div>
-
           </div>
-
         ))}
-
       </div>
 
     </div>

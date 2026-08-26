@@ -1,7 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 import { AdWrapper } from '../shared/AdWrapper';
 import { AdImage } from '../shared/AdImage';
 import { AdBadge } from '../shared/AdBadge';
@@ -27,19 +25,18 @@ export function HeroAd({
       className="
         group
         relative
+        min-h-[230px]
         overflow-hidden
         rounded-2xl
         border
         border-border/60
         bg-card
         shadow-lg
-        transition-all
+        transition-shadow
         duration-300
-        hover:shadow-2xl
-
-        min-h-[230px]
-        sm:min-h-[280px]
-        lg:min-h-[320px]
+        hover:shadow-xl
+        sm:min-h-[270px]
+        lg:min-h-[300px]
       "
     >
 
@@ -47,27 +44,7 @@ export function HeroAd({
 
         <>
 
-          {/* Background */}
-
-          <motion.div
-            initial={{
-              scale: 1,
-            }}
-            animate={{
-              scale: 1.04,
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              repeatType: 'reverse',
-              ease: 'linear',
-            }}
-            className="
-              absolute
-              inset-0
-              overflow-hidden
-            "
-          >
+          <div className="absolute inset-0">
 
             <AdImage
               ad={ad}
@@ -75,12 +52,11 @@ export function HeroAd({
               priority
             />
 
-          </motion.div>
-
-          {/* Main Overlay */}
+          </div>
 
           <div
             className="
+              pointer-events-none
               absolute
               inset-0
               bg-gradient-to-r
@@ -90,20 +66,17 @@ export function HeroAd({
             "
           />
 
-          {/* Bottom Contrast */}
-
           <div
             className="
+              pointer-events-none
               absolute
               inset-0
               bg-gradient-to-t
               from-black/65
-              via-transparent
-              to-black/10
+              via-black/10
+              to-transparent
             "
           />
-
-          {/* Soft Highlight */}
 
           <div
             className="
@@ -122,56 +95,25 @@ export function HeroAd({
         className="
           relative
           z-10
-
           flex
           min-h-[230px]
-          sm:min-h-[280px]
-          lg:min-h-[320px]
-
           flex-col
           justify-between
-
           p-4
+          sm:min-h-[270px]
           sm:p-5
+          lg:min-h-[300px]
           lg:p-6
         "
       >
 
-        {/* Sponsored */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: -8,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: .3,
-          }}
-        >
+        <div>
 
           <AdBadge />
 
-        </motion.div>
+        </div>
 
-        {/* Main Content */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 14,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: .4,
-            delay: .05,
-          }}
+        <div
           className="
             mx-auto
             flex
@@ -181,6 +123,7 @@ export function HeroAd({
             items-center
             justify-center
             gap-2
+            py-4
             text-center
           "
         >
@@ -196,37 +139,19 @@ export function HeroAd({
             light
           />
 
-        </motion.div>
+        </div>
 
-        {/* Footer */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 14,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: .4,
-            delay: .2,
-          }}
+        <div
           className="
-            mt-4
-
+            mt-3
             flex
             flex-col
             gap-4
-
             sm:flex-row
             sm:items-end
             sm:justify-between
           "
         >
-
-          {/* Instructions */}
 
           <div
             className="
@@ -242,14 +167,11 @@ export function HeroAd({
 
           </div>
 
-          {/* Action */}
-
           <div
             className="
               flex
               w-full
               justify-center
-
               sm:w-auto
               sm:justify-end
             "
@@ -261,39 +183,9 @@ export function HeroAd({
 
           </div>
 
-        </motion.div>
+        </div>
 
       </div>
-
-      {/* Ambient Glow */}
-
-      <motion.div
-        animate={{
-          y: [
-            0,
-            -12,
-            0,
-          ],
-        }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className="
-          pointer-events-none
-          absolute
-          -right-32
-          -top-32
-          h-72
-          w-72
-          rounded-full
-          bg-primary/10
-          blur-3xl
-        "
-      />
-
-      {/* Inner Highlight */}
 
       <div
         className="

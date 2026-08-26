@@ -5,8 +5,6 @@ import {
   useState,
 } from 'react';
 
-import { AnimatePresence } from 'framer-motion';
-
 import { InternalAd } from '@/types/internal-ad';
 
 import { InternalAdRenderer } from './InternalAdRenderer';
@@ -23,54 +21,44 @@ type Variant =
   | 'popup';
 
 interface Props {
-
   ads: InternalAd[];
-
   variant: Variant;
-
   interval?: number;
-
 }
 
 export function InternalAdsCarousel({
-
   ads,
-
   variant,
-
-  interval = 1000,
-
+  interval = 8000,
 }: Props) {
+  const weightedAds = useWeightedAds(ads);
 
-  const weightedAds =
-    useWeightedAds(ads);
-
-  const [index, setIndex] =
-    useState(0);
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    setIndex((prev) =>
+      weightedAds.length
+        ? prev % weightedAds.length
+        : 0,
+    );
+  }, [weightedAds.length]);
 
-    if (
-      weightedAds.length <= 1
-    ) {
+  useEffect(() => {
+    if (weightedAds.length <= 1) {
       return;
     }
 
-    const id =
-      setInterval(() => {
+    const id = setInterval(() => {
+      setIndex((prev) =>
+        (prev + 1) % weightedAds.length,
+      );
+    }, interval);
 
-        setIndex((prev) =>
-          (prev + 1) %
-          weightedAds.length,
-        );
-
-      }, interval);
-
-    return () =>
+    return () => {
       clearInterval(id);
-
+    };
   }, [
-    weightedAds,
+    weightedAds.length,
     interval,
   ]);
 
@@ -78,23 +66,12 @@ export function InternalAdsCarousel({
     return null;
   }
 
-  const ad =
-    weightedAds[index];
+  const ad = weightedAds[index];
 
   return (
-
-    <AnimatePresence
-      mode="wait"
-    >
-
-      <InternalAdRenderer
-        key={`${ad._id}-${index}`}
-        ad={ad}
-        variant={variant}
-      />
-
-    </AnimatePresence>
-
+    <InternalAdRenderer
+      ad={ad}
+      variant={variant}
+    />
   );
-
 }

@@ -1,18 +1,12 @@
 'use client';
 
-import {
-  Search,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 
-import {
-  Input,
-} from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 
 interface CommunitySearchProps {
   value: string;
-  onChange: (
-    value: string,
-  ) => void;
+  onChange: (value: string) => void;
   autoFocus?: boolean;
 }
 
@@ -22,19 +16,14 @@ export default function CommunitySearch({
   autoFocus = false,
 }: CommunitySearchProps) {
   return (
-    <div
-      className="
-        relative
-        w-full
-      "
-    >
+    <div className="relative w-full">
       <Search
         className="
           pointer-events-none
           absolute
-          left-3.5
+          left-3
           top-1/2
-          size-4
+          size-3.5
           -translate-y-1/2
           text-muted-foreground
         "
@@ -46,24 +35,24 @@ export default function CommunitySearch({
         autoFocus={autoFocus}
         value={value}
         onChange={(event) =>
-          onChange(
-            event.target.value,
-          )
+          onChange(event.target.value)
         }
         placeholder="Search posts, users, or discussions..."
         aria-label="Search community posts and discussions"
         className="
-          h-10
-          rounded-full
-          border-border
-          bg-background
-          pl-10
-          pr-4
-          shadow-sm
+          h-9
+          rounded-lg
+          border-border/70
+          bg-background/80
+          pl-9
+          pr-3
+          text-sm
+          shadow-none
           transition-colors
-          placeholder:text-muted-foreground/70
-          focus-visible:border-ring
-          focus-visible:ring-ring/30
+          placeholder:text-muted-foreground/60
+          focus-visible:border-primary/40
+          focus-visible:ring-2
+          focus-visible:ring-primary/10
         "
       />
     </div>

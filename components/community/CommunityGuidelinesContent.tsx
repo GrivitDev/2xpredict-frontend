@@ -64,19 +64,19 @@ export default function CommunityGuidelinesContent() {
   return (
     <section
       className="
-        px-4
-        py-8
-        sm:px-6
-        sm:py-12
-        lg:px-8
+        px-3
+        py-5
+        sm:px-4
+        sm:py-7
+        lg:px-6
       "
     >
-      {/* Hero */}
+      {/* HERO */}
 
       <div
         className="
           mx-auto
-          max-w-3xl
+          max-w-2xl
           text-center
         "
       >
@@ -84,20 +84,20 @@ export default function CommunityGuidelinesContent() {
           className="
             inline-flex
             items-center
-            gap-2
+            gap-1.5
             rounded-full
             border
             border-primary/20
             bg-primary/10
-            px-4
-            py-2
-            text-xs
+            px-2.5
+            py-1
+            text-[11px]
             font-semibold
             text-primary
           "
         >
           <ShieldAlert
-            className="size-4"
+            className="size-3.5"
             aria-hidden="true"
           />
 
@@ -106,22 +106,17 @@ export default function CommunityGuidelinesContent() {
 
         <h2
           className="
-            mt-6
-            text-3xl
+            mt-3
+            text-2xl
             font-bold
+            leading-tight
             tracking-tight
             text-foreground
-            sm:text-4xl
+            sm:text-3xl
           "
         >
           Respect the game.
-          <span
-            className="
-              mt-2
-              block
-              text-primary
-            "
-          >
+          <span className="ml-1 text-primary sm:ml-2">
             Respect one another.
           </span>
         </h2>
@@ -129,12 +124,12 @@ export default function CommunityGuidelinesContent() {
         <p
           className="
             mx-auto
-            mt-5
-            max-w-2xl
-            text-s
-            leading-7
+            mt-2.5
+            max-w-xl
+            text-xs
+            leading-5
             text-muted-foreground
-            sm:text-base
+            sm:text-sm
           "
         >
           The 2xpredict community is built for passionate football fans.
@@ -142,61 +137,62 @@ export default function CommunityGuidelinesContent() {
         </p>
       </div>
 
-      {/* Cards */}
+      {/* CARDS */}
 
       <div
         className="
           mx-auto
-          mt-10
+          mt-5
           grid
-          max-w-6xl
-          gap-6
+          max-w-5xl
+          gap-3
           lg:grid-cols-2
         "
       >
-        {/* Allowed */}
+        {/* ALLOWED */}
 
         <section
           className="
-            rounded-3xl
+            rounded-xl
             border
             border-border
             bg-card
-            p-6
+            p-3
             shadow-sm
-            transition-all
-            duration-300
-            hover:shadow-lg
+            sm:p-4
           "
         >
           <div
             className="
-              mb-6
+              mb-3
               flex
               items-center
-              gap-4
+              gap-2.5
             "
           >
             <div
               className="
                 flex
-                size-12
+                size-8
+                shrink-0
                 items-center
                 justify-center
-                rounded-2xl
+                rounded-lg
                 bg-green-500/10
                 text-green-600
                 dark:text-green-400
               "
             >
-              <CheckCircle2 className="size-6" />
+              <CheckCircle2 className="size-4" />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h3
                 className="
-                  text-lg
+                  text-sm
                   font-semibold
+                  leading-tight
+                  text-foreground
                 "
               >
                 What you can share
@@ -204,7 +200,9 @@ export default function CommunityGuidelinesContent() {
 
               <p
                 className="
-                  text-s
+                  mt-0.5
+                  text-[11px]
+                  leading-tight
                   text-muted-foreground
                 "
               >
@@ -213,11 +211,7 @@ export default function CommunityGuidelinesContent() {
             </div>
           </div>
 
-          <div
-            className="
-              space-y-4
-            "
-          >
+          <div className="space-y-1.5">
             {allowedRules.map((rule) => {
               const Icon = rule.icon;
 
@@ -226,42 +220,43 @@ export default function CommunityGuidelinesContent() {
                   key={rule.title}
                   className="
                     flex
-                    gap-4
-                    rounded-2xl
+                    gap-2.5
+                    rounded-lg
                     border
-                    border-border
-                    bg-muted/30
-                    p-4
-                    transition-all
-                    duration-300
-                    hover:border-primary/30
+                    border-border/70
+                    bg-muted/20
+                    p-2.5
+                    transition-colors
+                    hover:border-primary/20
                     hover:bg-primary/5
                   "
                 >
                   <div
                     className="
                       flex
-                      size-10
+                      size-7
                       shrink-0
                       items-center
                       justify-center
-                      rounded-xl
+                      rounded-md
                       bg-primary/10
                     "
                   >
                     <Icon
                       className="
-                        size-5
+                        size-3.5
                         text-primary
                       "
+                      aria-hidden="true"
                     />
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <h4
                       className="
-                        text-s
+                        text-xs
                         font-semibold
+                        leading-tight
                         text-foreground
                       "
                     >
@@ -271,8 +266,8 @@ export default function CommunityGuidelinesContent() {
                     <p
                       className="
                         mt-1
-                        text-s
-                        leading-6
+                        text-[11px]
+                        leading-[1.35rem]
                         text-muted-foreground
                       "
                     >
@@ -285,48 +280,49 @@ export default function CommunityGuidelinesContent() {
           </div>
         </section>
 
-        {/* Blocked */}
+        {/* BLOCKED */}
 
         <section
           className="
-            rounded-3xl
+            rounded-xl
             border
             border-border
             bg-card
-            p-6
+            p-3
             shadow-sm
-            transition-all
-            duration-300
-            hover:shadow-lg
+            sm:p-4
           "
         >
           <div
             className="
-              mb-6
+              mb-3
               flex
               items-center
-              gap-4
+              gap-2.5
             "
           >
             <div
               className="
                 flex
-                size-12
+                size-8
+                shrink-0
                 items-center
                 justify-center
-                rounded-2xl
+                rounded-lg
                 bg-destructive/10
                 text-destructive
               "
             >
-              <XCircle className="size-6" />
+              <XCircle className="size-4" />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h3
                 className="
-                  text-lg
+                  text-sm
                   font-semibold
+                  leading-tight
+                  text-foreground
                 "
               >
                 What we don't allow
@@ -334,7 +330,9 @@ export default function CommunityGuidelinesContent() {
 
               <p
                 className="
-                  text-s
+                  mt-0.5
+                  text-[11px]
+                  leading-tight
                   text-muted-foreground
                 "
               >
@@ -343,30 +341,26 @@ export default function CommunityGuidelinesContent() {
             </div>
           </div>
 
-          <div
-            className="
-              space-y-4
-            "
-          >
+          <div className="space-y-1.5">
             {blockedRules.map((rule) => (
               <div
                 key={rule.title}
                 className="
-                  rounded-2xl
+                  rounded-lg
                   border
-                  border-border
-                  bg-muted/30
-                  p-4
-                  transition-all
-                  duration-300
-                  hover:border-destructive/30
+                  border-border/70
+                  bg-muted/20
+                  p-2.5
+                  transition-colors
+                  hover:border-destructive/20
                   hover:bg-destructive/5
                 "
               >
                 <h4
                   className="
-                    text-s
+                    text-xs
                     font-semibold
+                    leading-tight
                     text-foreground
                   "
                 >
@@ -375,9 +369,9 @@ export default function CommunityGuidelinesContent() {
 
                 <p
                   className="
-                    mt-2
-                    text-s
-                    leading-6
+                    mt-1
+                    text-[11px]
+                    leading-[1.35rem]
                     text-muted-foreground
                   "
                 >
@@ -389,26 +383,28 @@ export default function CommunityGuidelinesContent() {
         </section>
       </div>
 
-      {/* Footer */}
+      {/* FOOTER */}
 
       <div
         className="
           mx-auto
-          mt-10
-          max-w-3xl
-          rounded-2xl
+          mt-4
+          max-w-2xl
+          rounded-lg
           border
           border-primary/20
           bg-primary/5
-          p-5
+          px-3
+          py-2.5
           text-center
         "
       >
         <p
           className="
-            text-s
-            leading-6
+            text-[11px]
+            leading-5
             text-muted-foreground
+            sm:text-xs
           "
         >
           By participating in the community, you agree to follow these

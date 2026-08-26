@@ -2,8 +2,6 @@
 
 import Image from 'next/image';
 
-import { motion } from 'framer-motion';
-
 import { cn } from '@/lib/utils';
 
 import { InternalAd } from '@/types/internal-ad';
@@ -21,34 +19,19 @@ export function AdImage({
   priority = false,
   className,
 }: Props) {
-
   if (!ad.image) {
     return null;
   }
 
   if (fill) {
-
     return (
-
-      <motion.div
-        initial={{
-          opacity: 0,
-          scale: 1.02,
-        }}
-        animate={{
-          opacity: 1,
-          scale: 1,
-        }}
-        transition={{
-          duration: .45,
-        }}
+      <div
         className="
           absolute
           inset-0
           overflow-hidden
         "
       >
-
         <Image
           fill
           priority={priority}
@@ -58,16 +41,10 @@ export function AdImage({
           className={cn(
             `
               object-cover
-              transition-transform
-              duration-700
-              ease-out
-              group-hover:scale-[1.04]
             `,
             className,
           )}
         />
-
-        {/* Premium cinematic overlay */}
 
         <div
           className="
@@ -81,8 +58,6 @@ export function AdImage({
           "
         />
 
-        {/* Soft vignette */}
-
         <div
           className="
             pointer-events-none
@@ -93,27 +68,12 @@ export function AdImage({
             ring-white/10
           "
         />
-
-      </motion.div>
-
+      </div>
     );
-
   }
 
   return (
-
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 8,
-      }}
-      animate={{
-        opacity: 1,
-        y: 0,
-      }}
-      transition={{
-        duration: .4,
-      }}
+    <div
       className="
         group
         relative
@@ -123,12 +83,8 @@ export function AdImage({
         border-border/60
         bg-muted/20
         shadow-sm
-        transition-all
-        duration-300
-        hover:shadow-lg
       "
     >
-
       <Image
         src={ad.image.url}
         alt={ad.title}
@@ -145,16 +101,10 @@ export function AdImage({
             h-full
             w-full
             object-cover
-            transition-transform
-            duration-700
-            ease-out
-            group-hover:scale-[1.04]
           `,
           className,
         )}
       />
-
-      {/* Premium overlay */}
 
       <div
         className="
@@ -168,8 +118,6 @@ export function AdImage({
         "
       />
 
-      {/* Soft border highlight */}
-
       <div
         className="
           pointer-events-none
@@ -181,9 +129,6 @@ export function AdImage({
           ring-white/10
         "
       />
-
-    </motion.div>
-
+    </div>
   );
-
 }

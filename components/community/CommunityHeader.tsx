@@ -3,11 +3,6 @@
 import { useState } from 'react';
 
 import {
-  AnimatePresence,
-  motion,
-} from 'framer-motion';
-
-import {
   ArrowLeft,
   MoreVertical,
   Search,
@@ -47,8 +42,7 @@ export default function CommunityHeader({
       <header
         className="
           fixed
-          left-0
-          right-0
+          inset-x-0
           top-22
           z-40
         "
@@ -63,95 +57,73 @@ export default function CommunityHeader({
             lg:px-8
           "
         >
-          <AnimatePresence mode="wait">
-            {searchMode ? (
-              /* MOBILE SEARCH */
-              <motion.div
-                key="mobile-search"
-                initial={{
-                  opacity: 0,
-                  y: -4,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  y: -4,
-                }}
-                transition={{
-                  duration: 0.18,
-                }}
+          {searchMode ? (
+            <div
+              className="
+                flex
+                h-12
+                items-center
+                gap-1
+                md:hidden
+              "
+            >
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                aria-label="Close search"
+                onClick={() => setSearchMode(false)}
                 className="
-                  flex
-                  h-14
-                  items-center
-                  gap-2
-                  md:hidden
+                  size-8
+                  shrink-0
+                  rounded-lg
                 "
               >
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  aria-label="Close search"
-                  onClick={() => setSearchMode(false)}
-                  className="
-                    size-9
-                    shrink-0
-                    rounded-full
-                  "
-                >
-                  <ArrowLeft className="size-5" />
-                </Button>
+                <ArrowLeft className="size-4" />
+              </Button>
 
-                <div className="min-w-0 flex-1">
-                  <CommunitySearch
-                    value={search}
-                    onChange={onSearch}
-                    autoFocus
-                  />
-                </div>
-              </motion.div>
-            ) : (
-              /* MAIN HEADER */
-              <motion.div
-                key="header"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              <div className="min-w-0 flex-1">
+                <CommunitySearch
+                  value={search}
+                  onChange={onSearch}
+                  autoFocus
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              className="
+                relative
+                flex
+                h-12
+                items-center
+                justify-between
+                gap-2
+              "
+            >
+              {/* BRAND */}
+
+              <div
                 className="
-                  flex
-                  h-14
-                  items-center
-                  justify-between
-                  gap-2
+                  min-w-0
+                  flex-1
                 "
               >
-                {/* BRAND */}
-
-                <div
+                <h1
                   className="
-                    min-w-0
-                    flex-1
+                    truncate
+                    text-sm
+                    font-semibold
+                    tracking-tight
+                    text-foreground
+                    sm:text-base
                   "
                 >
-                  <h1
-                    className="
-                      truncate
-                      text-s
-                      font-bold
-                      tracking-tight
-                      text-foreground
-                      sm:text-base
-                    "
-                  >
-                    2XFOOTBALL Community
-                  </h1>
-                </div>
+                  2XFOOTBALL Community
+                </h1>
+              </div>
 
-                {/* DESKTOP SEARCH */}
+              {/* DESKTOP SEARCH */}
 
               <div
                 className="
@@ -159,7 +131,7 @@ export default function CommunityHeader({
                   left-1/2
                   hidden
                   w-full
-                  max-w-xl
+                  max-w-md
                   -translate-x-1/2
                   md:block
                 "
@@ -170,86 +142,80 @@ export default function CommunityHeader({
                 />
               </div>
 
-                {/* ACTIONS */}
+              {/* ACTIONS */}
 
-                <div
+              <div
+                className="
+                  flex
+                  shrink-0
+                  items-center
+                  gap-0.5
+                "
+              >
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Search community"
                   className="
-                    flex
-                    shrink-0
-                    items-center
-                    gap-1
+                    size-8
+                    rounded-lg
+                    md:hidden
                   "
+                  onClick={() => setSearchMode(true)}
                 >
-                  {/* MOBILE SEARCH */}
+                  <Search className="size-4" />
+                </Button>
 
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Search community"
-                    className="
-                      size-9
-                      rounded-full
-                      md:hidden
-                    "
-                    onClick={() => setSearchMode(true)}
-                  >
-                    <Search className="size-5" />
-                  </Button>
+                <CommunityActions
+                  onDiscussion={onDiscussion}
+                  onMedia={onMedia}
+                />
 
-                  {/* CREATE POST */}
-
-                  <CommunityActions
-                    onDiscussion={onDiscussion}
-                    onMedia={onMedia}
-                  />
-
-                  {/* MORE */}
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        aria-label="More community options"
-                        className="
-                          size-9
-                          rounded-full
-                        "
-                      >
-                        <MoreVertical className="size-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={8}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      aria-label="More community options"
                       className="
-                        w-52
-                        rounded-xl
-                        p-1.5
+                        size-8
+                        rounded-lg
                       "
                     >
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          setGuidelinesOpen(true)
-                        }
-                        className="
-                          cursor-pointer
-                          rounded-lg
-                          px-3
-                          py-2.5
-                        "
-                      >
-                        Community Guidelines
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent
+                    align="end"
+                    sideOffset={6}
+                    className="
+                      w-48
+                      rounded-lg
+                      p-1
+                    "
+                  >
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        setGuidelinesOpen(true)
+                      }
+                      className="
+                        cursor-pointer
+                        rounded-md
+                        px-2.5
+                        py-2
+                        text-sm
+                      "
+                    >
+                      Community Guidelines
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

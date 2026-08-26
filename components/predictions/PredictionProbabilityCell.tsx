@@ -1,9 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import {
-  LockKeyhole,
-} from 'lucide-react';
+import { LockKeyhole } from 'lucide-react';
 
 interface PredictionProbability {
   home: number;
@@ -13,25 +11,13 @@ interface PredictionProbability {
 
 interface Props {
   prediction: {
-    probabilities?:
-      | PredictionProbability
-      | null;
-
+    probabilities?: PredictionProbability | null;
     prediction?: string;
-
     access?: {
       allowed?: boolean;
-      plan?:
-        | 'free'
-        | 'regular'
-        | 'vip';
+      plan?: 'free' | 'regular' | 'vip';
     };
-
-    userPlan?:
-      | 'free'
-      | 'regular'
-      | 'vip';
-
+    userPlan?: 'free' | 'regular' | 'vip';
     accessLoading?: boolean;
   };
 }
@@ -39,52 +25,23 @@ interface Props {
 export default function PredictionProbabilityCell({
   prediction,
 }: Props) {
+  const allowed =
+    prediction.access?.allowed === true;
+
   const probabilities =
     prediction.probabilities;
 
-  const allowed =
-    prediction.access?.allowed ===
-    true;
-
-  /*
-   * =========================================================
-   * VALUES
-   *
-   * IMPORTANT:
-   *
-   * Locked users receive 0, 0, 0.
-   *
-   * The UI structure remains identical.
-   * =========================================================
-   */
-
-  const home = allowed
-    ? clamp(
-        probabilities?.home,
-      )
-    : 0;
-
-  const draw = allowed
-    ? clamp(
-        probabilities?.draw,
-      )
-    : 0;
-
-  const away = allowed
-    ? clamp(
-        probabilities?.away,
-      )
-    : 0;
-
   const selected =
-    String(
-      prediction.prediction ??
-        '',
-    ).toUpperCase();
+    String(prediction.prediction ?? '').toUpperCase();
 
   const hasAccess =
-    allowed &&
-    Boolean(probabilities);
+    allowed && Boolean(probabilities);
+
+  const values = {
+    home: hasAccess ? clamp(probabilities?.home) : 0,
+    draw: hasAccess ? clamp(probabilities?.draw) : 0,
+    away: hasAccess ? clamp(probabilities?.away) : 0,
+  };
 
   return (
     <div
@@ -98,14 +55,10 @@ export default function PredictionProbabilityCell({
         py-1.5
       "
     >
-      <div
-        className="
-          space-y-1.5
-        "
-      >
+      <div className="space-y-1.5">
         <ProbabilityRow
           label="1"
-          value={home}
+          value={values.home}
           active={
             hasAccess &&
             selected === 'HOME'
@@ -114,7 +67,7 @@ export default function PredictionProbabilityCell({
 
         <ProbabilityRow
           label="X"
-          value={draw}
+          value={values.draw}
           active={
             hasAccess &&
             selected === 'DRAW'
@@ -123,17 +76,13 @@ export default function PredictionProbabilityCell({
 
         <ProbabilityRow
           label="2"
-          value={away}
+          value={values.away}
           active={
             hasAccess &&
             selected === 'AWAY'
           }
         />
       </div>
-
-      {/* ===================================================
-          ACCESS MESSAGE
-      =================================================== */}
 
       {!hasAccess && (
         <div
@@ -156,9 +105,7 @@ export default function PredictionProbabilityCell({
             className="shrink-0"
           />
 
-          <span>
-            Access required
-          </span>
+          <span>Access required</span>
         </div>
       )}
     </div>
@@ -179,11 +126,6 @@ function ProbabilityRow({
   value: number;
   active: boolean;
 }) {
-  const color =
-    getProbabilityColor(
-      value,
-    );
-
   return (
     <div
       className="
@@ -193,15 +135,9 @@ function ProbabilityRow({
         gap-1.5
       "
     >
-      {/* LABEL */}
-
       <span
         className={clsx(
-          `
-            text-[11px]
-            font-black
-            leading-none
-          `,
+          'text-[11px] font-black leading-none',
           active
             ? 'text-foreground'
             : 'text-muted-foreground',
@@ -209,8 +145,6 @@ function ProbabilityRow({
       >
         {label}
       </span>
-
-      {/* BAR */}
 
       <div
         className="
@@ -223,13 +157,8 @@ function ProbabilityRow({
         {value > 0 && (
           <div
             className={clsx(
-              `
-                h-full
-                rounded-full
-                transition-all
-                duration-300
-              `,
-              color,
+              'h-full rounded-full',
+              getProbabilityColor(value),
             )}
             style={{
               width: `${value}%`,
@@ -237,8 +166,6 @@ function ProbabilityRow({
           />
         )}
       </div>
-
-      {/* VALUE */}
 
       <span
         className={clsx(
@@ -265,9 +192,7 @@ function ProbabilityRow({
    PROBABILITY COLOR
 ========================================================= */
 
-function getProbabilityColor(
-  value: number,
-) {
+function getProbabilityColor(value: number) {
   if (value >= 60) {
     return 'bg-emerald-500';
   }
@@ -288,23 +213,15 @@ function getProbabilityColor(
    SAFE VALUE
 ========================================================= */
 
-function clamp(
-  value: unknown,
-) {
-  const number =
-    Number(value);
+function clamp(value: unknown): number {
+  const number = Number(value);
 
-  if (
-    !Number.isFinite(number)
-  ) {
+  if (!Number.isFinite(number)) {
     return 0;
   }
 
   return Math.min(
     100,
-    Math.max(
-      0,
-      Math.round(number),
-    ),
+    Math.max(0, Math.round(number)),
   );
 }

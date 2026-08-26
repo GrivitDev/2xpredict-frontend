@@ -26,33 +26,18 @@ import {
 } from '@/components/ui/popover';
 
 
-// ============================================================
-// TYPES
-// ============================================================
-
 interface Props {
-
   leagues: League[];
-
   selectedLeague: string;
-
-  onLeagueChange: (
-    leagueCode: string,
-  ) => void;
-
+  onLeagueChange: (leagueCode: string) => void;
 }
 
 
-// ============================================================
-// HELPERS
-// ============================================================
-
 const getCompetitionTypeLabel = (
   type?: string,
-): string => {
+) => {
 
   switch (type) {
-
     case 'LEAGUE':
       return 'League';
 
@@ -67,36 +52,21 @@ const getCompetitionTypeLabel = (
 
     default:
       return 'Competition';
-
   }
 
 };
 
 
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export default function LeagueSelector({
-
   leagues,
-
   selectedLeague,
-
   onLeagueChange,
-
 }: Props) {
-
-
-  // ==========================================================
-  // STATE
-  // ==========================================================
 
   const [
     open,
     setOpen,
   ] = useState(false);
-
 
   const [
     search,
@@ -104,92 +74,72 @@ export default function LeagueSelector({
   ] = useState('');
 
 
-  // ==========================================================
-  // ACTIVE COMPETITION
-  // ==========================================================
-
-  const activeLeague =
-    useMemo(() => {
-
-      return leagues.find(
+  const activeLeague = useMemo(
+    () =>
+      leagues.find(
         league =>
-          league.code ===
-          selectedLeague,
-      );
-
-    }, [
+          league.code === selectedLeague,
+      ),
+    [
       leagues,
       selectedLeague,
-    ]);
+    ],
+  );
 
 
-  // ==========================================================
-  // FILTER COMPETITIONS
-  // ==========================================================
+  const filteredLeagues = useMemo(() => {
 
-  const filteredLeagues =
-    useMemo(() => {
+    const query =
+      search.trim().toLowerCase();
 
-      const query =
-        search
-          .trim()
-          .toLowerCase();
+    if (!query) {
+      return leagues;
+    }
 
+    return leagues.filter(
+      league =>
+        league.name
+          ?.toLowerCase()
+          .includes(query) ||
+        league.country
+          ?.toLowerCase()
+          .includes(query) ||
+        league.code
+          ?.toLowerCase()
+          .includes(query) ||
+        league.type
+          ?.toLowerCase()
+          .includes(query),
+    );
 
-      if (!query) {
-
-        return leagues;
-
-      }
-
-
-      return leagues.filter(
-        league => {
-
-          const name =
-            league.name
-              ?.toLowerCase() ?? '';
-
-
-          const country =
-            league.country
-              ?.toLowerCase() ?? '';
+  }, [
+    leagues,
+    search,
+  ]);
 
 
-          const code =
-            league.code
-              ?.toLowerCase() ?? '';
+  const handleSelect = (
+    code: string,
+  ) => {
+
+    onLeagueChange(code);
+    setSearch('');
+    setOpen(false);
+
+  };
 
 
-          const type =
-            league.type
-              ?.toLowerCase() ?? '';
+  const handleClear = () => {
 
+    onLeagueChange('');
+    setSearch('');
 
-          return (
-            name.includes(query) ||
-            country.includes(query) ||
-            code.includes(query) ||
-            type.includes(query)
-          );
+  };
 
-        },
-      );
-
-    }, [
-      leagues,
-      search,
-    ]);
-
-
-  // ==========================================================
-  // EMPTY STATE
-  // ==========================================================
 
   if (!leagues.length) {
 
     return (
-
       <div
         className="
           rounded-2xl
@@ -238,67 +188,16 @@ export default function LeagueSelector({
         </div>
 
       </div>
-
     );
 
   }
 
 
-  // ==========================================================
-  // SELECT COMPETITION
-  // ==========================================================
-
-  const handleSelect = (
-    leagueCode: string,
-  ) => {
-
-    onLeagueChange(
-      leagueCode,
-    );
-
-    setSearch('');
-
-    setOpen(false);
-
-  };
-
-
-  // ==========================================================
-  // CLEAR
-  // ==========================================================
-
-  const handleClear = () => {
-
-    onLeagueChange('');
-
-    setSearch('');
-
-  };
-
-
-  // ==========================================================
-  // RENDER
-  // ==========================================================
-
   return (
 
-    <section
-      className="
-        relative
-        w-full
-      "
-    >
+    <section className="relative w-full">
 
-      <div
-        className="
-          flex
-          flex-col
-        "
-      >
-
-        {/* ==================================================
-            LABEL
-        ================================================== */}
+      <div className="flex flex-col">
 
         <div
           className="
@@ -309,32 +208,18 @@ export default function LeagueSelector({
 
           <label
             className="
-              text-lg
+              text-l
               font-semibold
               uppercase
               tracking-wider
               text-muted-foreground
             "
           >
-            Competition
-          </label>
-
-
-          <p
-            className="
-              text-sm
-              text-muted-foreground/80
-            "
-          >
             Select a football league or cup competition.
-          </p>
+          </label>
 
         </div>
 
-
-        {/* ==================================================
-            SEARCH / SELECT
-        ================================================== */}
 
         <Popover
           open={open}
@@ -360,8 +245,7 @@ export default function LeagueSelector({
                 text-left
                 shadow-sm
                 outline-none
-                transition-all
-                duration-200
+                transition
                 hover:border-primary/40
                 hover:shadow-md
                 focus-visible:border-primary
@@ -369,10 +253,6 @@ export default function LeagueSelector({
                 focus-visible:ring-primary/10
               "
             >
-
-              {/* ==================================================
-                  COMPETITION ICON
-              ================================================== */}
 
               <div
                 className="
@@ -389,12 +269,10 @@ export default function LeagueSelector({
                 {activeLeague?.emblem ? (
 
                   <Image
-                    src={
-                      activeLeague.emblem
-                    }
+                    src={activeLeague.emblem}
                     alt=""
-                    width={32}
-                    height={32}
+                    width={40}
+                    height={40}
                     className="
                       h-10
                       w-10
@@ -417,10 +295,6 @@ export default function LeagueSelector({
               </div>
 
 
-              {/* ==================================================
-                  TEXT
-              ================================================== */}
-
               <div
                 className="
                   min-w-0
@@ -441,11 +315,8 @@ export default function LeagueSelector({
                         sm:text-sm
                       "
                     >
-                      {
-                        activeLeague.name
-                      }
+                      {activeLeague.name}
                     </p>
-
 
                     <p
                       className="
@@ -461,21 +332,15 @@ export default function LeagueSelector({
                     >
 
                       <span className="truncate">
-                        {
-                          activeLeague.country
-                        }
+                        {activeLeague.country}
                       </span>
 
-                      <span>
-                        •
-                      </span>
+                      <span>•</span>
 
                       <span className="shrink-0">
-                        {
-                          getCompetitionTypeLabel(
-                            activeLeague.type,
-                          )
-                        }
+                        {getCompetitionTypeLabel(
+                          activeLeague.type,
+                        )}
                       </span>
 
                     </p>
@@ -499,23 +364,17 @@ export default function LeagueSelector({
               </div>
 
 
-              {/* ==================================================
-                  CLEAR
-              ================================================== */}
-
               {activeLeague && (
 
                 <span
                   role="button"
                   tabIndex={0}
-                  onClick={(event) => {
-
+                  aria-label="Clear selected competition"
+                  onClick={event => {
                     event.stopPropagation();
-
                     handleClear();
-
                   }}
-                  onKeyDown={(event) => {
+                  onKeyDown={event => {
 
                     if (
                       event.key === 'Enter' ||
@@ -523,9 +382,7 @@ export default function LeagueSelector({
                     ) {
 
                       event.preventDefault();
-
                       event.stopPropagation();
-
                       handleClear();
 
                     }
@@ -544,7 +401,6 @@ export default function LeagueSelector({
                     hover:bg-muted
                     hover:text-foreground
                   "
-                  aria-label="Clear selected competition"
                 >
 
                   <X
@@ -559,10 +415,6 @@ export default function LeagueSelector({
               )}
 
 
-              {/* ==================================================
-                  CHEVRON
-              ================================================== */}
-
               <ChevronDown
                 className={`
                   h-4
@@ -570,7 +422,6 @@ export default function LeagueSelector({
                   shrink-0
                   text-muted-foreground
                   transition-transform
-                  duration-200
                   ${
                     open
                       ? 'rotate-180'
@@ -583,10 +434,6 @@ export default function LeagueSelector({
 
           </PopoverTrigger>
 
-
-          {/* ==================================================
-              DROPDOWN
-          ================================================== */}
 
           <PopoverContent
             align="start"
@@ -601,10 +448,6 @@ export default function LeagueSelector({
               shadow-xl
             "
           >
-
-            {/* ==================================================
-                SEARCH
-            ================================================== */}
 
             <div
               className="
@@ -641,14 +484,11 @@ export default function LeagueSelector({
                   "
                 />
 
-
                 <input
                   autoFocus
                   value={search}
-                  onChange={(event) =>
-                    setSearch(
-                      event.target.value,
-                    )
+                  onChange={event =>
+                    setSearch(event.target.value)
                   }
                   placeholder="Search competitions..."
                   className="
@@ -663,7 +503,6 @@ export default function LeagueSelector({
                   "
                 />
 
-
                 {search && (
 
                   <button
@@ -671,6 +510,7 @@ export default function LeagueSelector({
                     onClick={() =>
                       setSearch('')
                     }
+                    aria-label="Clear search"
                     className="
                       rounded-md
                       p-1
@@ -679,7 +519,6 @@ export default function LeagueSelector({
                       hover:bg-muted
                       hover:text-foreground
                     "
-                    aria-label="Clear search"
                   >
 
                     <X
@@ -698,10 +537,6 @@ export default function LeagueSelector({
             </div>
 
 
-            {/* ==================================================
-                RESULTS
-            ================================================== */}
-
             <div
               className="
                 max-h-80
@@ -710,33 +545,23 @@ export default function LeagueSelector({
               "
             >
 
-              {filteredLeagues.length > 0 ? (
+              {filteredLeagues.length ? (
 
-                <div
-                  className="
-                    space-y-1
-                  "
-                >
+                <div className="space-y-1">
 
                   {filteredLeagues.map(
                     league => {
 
-                      const isSelected =
-                        league.code ===
-                        selectedLeague;
-
+                      const selected =
+                        league.code === selectedLeague;
 
                       return (
 
                         <button
-                          key={
-                            league.code
-                          }
+                          key={league.code}
                           type="button"
                           onClick={() =>
-                            handleSelect(
-                              league.code,
-                            )
+                            handleSelect(league.code)
                           }
                           className={`
                             flex
@@ -749,16 +574,12 @@ export default function LeagueSelector({
                             text-left
                             transition
                             ${
-                              isSelected
+                              selected
                                 ? 'bg-primary/10'
                                 : 'hover:bg-muted/70'
                             }
                           `}
                         >
-
-                          {/* ==================================================
-                              EMBLEM
-                          ================================================== */}
 
                           <div
                             className="
@@ -775,12 +596,10 @@ export default function LeagueSelector({
                             {league.emblem ? (
 
                               <Image
-                                src={
-                                  league.emblem
-                                }
+                                src={league.emblem}
                                 alt=""
-                                width={38}
-                                height={38}
+                                width={48}
+                                height={48}
                                 className="
                                   h-12
                                   w-12
@@ -803,10 +622,6 @@ export default function LeagueSelector({
                           </div>
 
 
-                          {/* ==================================================
-                              DETAILS
-                          ================================================== */}
-
                           <div
                             className="
                               min-w-0
@@ -823,11 +638,8 @@ export default function LeagueSelector({
                                 sm:text-sm
                               "
                             >
-                              {
-                                league.name
-                              }
+                              {league.name}
                             </p>
-
 
                             <div
                               className="
@@ -843,45 +655,27 @@ export default function LeagueSelector({
                             >
 
                               <span className="truncate">
-                                {
-                                  league.country
-                                }
+                                {league.country}
                               </span>
 
-
                               {league.code && (
-
                                 <>
-                                  <span>
-                                    •
-                                  </span>
-
+                                  <span>•</span>
                                   <span className="shrink-0">
-                                    {
-                                      league.code
-                                    }
+                                    {league.code}
                                   </span>
                                 </>
-
                               )}
 
-
                               {league.type && (
-
                                 <>
-                                  <span>
-                                    •
-                                  </span>
-
+                                  <span>•</span>
                                   <span className="shrink-0">
-                                    {
-                                      getCompetitionTypeLabel(
-                                        league.type,
-                                      )
-                                    }
+                                    {getCompetitionTypeLabel(
+                                      league.type,
+                                    )}
                                   </span>
                                 </>
-
                               )}
 
                             </div>
@@ -889,11 +683,7 @@ export default function LeagueSelector({
                           </div>
 
 
-                          {/* ==================================================
-                              SELECTED
-                          ================================================== */}
-
-                          {isSelected && (
+                          {selected && (
 
                             <Check
                               className="
@@ -952,7 +742,6 @@ export default function LeagueSelector({
 
                   </div>
 
-
                   <p
                     className="
                       text-xs
@@ -963,7 +752,6 @@ export default function LeagueSelector({
                   >
                     No competitions found
                   </p>
-
 
                   <p
                     className="
@@ -990,4 +778,5 @@ export default function LeagueSelector({
     </section>
 
   );
+
 }
