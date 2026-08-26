@@ -4,9 +4,9 @@ export const SEO = {
   description:
     'Get daily football predictions, match tips, VIP picks, fixture insights, live scores, standings, and in-depth football statistics to help you analyse upcoming matches with confidence.',
 
-  url: 'https://2xpredict.vercel.app',
+  url: 'https://2xpredict.com',
 
-  image: 'https://2xpredict.vercel.app/og-image.png',
+  image: 'https://2xpredict.com/og-image.png',
 
   keywords: [
     // Core search intent

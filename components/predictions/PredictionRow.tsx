@@ -1,16 +1,9 @@
 'use client';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
-
 import Image from 'next/image';
 import clsx from 'clsx';
 
 import {
-  getPredictionAccess,
-  PredictionDetails,
   PredictionPlan,
 } from '@/services/prediction.service';
 
@@ -61,6 +54,7 @@ export interface SubscriptionRequiredData {
 
 interface Props {
   prediction: any;
+
   highlighted?: boolean;
 
   onSubscriptionRequired: (
@@ -84,81 +78,25 @@ export default function PredictionRow({
       '',
   );
 
-  const [access, setAccess] =
-    useState<PredictionDetails | null>(null);
-
-  const [accessLoading, setAccessLoading] =
-    useState(true);
-
-  const [accessError, setAccessError] =
-    useState(false);
-
 
   /* =======================================================
      ACCESS
+     
+     Access is already resolved by PredictionsPage.
+     Do NOT make another API request here.
   ======================================================= */
 
-  useEffect(() => {
-    let mounted = true;
+  const userAccess =
+    prediction?.access ?? null;
 
-    if (!predictionId) {
-      setAccessLoading(false);
-      return;
-    }
-
-    const checkAccess = async () => {
-      try {
-        setAccessLoading(true);
-        setAccessError(false);
-
-        const result =
-          await getPredictionAccess(
-            predictionId,
-          );
-
-        if (!mounted) return;
-
-        setAccess(result);
-      } catch (error) {
-        if (!mounted) return;
-
-        console.error(
-          'Prediction access check failed:',
-          predictionId,
-          error,
-        );
-
-        setAccess(null);
-        setAccessError(true);
-      } finally {
-        if (mounted) {
-          setAccessLoading(false);
-        }
-      }
-    };
-
-    checkAccess();
-
-    return () => {
-      mounted = false;
-    };
-  }, [predictionId]);
-
-
-  /* =======================================================
-     ACCESS INFORMATION
-  ======================================================= */
-
-  const userAccess = access?.access;
-
-  const allowed =
-    userAccess?.allowed === true;
 
   const userPlan: PredictionPlan =
-    userAccess?.plan ?? 'free';
+    userAccess?.plan ??
+    prediction?.userPlan ??
+    'free';
 
   const predictionPlan: PredictionPlan =
-    access?.accessType ??
+    userAccess?.accessType ??
     prediction?.accessType ??
     'free';
 
@@ -166,44 +104,62 @@ export default function PredictionRow({
     userAccess?.released === true;
 
   const releaseAt =
-    userAccess?.releaseAt ?? null;
+    userAccess?.releaseAt ??
+    prediction?.releaseAt ??
+    null;
 
   const accessState =
-    userAccess?.state ?? 'locked';
+    userAccess?.state ??
+    prediction?.accessState ??
+    'locked';
 
   const accessMessage =
-    userAccess?.message ?? null;
+    userAccess?.message ??
+    prediction?.accessMessage ??
+    null;
 
 
   /* =======================================================
      PROTECTED DATA
+     
+     The parent page has already merged the protected
+     prediction data into the prediction object.
   ======================================================= */
 
   const cellPrediction = {
     ...prediction,
 
-    prediction: allowed
-      ? access?.data?.prediction
-      : undefined,
+    prediction:
+      prediction?.prediction,
 
-    markets: allowed
-      ? access?.data?.markets
-      : undefined,
+    markets:
+      prediction?.markets,
 
-    probabilities: allowed
-      ? access?.data?.probabilities
-      : undefined,
+    probabilities:
+      prediction?.probabilities,
 
-    access: userAccess,
+    access:
+      userAccess,
 
-    accessLoading,
-    accessError,
+    /*
+     * These are kept for the child cells so they know
+     * access has already been resolved.
+     */
+    accessLoading: false,
 
-    accessType: predictionPlan,
+    accessError: false,
+
+    accessType:
+      predictionPlan,
+
     userPlan,
+
     released,
+
     releaseAt,
+
     accessState,
+
     accessMessage,
   };
 
@@ -228,11 +184,12 @@ export default function PredictionRow({
       '',
   ).toLowerCase();
 
-  const rowClass = getRowClass({
-    confidence,
-    settled,
-    outcome,
-  });
+  const rowClass =
+    getRowClass({
+      confidence,
+      settled,
+      outcome,
+    });
 
 
   /* =======================================================
@@ -254,13 +211,21 @@ export default function PredictionRow({
 
     onSubscriptionRequired({
       predictionId,
+
       requiredPlan,
+
       feature,
+
       userPlan,
+
       predictionPlan,
+
       released,
+
       releaseAt,
+
       accessState,
+
       accessMessage,
     });
   };
@@ -282,7 +247,9 @@ export default function PredictionRow({
           transition-colors
           duration-200
         `,
+
         rowClass,
+
         highlighted &&
           `
             ring-2
@@ -292,7 +259,10 @@ export default function PredictionRow({
           `,
       )}
     >
-      {/* DATE */}
+
+      {/* ===================================================
+          DATE
+      =================================================== */}
 
       <td
         className="
@@ -302,12 +272,18 @@ export default function PredictionRow({
         "
       >
         <DateTimeCell
-          date={prediction?.matchDate}
+          date={
+            prediction?.matchDate ??
+            prediction?.date ??
+            prediction?.kickoffTimestamp
+          }
         />
       </td>
 
 
-      {/* LEAGUE */}
+      {/* ===================================================
+          LEAGUE
+      =================================================== */}
 
       <td
         className="
@@ -322,7 +298,9 @@ export default function PredictionRow({
       </td>
 
 
-      {/* MATCH */}
+      {/* ===================================================
+          MATCH
+      =================================================== */}
 
       <td
         className="
@@ -332,6 +310,7 @@ export default function PredictionRow({
         "
       >
         <div className="relative min-w-0">
+
           <div
             className="
               absolute
@@ -350,11 +329,14 @@ export default function PredictionRow({
           <PredictionMatchCell
             prediction={prediction}
           />
+
         </div>
       </td>
 
 
-      {/* PREDICTION */}
+      {/* ===================================================
+          PREDICTION
+      =================================================== */}
 
       <td
         className="
@@ -364,7 +346,9 @@ export default function PredictionRow({
         "
       >
         <PredictionPredictionCell
-          prediction={cellPrediction}
+          prediction={
+            cellPrediction
+          }
           onSubscriptionRequired={() =>
             handleSubscriptionRequired(
               'prediction',
@@ -374,7 +358,9 @@ export default function PredictionRow({
       </td>
 
 
-      {/* PROBABILITY */}
+      {/* ===================================================
+          PROBABILITY
+      =================================================== */}
 
       <td
         className="
@@ -384,12 +370,16 @@ export default function PredictionRow({
         "
       >
         <PredictionProbabilityCell
-          prediction={cellPrediction}
+          prediction={
+            cellPrediction
+          }
         />
       </td>
 
 
-      {/* MARKETS */}
+      {/* ===================================================
+          MARKETS
+      =================================================== */}
 
       <td
         className="
@@ -399,7 +389,9 @@ export default function PredictionRow({
         "
       >
         <PredictionMarketsCell
-          prediction={cellPrediction}
+          prediction={
+            cellPrediction
+          }
           onSubscriptionRequired={() =>
             handleSubscriptionRequired(
               'markets',
@@ -407,6 +399,7 @@ export default function PredictionRow({
           }
         />
       </td>
+
     </tr>
   );
 }
@@ -419,11 +412,16 @@ export default function PredictionRow({
 function DateTimeCell({
   date,
 }: {
-  date?: string;
+  date?:
+    | string
+    | number
+    | Date
+    | null;
 }) {
-  const matchDate = new Date(
-    date ?? '',
-  );
+  const matchDate =
+    new Date(
+      date ?? '',
+    );
 
   if (
     Number.isNaN(
@@ -594,10 +592,16 @@ function getRequiredPlan({
   accessState,
 }: {
   userPlan: PredictionPlan;
+
   predictionPlan: PredictionPlan;
+
   released: boolean;
+
   accessState: string;
 }): 'regular' | 'vip' {
+  /*
+   * User is not authenticated.
+   */
   if (
     accessState ===
     'login_required'
@@ -605,12 +609,19 @@ function getRequiredPlan({
     return 'regular';
   }
 
+  /*
+   * VIP predictions always require VIP.
+   */
   if (
     predictionPlan === 'vip'
   ) {
     return 'vip';
   }
 
+  /*
+   * Regular users need VIP when a regular
+   * prediction is still in early access.
+   */
   if (
     predictionPlan === 'regular' &&
     userPlan === 'regular' &&
@@ -633,9 +644,15 @@ function getRowClass({
   outcome,
 }: {
   confidence: number;
+
   settled: boolean;
+
   outcome: string;
 }) {
+  /*
+   * Settled predictions take priority over
+   * confidence-based coloring.
+   */
   if (settled) {
     if (
       outcome === 'won' ||
@@ -657,7 +674,9 @@ function getRowClass({
       `;
     }
 
-    if (outcome === 'void') {
+    if (
+      outcome === 'void'
+    ) {
       return `
         bg-slate-500/[0.035]
         hover:bg-slate-500/[0.07]
@@ -665,14 +684,23 @@ function getRowClass({
     }
   }
 
-  if (confidence >= 80) {
+
+  /*
+   * Confidence-based styling.
+   */
+
+  if (
+    confidence >= 80
+  ) {
     return `
       bg-emerald-500/[0.025]
       hover:bg-emerald-500/[0.06]
     `;
   }
 
-  if (confidence >= 65) {
+  if (
+    confidence >= 65
+  ) {
     return `
       bg-amber-500/[0.025]
       hover:bg-amber-500/[0.06]
@@ -693,9 +721,12 @@ function getRowClass({
 function clamp(
   value: unknown,
 ): number {
-  const number = Number(value);
+  const number =
+    Number(value);
 
-  if (!Number.isFinite(number)) {
+  if (
+    !Number.isFinite(number)
+  ) {
     return 0;
   }
 

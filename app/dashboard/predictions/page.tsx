@@ -69,6 +69,8 @@ type Prediction = {
 
   league?: {
     name?: string | null;
+    country?: string | null;
+    emblem?: string | null;
   } | null;
 
   leagueCode?: string | null;
@@ -79,9 +81,13 @@ type Prediction = {
 
   confidence?: number | string | null;
 
-  accessType?: string | null;
+  accessType?: Plan | string | null;
 
   status?: string | null;
+  settled?: boolean;
+  isSettled?: boolean;
+  outcome?: string | null;
+  result?: string | null;
 
   markets?: Array<
     | string
@@ -95,6 +101,8 @@ type Prediction = {
 
   prediction?: unknown;
   probabilities?: unknown;
+
+  [key: string]: unknown;
 };
 
 type SubscriptionModalState = {
@@ -139,10 +147,11 @@ type SubscriptionModalData = {
 const ITEMS_PER_PAGE = 10;
 
 /*
- * Do not fire every access request simultaneously.
+ * Access checks are still performed individually because
+ * authorization is prediction-specific.
  *
- * This preserves individual authorization while reducing
- * browser/backend pressure.
+ * Requests are throttled so the browser does not fire
+ * every request simultaneously.
  */
 const ACCESS_CONCURRENCY = 5;
 
@@ -187,6 +196,33 @@ function getPredictionId(
 }
 
 
+function getPredictionDate(
+  prediction: Prediction,
+): Date | null {
+  const value =
+    prediction.matchDate ??
+    prediction.date ??
+    prediction.kickoffTimestamp;
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ''
+  ) {
+    return null;
+  }
+
+  const date =
+    new Date(value);
+
+  return Number.isNaN(
+    date.getTime(),
+  )
+    ? null
+    : date;
+}
+
+
 function createDefaultAccess(): PredictionAccess {
   return {
     allowed: false,
@@ -198,6 +234,46 @@ function createDefaultAccess(): PredictionAccess {
     message:
       'Please log in to view this prediction.',
   };
+}
+
+
+function normalizePlan(
+  value: unknown,
+): Plan {
+  if (
+    value === 'vip' ||
+    value === 'regular'
+  ) {
+    return value;
+  }
+
+  return 'free';
+}
+
+
+function getPredictionMarketNames(
+  prediction: Prediction,
+): string[] {
+  if (
+    !Array.isArray(
+      prediction.markets,
+    )
+  ) {
+    return [];
+  }
+
+  return prediction.markets
+    .map((market) => {
+      if (
+        typeof market === 'string'
+      ) {
+        return market;
+      }
+
+      return market?.market ?? '';
+    })
+    .filter(Boolean)
+    .map(String);
 }
 
 
@@ -234,6 +310,11 @@ function PredictionsPageContent() {
     useState<SubscriptionModalState>(
       INITIAL_MODAL_STATE,
     );
+
+
+  /* =======================================================
+     FILTER HANDLER
+  ======================================================= */
 
   const handleFiltersChange = (
     nextFilters: PredictionFilterState,
@@ -313,7 +394,7 @@ function PredictionsPageContent() {
         }
       };
 
-    fetchPredictions();
+    void fetchPredictions();
 
     return () => {
       cancelled = true;
@@ -323,15 +404,13 @@ function PredictionsPageContent() {
 
   /* =======================================================
      INDIVIDUAL ACCESS CHECKS
-     
-     Every prediction is still checked independently.
 
-     The difference is that:
-     
-     1. We do not block rendering.
-     2. Only 5 requests run concurrently.
-     3. Each prediction is updated independently.
-     4. We don't wait for all predictions before showing UI.
+     Access is checked independently.
+
+     - Maximum 5 requests at once.
+     - Results are applied independently.
+     - The page does not wait for access checks.
+     - Predictions with existing access data are skipped.
   ======================================================= */
 
   useEffect(() => {
@@ -350,9 +429,7 @@ function PredictionsPageContent() {
 
         const worker =
           async () => {
-            while (
-              !cancelled
-            ) {
+            while (!cancelled) {
               const index =
                 currentIndex++;
 
@@ -376,8 +453,8 @@ function PredictionsPageContent() {
               }
 
               /*
-               * Don't repeat an access check if this
-               * prediction already contains access data.
+               * Do not request access again if this
+               * prediction has already been resolved.
                */
               if (
                 prediction.access
@@ -391,9 +468,7 @@ function PredictionsPageContent() {
                     id,
                   );
 
-                if (
-                  cancelled
-                ) {
+                if (cancelled) {
                   return;
                 }
 
@@ -411,15 +486,14 @@ function PredictionsPageContent() {
                           );
 
                         if (
-                          itemId !==
-                          id
+                          itemId !== id
                         ) {
                           return item;
                         }
 
                         if (
                           access.allowed &&
-                          result.data
+                          result?.data
                         ) {
                           return {
                             ...item,
@@ -461,9 +535,7 @@ function PredictionsPageContent() {
                     ),
                 );
               } catch (error) {
-                if (
-                  cancelled
-                ) {
+                if (cancelled) {
                   return;
                 }
 
@@ -472,10 +544,6 @@ function PredictionsPageContent() {
                   error,
                 );
 
-                /*
-                 * Don't block the entire page because
-                 * one prediction's access request failed.
-                 */
                 setPredictions(
                   (current) =>
                     current.map(
@@ -546,9 +614,10 @@ function PredictionsPageContent() {
         }
       }
 
-      return Array.from(values).sort(
-        (a, b) =>
-          a.localeCompare(b),
+      return Array.from(
+        values,
+      ).sort((a, b) =>
+        a.localeCompare(b),
       );
     }, [
       predictions,
@@ -568,29 +637,13 @@ function PredictionsPageContent() {
         const prediction of
           predictions
       ) {
-        if (
-          !Array.isArray(
-            prediction.markets,
-          )
-        ) {
-          continue;
-        }
-
         for (
           const market of
-            prediction.markets
+            getPredictionMarketNames(
+              prediction,
+            )
         ) {
-          const value =
-            typeof market ===
-            'string'
-              ? market
-              : market?.market;
-
-          if (value) {
-            markets.add(
-              String(value),
-            );
-          }
+          markets.add(market);
         }
       }
 
@@ -605,7 +658,7 @@ function PredictionsPageContent() {
 
 
   /* =======================================================
-     FILTER PREDICTIONS
+     FILTER + SORT
   ======================================================= */
 
   const filtered =
@@ -701,8 +754,7 @@ function PredictionsPageContent() {
         | null = null;
 
       if (
-        filters.date ===
-          'custom' &&
+        filters.date === 'custom' &&
         filters.customDate
       ) {
         customStart =
@@ -855,16 +907,24 @@ function PredictionsPageContent() {
 
               if (
                 filters.date ===
-                  'custom' &&
-                customStart &&
-                customEnd &&
-                !isWithin(
-                  matchDate,
-                  customStart,
-                  customEnd,
-                )
+                  'custom'
               ) {
-                return false;
+                if (
+                  !customStart ||
+                  !customEnd
+                ) {
+                  return false;
+                }
+
+                if (
+                  !isWithin(
+                    matchDate,
+                    customStart,
+                    customEnd,
+                  )
+                ) {
+                  return false;
+                }
               }
             }
 
@@ -886,11 +946,19 @@ function PredictionsPageContent() {
 
             if (
               filters.plan !==
-                'all' &&
-              prediction.accessType !==
-                filters.plan
+                'all'
             ) {
-              return false;
+              const predictionPlan =
+                normalizePlan(
+                  prediction.accessType,
+                );
+
+              if (
+                predictionPlan !==
+                filters.plan
+              ) {
+                return false;
+              }
             }
 
 
@@ -922,32 +990,14 @@ function PredictionsPageContent() {
                 'all'
             ) {
               const markets =
-                Array.isArray(
-                  prediction.markets,
-                )
-                  ? prediction.markets
-                  : [];
-
-              const hasMarket =
-                markets.some(
-                  (market) => {
-                    const value =
-                      typeof market ===
-                      'string'
-                        ? market
-                        : market?.market;
-
-                    return (
-                      String(
-                        value ?? '',
-                      ) ===
-                      filters.market
-                    );
-                  },
+                getPredictionMarketNames(
+                  prediction,
                 );
 
               if (
-                !hasMarket
+                !markets.includes(
+                  filters.market,
+                )
               ) {
                 return false;
               }
@@ -960,24 +1010,122 @@ function PredictionsPageContent() {
 
       /* ---------------------------------------------------
          SORT
+
+         Priority:
+         1. Today's matches
+         2. Upcoming matches
+         3. Past matches
+
+         Today/upcoming:
+         earliest first
+
+         Past:
+         newest first
       --------------------------------------------------- */
 
       result.sort(
         (a, b) => {
+          const now =
+            Date.now();
+
+          const aDate =
+            getPredictionDate(a);
+
+          const bDate =
+            getPredictionDate(b);
+
+          if (
+            !aDate &&
+            !bDate
+          ) {
+            return 0;
+          }
+
+          if (!aDate) {
+            return 1;
+          }
+
+          if (!bDate) {
+            return -1;
+          }
+
           const aTime =
-            getPredictionDate(
-              a,
-            )?.getTime() ??
-            Number.MAX_SAFE_INTEGER;
+            aDate.getTime();
 
           const bTime =
-            getPredictionDate(
-              b,
-            )?.getTime() ??
-            Number.MAX_SAFE_INTEGER;
+            bDate.getTime();
+
+          const startOfToday =
+            new Date();
+
+          startOfToday.setHours(
+            0,
+            0,
+            0,
+            0,
+          );
+
+          const endOfToday =
+            new Date(
+              startOfToday,
+            );
+
+          endOfToday.setDate(
+            endOfToday.getDate() + 1,
+          );
+
+          const isToday =
+            (time: number) =>
+              time >=
+                startOfToday.getTime() &&
+              time <
+                endOfToday.getTime();
+
+          const getPriority =
+            (time: number) => {
+              if (
+                isToday(time)
+              ) {
+                return 0;
+              }
+
+              if (
+                time > now
+              ) {
+                return 1;
+              }
+
+              return 2;
+            };
+
+          const aPriority =
+            getPriority(aTime);
+
+          const bPriority =
+            getPriority(bTime);
+
+          if (
+            aPriority !==
+            bPriority
+          ) {
+            return (
+              aPriority -
+              bPriority
+            );
+          }
+
+          if (
+            aPriority === 2
+          ) {
+            return (
+              bTime -
+              aTime
+            );
+          }
 
           return (
-            aTime - bTime
+            aTime -
+            bTime
           );
         },
       );
@@ -1015,14 +1163,25 @@ function PredictionsPageContent() {
     );
 
 
+  /*
+   * Keep the current page valid if filtering reduces
+   * the number of available pages.
+   */
+  useEffect(() => {
+    if (
+      totalPages > 0 &&
+      page > totalPages
+    ) {
+      setPage(totalPages);
+    }
+  }, [
+    page,
+    totalPages,
+  ]);
+
+
   /* =======================================================
      RENDER STATES
-     
-     NOTE:
-     There is intentionally NO accessLoading condition here.
-
-     The page is allowed to render while individual
-     prediction access checks are happening.
   ======================================================= */
 
   const hasResults =
@@ -1204,7 +1363,9 @@ function PredictionsPageContent() {
 
       <PredictionFilters
         value={filters}
-        onChange={handleFiltersChange}
+        onChange={
+          handleFiltersChange
+        }
         leagues={leagues}
         availableMarkets={
           availableMarkets
@@ -1223,7 +1384,7 @@ function PredictionsPageContent() {
         error && (
           <div
             className="
-              rounded-3xl
+              rounded-2xl
               border
               border-red-500/30
               bg-red-500/5
@@ -1252,7 +1413,7 @@ function PredictionsPageContent() {
       {loading && (
         <div
           className="
-            rounded-3xl
+            rounded-2xl
             border
             border-border
             bg-card
@@ -1273,7 +1434,7 @@ function PredictionsPageContent() {
       {showEmpty && (
         <div
           className="
-            rounded-3xl
+            rounded-2xl
             border
             border-border
             bg-card
@@ -1292,8 +1453,7 @@ function PredictionsPageContent() {
               text-muted-foreground
             "
           >
-            Try changing your
-            filters.
+            Try changing your filters.
           </p>
         </div>
       )}
@@ -1333,13 +1493,13 @@ function PredictionsPageContent() {
 
 
       {/* =====================================================
-          MOBILE CARDS
+          MOBILE / TABLET CARDS
       ===================================================== */}
 
       {canRenderResults && (
         <div
           className="
-            space-y-4
+            space-y-3
             xl:hidden
           "
         >
@@ -1386,6 +1546,7 @@ function PredictionsPageContent() {
       ===================================================== */}
 
       {!loading &&
+        !error &&
         filtered.length > 0 && (
           <PredictionPagination
             page={page}
@@ -1468,29 +1629,6 @@ function PredictionsPageContent() {
    DATE HELPERS
 ========================================================= */
 
-function getPredictionDate(
-  prediction: Prediction,
-): Date | null {
-  const value =
-    prediction.matchDate ??
-    prediction.date ??
-    prediction.kickoffTimestamp;
-
-  if (!value) {
-    return null;
-  }
-
-  const date =
-    new Date(value);
-
-  return Number.isNaN(
-    date.getTime(),
-  )
-    ? null
-    : date;
-}
-
-
 function isWithin(
   date: Date,
   start: Date,
@@ -1513,7 +1651,7 @@ export default function PredictionsPage() {
       fallback={
         <div
           className="
-            rounded-3xl
+            rounded-2xl
             border
             border-border
             bg-card
