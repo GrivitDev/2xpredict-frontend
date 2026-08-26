@@ -235,6 +235,13 @@ function PredictionsPageContent() {
       INITIAL_MODAL_STATE,
     );
 
+  const handleFiltersChange = (
+    nextFilters: PredictionFilterState,
+  ) => {
+    setFilters(nextFilters);
+    setPage(1);
+  };
+
 
   /* =======================================================
      URL
@@ -430,9 +437,9 @@ function PredictionsPageContent() {
                               null,
 
                             markets:
-                              result.data
+                              (result.data
                                 ?.markets ??
-                              null,
+                                null) as Prediction['markets'],
                           };
                         }
 
@@ -448,7 +455,7 @@ function PredictionsPageContent() {
                             null,
 
                           markets:
-                            null,
+                            null as Prediction['markets'],
                         };
                       },
                     ),
@@ -983,15 +990,6 @@ function PredictionsPageContent() {
 
 
   /* =======================================================
-     RESET PAGINATION
-  ======================================================= */
-
-  useEffect(() => {
-    setPage(1);
-  }, [filters]);
-
-
-  /* =======================================================
      PAGINATION
   ======================================================= */
 
@@ -1074,8 +1072,19 @@ function PredictionsPageContent() {
     if (
       targetPage !== page
     ) {
-      setPage(targetPage);
-      return;
+      const pageTimer =
+        window.setTimeout(
+          () => {
+            setPage(targetPage);
+          },
+          0,
+        );
+
+      return () => {
+        window.clearTimeout(
+          pageTimer,
+        );
+      };
     }
 
     const timer =
@@ -1195,7 +1204,7 @@ function PredictionsPageContent() {
 
       <PredictionFilters
         value={filters}
-        onChange={setFilters}
+        onChange={handleFiltersChange}
         leagues={leagues}
         availableMarkets={
           availableMarkets

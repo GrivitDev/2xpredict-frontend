@@ -38,6 +38,7 @@ export default function CupCompetition({
     () =>
       knockout.some(({ matches }) =>
         matches.some(({ status }) =>
+          status !== undefined &&
           [
             'FINISHED',
             'IN_PLAY',

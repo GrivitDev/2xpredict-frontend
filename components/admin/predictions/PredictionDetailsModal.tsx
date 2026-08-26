@@ -19,19 +19,17 @@ import {
   getLeagueName,
 } from '@/constants/leagues';
 
-type ProbabilityField = 'home' | 'draw' | 'away';
-
-interface Props {
+type Props = {
   prediction: any;
   onClose: () => void;
 
   settlementResult: string;
-  setSettlementResult: (value: string) => void;
+  setSettlementResult: (value: any) => void;
 
   probabilityTotal: number;
 
   updateProbability: (
-    field: ProbabilityField,
+    field: 'home' | 'draw' | 'away',
     value: number,
   ) => void;
 
@@ -42,18 +40,16 @@ interface Props {
 
   saveEdit: () => void;
   deleteItem: () => void;
-}
+};
 
-interface SettlementStatus {
-  type: 'settled' | 'pending' | 'upcoming';
-  label: string;
-  icon: React.ReactNode;
-  classes: string;
-}
+const getSettlementStatus = (prediction: any) => {
+  const now = new Date();
+  const matchTime = new Date(prediction.matchDate);
 
-const getSettlementStatus = (
-  prediction: any,
-): SettlementStatus => {
+  const settlementTime = new Date(
+    matchTime.getTime() + 2 * 60 * 60 * 1000,
+  );
+
   if (prediction.settled) {
     return {
       type: 'settled',
@@ -63,12 +59,7 @@ const getSettlementStatus = (
     };
   }
 
-  const matchTime = new Date(prediction.matchDate);
-  const settlementTime = new Date(
-    matchTime.getTime() + 2 * 60 * 60 * 1000,
-  );
-
-  if (new Date() >= settlementTime) {
+  if (now >= settlementTime) {
     return {
       type: 'pending',
       label: 'Awaiting Settlement',
@@ -85,58 +76,6 @@ const getSettlementStatus = (
   };
 };
 
-const getPredictionHero = (
-  prediction: any,
-) => {
-  switch (prediction.prediction) {
-    case 'HOME':
-      return {
-        badge: prediction.homeTeamBadge,
-        title: `${prediction.homeTeam} To Win`,
-        description: 'Home victory predicted',
-      };
-
-    case 'AWAY':
-      return {
-        badge: prediction.awayTeamBadge,
-        title: `${prediction.awayTeam} To Win`,
-        description: 'Away victory predicted',
-      };
-
-    case 'DRAW':
-      return {
-        badge: undefined,
-        title: 'Draw',
-        description: 'Draw predicted',
-      };
-
-    default:
-      return {
-        badge: undefined,
-        title: prediction.prediction || 'No prediction',
-        description: 'Prediction selected',
-      };
-  }
-};
-
-const probabilityFields: {
-  field: ProbabilityField;
-  label: (prediction: any) => string;
-}[] = [
-  {
-    field: 'home',
-    label: (prediction) => `${prediction.homeTeam} Win`,
-  },
-  {
-    field: 'draw',
-    label: () => 'Draw',
-  },
-  {
-    field: 'away',
-    label: (prediction) => `${prediction.awayTeam} Win`,
-  },
-];
-
 export default function PredictionDetailsModal({
   prediction,
   onClose,
@@ -152,8 +91,7 @@ export default function PredictionDetailsModal({
     return null;
   }
 
-  const settlementStatus =
-    getSettlementStatus(prediction);
+  const settlementStatus = getSettlementStatus(prediction);
 
   const leagueName =
     prediction.league?.name ??
@@ -163,14 +101,40 @@ export default function PredictionDetailsModal({
 
   const confidence = Math.max(
     0,
-    Math.min(
-      100,
-      Number(prediction.confidence) || 0,
-    ),
+    Math.min(100, Number(prediction.confidence) || 0),
   );
 
-  const predictionHero =
-    getPredictionHero(prediction);
+  const predictionHero = (() => {
+    switch (prediction.prediction) {
+      case 'HOME':
+        return {
+          badge: prediction.homeTeamBadge,
+          title: `${prediction.homeTeam} To Win`,
+          description: 'Home victory predicted',
+        };
+
+      case 'AWAY':
+        return {
+          badge: prediction.awayTeamBadge,
+          title: `${prediction.awayTeam} To Win`,
+          description: 'Away victory predicted',
+        };
+
+      case 'DRAW':
+        return {
+          badge: undefined,
+          title: 'Draw',
+          description: 'Draw predicted',
+        };
+
+      default:
+        return {
+          badge: undefined,
+          title: prediction.prediction || 'No prediction',
+          description: 'Prediction selected',
+        };
+    }
+  })();
 
   const canSave =
     Boolean(settlementResult) ||
@@ -370,9 +334,7 @@ export default function PredictionDetailsModal({
                     year: 'numeric',
                   })}
 
-                  <span className="text-border">
-                    •
-                  </span>
+                  <span className="text-border">•</span>
 
                   {matchDate.toLocaleTimeString('en-NG', {
                     hour: 'numeric',
@@ -392,13 +354,62 @@ export default function PredictionDetailsModal({
                     sm:gap-6
                   "
                 >
-                  <TeamDisplay
-                    name={prediction.homeTeam}
-                    badge={prediction.homeTeamBadge}
-                    label="Home"
-                  />
+                  <div
+                    className="
+                      flex
+                      min-w-0
+                      flex-col
+                      items-center
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        h-16
+                        w-16
+                        items-center
+                        justify-center
+                        rounded-2xl
+                        border
+                        border-border
+                        bg-background
+                        shadow-sm
+                        sm:h-20
+                        sm:w-20
+                      "
+                    >
+                      {prediction.homeTeamBadge ? (
+                        <Image
+                          src={prediction.homeTeamBadge}
+                          alt={prediction.homeTeam}
+                          width={56}
+                          height={56}
+                          className="h-12 w-12 object-contain sm:h-14 sm:w-14"
+                        />
+                      ) : (
+                        <ShieldCheck className="h-7 w-7 text-muted-foreground" />
+                      )}
+                    </div>
 
-                  <span
+                    <h2
+                      className="
+                        mt-3
+                        line-clamp-2
+                        text-s
+                        font-bold
+                        sm:text-lg
+                      "
+                    >
+                      {prediction.homeTeam}
+                    </h2>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Home
+                    </p>
+                  </div>
+
+                  <div
                     className="
                       flex
                       h-12
@@ -420,13 +431,62 @@ export default function PredictionDetailsModal({
                     "
                   >
                     VS
-                  </span>
+                  </div>
 
-                  <TeamDisplay
-                    name={prediction.awayTeam}
-                    badge={prediction.awayTeamBadge}
-                    label="Away"
-                  />
+                  <div
+                    className="
+                      flex
+                      min-w-0
+                      flex-col
+                      items-center
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        h-16
+                        w-16
+                        items-center
+                        justify-center
+                        rounded-2xl
+                        border
+                        border-border
+                        bg-background
+                        shadow-sm
+                        sm:h-20
+                        sm:w-20
+                      "
+                    >
+                      {prediction.awayTeamBadge ? (
+                        <Image
+                          src={prediction.awayTeamBadge}
+                          alt={prediction.awayTeam}
+                          width={56}
+                          height={56}
+                          className="h-12 w-12 object-contain sm:h-14 sm:w-14"
+                        />
+                      ) : (
+                        <ShieldCheck className="h-7 w-7 text-muted-foreground" />
+                      )}
+                    </div>
+
+                    <h2
+                      className="
+                        mt-3
+                        line-clamp-2
+                        text-s
+                        font-bold
+                        sm:text-lg
+                      "
+                    >
+                      {prediction.awayTeam}
+                    </h2>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Away
+                    </p>
+                  </div>
                 </div>
 
                 <div
@@ -588,19 +648,17 @@ export default function PredictionDetailsModal({
 
                     <Info
                       label="Match status"
-                      value={
-                        prediction.status || 'Upcoming'
-                      }
+                      value={prediction.status || 'Upcoming'}
                     />
                   </div>
                 </Section>
 
                 <Section
                   title="Markets"
-                  description={`${prediction.markets?.length || 0} market selection${
-                    prediction.markets?.length === 1
-                      ? ''
-                      : 's'
+                  description={`${
+                    prediction.markets?.length || 0
+                  } market selection${
+                    prediction.markets?.length === 1 ? '' : 's'
                   } available.`}
                   icon={<Target className="h-5 w-5" />}
                 >
@@ -676,33 +734,21 @@ export default function PredictionDetailsModal({
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Info
                       label="Created"
-                      value={
-                        prediction.createdAt
-                          ? new Date(
-                              prediction.createdAt,
-                            ).toLocaleString()
-                          : '-'
-                      }
+                      value={new Date(
+                        prediction.createdAt,
+                      ).toLocaleString()}
                     />
 
                     <Info
                       label="Last updated"
-                      value={
-                        prediction.updatedAt
-                          ? new Date(
-                              prediction.updatedAt,
-                            ).toLocaleString()
-                          : '-'
-                      }
+                      value={new Date(
+                        prediction.updatedAt,
+                      ).toLocaleString()}
                     />
 
                     <Info
                       label="Settled"
-                      value={
-                        prediction.settled
-                          ? 'Yes'
-                          : 'No'
-                      }
+                      value={prediction.settled ? 'Yes' : 'No'}
                     />
 
                     <Info
@@ -766,30 +812,91 @@ export default function PredictionDetailsModal({
                   </div>
 
                   <div className="mt-4 grid gap-3">
-                    {probabilityFields.map(
-                      (item) => {
-                        const label =
-                          item.label(prediction);
+                    {(
+                      [
+                        {
+                          field: 'home',
+                          label: `${prediction.homeTeam} Win`,
+                        },
+                        {
+                          field: 'draw',
+                          label: 'Draw',
+                        },
+                        {
+                          field: 'away',
+                          label: `${prediction.awayTeam} Win`,
+                        },
+                      ] as const
+                    ).map((item) => (
+                      <label
+                        key={item.field}
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                          rounded-2xl
+                          border
+                          border-border
+                          bg-muted/20
+                          p-3
+                        "
+                      >
+                        <span className="min-w-0 truncate text-s font-medium">
+                          {item.label}
+                        </span>
 
-                        return (
-                          <ProbabilityInput
-                            key={item.field}
-                            label={label}
+                        <div className="relative w-24 shrink-0">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
                             value={
                               prediction.probabilities?.[
                                 item.field
                               ] ?? 0
                             }
-                            onChange={(value) =>
+                            onChange={(event) =>
                               updateProbability(
                                 item.field,
-                                value,
+                                Number(event.target.value),
                               )
                             }
+                            aria-label={`${item.label} probability`}
+                            className="
+                              h-10
+                              w-full
+                              rounded-xl
+                              border
+                              border-input
+                              bg-background
+                              px-3
+                              pr-7
+                              text-right
+                              text-s
+                              font-semibold
+                              outline-none
+                              focus-visible:ring-2
+                              focus-visible:ring-primary/30
+                            "
                           />
-                        );
-                      },
-                    )}
+
+                          <span
+                            className="
+                              pointer-events-none
+                              absolute
+                              right-3
+                              top-1/2
+                              -translate-y-1/2
+                              text-xs
+                              text-muted-foreground
+                            "
+                          >
+                            %
+                          </span>
+                        </div>
+                      </label>
+                    ))}
                   </div>
                 </Section>
 
@@ -816,8 +923,8 @@ export default function PredictionDetailsModal({
                       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
 
                       <p>
-                        This fixture is ready for settlement.
-                        Select the final result below.
+                        This fixture is ready for settlement. Select
+                        the final result below.
                       </p>
                     </div>
                   )}
@@ -972,140 +1079,6 @@ export default function PredictionDetailsModal({
         </footer>
       </div>
     </div>
-  );
-}
-
-function TeamDisplay({
-  name,
-  badge,
-  label,
-}: {
-  name: string;
-  badge?: string;
-  label: string;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col items-center text-center">
-      <div
-        className="
-          flex
-          h-16
-          w-16
-          items-center
-          justify-center
-          rounded-2xl
-          border
-          border-border
-          bg-background
-          shadow-sm
-          sm:h-20
-          sm:w-20
-        "
-      >
-        {badge ? (
-          <Image
-            src={badge}
-            alt={name}
-            width={56}
-            height={56}
-            className="h-12 w-12 object-contain sm:h-14 sm:w-14"
-          />
-        ) : (
-          <ShieldCheck className="h-7 w-7 text-muted-foreground" />
-        )}
-      </div>
-
-      <h2
-        className="
-          mt-3
-          line-clamp-2
-          text-s
-          font-bold
-          sm:text-lg
-        "
-      >
-        {name}
-      </h2>
-
-      <p className="mt-1 text-xs text-muted-foreground">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-function ProbabilityInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label
-      className="
-        flex
-        items-center
-        justify-between
-        gap-4
-        rounded-2xl
-        border
-        border-border
-        bg-muted/20
-        p-3
-      "
-    >
-      <span className="min-w-0 truncate text-s font-medium">
-        {label}
-      </span>
-
-      <div className="relative w-24 shrink-0">
-        <input
-          type="number"
-          min="0"
-          max="100"
-          value={value}
-          onChange={(event) =>
-            onChange(
-              Number(event.target.value),
-            )
-          }
-          aria-label={`${label} probability`}
-          className="
-            h-10
-            w-full
-            rounded-xl
-            border
-            border-input
-            bg-background
-            px-3
-            pr-7
-            text-right
-            text-s
-            font-semibold
-            outline-none
-            focus-visible:ring-2
-            focus-visible:ring-primary/30
-          "
-        />
-
-        <span
-          className="
-            pointer-events-none
-            absolute
-            right-3
-            top-1/2
-            -translate-y-1/2
-            text-xs
-            text-muted-foreground
-          "
-        >
-          %
-        </span>
-      </div>
-    </label>
   );
 }
 

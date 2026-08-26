@@ -616,8 +616,8 @@ export default function KnockoutBracket({
 }: Props) {
   const rounds = useMemo(() => {
     const grouped = Object.fromEntries(
-      ROUND_ORDER.map((round) => [round, []]),
-    ) as Record<
+      ROUND_ORDER.map((round) => [round, []])
+    ) as unknown as Record<
       BracketRound,
       KnockoutMatch[]
     >;
