@@ -217,9 +217,6 @@ export default function PredictionMobileCard({
           </div>
         </div>
 
-        {/* CONFIDENCE */}
-        <ConfidenceRow confidence={confidence} />
-
         {/* PROBABILITY */}
         <CompactSection label="Probability">
           <PredictionProbabilityCell prediction={cellPrediction} />
