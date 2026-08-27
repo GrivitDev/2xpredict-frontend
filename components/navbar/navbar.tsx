@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { useNavbar } from './NavbarContext';
 
 import {
   FaFacebookF,
@@ -15,12 +16,14 @@ import ThemeSwitcher from './ThemeSwitcher';
 import UserMenu from './UserMenu';
 import MobileMenu from './MobileMenu';
 
-
 // ============================================================
 // NAVBAR
 // ============================================================
 
 export default function Navbar() {
+  const { visible } = useNavbar();
+
+  
   return (
     <>
       {/* ============================================================
@@ -28,7 +31,7 @@ export default function Navbar() {
       ============================================================ */}
 
       <header
-        className="
+        className={`
           fixed
           inset-x-0
           top-0
@@ -37,7 +40,15 @@ export default function Navbar() {
           pt-2
           sm:px-4
           sm:pt-3
-        "
+          transition-transform
+          duration-300
+          ease-out
+          ${
+            visible
+              ? 'translate-y-0'
+              : '-translate-y-[calc(100%+1rem)]'
+          }
+        `}
       >
         <div
           className="
@@ -85,7 +96,6 @@ export default function Navbar() {
               </div>
             </div>
 
-
             {/* ========================================================
                 DESKTOP NAVIGATION
             ======================================================== */}
@@ -101,7 +111,6 @@ export default function Navbar() {
             >
               <NavLinks />
             </div>
-
 
             {/* ========================================================
                 BRAND
@@ -168,7 +177,6 @@ export default function Navbar() {
                 />
               </div>
 
-
               {/* BRAND NAME */}
 
               <div
@@ -207,7 +215,6 @@ export default function Navbar() {
               </div>
             </Link>
 
-
             {/* ========================================================
                 DESKTOP RIGHT SIDE
             ======================================================== */}
@@ -232,9 +239,10 @@ export default function Navbar() {
                   gap-0.5
                 "
               >
-
                 <Link
-                  href={process.env.NEXT_PUBLIC_FACEBOOK || '#'}
+                  href={
+                    process.env.NEXT_PUBLIC_FACEBOOK || '#'
+                  }
                   aria-label="Facebook"
                   className="
                     flex
@@ -252,7 +260,10 @@ export default function Navbar() {
                 </Link>
 
                 <Link
-                  href={process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL || '#'}
+                  href={
+                    process.env
+                      .NEXT_PUBLIC_TELEGRAM_CHANNEL || '#'
+                  }
                   aria-label="Telegram"
                   className="
                     flex
@@ -270,7 +281,9 @@ export default function Navbar() {
                 </Link>
 
                 <Link
-                  href={process.env.NEXT_PUBLIC_TWITTER || '#'}
+                  href={
+                    process.env.NEXT_PUBLIC_TWITTER || '#'
+                  }
                   aria-label="X"
                   className="
                     flex
@@ -287,8 +300,6 @@ export default function Navbar() {
                   <FaXTwitter className="h-4 w-4" />
                 </Link>
               </div>
-
-
 
               {/* ACCOUNT CONTROLS */}
 
@@ -309,7 +320,6 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-
 
       {/* ============================================================
           PAGE SPACER

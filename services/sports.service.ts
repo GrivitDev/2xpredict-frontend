@@ -496,6 +496,38 @@ export const getPastResults =
   };
 
 
+  export const getPastResultsByIds =
+  async (
+    matchIds: Array<string | number>,
+  ): Promise<Match[]> => {
+
+    if (!matchIds.length) {
+      return [];
+    }
+
+    const ids =
+      matchIds
+        .map(id => String(id))
+        .filter(Boolean);
+
+    if (!ids.length) {
+      return [];
+    }
+
+    const res =
+      await api.get(
+        '/sports/results/by-ids',
+        {
+          params: {
+            matchIds: ids.join(','),
+          },
+        },
+      );
+
+    return res.data;
+  };
+  
+
 export const getStandings =
   async (
     leagueCode: string,

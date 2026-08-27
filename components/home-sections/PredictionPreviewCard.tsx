@@ -2,10 +2,6 @@
 
 import Image from 'next/image';
 
-import {
-  formatMatchTime,
-} from '@/lib/formatMatchTime';
-
 import ConfidenceBadge from '../predictions/ConfidenceBadge';
 
 import {
@@ -37,10 +33,6 @@ export default function PredictionPreviewCard({
     prediction.leagueCode ??
     'Football';
 
-  const matchDate =
-    prediction.matchDate ??
-    prediction.match?.utcDate;
-
 
   return (
 
@@ -54,125 +46,108 @@ export default function PredictionPreviewCard({
           event.key === 'Enter' ||
           event.key === ' '
         ) {
+
           event.preventDefault();
+
           onClick();
+
         }
 
       }}
       className="
         cursor-pointer
+        overflow-hidden
         rounded-xl
         border
         border-border
         bg-card
-        p-3
+        p-2.5
         text-card-foreground
+        transition
         hover:border-primary/30
+        hover:shadow-sm
         focus:outline-none
         focus:ring-2
         focus:ring-primary/30
         sm:rounded-2xl
-        sm:p-4
+        sm:p-3
       "
     >
 
       {/* ====================================================
-          LEAGUE + DATE
+          LEAGUE
       ==================================================== */}
 
       <div
         className="
           flex
+          min-w-0
           items-center
-          justify-between
-          gap-2
+          gap-1.5
         "
       >
 
         <div
           className="
             flex
-            min-w-0
+            h-6
+            w-6
+            shrink-0
             items-center
-            gap-2
+            justify-center
+            overflow-hidden
+            rounded-md
+            bg-muted
+            p-1
           "
         >
 
-          <div
-            className="
-              flex
-              h-7
-              w-7
-              shrink-0
-              items-center
-              justify-center
-              overflow-hidden
-              rounded-md
-              bg-muted
-              p-1
-            "
-          >
+          {prediction.league?.emblem ? (
 
-            {prediction.league?.emblem ? (
+            <Image
+              src={
+                prediction.league.emblem
+              }
+              alt=""
+              width={18}
+              height={18}
+              className="
+                h-full
+                w-full
+                object-contain
+              "
+            />
 
-              <Image
-                src={prediction.league.emblem}
-                alt=""
-                width={20}
-                height={20}
-                className="
-                  h-full
-                  w-full
-                  object-contain
-                "
-              />
+          ) : (
 
-            ) : (
+            <span
+              className="
+                text-[7px]
+                font-bold
+                text-muted-foreground
+              "
+            >
+              {prediction.leagueCode ?? '—'}
+            </span>
 
-              <span
-                className="
-                  text-[8px]
-                  font-bold
-                  text-muted-foreground
-                "
-              >
-                {prediction.leagueCode ?? '—'}
-              </span>
-
-            )}
-
-          </div>
-
-
-          <p
-            className="
-              min-w-0
-              truncate
-              text-[11px]
-              font-semibold
-              text-foreground
-              sm:text-xs
-            "
-          >
-            {leagueName}
-          </p>
+          )}
 
         </div>
 
 
-        <span
+        <p
           className="
-            shrink-0
-            text-[9px]
-            font-medium
+            min-w-0
+            truncate
+            text-[10px]
+            font-semibold
             text-muted-foreground
-            sm:text-[10px]
+            sm:text-[11px]
           "
+          title={leagueName}
         >
-          {matchDate
-            ? formatMatchTime(matchDate)
-            : '—'}
-        </span>
+          {leagueName}
+        </p>
 
       </div>
 
@@ -183,21 +158,25 @@ export default function PredictionPreviewCard({
 
       <div
         className="
-          mt-4
+          mt-3
           grid
           grid-cols-[1fr_auto_1fr]
           items-center
-          gap-2
-          sm:mt-5
-          sm:gap-3
+          gap-1.5
+          sm:mt-3.5
+          sm:gap-2
         "
       >
 
         {/* HOME */}
 
         <Team
-          name={prediction.homeTeam}
-          badge={prediction.homeTeamBadge}
+          name={
+            prediction.homeTeam
+          }
+          badge={
+            prediction.homeTeamBadge
+          }
         />
 
 
@@ -208,13 +187,13 @@ export default function PredictionPreviewCard({
             flex
             flex-col
             items-center
-            gap-1
+            gap-0.5
           "
         >
 
           <span
             className="
-              text-[8px]
+              text-[7px]
               font-bold
               uppercase
               tracking-wider
@@ -227,7 +206,7 @@ export default function PredictionPreviewCard({
           <span
             className="
               h-px
-              w-4
+              w-3
               bg-border
             "
           />
@@ -238,8 +217,12 @@ export default function PredictionPreviewCard({
         {/* AWAY */}
 
         <Team
-          name={prediction.awayTeam}
-          badge={prediction.awayTeamBadge}
+          name={
+            prediction.awayTeam
+          }
+          badge={
+            prediction.awayTeamBadge
+          }
         />
 
       </div>
@@ -251,15 +234,17 @@ export default function PredictionPreviewCard({
 
       <div
         className="
-          mt-4
+          mt-2.5
           border-t
           border-border
-          pt-2.5
+          pt-2
         "
       >
 
         <ConfidenceBadge
-          confidence={prediction.confidence}
+          confidence={
+            prediction.confidence
+          }
         />
 
       </div>
@@ -290,19 +275,20 @@ function Team({
         min-w-0
         flex-col
         items-center
-        gap-1.5
+        gap-1
       "
     >
 
       <div
         className="
           flex
-          h-10
-          w-10
+          h-8
+          w-8
+          shrink-0
           items-center
           justify-center
-          sm:h-11
-          sm:w-11
+          sm:h-9
+          sm:w-9
         "
       >
 
@@ -311,8 +297,8 @@ function Team({
           <Image
             src={badge}
             alt=""
-            width={44}
-            height={44}
+            width={36}
+            height={36}
             className="
               h-full
               w-full
@@ -325,13 +311,13 @@ function Team({
           <div
             className="
               flex
-              h-9
-              w-9
+              h-7
+              w-7
               items-center
               justify-center
               rounded-full
               bg-muted
-              text-[9px]
+              text-[8px]
               font-bold
               text-muted-foreground
             "
@@ -347,16 +333,17 @@ function Team({
       <p
         className="
           line-clamp-2
-          min-h-[28px]
+          min-h-[24px]
           w-full
           text-center
-          text-[10px]
+          text-[9px]
           font-semibold
-          leading-3.5
+          leading-3
           text-foreground
-          sm:text-xs
-          sm:leading-4
+          sm:text-[10px]
+          sm:leading-3.5
         "
+        title={name}
       >
         {name}
       </p>

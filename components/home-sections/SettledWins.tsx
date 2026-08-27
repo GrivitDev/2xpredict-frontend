@@ -3,11 +3,14 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   RefreshCw,
   Trophy,
@@ -18,6 +21,16 @@ import {
   PredictionDetails,
 } from '@/services/prediction.service';
 
+import {
+  getPastResultsByIds,
+  Match,
+} from '@/services/sports.service';
+
+import {
+  createResultMap,
+  MatchScore,
+} from './features/Results';
+
 import SettledWinCard from './SettledWinCard';
 
 
@@ -25,19 +38,18 @@ import SettledWinCard from './SettledWinCard';
 // CONSTANTS
 // ============================================================
 
-const INITIAL_VISIBLE_COUNT = 8;
-const MIN_WINS = 20;
-const MAX_WINS = 50;
+const DESKTOP_INITIAL_COUNT = 10;
+
+const MAX_WINS_PER_DATE = 20;
 
 
 // ============================================================
 // HELPERS
 // ============================================================
 
-function getDate(
+function getPredictionDate(
   prediction: PredictionDetails,
 ): Date | null {
-
   const value =
     prediction.matchDate ??
     prediction.match?.utcDate ??
@@ -55,152 +67,188 @@ function getDate(
 }
 
 
-function isLastMonth(
+// ============================================================
+// DATE KEY
+// ============================================================
+
+function getDateKey(
   date: Date,
-): boolean {
+): string {
+  const year = date.getFullYear();
 
-  const now = new Date();
+  const month =
+    String(
+      date.getMonth() + 1,
+    ).padStart(2, '0');
 
-  const previousMonth =
-    new Date(
-      now.getFullYear(),
-      now.getMonth() - 1,
-      1,
-    );
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(2, '0');
 
-  const start =
-    new Date(
-      previousMonth.getFullYear(),
-      previousMonth.getMonth(),
-      1,
-    );
-
-  const end =
-    new Date(
-      previousMonth.getFullYear(),
-      previousMonth.getMonth() + 1,
-      1,
-    );
-
-  return date >= start && date < end;
+  return `${year}-${month}-${day}`;
 }
 
 
 // ============================================================
-// SELECT WINS
+// TODAY KEY
 // ============================================================
 
-function selectWins(
+function getTodayKey(): string {
+  return getDateKey(
+    new Date(),
+  );
+}
+
+
+// ============================================================
+// DATE LABEL
+// ============================================================
+
+function formatDateLabel(
+  date: Date,
+): string {
+  const today =
+    new Date();
+
+  const yesterday =
+    new Date(today);
+
+  yesterday.setDate(
+    today.getDate() - 1,
+  );
+
+  const tomorrow =
+    new Date(today);
+
+  tomorrow.setDate(
+    today.getDate() + 1,
+  );
+
+  const key =
+    getDateKey(date);
+
+  if (
+    key ===
+    getDateKey(today)
+  ) {
+    return 'Today';
+  }
+
+  if (
+    key ===
+    getDateKey(yesterday)
+  ) {
+    return 'Yesterday';
+  }
+
+  if (
+    key ===
+    getDateKey(tomorrow)
+  ) {
+    return 'Tomorrow';
+  }
+
+  return new Intl.DateTimeFormat(
+    'en-GB',
+    {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    },
+  ).format(date);
+}
+
+
+// ============================================================
+// NORMALIZE DATE
+// ============================================================
+
+function startOfDay(
+  date: Date,
+): Date {
+  const result =
+    new Date(date);
+
+  result.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
+  return result;
+}
+
+
+// ============================================================
+// SORT WINS
+// ============================================================
+
+function sortWins(
   predictions: PredictionDetails[],
 ): PredictionDetails[] {
+  return [...predictions].sort(
+    (a, b) => {
+      const aDate =
+        getPredictionDate(a);
 
-  const won =
-    predictions.filter(
-      prediction =>
-        prediction.status === 'won',
-    );
+      const bDate =
+        getPredictionDate(b);
 
-  if (!won.length) {
-    return [];
-  }
+      if (!aDate && !bDate) {
+        return 0;
+      }
 
+      if (!aDate) {
+        return 1;
+      }
 
-  const recent: PredictionDetails[] = [];
-  const older: PredictionDetails[] = [];
-
-  for (const prediction of won) {
-
-    const date =
-      getDate(prediction);
-
-    if (!date) {
-      continue;
-    }
-
-    if (isLastMonth(date)) {
-      recent.push(prediction);
-    } else {
-      older.push(prediction);
-    }
-  }
-
-
-  const score =
-    (prediction: PredictionDetails): number => {
-
-      const confidence =
-        Number(
-          prediction.confidence ?? 0,
-        );
-
-      const probabilities =
-        prediction.data?.probabilities;
-
-      const selection =
-        prediction.data?.prediction;
-
-      let winningProbability = 0;
-
-      if (selection === 'HOME') {
-        winningProbability =
-          Number(
-            probabilities?.home ?? 0,
-          );
-      } else if (selection === 'DRAW') {
-        winningProbability =
-          Number(
-            probabilities?.draw ?? 0,
-          );
-      } else if (selection === 'AWAY') {
-        winningProbability =
-          Number(
-            probabilities?.away ?? 0,
-          );
+      if (!bDate) {
+        return -1;
       }
 
       return (
-        confidence * 0.55 +
-        winningProbability * 0.45
+        bDate.getTime() -
+        aDate.getTime()
       );
-    };
+    },
+  );
+}
 
 
-  const sortByQuality =
-    (
-      a: PredictionDetails,
-      b: PredictionDetails,
-    ) =>
-      score(b) - score(a);
+// ============================================================
+// SELECT DATE
+// ============================================================
 
+function findInitialDate(
+  predictions: PredictionDetails[],
+): string {
+  const dates =
+    predictions
+      .map(getPredictionDate)
+      .filter(
+        (
+          date,
+        ): date is Date =>
+          date !== null,
+      )
+      .sort(
+        (
+          a,
+          b,
+        ) =>
+          b.getTime() -
+          a.getTime(),
+      );
 
-  recent.sort(sortByQuality);
-  older.sort(sortByQuality);
-
-
-  let pool =
-    recent.slice(
-      0,
-      MAX_WINS,
-    );
-
-
-  if (pool.length < MIN_WINS) {
-
-    pool = [
-      ...pool,
-      ...older.slice(
-        0,
-        MIN_WINS - pool.length,
-      ),
-    ];
+  if (!dates.length) {
+    return getTodayKey();
   }
 
-
-  return pool
-    .slice(0, MAX_WINS)
-    .sort(
-      () => Math.random() - 0.5,
-    );
+  return getDateKey(
+    dates[0],
+  );
 }
 
 
@@ -209,11 +257,17 @@ function selectWins(
 // ============================================================
 
 export default function SettledWins() {
-
   const [
     predictions,
     setPredictions,
-  ] = useState<PredictionDetails[]>([]);
+  ] = useState<
+    PredictionDetails[]
+  >([]);
+
+  const [
+    results,
+    setResults,
+  ] = useState<Match[]>([]);
 
   const [
     loading,
@@ -224,6 +278,13 @@ export default function SettledWins() {
     error,
     setError,
   ] = useState(false);
+
+  const [
+    selectedDate,
+    setSelectedDate,
+  ] = useState(
+    getTodayKey(),
+  );
 
   const [
     expanded,
@@ -238,59 +299,360 @@ export default function SettledWins() {
   const loadWins =
     useCallback(
       async () => {
-
         try {
-
           setLoading(true);
           setError(false);
 
-          const data =
+          // ==================================================
+          // 1. GET ALL SETTLED PREDICTIONS
+          // ==================================================
+
+          const settledData =
             await getSettledWins();
 
+          // ==================================================
+          // 2. ONLY WON PREDICTIONS
+          // ==================================================
+
+          const wonPredictions =
+            settledData.filter(
+              prediction =>
+                prediction.status ===
+                'won',
+            );
+
+          // ==================================================
+          // 3. SORT BY DATE
+          // ==================================================
+
+          const sortedWins =
+            sortWins(
+              wonPredictions,
+            );
+
           setPredictions(
-            selectWins(data),
+            sortedWins,
           );
 
-        } catch (error) {
+          // ==================================================
+          // 4. SELECT INITIAL DATE
+          // ==================================================
 
+          if (sortedWins.length) {
+            setSelectedDate(
+              current => {
+                const currentExists =
+                  sortedWins.some(
+                    prediction => {
+                      const date =
+                        getPredictionDate(
+                          prediction,
+                        );
+
+                      return (
+                        date !== null &&
+                        getDateKey(date) ===
+                          current
+                      );
+                    },
+                  );
+
+                return currentExists
+                  ? current
+                  : findInitialDate(
+                      sortedWins,
+                    );
+              },
+            );
+          }
+
+          // ==================================================
+          // 5. EXTRACT MATCH IDS
+          // ==================================================
+
+          const matchIds =
+            sortedWins
+              .map(
+                prediction =>
+                  prediction.matchId,
+              )
+              .filter(
+                (
+                  matchId,
+                ): matchId is string =>
+                  matchId !==
+                    undefined &&
+                  matchId !== null &&
+                  String(
+                    matchId,
+                  ).trim() !== '',
+              );
+
+          // ==================================================
+          // 6. FETCH EXACT MATCHES
+          // ==================================================
+
+          if (!matchIds.length) {
+            setResults([]);
+            return;
+          }
+
+          const resultsData =
+            await getPastResultsByIds(
+              matchIds,
+            );
+
+          setResults(
+            resultsData,
+          );
+        } catch (error) {
           console.error(
             'Failed to load settled wins:',
             error,
           );
 
           setPredictions([]);
+          setResults([]);
           setError(true);
-
         } finally {
-
           setLoading(false);
-
         }
-
       },
       [],
     );
 
 
-  useEffect(() => {
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
 
-    loadWins();
+  useEffect(
+    () => {
+      const timeoutId =
+        window.setTimeout(
+          () => {
+            void loadWins();
+          },
+          0,
+        );
 
-  }, [loadWins]);
+      return () => {
+        window.clearTimeout(
+          timeoutId,
+        );
+      };
+    },
+    [loadWins],
+  );
+
+
+  // ==========================================================
+  // RESULT MAP
+  // ==========================================================
+
+  const resultMap =
+    useMemo(
+      () =>
+        createResultMap(
+          results,
+        ),
+      [results],
+    );
+
+
+  // ==========================================================
+  // AVAILABLE DATES
+  // ==========================================================
+
+  const availableDates =
+    useMemo(() => {
+      const map =
+        new Map<
+          string,
+          Date
+        >();
+
+      for (
+        const prediction of
+          predictions
+      ) {
+        const date =
+          getPredictionDate(
+            prediction,
+          );
+
+        if (!date) {
+          continue;
+        }
+
+        const normalized =
+          startOfDay(
+            date,
+          );
+
+        const key =
+          getDateKey(
+            normalized,
+          );
+
+        if (!map.has(key)) {
+          map.set(
+            key,
+            normalized,
+          );
+        }
+      }
+
+      return Array.from(
+        map.entries(),
+      )
+        .sort(
+          (
+            [, a],
+            [, b],
+          ) =>
+            a.getTime() -
+            b.getTime(),
+        )
+        .map(
+          ([
+            key,
+            date,
+          ]) => ({
+            key,
+            date,
+          }),
+        );
+    }, [predictions]);
+
+
+  // ==========================================================
+  // SELECTED DATE INDEX
+  // ==========================================================
+
+  const selectedDateIndex =
+    availableDates.findIndex(
+      item =>
+        item.key ===
+        selectedDate,
+    );
+
+
+  // ==========================================================
+  // SELECTED DATE
+  // ==========================================================
+
+  const selectedDateObject =
+    availableDates[
+      selectedDateIndex
+    ]?.date ??
+    new Date(
+      `${selectedDate}T00:00:00`,
+    );
+
+
+  // ==========================================================
+  // DATE WINS
+  // ==========================================================
+
+  const dateWins =
+    useMemo(() => {
+      return predictions
+        .filter(
+          prediction => {
+            const date =
+              getPredictionDate(
+                prediction,
+              );
+
+            if (!date) {
+              return false;
+            }
+
+            return (
+              getDateKey(date) ===
+              selectedDate
+            );
+          },
+        )
+        .slice(
+          0,
+          MAX_WINS_PER_DATE,
+        );
+    }, [
+      predictions,
+      selectedDate,
+    ]);
+
+
+  // ==========================================================
+  // VISIBLE WINS
+  // ==========================================================
+
+  const visibleWins =
+    useMemo(() => {
+      const initial =
+        expanded
+          ? MAX_WINS_PER_DATE
+          : DESKTOP_INITIAL_COUNT;
+
+      return dateWins.slice(
+        0,
+        initial,
+      );
+    }, [
+      dateWins,
+      expanded,
+    ]);
+
+
+  // ==========================================================
+  // NAVIGATION
+  // ==========================================================
+
+  const goPrevious =
+    () => {
+      if (
+        selectedDateIndex <=
+        0
+      ) {
+        return;
+      }
+
+      setExpanded(false);
+
+      setSelectedDate(
+        availableDates[
+          selectedDateIndex - 1
+        ].key,
+      );
+    };
+
+
+  const goNext =
+    () => {
+      if (
+        selectedDateIndex ===
+          -1 ||
+        selectedDateIndex >=
+          availableDates.length - 1
+      ) {
+        return;
+      }
+
+      setExpanded(false);
+
+      setSelectedDate(
+        availableDates[
+          selectedDateIndex + 1
+        ].key,
+      );
+    };
 
 
   // ==========================================================
   // RENDER
   // ==========================================================
-
-  const visibleWins =
-    expanded
-      ? predictions
-      : predictions.slice(
-          0,
-          INITIAL_VISIBLE_COUNT,
-        );
-
 
   return (
     <section
@@ -303,7 +665,9 @@ export default function SettledWins() {
       "
     >
 
-      {/* HEADER */}
+      {/* ====================================================
+          HEADER
+      ==================================================== */}
 
       <div
         className="
@@ -313,18 +677,20 @@ export default function SettledWins() {
           gap-2
         "
       >
-
         <Trophy
           className="
-            h-4
-            w-4
+            h-5
+            w-5
             shrink-0
             text-primary
           "
         />
 
-        <div className="min-w-0">
-
+        <div
+          className="
+            min-w-0
+          "
+        >
           <div
             className="
               flex
@@ -332,7 +698,6 @@ export default function SettledWins() {
               gap-1.5
             "
           >
-
             <h2
               className="
                 text-lg
@@ -343,7 +708,11 @@ export default function SettledWins() {
             >
               Our{' '}
 
-              <span className="text-primary">
+              <span
+                className="
+                  text-primary
+                "
+              >
                 Wins
               </span>
             </h2>
@@ -351,7 +720,7 @@ export default function SettledWins() {
             <span
               className="
                 hidden
-                text-[10px]
+                text-[11px]
                 font-semibold
                 text-muted-foreground
                 sm:inline
@@ -359,33 +728,32 @@ export default function SettledWins() {
             >
               · Proven Results
             </span>
-
           </div>
 
           <p
             className="
               mt-0.5
-              text-[10px]
+              text-[11px]
               text-muted-foreground
               sm:text-xs
             "
           >
-            Recently settled predictions that landed.
+            Recently settled predictions
+            that landed.
           </p>
-
         </div>
-
       </div>
 
 
-      {/* LOADING */}
+      {/* ====================================================
+          LOADING
+      ==================================================== */}
 
       {loading && (
-
         <div
           className="
             flex
-            min-h-[180px]
+            min-h-[160px]
             items-center
             justify-center
             rounded-xl
@@ -394,17 +762,15 @@ export default function SettledWins() {
             bg-card/50
           "
         >
-
           <div
             className="
               flex
               items-center
               gap-2
-              text-xs
+              text-sm
               text-muted-foreground
             "
           >
-
             <Loader2
               className="
                 h-4
@@ -415,80 +781,17 @@ export default function SettledWins() {
             />
 
             Loading wins...
-
           </div>
-
         </div>
-
       )}
 
 
-      {/* ERROR */}
-
-      {!loading && error && (
-
-        <div
-          className="
-            rounded-xl
-            border
-            border-border
-            bg-card
-            p-5
-            text-center
-          "
-        >
-
-          <p
-            className="
-              text-xs
-              font-semibold
-            "
-          >
-            Unable to load settled wins.
-          </p>
-
-          <button
-            type="button"
-            onClick={loadWins}
-            className="
-              mt-3
-              inline-flex
-              items-center
-              gap-1.5
-              rounded-lg
-              border
-              border-border
-              px-3
-              py-1.5
-              text-xs
-              font-semibold
-              hover:border-primary/40
-              hover:bg-primary/5
-            "
-          >
-
-            <RefreshCw
-              className="
-                h-3.5
-                w-3.5
-              "
-            />
-
-            Try again
-
-          </button>
-
-        </div>
-
-      )}
-
-
-      {/* EMPTY */}
+      {/* ====================================================
+          ERROR
+      ==================================================== */}
 
       {!loading &&
-        !error &&
-        predictions.length === 0 && (
-
+        error && (
           <div
             className="
               rounded-xl
@@ -499,7 +802,66 @@ export default function SettledWins() {
               text-center
             "
           >
+            <p
+              className="
+                text-sm
+                font-semibold
+              "
+            >
+              Unable to load settled wins.
+            </p>
 
+            <button
+              type="button"
+              onClick={loadWins}
+              className="
+                mt-3
+                inline-flex
+                items-center
+                gap-1.5
+                rounded-lg
+                border
+                border-border
+                px-3
+                py-2
+                text-xs
+                font-semibold
+                transition
+                hover:border-primary/40
+                hover:bg-primary/5
+              "
+            >
+              <RefreshCw
+                className="
+                  h-3.5
+                  w-3.5
+                "
+              />
+
+              Try again
+            </button>
+          </div>
+        )}
+
+
+      {/* ====================================================
+          EMPTY
+      ==================================================== */}
+
+      {!loading &&
+        !error &&
+        predictions.length ===
+          0 && (
+          <div
+            className="
+              rounded-xl
+              border
+              border-border
+              bg-card
+              p-6
+              text-center
+            "
+          >
             <Trophy
               className="
                 mx-auto
@@ -512,113 +874,321 @@ export default function SettledWins() {
             <p
               className="
                 mt-2
-                text-xs
+                text-sm
                 font-semibold
               "
             >
               No settled wins available yet.
             </p>
-
           </div>
-
         )}
 
 
-      {/* GRID */}
+      {/* ====================================================
+          CONTENT
+      ==================================================== */}
 
       {!loading &&
         !error &&
         predictions.length > 0 && (
-
           <>
+
+            {/* ==================================================
+                DATE SELECTOR
+            ================================================== */}
 
             <div
               className="
-                grid
-                grid-cols-1
-                gap-2.5
-                sm:grid-cols-2
-                lg:grid-cols-4
+                mb-4
+                flex
+                items-center
+                justify-center
               "
             >
-
-              {visibleWins.map(
-                prediction => (
-
-                  <SettledWinCard
-                    key={prediction._id}
-                    prediction={prediction}
-                  />
-
-                ),
-              )}
-
-            </div>
-
-
-            {/* SHOW MORE */}
-
-            {predictions.length >
-              INITIAL_VISIBLE_COUNT && (
-
               <div
                 className="
-                  mt-4
-                  flex
-                  justify-center
+                  inline-flex
+                  items-center
+                  gap-1
+                  rounded-xl
+                  border
+                  border-border
+                  bg-card
+                  p-1
+                  shadow-sm
                 "
               >
 
+                {/* PREVIOUS */}
+
                 <button
                   type="button"
-                  onClick={() =>
-                    setExpanded(
-                      current => !current,
-                    )
+                  onClick={
+                    goPrevious
                   }
+                  disabled={
+                    selectedDateIndex <=
+                    0
+                  }
+                  aria-label="Previous date"
                   className="
-                    inline-flex
+                    flex
+                    h-8
+                    w-8
                     items-center
-                    gap-1.5
+                    justify-center
                     rounded-lg
-                    border
-                    border-border
-                    bg-card
-                    px-3.5
-                    py-1.5
-                    text-xs
-                    font-semibold
-                    shadow-sm
-                    hover:border-primary/40
-                    hover:bg-primary/5
+                    text-muted-foreground
+                    transition
+                    hover:bg-muted
+                    hover:text-foreground
+                    disabled:pointer-events-none
+                    disabled:opacity-30
                   "
                 >
-
-                  {expanded
-                    ? 'Show less'
-                    : `Show all ${predictions.length} wins`}
-
-                  <ChevronDown
-                    className={`
-                      h-3.5
-                      w-3.5
-                      transition-transform
-                      ${
-                        expanded
-                          ? 'rotate-180'
-                          : ''
-                      }
-                    `}
+                  <ChevronLeft
+                    className="
+                      h-4
+                      w-4
+                    "
                   />
+                </button>
 
+
+                {/* DATE */}
+
+                <div
+                  className="
+                    min-w-[120px]
+                    px-3
+                    text-center
+                  "
+                >
+                  <p
+                    className="
+                      text-xs
+                      font-bold
+                      leading-none
+                      text-foreground
+                    "
+                  >
+                    {formatDateLabel(
+                      selectedDateObject,
+                    )}
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      text-[9px]
+                      font-medium
+                      text-muted-foreground
+                    "
+                  >
+                    {dateWins.length}{' '}
+                    {dateWins.length ===
+                    1
+                      ? 'win'
+                      : 'wins'}
+                  </p>
+                </div>
+
+
+                {/* NEXT */}
+
+                <button
+                  type="button"
+                  onClick={
+                    goNext
+                  }
+                  disabled={
+                    selectedDateIndex ===
+                      -1 ||
+                    selectedDateIndex >=
+                      availableDates.length -
+                        1
+                  }
+                  aria-label="Next date"
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    rounded-lg
+                    text-muted-foreground
+                    transition
+                    hover:bg-muted
+                    hover:text-foreground
+                    disabled:pointer-events-none
+                    disabled:opacity-30
+                  "
+                >
+                  <ChevronRight
+                    className="
+                      h-4
+                      w-4
+                    "
+                  />
                 </button>
 
               </div>
+            </div>
 
+
+            {/* ==================================================
+                NO WINS FOR DATE
+            ================================================== */}
+
+            {dateWins.length ===
+              0 && (
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-border
+                  bg-card
+                  px-4
+                  py-8
+                  text-center
+                "
+              >
+                <Trophy
+                  className="
+                    mx-auto
+                    h-6
+                    w-6
+                    text-muted-foreground
+                  "
+                />
+
+                <p
+                  className="
+                    mt-2
+                    text-sm
+                    font-semibold
+                  "
+                >
+                  No settled wins for this
+                  date.
+                </p>
+              </div>
+            )}
+
+
+            {/* ==================================================
+                GRID
+            ================================================== */}
+
+            {dateWins.length >
+              0 && (
+              <>
+                <div
+                  className="
+                    grid
+                    grid-cols-1
+                    gap-2
+                    sm:grid-cols-2
+                    lg:grid-cols-5
+                  "
+                >
+                  {visibleWins.map(
+                    prediction => {
+                      const score:
+                        MatchScore =
+                        resultMap.get(
+                          String(
+                            prediction.matchId,
+                          ),
+                        ) ?? {
+                          home: null,
+                          away: null,
+                        };
+
+                      return (
+                        <SettledWinCard
+                          key={
+                            prediction._id
+                          }
+                          prediction={
+                            prediction
+                          }
+                          score={
+                            score
+                          }
+                        />
+                      );
+                    },
+                  )}
+                </div>
+
+
+                {/* ==================================================
+                    SHOW MORE
+                ================================================== */}
+
+                {dateWins.length >
+                  6 && (
+                  <div
+                    className="
+                      mt-4
+                      flex
+                      justify-center
+                    "
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpanded(
+                          current =>
+                            !current,
+                        )
+                      }
+                      className="
+                        inline-flex
+                        items-center
+                        gap-1.5
+                        rounded-lg
+                        border
+                        border-border
+                        bg-card
+                        px-3.5
+                        py-2
+                        text-xs
+                        font-semibold
+                        shadow-sm
+                        transition
+                        hover:border-primary/40
+                        hover:bg-primary/5
+                      "
+                    >
+                      {expanded
+                        ? 'Show less'
+                        : `Show all ${Math.min(
+                            dateWins.length,
+                            MAX_WINS_PER_DATE,
+                          )} wins`}
+
+                      <ChevronDown
+                        className={`
+                          h-3.5
+                          w-3.5
+                          transition-transform
+                          ${
+                            expanded
+                              ? 'rotate-180'
+                              : ''
+                          }
+                        `}
+                      />
+                    </button>
+                  </div>
+                )}
+
+              </>
             )}
 
           </>
-
         )}
 
     </section>

@@ -28,7 +28,7 @@ export default function DashboardLayout({
         className="
           min-h-screen
           w-full
-          overflow-x-hidden
+          overflow-x-clip
           bg-background
           text-foreground
         "

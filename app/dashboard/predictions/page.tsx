@@ -7,12 +7,16 @@ import {
   useState,
 } from 'react';
 
-import { useSearchParams } from 'next/navigation';
+import {
+  useSearchParams,
+} from 'next/navigation';
 
 import api from '@/lib/axios';
 
 import PredictionTable from '@/components/predictions/PredictionTable';
+
 import PredictionMobileCard from '@/components/predictions/PredictionMobileCard';
+
 import PredictionPagination from '@/components/predictions/PredictionPagination';
 
 import SubscriptionModal from '@/components/predictions/SubscriptionModal';
@@ -24,13 +28,19 @@ import PredictionFilters, {
 import { InternalAds } from '@/components/ads/IntAds/InternalAds';
 
 import { AdPage } from '@/constants/ads/ad-page';
+
 import { AdPosition } from '@/constants/ads/ad-position';
 
 import { PredictionsAds } from '@/components/ads/ExtAds/positions/PredictionsAds';
 
-import { getApiErrorMessage } from '@/lib/getApiErrorMessage';
+import {
+  getApiErrorMessage,
+} from '@/lib/getApiErrorMessage';
 
-import { getPredictionAccess } from '@/services/prediction.service';
+import {
+  getPredictionAccess,
+} from '@/services/prediction.service';
+import { useNavbar } from '@/components/navbar/NavbarContext';
 
 
 /* =========================================================
@@ -50,6 +60,7 @@ type Feature =
   | 'prediction'
   | 'markets';
 
+
 type PredictionAccess = {
   allowed: boolean;
   state: string;
@@ -59,6 +70,7 @@ type PredictionAccess = {
   releaseAt?: number | null;
   message?: string | null;
 };
+
 
 type Prediction = {
   _id?: string;
@@ -105,6 +117,7 @@ type Prediction = {
   [key: string]: unknown;
 };
 
+
 type SubscriptionModalState = {
   open: boolean;
   requiredPlan: RequiredPlan;
@@ -117,25 +130,17 @@ type SubscriptionModalState = {
   accessMessage: string | null;
 };
 
+
 type SubscriptionModalData = {
   predictionId?: string;
-
   prediction?: Prediction;
-
   requiredPlan: RequiredPlan;
-
   feature: Feature;
-
   userPlan: Plan;
-
   predictionPlan: Plan;
-
   released: boolean;
-
   releaseAt: number | null;
-
   accessState: string;
-
   accessMessage: string | null;
 };
 
@@ -146,53 +151,115 @@ type SubscriptionModalData = {
 
 const ITEMS_PER_PAGE = 10;
 
-/*
- * Access checks are still performed individually because
- * authorization is prediction-specific.
- *
- * Requests are throttled so the browser does not fire
- * every request simultaneously.
- */
 const ACCESS_CONCURRENCY = 5;
 
+
+/*
+ * Date is intentionally empty initially.
+ *
+ * After predictions are loaded:
+ *
+ * 1. Today
+ * 2. Nearest future date
+ * 3. Latest past date
+ */
 const INITIAL_FILTERS: PredictionFilterState = {
   search: '',
   league: 'all',
-  date: 'all',
-  customDate: '',
+
+  date: '',
+
+  dateRange: 'day',
+
   minConfidence: 0,
+
   market: 'all',
+
   plan: 'all',
+
   status: 'all',
 };
 
+
 const INITIAL_MODAL_STATE: SubscriptionModalState = {
   open: false,
+
   requiredPlan: 'regular',
+
   feature: 'prediction',
+
   userPlan: 'free',
+
   predictionPlan: 'regular',
+
   released: true,
+
   releaseAt: null,
+
   accessState: '',
+
   accessMessage: null,
 };
 
 
 /* =========================================================
-   HELPERS
+   DATE HELPERS
 ========================================================= */
 
-function getPredictionId(
-  prediction: Prediction,
-): string | null {
-  const id =
-    prediction._id ??
-    prediction.id;
+function startOfDay(
+  date: Date,
+): Date {
+  const result =
+    new Date(date);
 
-  return id
-    ? String(id)
-    : null;
+  result.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
+  return result;
+}
+
+
+function dateKey(
+  date: Date,
+): string {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1,
+    ).padStart(2, '0');
+
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function parseDateKey(
+  value: string,
+): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      `${value}T00:00:00`,
+    );
+
+  return Number.isNaN(
+    date.getTime(),
+  )
+    ? null
+    : date;
 }
 
 
@@ -223,14 +290,189 @@ function getPredictionDate(
 }
 
 
+function getPredictionId(
+  prediction: Prediction,
+): string | null {
+  const id =
+    prediction._id ??
+    prediction.id;
+
+  return id
+    ? String(id)
+    : null;
+}
+
+
+function startOfWeek(
+  date: Date,
+): Date {
+  const result =
+    startOfDay(date);
+
+  const day =
+    result.getDay();
+
+  const mondayOffset =
+    day === 0
+      ? -6
+      : 1 - day;
+
+  result.setDate(
+    result.getDate() +
+      mondayOffset,
+  );
+
+  return result;
+}
+
+
+function endOfWeek(
+  date: Date,
+): Date {
+  const result =
+    startOfWeek(date);
+
+  result.setDate(
+    result.getDate() + 6,
+  );
+
+  return result;
+}
+
+
+function startOfMonth(
+  date: Date,
+): Date {
+  const result =
+    startOfDay(date);
+
+  result.setDate(1);
+
+  return result;
+}
+
+
+function endOfMonth(
+  date: Date,
+): Date {
+  const result =
+    startOfMonth(date);
+
+  result.setMonth(
+    result.getMonth() + 1,
+  );
+
+  result.setDate(0);
+
+  return result;
+}
+
+
+/* =========================================================
+   DATE RANGE MATCHING
+========================================================= */
+
+function isPredictionInSelectedDateRange(
+  prediction: Prediction,
+  filters: PredictionFilterState,
+): boolean {
+  const matchDate =
+    getPredictionDate(
+      prediction,
+    );
+
+  if (!matchDate) {
+    return false;
+  }
+
+  const selected =
+    parseDateKey(
+      filters.date,
+    );
+
+  if (!selected) {
+    return false;
+  }
+
+  const matchDay =
+    startOfDay(matchDate);
+
+
+  /* =======================================================
+     DAY
+  ======================================================= */
+
+  if (
+    filters.dateRange ===
+    'day'
+  ) {
+    return (
+      dateKey(matchDay) ===
+      dateKey(selected)
+    );
+  }
+
+
+  /* =======================================================
+     WEEK
+  ======================================================= */
+
+  if (
+    filters.dateRange ===
+    'week'
+  ) {
+    const weekStart =
+      startOfWeek(selected);
+
+    const weekEnd =
+      endOfWeek(selected);
+
+    return (
+      matchDay.getTime() >=
+        weekStart.getTime() &&
+      matchDay.getTime() <=
+        weekEnd.getTime()
+    );
+  }
+
+
+  /* =======================================================
+     MONTH
+  ======================================================= */
+
+  const monthStart =
+    startOfMonth(selected);
+
+  const monthEnd =
+    endOfMonth(selected);
+
+  return (
+    matchDay.getTime() >=
+      monthStart.getTime() &&
+    matchDay.getTime() <=
+      monthEnd.getTime()
+  );
+}
+
+
+/* =========================================================
+   ACCESS
+========================================================= */
+
 function createDefaultAccess(): PredictionAccess {
   return {
     allowed: false,
+
     state: 'login_required',
+
     purchased: false,
+
     plan: 'free',
+
     released: false,
+
     releaseAt: 0,
+
     message:
       'Please log in to view this prediction.',
   };
@@ -270,7 +512,10 @@ function getPredictionMarketNames(
         return market;
       }
 
-      return market?.market ?? '';
+      return (
+        market?.market ??
+        ''
+      );
     })
     .filter(Boolean)
     .map(String);
@@ -282,46 +527,57 @@ function getPredictionMarketNames(
 ========================================================= */
 
 function PredictionsPageContent() {
+
+    const {
+      visible: navbarVisible,
+    } = useNavbar();
+
   /* =======================================================
      STATE
   ======================================================= */
 
-  const [predictions, setPredictions] =
-    useState<Prediction[]>([]);
+  const [
+    predictions,
+    setPredictions,
+  ] = useState<Prediction[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [
+    error,
+    setError,
+  ] = useState<string | null>(
+    null,
+  );
 
-  const [filters, setFilters] =
-    useState<PredictionFilterState>(
-      INITIAL_FILTERS,
-    );
+  const [
+    filters,
+    setFilters,
+  ] = useState<PredictionFilterState>(
+    INITIAL_FILTERS,
+  );
 
-  const [page, setPage] =
-    useState(1);
+  const [
+    page,
+    setPage,
+  ] = useState(1);
 
-  const [highlightedId, setHighlightedId] =
-    useState<string | null>(null);
+  const [
+    highlightedId,
+    setHighlightedId,
+  ] = useState<string | null>(
+    null,
+  );
 
-  const [subscriptionModal, setSubscriptionModal] =
-    useState<SubscriptionModalState>(
-      INITIAL_MODAL_STATE,
-    );
-
-
-  /* =======================================================
-     FILTER HANDLER
-  ======================================================= */
-
-  const handleFiltersChange = (
-    nextFilters: PredictionFilterState,
-  ) => {
-    setFilters(nextFilters);
-    setPage(1);
-  };
+  const [
+    subscriptionModal,
+    setSubscriptionModal,
+  ] = useState<SubscriptionModalState>(
+    INITIAL_MODAL_STATE,
+  );
 
 
   /* =======================================================
@@ -332,7 +588,9 @@ function PredictionsPageContent() {
     useSearchParams();
 
   const predictionId =
-    searchParams.get('prediction');
+    searchParams.get(
+      'prediction',
+    );
 
 
   /* =======================================================
@@ -362,12 +620,16 @@ function PredictionsPageContent() {
               response.data,
             )
               ? response.data
-              : response.data?.data ?? [];
+              : response.data?.data ??
+                [];
 
-          setPredictions(
+          const normalized =
             Array.isArray(data)
               ? data
-              : [],
+              : [];
+
+          setPredictions(
+            normalized,
           );
         } catch (error: unknown) {
           if (cancelled) {
@@ -404,13 +666,6 @@ function PredictionsPageContent() {
 
   /* =======================================================
      INDIVIDUAL ACCESS CHECKS
-
-     Access is checked independently.
-
-     - Maximum 5 requests at once.
-     - Results are applied independently.
-     - The page does not wait for access checks.
-     - Predictions with existing access data are skipped.
   ======================================================= */
 
   useEffect(() => {
@@ -452,10 +707,6 @@ function PredictionsPageContent() {
                 continue;
               }
 
-              /*
-               * Do not request access again if this
-               * prediction has already been resolved.
-               */
               if (
                 prediction.access
               ) {
@@ -486,7 +737,8 @@ function PredictionsPageContent() {
                           );
 
                         if (
-                          itemId !== id
+                          itemId !==
+                          id
                         ) {
                           return item;
                         }
@@ -501,17 +753,20 @@ function PredictionsPageContent() {
                             access,
 
                             prediction:
-                              result.data
+                              result
+                                .data
                                 ?.prediction ??
                               undefined,
 
                             probabilities:
-                              result.data
+                              result
+                                .data
                                 ?.probabilities ??
                               null,
 
                             markets:
-                              (result.data
+                              (result
+                                .data
                                 ?.markets ??
                                 null) as Prediction['markets'],
                           };
@@ -591,6 +846,187 @@ function PredictionsPageContent() {
 
 
   /* =======================================================
+     AVAILABLE DATE KEYS
+  ======================================================= */
+
+  const availableDates =
+    useMemo(() => {
+      const dates =
+        new Map<
+          string,
+          Date
+        >();
+
+      for (
+        const prediction of
+          predictions
+      ) {
+        const date =
+          getPredictionDate(
+            prediction,
+          );
+
+        if (!date) {
+          continue;
+        }
+
+        const day =
+          startOfDay(date);
+
+        dates.set(
+          dateKey(day),
+          day,
+        );
+      }
+
+      return Array.from(
+        dates.values(),
+      ).sort(
+        (a, b) =>
+          a.getTime() -
+          b.getTime(),
+      );
+    }, [
+      predictions,
+    ]);
+
+
+  /* =======================================================
+     DEFAULT DATE SELECTION
+  ======================================================= */
+
+  useEffect(() => {
+    if (
+      availableDates.length ===
+      0
+    ) {
+      return;
+    }
+
+    /*
+     * Do not overwrite a date the user
+     * has already selected.
+     */
+    if (filters.date) {
+      return;
+    }
+
+    const today =
+      startOfDay(
+        new Date(),
+      );
+
+    const todayKey =
+      dateKey(today);
+
+
+    /* -------------------------------------------------------
+       1. TODAY
+    ------------------------------------------------------- */
+
+    const hasToday =
+      availableDates.some(
+        (date) =>
+          dateKey(date) ===
+          todayKey,
+      );
+
+    if (hasToday) {
+      setFilters(
+        (current) => ({
+          ...current,
+
+          date: todayKey,
+
+          dateRange: 'day',
+        }),
+      );
+
+      return;
+    }
+
+
+    /* -------------------------------------------------------
+       2. NEXT FUTURE PREDICTION
+    ------------------------------------------------------- */
+
+    const nextFuture =
+      availableDates.find(
+        (date) =>
+          date.getTime() >
+          today.getTime(),
+      );
+
+    if (nextFuture) {
+      setFilters(
+        (current) => ({
+          ...current,
+
+          date:
+            dateKey(
+              nextFuture,
+            ),
+
+          dateRange: 'day',
+        }),
+      );
+
+      return;
+    }
+
+
+    /* -------------------------------------------------------
+       3. NO FUTURE PREDICTIONS
+          USE LATEST PAST PREDICTION
+    ------------------------------------------------------- */
+
+    const latestPast =
+      [...availableDates]
+        .reverse()
+        .find(
+          (date) =>
+            date.getTime() <
+            today.getTime(),
+        );
+
+    if (latestPast) {
+      setFilters(
+        (current) => ({
+          ...current,
+
+          date:
+            dateKey(
+              latestPast,
+            ),
+
+          dateRange: 'day',
+        }),
+      );
+    }
+  }, [
+    availableDates,
+    filters.date,
+  ]);
+
+
+  /* =======================================================
+     FILTER HANDLER
+  ======================================================= */
+
+  const handleFiltersChange =
+    (
+      nextFilters:
+        PredictionFilterState,
+    ) => {
+      setFilters(
+        nextFilters,
+      );
+
+      setPage(1);
+    };
+
+
+  /* =======================================================
      AVAILABLE LEAGUES
   ======================================================= */
 
@@ -604,7 +1040,8 @@ function PredictionsPageContent() {
           predictions
       ) {
         const league =
-          prediction.league?.name ??
+          prediction.league
+            ?.name ??
           prediction.leagueCode;
 
         if (league) {
@@ -616,8 +1053,9 @@ function PredictionsPageContent() {
 
       return Array.from(
         values,
-      ).sort((a, b) =>
-        a.localeCompare(b),
+      ).sort(
+        (a, b) =>
+          a.localeCompare(b),
       );
     }, [
       predictions,
@@ -643,14 +1081,17 @@ function PredictionsPageContent() {
               prediction,
             )
         ) {
-          markets.add(market);
+          markets.add(
+            market,
+          );
         }
       }
 
       return Array.from(
         markets,
-      ).sort((a, b) =>
-        a.localeCompare(b),
+      ).sort(
+        (a, b) =>
+          a.localeCompare(b),
       );
     }, [
       predictions,
@@ -663,134 +1104,18 @@ function PredictionsPageContent() {
 
   const filtered =
     useMemo(() => {
-      const now =
-        new Date();
-
-      /* ---------------------------------------------------
-         TODAY
-      --------------------------------------------------- */
-
-      const todayStart =
-        new Date(now);
-
-      todayStart.setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-
-      const todayEnd =
-        new Date(todayStart);
-
-      todayEnd.setDate(
-        todayEnd.getDate() + 1,
-      );
-
-
-      /* ---------------------------------------------------
-         WEEK
-      --------------------------------------------------- */
-
-      const weekStart =
-        new Date(now);
-
-      const day =
-        weekStart.getDay();
-
-      weekStart.setDate(
-        weekStart.getDate() +
-          (
-            day === 0
-              ? -6
-              : 1 - day
-          ),
-      );
-
-      weekStart.setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-
-      const weekEnd =
-        new Date(weekStart);
-
-      weekEnd.setDate(
-        weekEnd.getDate() + 7,
-      );
-
-
-      /* ---------------------------------------------------
-         MONTH
-      --------------------------------------------------- */
-
-      const monthStart =
-        new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          1,
-        );
-
-      const monthEnd =
-        new Date(
-          now.getFullYear(),
-          now.getMonth() + 1,
-          1,
-        );
-
-
-      /* ---------------------------------------------------
-         CUSTOM DATE
-      --------------------------------------------------- */
-
-      let customStart:
-        | Date
-        | null = null;
-
-      let customEnd:
-        | Date
-        | null = null;
-
-      if (
-        filters.date === 'custom' &&
-        filters.customDate
-      ) {
-        customStart =
-          new Date(
-            `${filters.customDate}T00:00:00`,
-          );
-
-        customEnd =
-          new Date(
-            customStart,
-          );
-
-        customEnd.setDate(
-          customEnd.getDate() + 1,
-        );
-      }
-
-
-      /* ---------------------------------------------------
-         SEARCH
-      --------------------------------------------------- */
-
       const searchValue =
         filters.search
           .trim()
           .toLowerCase();
 
-
-      /* ---------------------------------------------------
-         FILTER
-      --------------------------------------------------- */
-
       const result =
         predictions.filter(
           (prediction) => {
-            /* SEARCH */
+
+            /* ---------------------------------------------
+               SEARCH
+            --------------------------------------------- */
 
             if (searchValue) {
               const homeTeam =
@@ -832,7 +1157,9 @@ function PredictionsPageContent() {
             }
 
 
-            /* LEAGUE */
+            /* ---------------------------------------------
+               LEAGUE
+            --------------------------------------------- */
 
             if (
               filters.league !==
@@ -854,82 +1181,24 @@ function PredictionsPageContent() {
             }
 
 
-            /* DATE */
+            /* ---------------------------------------------
+               DATE
+            --------------------------------------------- */
 
             if (
-              filters.date !==
-              'all'
+              filters.date &&
+              !isPredictionInSelectedDateRange(
+                prediction,
+                filters,
+              )
             ) {
-              const matchDate =
-                getPredictionDate(
-                  prediction,
-                );
-
-              if (!matchDate) {
-                return false;
-              }
-
-              if (
-                filters.date ===
-                  'today' &&
-                !isWithin(
-                  matchDate,
-                  todayStart,
-                  todayEnd,
-                )
-              ) {
-                return false;
-              }
-
-              if (
-                filters.date ===
-                  'week' &&
-                !isWithin(
-                  matchDate,
-                  weekStart,
-                  weekEnd,
-                )
-              ) {
-                return false;
-              }
-
-              if (
-                filters.date ===
-                  'month' &&
-                !isWithin(
-                  matchDate,
-                  monthStart,
-                  monthEnd,
-                )
-              ) {
-                return false;
-              }
-
-              if (
-                filters.date ===
-                  'custom'
-              ) {
-                if (
-                  !customStart ||
-                  !customEnd
-                ) {
-                  return false;
-                }
-
-                if (
-                  !isWithin(
-                    matchDate,
-                    customStart,
-                    customEnd,
-                  )
-                ) {
-                  return false;
-                }
-              }
+              return false;
             }
 
 
-            /* CONFIDENCE */
+            /* ---------------------------------------------
+               CONFIDENCE
+            --------------------------------------------- */
 
             if (
               Number(
@@ -942,11 +1211,13 @@ function PredictionsPageContent() {
             }
 
 
-            /* PLAN */
+            /* ---------------------------------------------
+               PLAN
+            --------------------------------------------- */
 
             if (
               filters.plan !==
-                'all'
+              'all'
             ) {
               const predictionPlan =
                 normalizePlan(
@@ -962,7 +1233,9 @@ function PredictionsPageContent() {
             }
 
 
-            /* STATUS */
+            /* ---------------------------------------------
+               STATUS
+            --------------------------------------------- */
 
             if (
               filters.status !==
@@ -983,11 +1256,13 @@ function PredictionsPageContent() {
             }
 
 
-            /* MARKET */
+            /* ---------------------------------------------
+               MARKET
+            --------------------------------------------- */
 
             if (
               filters.market !==
-                'all'
+              'all'
             ) {
               const markets =
                 getPredictionMarketNames(
@@ -1008,26 +1283,12 @@ function PredictionsPageContent() {
         );
 
 
-      /* ---------------------------------------------------
+      /* =====================================================
          SORT
-
-         Priority:
-         1. Today's matches
-         2. Upcoming matches
-         3. Past matches
-
-         Today/upcoming:
-         earliest first
-
-         Past:
-         newest first
-      --------------------------------------------------- */
+      ===================================================== */
 
       result.sort(
         (a, b) => {
-          const now =
-            Date.now();
-
           const aDate =
             getPredictionDate(a);
 
@@ -1049,83 +1310,9 @@ function PredictionsPageContent() {
             return -1;
           }
 
-          const aTime =
-            aDate.getTime();
-
-          const bTime =
-            bDate.getTime();
-
-          const startOfToday =
-            new Date();
-
-          startOfToday.setHours(
-            0,
-            0,
-            0,
-            0,
-          );
-
-          const endOfToday =
-            new Date(
-              startOfToday,
-            );
-
-          endOfToday.setDate(
-            endOfToday.getDate() + 1,
-          );
-
-          const isToday =
-            (time: number) =>
-              time >=
-                startOfToday.getTime() &&
-              time <
-                endOfToday.getTime();
-
-          const getPriority =
-            (time: number) => {
-              if (
-                isToday(time)
-              ) {
-                return 0;
-              }
-
-              if (
-                time > now
-              ) {
-                return 1;
-              }
-
-              return 2;
-            };
-
-          const aPriority =
-            getPriority(aTime);
-
-          const bPriority =
-            getPriority(bTime);
-
-          if (
-            aPriority !==
-            bPriority
-          ) {
-            return (
-              aPriority -
-              bPriority
-            );
-          }
-
-          if (
-            aPriority === 2
-          ) {
-            return (
-              bTime -
-              aTime
-            );
-          }
-
           return (
-            aTime -
-            bTime
+            aDate.getTime() -
+            bDate.getTime()
           );
         },
       );
@@ -1153,6 +1340,7 @@ function PredictionsPageContent() {
         filtered.slice(
           (page - 1) *
             ITEMS_PER_PAGE,
+
           page *
             ITEMS_PER_PAGE,
         ),
@@ -1163,16 +1351,14 @@ function PredictionsPageContent() {
     );
 
 
-  /*
-   * Keep the current page valid if filtering reduces
-   * the number of available pages.
-   */
   useEffect(() => {
     if (
       totalPages > 0 &&
       page > totalPages
     ) {
-      setPage(totalPages);
+      setPage(
+        totalPages,
+      );
     }
   }, [
     page,
@@ -1215,7 +1401,8 @@ function PredictionsPageContent() {
         (prediction) =>
           getPredictionId(
             prediction,
-          ) === predictionId,
+          ) ===
+          predictionId,
       );
 
     if (index === -1) {
@@ -1234,7 +1421,9 @@ function PredictionsPageContent() {
       const pageTimer =
         window.setTimeout(
           () => {
-            setPage(targetPage);
+            setPage(
+              targetPage,
+            );
           },
           0,
         );
@@ -1347,9 +1536,9 @@ function PredictionsPageContent() {
   return (
     <div className="space-y-8">
 
-      {/* =====================================================
+      {/* ===================================================
           HERO AD
-      ===================================================== */}
+      =================================================== */}
 
       <InternalAds
         page={AdPage.HOME}
@@ -1357,10 +1546,29 @@ function PredictionsPageContent() {
       />
 
 
-      {/* =====================================================
+      {/* ===================================================
           FILTERS
-      ===================================================== */}
+      =================================================== */}
 
+          <div
+            className={`
+              sticky
+              z-40
+              -mx-3
+              px-3
+              py-2
+              sm:-mx-4
+              sm:px-4
+              transition-[top]
+              duration-300
+              ease-out
+              ${
+                navbarVisible
+                  ? 'top-[5.25rem] sm:top-24'
+                  : 'top-0'
+              }
+            `}
+          >
       <PredictionFilters
         value={filters}
         onChange={
@@ -1375,10 +1583,10 @@ function PredictionsPageContent() {
         }
       />
 
-
-      {/* =====================================================
+</div>
+      {/* ===================================================
           ERROR
-      ===================================================== */}
+      =================================================== */}
 
       {!loading &&
         error && (
@@ -1406,9 +1614,9 @@ function PredictionsPageContent() {
         )}
 
 
-      {/* =====================================================
-          INITIAL LOADING
-      ===================================================== */}
+      {/* ===================================================
+          LOADING
+      =================================================== */}
 
       {loading && (
         <div
@@ -1427,9 +1635,9 @@ function PredictionsPageContent() {
       )}
 
 
-      {/* =====================================================
+      {/* ===================================================
           EMPTY
-      ===================================================== */}
+      =================================================== */}
 
       {showEmpty && (
         <div
@@ -1442,6 +1650,7 @@ function PredictionsPageContent() {
             text-center
           "
         >
+
           <h3 className="font-semibold">
             No predictions found
           </h3>
@@ -1453,18 +1662,21 @@ function PredictionsPageContent() {
               text-muted-foreground
             "
           >
-            Try changing your filters.
+            Try selecting another date
+            or changing your filters.
           </p>
+
         </div>
       )}
 
 
-      {/* =====================================================
+      {/* ===================================================
           DESKTOP TABLE
-      ===================================================== */}
+      =================================================== */}
 
       {canRenderResults && (
         <div className="hidden xl:block">
+
           <PredictionTable
             predictions={paginated}
             highlightedId={
@@ -1488,13 +1700,14 @@ function PredictionsPageContent() {
               }
             }
           />
+
         </div>
       )}
 
 
-      {/* =====================================================
-          MOBILE / TABLET CARDS
-      ===================================================== */}
+      {/* ===================================================
+          MOBILE / TABLET
+      =================================================== */}
 
       {canRenderResults && (
         <div
@@ -1503,6 +1716,7 @@ function PredictionsPageContent() {
             xl:hidden
           "
         >
+
           {paginated.map(
             (prediction) => {
               const id =
@@ -1537,13 +1751,14 @@ function PredictionsPageContent() {
               );
             },
           )}
+
         </div>
       )}
 
 
-      {/* =====================================================
+      {/* ===================================================
           PAGINATION
-      ===================================================== */}
+      =================================================== */}
 
       {!loading &&
         !error &&
@@ -1553,14 +1768,16 @@ function PredictionsPageContent() {
             totalPages={
               totalPages
             }
-            onChange={setPage}
+            onChange={
+              setPage
+            }
           />
         )}
 
 
-      {/* =====================================================
+      {/* ===================================================
           ADS
-      ===================================================== */}
+      =================================================== */}
 
       <PredictionsAds />
 
@@ -1575,9 +1792,9 @@ function PredictionsPageContent() {
       />
 
 
-      {/* =====================================================
+      {/* ===================================================
           SUBSCRIPTION MODAL
-      ===================================================== */}
+      =================================================== */}
 
       <SubscriptionModal
         open={
@@ -1621,22 +1838,6 @@ function PredictionsPageContent() {
       />
 
     </div>
-  );
-}
-
-
-/* =========================================================
-   DATE HELPERS
-========================================================= */
-
-function isWithin(
-  date: Date,
-  start: Date,
-  end: Date,
-): boolean {
-  return (
-    date >= start &&
-    date < end
   );
 }
 

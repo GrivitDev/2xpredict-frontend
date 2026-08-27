@@ -2,11 +2,14 @@
 
 import {
   useState,
+  type ReactNode,
 } from 'react';
 
 import {
   CalendarDays,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Filter,
   Search,
   SlidersHorizontal,
@@ -17,21 +20,46 @@ import {
   PredictionMarkets,
 } from '@/lib/prediction-enums';
 
-export type PredictionDateFilter =
-  | 'all'
-  | 'today'
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+export type PredictionDateRange =
+  | 'day'
   | 'week'
-  | 'month'
-  | 'custom';
+  | 'month';
 
 export interface PredictionFilterState {
   search: string;
   league: string;
-  date: PredictionDateFilter;
-  customDate: string;
+
+  /**
+   * Anchor date for the current date selection.
+   *
+   * day:
+   *   exact selected date
+   *
+   * week:
+   *   date inside the selected week
+   *
+   * month:
+   *   date inside the selected month
+   */
+  date: string;
+
+  dateRange: PredictionDateRange;
+
   minConfidence: number;
+
   market: string;
-  plan: 'all' | 'free' | 'regular' | 'vip';
+
+  plan:
+    | 'all'
+    | 'free'
+    | 'regular'
+    | 'vip';
+
   status:
     | 'all'
     | 'pending'
@@ -42,11 +70,22 @@ export interface PredictionFilterState {
 
 interface Props {
   value: PredictionFilterState;
-  onChange: (value: PredictionFilterState) => void;
+
+  onChange: (
+    value: PredictionFilterState,
+  ) => void;
+
   leagues: string[];
+
   availableMarkets?: string[];
+
   totalResults?: number;
 }
+
+
+/* =========================================================
+   MARKET LABELS
+========================================================= */
 
 const MARKET_LABELS: Record<string, string> = {
   DOUBLE_CHANCE: 'Double Chance',
@@ -58,26 +97,35 @@ const MARKET_LABELS: Record<string, string> = {
   TEAM_TOTAL_GOALS: 'Team Total Goals',
   EXACT_GOALS: 'Exact Goals',
   CLEAN_SHEET: 'Clean Sheet',
+
   HALF_TIME_RESULT: 'Half Time Result',
   SECOND_HALF_RESULT: 'Second Half Result',
   HALF_TIME_FULL_TIME: 'Half Time / Full Time',
+
   ASIAN_HANDICAP: 'Asian Handicap',
   EUROPEAN_HANDICAP: 'European Handicap',
+
   CORNERS_TOTAL: 'Total Corners',
   TEAM_CORNERS: 'Team Corners',
   CORNER_HANDICAP: 'Corner Handicap',
+  FIRST_HALF_CORNERS: 'First Half Corners',
+
   CARDS_TOTAL: 'Total Cards',
   TEAM_CARDS: 'Team Cards',
   CARD_HANDICAP: 'Card Handicap',
+  FIRST_HALF_CARDS: 'First Half Cards',
+
   ANYTIME_GOALSCORER: 'Anytime Goalscorer',
   FIRST_GOALSCORER: 'First Goalscorer',
   PLAYER_SHOTS: 'Player Shots',
   PLAYER_SHOTS_ON_TARGET: 'Player Shots on Target',
   PLAYER_ASSISTS: 'Player Assists',
+
   FIRST_GOAL: 'First Goal',
   LAST_GOAL: 'Last Goal',
   WIN_TO_NIL: 'Win to Nil',
   CORRECT_SCORE: 'Correct Score',
+
   POSSESSION_WINNER: 'Possession Winner',
   MOST_SHOTS: 'Most Shots',
   MOST_SHOTS_ON_TARGET: 'Most Shots on Target',
@@ -88,9 +136,12 @@ const MARKET_LABELS: Record<string, string> = {
   TEAM_FOULS: 'Team Fouls',
   FIRST_HALF_GOALS: 'First Half Goals',
   SECOND_HALF_GOALS: 'Second Half Goals',
-  FIRST_HALF_CORNERS: 'First Half Corners',
-  FIRST_HALF_CARDS: 'First Half Cards',
 };
+
+
+/* =========================================================
+   MARKET GROUPS
+========================================================= */
 
 const MARKET_GROUPS: {
   label: string;
@@ -103,6 +154,7 @@ const MARKET_GROUPS: {
       'DRAW_NO_BET',
     ],
   },
+
   {
     label: 'Goals',
     markets: [
@@ -115,6 +167,7 @@ const MARKET_GROUPS: {
       'CLEAN_SHEET',
     ],
   },
+
   {
     label: 'Half Markets',
     markets: [
@@ -123,6 +176,7 @@ const MARKET_GROUPS: {
       'HALF_TIME_FULL_TIME',
     ],
   },
+
   {
     label: 'Handicap',
     markets: [
@@ -130,6 +184,7 @@ const MARKET_GROUPS: {
       'EUROPEAN_HANDICAP',
     ],
   },
+
   {
     label: 'Corners',
     markets: [
@@ -139,6 +194,7 @@ const MARKET_GROUPS: {
       'FIRST_HALF_CORNERS',
     ],
   },
+
   {
     label: 'Cards',
     markets: [
@@ -148,6 +204,7 @@ const MARKET_GROUPS: {
       'FIRST_HALF_CARDS',
     ],
   },
+
   {
     label: 'Player Markets',
     markets: [
@@ -158,6 +215,7 @@ const MARKET_GROUPS: {
       'PLAYER_ASSISTS',
     ],
   },
+
   {
     label: 'Match Events',
     markets: [
@@ -167,6 +225,7 @@ const MARKET_GROUPS: {
       'CORRECT_SCORE',
     ],
   },
+
   {
     label: 'Statistics',
     markets: [
@@ -184,10 +243,11 @@ const MARKET_GROUPS: {
   },
 ];
 
-/*
- * Static lookup set.
- * Prevents rebuilding the complete market list on every render.
- */
+
+/* =========================================================
+   STATIC LOOKUPS
+========================================================= */
+
 const GROUPED_MARKETS = new Set(
   MARKET_GROUPS.flatMap(
     ({ markets }) => markets,
@@ -198,6 +258,295 @@ const DEFAULT_MARKETS = Object.values(
   PredictionMarkets,
 );
 
+
+/* =========================================================
+   DATE HELPERS
+========================================================= */
+
+function startOfDay(
+  value: Date,
+): Date {
+  const date = new Date(value);
+
+  date.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
+  return date;
+}
+
+
+function dateKey(
+  value: Date,
+): string {
+  const year =
+    value.getFullYear();
+
+  const month =
+    String(
+      value.getMonth() + 1,
+    ).padStart(2, '0');
+
+  const day =
+    String(
+      value.getDate(),
+    ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function parseDateKey(
+  value: string,
+): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      `${value}T00:00:00`,
+    );
+
+  return Number.isNaN(
+    date.getTime(),
+  )
+    ? null
+    : date;
+}
+
+
+function addDays(
+  value: Date,
+  amount: number,
+): Date {
+  const result =
+    new Date(value);
+
+  result.setDate(
+    result.getDate() + amount,
+  );
+
+  return startOfDay(result);
+}
+
+
+function startOfWeek(
+  value: Date,
+): Date {
+  const date =
+    startOfDay(value);
+
+  const day =
+    date.getDay();
+
+  /**
+   * Monday = 0
+   * Tuesday = 1
+   * ...
+   * Sunday = 6
+   */
+  const mondayOffset =
+    day === 0
+      ? -6
+      : 1 - day;
+
+  date.setDate(
+    date.getDate() +
+      mondayOffset,
+  );
+
+  return date;
+}
+
+
+function endOfWeek(
+  value: Date,
+): Date {
+  return addDays(
+    startOfWeek(value),
+    6,
+  );
+}
+
+
+function startOfMonth(
+  value: Date,
+): Date {
+  const date =
+    startOfDay(value);
+
+  date.setDate(1);
+
+  return date;
+}
+
+
+function endOfMonth(
+  value: Date,
+): Date {
+  const date =
+    startOfMonth(value);
+
+  date.setMonth(
+    date.getMonth() + 1,
+  );
+
+  date.setDate(0);
+
+  return date;
+}
+
+
+function shiftWeek(
+  value: Date,
+  amount: number,
+): Date {
+  const date =
+    startOfWeek(value);
+
+  date.setDate(
+    date.getDate() +
+      amount * 7,
+  );
+
+  return date;
+}
+
+
+function shiftMonth(
+  value: Date,
+  amount: number,
+): Date {
+  const date =
+    startOfMonth(value);
+
+  date.setMonth(
+    date.getMonth() + amount,
+  );
+
+  return date;
+}
+
+
+function isToday(
+  value: Date,
+): boolean {
+  return (
+    dateKey(value) ===
+    dateKey(new Date())
+  );
+}
+
+
+function formatDayLabel(
+  value: Date,
+): string {
+  if (isToday(value)) {
+    return 'Today';
+  }
+
+  const tomorrow =
+    addDays(
+      new Date(),
+      1,
+    );
+
+  if (
+    dateKey(value) ===
+    dateKey(tomorrow)
+  ) {
+    return 'Tomorrow';
+  }
+
+  const yesterday =
+    addDays(
+      new Date(),
+      -1,
+    );
+
+  if (
+    dateKey(value) ===
+    dateKey(yesterday)
+  ) {
+    return 'Yesterday';
+  }
+
+  return value.toLocaleDateString(
+    'en-GB',
+    {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    },
+  );
+}
+
+
+function formatWeekLabel(
+  value: Date,
+): string {
+  const start =
+    startOfWeek(value);
+
+  const end =
+    endOfWeek(value);
+
+  const sameMonth =
+    start.getMonth() ===
+    end.getMonth();
+
+  if (sameMonth) {
+    return `${start.toLocaleDateString(
+      'en-GB',
+      {
+        day: 'numeric',
+      },
+    )}–${end.toLocaleDateString(
+      'en-GB',
+      {
+        day: 'numeric',
+        month: 'short',
+      },
+    )}`;
+  }
+
+  return `${start.toLocaleDateString(
+    'en-GB',
+    {
+      day: 'numeric',
+      month: 'short',
+    },
+  )}–${end.toLocaleDateString(
+    'en-GB',
+    {
+      day: 'numeric',
+      month: 'short',
+    },
+  )}`;
+}
+
+
+function formatMonthLabel(
+  value: Date,
+): string {
+  return value.toLocaleDateString(
+    'en-GB',
+    {
+      month: 'long',
+      year: 'numeric',
+    },
+  );
+}
+
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function PredictionFilters({
   value,
   onChange,
@@ -205,7 +554,15 @@ export default function PredictionFilters({
   availableMarkets = [],
   totalResults,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [
+    open,
+    setOpen,
+  ] = useState(false);
+
+
+  /* =======================================================
+     UPDATE
+  ======================================================= */
 
   const update = (
     patch: Partial<PredictionFilterState>,
@@ -216,12 +573,159 @@ export default function PredictionFilters({
     });
   };
 
+
+  /* =======================================================
+     DATE
+  ======================================================= */
+
+  const selectedDate =
+    parseDateKey(value.date) ??
+    startOfDay(new Date());
+
+
+  const selectDay = (
+    date: Date,
+  ) => {
+    update({
+      date: dateKey(
+        startOfDay(date),
+      ),
+      dateRange: 'day',
+    });
+  };
+
+
+  const handlePreviousDay = () => {
+    selectDay(
+      addDays(
+        selectedDate,
+        -1,
+      ),
+    );
+  };
+
+
+  const handleNextDay = () => {
+    selectDay(
+      addDays(
+        selectedDate,
+        1,
+      ),
+    );
+  };
+
+
+  const handleToday = () => {
+    selectDay(
+      new Date(),
+    );
+  };
+
+
+  const handleLastWeek = () => {
+    const date =
+      shiftWeek(
+        new Date(),
+        -1,
+      );
+
+    update({
+      date: dateKey(date),
+      dateRange: 'week',
+    });
+  };
+
+
+  const handleThisWeek = () => {
+    const date =
+      startOfWeek(
+        new Date(),
+      );
+
+    update({
+      date: dateKey(date),
+      dateRange: 'week',
+    });
+  };
+
+
+  const handleLastMonth = () => {
+    const date =
+      shiftMonth(
+        new Date(),
+        -1,
+      );
+
+    update({
+      date: dateKey(date),
+      dateRange: 'month',
+    });
+  };
+
+
+  const handleThisMonth = () => {
+    const date =
+      startOfMonth(
+        new Date(),
+      );
+
+    update({
+      date: dateKey(date),
+      dateRange: 'month',
+    });
+  };
+
+
+  /* =======================================================
+     ACTIVE FILTER COUNT
+  ======================================================= */
+
+  let activeFilterCount = 0;
+
+  if (
+    value.league !== 'all'
+  ) {
+    activeFilterCount++;
+  }
+
+  if (
+    value.minConfidence > 0
+  ) {
+    activeFilterCount++;
+  }
+
+  if (
+    value.market !== 'all'
+  ) {
+    activeFilterCount++;
+  }
+
+  if (
+    value.plan !== 'all'
+  ) {
+    activeFilterCount++;
+  }
+
+  if (
+    value.status !== 'all'
+  ) {
+    activeFilterCount++;
+  }
+
+
+  /* =======================================================
+     CLEAR
+  ======================================================= */
+
   const clearFilters = () => {
     onChange({
       search: '',
       league: 'all',
-      date: 'all',
-      customDate: '',
+      date:
+        dateKey(
+          new Date(),
+        ),
+      dateRange: 'day',
       minConfidence: 0,
       market: 'all',
       plan: 'all',
@@ -229,49 +733,38 @@ export default function PredictionFilters({
     });
   };
 
-  let activeFilterCount = 0;
 
-  if (value.league !== 'all') {
-    activeFilterCount++;
-  }
-
-  if (value.date !== 'all') {
-    activeFilterCount++;
-  }
-
-  if (value.minConfidence > 0) {
-    activeFilterCount++;
-  }
-
-  if (value.market !== 'all') {
-    activeFilterCount++;
-  }
-
-  if (value.plan !== 'all') {
-    activeFilterCount++;
-  }
-
-  if (value.status !== 'all') {
-    activeFilterCount++;
-  }
+  /* =======================================================
+     MARKETS
+  ======================================================= */
 
   const normalizedAvailableMarkets =
     availableMarkets.length > 0
       ? Array.from(
           new Set(
-            availableMarkets.filter(Boolean),
+            availableMarkets.filter(
+              Boolean,
+            ),
           ),
         )
       : DEFAULT_MARKETS;
 
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
     <div className="space-y-3">
-      {/* =====================================================
+
+      {/* ===================================================
           SEARCH + FILTER BUTTON
-      ===================================================== */}
+      =================================================== */}
 
       <div className="flex w-full items-center gap-2">
+
         <div className="relative min-w-0 flex-1">
+
           <Search
             size={17}
             className="
@@ -287,7 +780,8 @@ export default function PredictionFilters({
             value={value.search}
             onChange={(event) =>
               update({
-                search: event.target.value,
+                search:
+                  event.target.value,
               })
             }
             placeholder="Search teams..."
@@ -300,7 +794,7 @@ export default function PredictionFilters({
               bg-card
               pl-11
               pr-10
-              text-s
+              text-sm
               outline-none
               transition
               placeholder:text-muted-foreground
@@ -339,12 +833,17 @@ export default function PredictionFilters({
               <X size={14} />
             </button>
           )}
+
         </div>
+
 
         <button
           type="button"
           onClick={() =>
-            setOpen((current) => !current)
+            setOpen(
+              (current) =>
+                !current,
+            )
           }
           className="
             relative
@@ -358,7 +857,7 @@ export default function PredictionFilters({
             border-border
             bg-card
             px-4
-            text-s
+            text-sm
             font-semibold
             transition
             hover:border-primary/50
@@ -368,7 +867,10 @@ export default function PredictionFilters({
             focus:ring-primary/20
           "
         >
-          <SlidersHorizontal size={17} />
+
+          <SlidersHorizontal
+            size={17}
+          />
 
           <span className="hidden sm:inline">
             Filters
@@ -400,15 +902,169 @@ export default function PredictionFilters({
               hidden
               transition-transform
               sm:block
-              ${open ? 'rotate-180' : ''}
+              ${
+                open
+                  ? 'rotate-180'
+                  : ''
+              }
             `}
           />
+
         </button>
+
       </div>
 
-      {/* =====================================================
+
+{/* ===================================================
+    DATE NAVIGATION
+=================================================== */}
+
+<div
+  className="
+    overflow-x-auto
+    rounded-xl
+    border
+    border-border
+    bg-card
+    p-1
+    shadow-sm
+    scrollbar-hide
+  "
+>
+  <div
+    className="
+      flex
+      min-w-max
+      items-center
+      justify-center
+      gap-0.5
+    "
+  >
+
+    {/* LAST MONTH */}
+
+    <DatePresetButton
+      label="Last month"
+      onClick={handleLastMonth}
+      active={
+        value.dateRange === 'month' &&
+        dateKey(
+          startOfMonth(selectedDate),
+        ) ===
+          dateKey(
+            shiftMonth(new Date(), -1),
+          )
+      }
+    />
+
+
+    {/* LAST WEEK */}
+
+    <DatePresetButton
+      label="Last week"
+      onClick={handleLastWeek}
+      active={
+        value.dateRange === 'week' &&
+        dateKey(
+          startOfWeek(selectedDate),
+        ) ===
+          dateKey(
+            shiftWeek(new Date(), -1),
+          )
+      }
+    />
+
+
+    {/* PREVIOUS DAY */}
+
+    <DateArrowButton
+      direction="left"
+      onClick={handlePreviousDay}
+      ariaLabel="Previous day"
+    />
+
+
+    {/* SELECTED DAY */}
+
+    <button
+      type="button"
+      onClick={handleToday}
+      className={`
+        flex
+        min-w-[72px]
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        px-2
+        py-1.5
+        text-[11px]
+        font-bold
+        transition
+        ${
+          value.dateRange === 'day' &&
+          isToday(selectedDate)
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-foreground hover:bg-muted'
+        }
+      `}
+    >
+      {value.dateRange === 'day'
+        ? formatDayLabel(selectedDate)
+        : 'Today'}
+    </button>
+
+
+    {/* NEXT DAY */}
+
+    <DateArrowButton
+      direction="right"
+      onClick={handleNextDay}
+      ariaLabel="Next day"
+    />
+
+
+    {/* THIS WEEK */}
+
+    <DatePresetButton
+      label="This week"
+      onClick={handleThisWeek}
+      active={
+        value.dateRange === 'week' &&
+        dateKey(
+          startOfWeek(selectedDate),
+        ) ===
+          dateKey(
+            startOfWeek(new Date()),
+          )
+      }
+    />
+
+
+    {/* THIS MONTH */}
+
+    <DatePresetButton
+      label="This month"
+      onClick={handleThisMonth}
+      active={
+        value.dateRange === 'month' &&
+        dateKey(
+          startOfMonth(selectedDate),
+        ) ===
+          dateKey(
+            startOfMonth(new Date()),
+          )
+      }
+    />
+
+  </div>
+</div>
+
+
+
+      {/* ===================================================
           FILTER PANEL
-      ===================================================== */}
+      =================================================== */}
 
       {open && (
         <div
@@ -421,6 +1077,9 @@ export default function PredictionFilters({
             shadow-sm
           "
         >
+
+          {/* HEADER */}
+
           <div
             className="
               flex
@@ -432,7 +1091,9 @@ export default function PredictionFilters({
               py-3
             "
           >
+
             <div className="flex items-center gap-2">
+
               <Filter
                 size={15}
                 className="text-primary"
@@ -448,11 +1109,14 @@ export default function PredictionFilters({
               >
                 Prediction Filters
               </span>
+
             </div>
 
             <button
               type="button"
-              onClick={clearFilters}
+              onClick={
+                clearFilters
+              }
               className="
                 text-[11px]
                 font-semibold
@@ -463,7 +1127,11 @@ export default function PredictionFilters({
             >
               Clear all
             </button>
+
           </div>
+
+
+          {/* FIELDS */}
 
           <div
             className="
@@ -476,66 +1144,26 @@ export default function PredictionFilters({
               xl:grid-cols-4
             "
           >
+
             <FilterField
-              label="Date"
-              icon={<CalendarDays size={14} />}
+              label="Confidence"
             >
               <select
-                value={value.date}
+                value={
+                  value.minConfidence
+                }
                 onChange={(event) =>
                   update({
-                    date:
-                      event.target
-                        .value as PredictionDateFilter,
+                    minConfidence:
+                      Number(
+                        event.target
+                          .value,
+                      ),
                   })
                 }
-                className={selectClass}
-              >
-                <option value="all">
-                  All dates
-                </option>
-                <option value="today">
-                  Today
-                </option>
-                <option value="week">
-                  This week
-                </option>
-                <option value="month">
-                  This month
-                </option>
-                <option value="custom">
-                  Custom date
-                </option>
-              </select>
-            </FilterField>
-
-            {value.date === 'custom' && (
-              <FilterField label="Custom date">
-                <input
-                  type="date"
-                  value={value.customDate}
-                  onChange={(event) =>
-                    update({
-                      customDate:
-                        event.target.value,
-                    })
-                  }
-                  className={inputClass}
-                />
-              </FilterField>
-            )}
-
-            <FilterField label="Confidence">
-              <select
-                value={value.minConfidence}
-                onChange={(event) =>
-                  update({
-                    minConfidence: Number(
-                      event.target.value,
-                    ),
-                  })
+                className={
+                  selectClass
                 }
-                className={selectClass}
               >
                 <option value={0}>
                   Any confidence
@@ -558,76 +1186,114 @@ export default function PredictionFilters({
               </select>
             </FilterField>
 
-            <FilterField label="League">
+
+            <FilterField
+              label="League"
+            >
               <select
-                value={value.league}
+                value={
+                  value.league
+                }
                 onChange={(event) =>
                   update({
                     league:
-                      event.target.value,
+                      event.target
+                        .value,
                   })
                 }
-                className={selectClass}
+                className={
+                  selectClass
+                }
               >
                 <option value="all">
                   All leagues
                 </option>
 
-                {leagues.map((item) => (
-                  <option
-                    key={item}
-                    value={item}
-                  >
-                    {item}
-                  </option>
-                ))}
+                {leagues.map(
+                  (item) => (
+                    <option
+                      key={item}
+                      value={item}
+                    >
+                      {item}
+                    </option>
+                  ),
+                )}
               </select>
             </FilterField>
 
-            <FilterField label="Market">
+
+            <FilterField
+              label="Market"
+            >
               <select
-                value={value.market}
+                value={
+                  value.market
+                }
                 onChange={(event) =>
                   update({
                     market:
-                      event.target.value,
+                      event.target
+                        .value,
                   })
                 }
-                className={selectClass}
+                className={
+                  selectClass
+                }
               >
+
                 <option value="all">
                   All markets
                 </option>
 
-                {MARKET_GROUPS.map((group) => {
-                  const markets =
-                    group.markets.filter(
-                      (market) =>
-                        normalizedAvailableMarkets.includes(
-                          market,
-                        ),
+                {MARKET_GROUPS.map(
+                  (group) => {
+
+                    const markets =
+                      group.markets.filter(
+                        (market) =>
+                          normalizedAvailableMarkets.includes(
+                            market,
+                          ),
+                      );
+
+                    if (
+                      !markets.length
+                    ) {
+                      return null;
+                    }
+
+                    return (
+                      <optgroup
+                        key={
+                          group.label
+                        }
+                        label={
+                          group.label
+                        }
+                      >
+                        {markets.map(
+                          (market) => (
+                            <option
+                              key={
+                                market
+                              }
+                              value={
+                                market
+                              }
+                            >
+                              {
+                                MARKET_LABELS[
+                                  market
+                                ]
+                              }
+                            </option>
+                          ),
+                        )}
+                      </optgroup>
                     );
-
-                  if (!markets.length) {
-                    return null;
-                  }
-
-                  return (
-                    <optgroup
-                      key={group.label}
-                      label={group.label}
-                    >
-                      {markets.map((market) => (
-                        <option
-                          key={market}
-                          value={market}
-                        >
-                          {MARKET_LABELS[market]}
-                        </option>
-                      ))}
-                    </optgroup>
-                  );
-                })}
+                  },
+                )}
 
                 {normalizedAvailableMarkets
                   .filter(
@@ -636,27 +1302,40 @@ export default function PredictionFilters({
                         market,
                       ),
                   )
-                  .map((market) => (
-                    <option
-                      key={market}
-                      value={market}
-                    >
-                      {formatMarketName(market)}
-                    </option>
-                  ))}
+                  .map(
+                    (market) => (
+                      <option
+                        key={market}
+                        value={market}
+                      >
+                        {formatMarketName(
+                          market,
+                        )}
+                      </option>
+                    ),
+                  )}
+
               </select>
             </FilterField>
 
-            <FilterField label="Prediction plan">
+
+            <FilterField
+              label="Prediction plan"
+            >
               <select
-                value={value.plan}
+                value={
+                  value.plan
+                }
                 onChange={(event) =>
                   update({
                     plan:
-                      event.target.value as PredictionFilterState['plan'],
+                      event.target
+                        .value as PredictionFilterState['plan'],
                   })
                 }
-                className={selectClass}
+                className={
+                  selectClass
+                }
               >
                 <option value="all">
                   All plans
@@ -673,16 +1352,24 @@ export default function PredictionFilters({
               </select>
             </FilterField>
 
-            <FilterField label="Status">
+
+            <FilterField
+              label="Status"
+            >
               <select
-                value={value.status}
+                value={
+                  value.status
+                }
                 onChange={(event) =>
                   update({
                     status:
-                      event.target.value as PredictionFilterState['status'],
+                      event.target
+                        .value as PredictionFilterState['status'],
                   })
                 }
-                className={selectClass}
+                className={
+                  selectClass
+                }
               >
                 <option value="all">
                   All statuses
@@ -701,7 +1388,11 @@ export default function PredictionFilters({
                 </option>
               </select>
             </FilterField>
+
           </div>
+
+
+          {/* ACTIVE FILTERS */}
 
           {activeFilterCount > 0 && (
             <div
@@ -717,6 +1408,7 @@ export default function PredictionFilters({
                 py-3
               "
             >
+
               <span
                 className="
                   mr-1
@@ -728,24 +1420,12 @@ export default function PredictionFilters({
                 Active:
               </span>
 
-              {value.date !== 'all' && (
+              {value.league !==
+                'all' && (
                 <FilterChip
-                  label={getDateLabel(
-                    value.date,
-                    value.customDate,
-                  )}
-                  onRemove={() =>
-                    update({
-                      date: 'all',
-                      customDate: '',
-                    })
+                  label={
+                    value.league
                   }
-                />
-              )}
-
-              {value.league !== 'all' && (
-                <FilterChip
-                  label={value.league}
                   onRemove={() =>
                     update({
                       league: 'all',
@@ -754,7 +1434,8 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.minConfidence > 0 && (
+              {value.minConfidence >
+                0 && (
                 <FilterChip
                   label={`${value.minConfidence}%+ confidence`}
                   onRemove={() =>
@@ -765,11 +1446,16 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.market !== 'all' && (
+              {value.market !==
+                'all' && (
                 <FilterChip
                   label={
-                    MARKET_LABELS[value.market] ??
-                    formatMarketName(value.market)
+                    MARKET_LABELS[
+                      value.market
+                    ] ??
+                    formatMarketName(
+                      value.market,
+                    )
                   }
                   onRemove={() =>
                     update({
@@ -779,9 +1465,12 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.plan !== 'all' && (
+              {value.plan !==
+                'all' && (
                 <FilterChip
-                  label={`${capitalize(value.plan)} predictions`}
+                  label={`${capitalize(
+                    value.plan,
+                  )} predictions`}
                   onRemove={() =>
                     update({
                       plan: 'all',
@@ -790,9 +1479,12 @@ export default function PredictionFilters({
                 />
               )}
 
-              {value.status !== 'all' && (
+              {value.status !==
+                'all' && (
                 <FilterChip
-                  label={capitalize(value.status)}
+                  label={capitalize(
+                    value.status,
+                  )}
                   onRemove={() =>
                     update({
                       status: 'all',
@@ -800,31 +1492,90 @@ export default function PredictionFilters({
                   }
                 />
               )}
+
             </div>
           )}
 
-          {typeof totalResults === 'number' && (
-            <div
-              className="
-                border-t
-                border-border
-                px-4
-                py-2.5
-                text-[10px]
-                text-muted-foreground
-              "
-            >
-              Showing{' '}
-              <span className="font-semibold text-foreground">
-                {totalResults}
-              </span>{' '}
-              prediction
-              {totalResults === 1 ? '' : 's'}
-            </div>
-          )}
         </div>
       )}
+
     </div>
+  );
+}
+
+
+function DatePresetButton({
+  label,
+  onClick,
+  active,
+}: {
+  label: string;
+  onClick: () => void;
+  active: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        shrink-0
+        whitespace-nowrap
+        rounded-lg
+        px-2
+        py-1.5
+        text-[10px]
+        font-semibold
+        transition
+        ${
+          active
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+        }
+      `}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* =========================================================
+   DATE ARROW BUTTON
+========================================================= */
+
+function DateArrowButton({
+  direction,
+  onClick,
+  ariaLabel,
+}: {
+  direction: 'left' | 'right';
+  onClick: () => void;
+  ariaLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="
+        flex
+        h-8
+        w-7
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        text-muted-foreground
+        transition
+        hover:bg-muted
+        hover:text-foreground
+      "
+    >
+      {direction === 'left' ? (
+        <ChevronLeft size={15} />
+      ) : (
+        <ChevronRight size={15} />
+      )}
+    </button>
   );
 }
 
@@ -838,11 +1589,12 @@ function FilterField({
   children,
 }: {
   label: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
+  icon?: ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
+
       <label
         className="
           flex
@@ -860,9 +1612,11 @@ function FilterField({
       </label>
 
       {children}
+
     </div>
   );
 }
+
 
 /* =========================================================
    FILTER CHIP
@@ -902,6 +1656,7 @@ function FilterChip({
   );
 }
 
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -922,48 +1677,23 @@ const selectClass = `
   focus:ring-primary/20
 `;
 
-const inputClass = selectClass;
 
-function capitalize(value: string) {
+function capitalize(
+  value: string,
+) {
   return (
     value.charAt(0).toUpperCase() +
     value.slice(1)
   );
 }
 
-function formatMarketName(value: string) {
+
+function formatMarketName(
+  value: string,
+) {
   return value
     .toLowerCase()
     .split('_')
     .map(capitalize)
     .join(' ');
-}
-
-function getDateLabel(
-  date: PredictionDateFilter,
-  customDate: string,
-) {
-  if (date === 'today') {
-    return 'Today';
-  }
-
-  if (date === 'week') {
-    return 'This week';
-  }
-
-  if (date === 'month') {
-    return 'This month';
-  }
-
-  if (date === 'custom' && customDate) {
-    return new Date(
-      `${customDate}T00:00:00`,
-    ).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  }
-
-  return 'Date';
 }

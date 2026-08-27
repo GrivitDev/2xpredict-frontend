@@ -199,26 +199,6 @@ export default function LeagueSelector({
 
       <div className="flex flex-col">
 
-        <div
-          className="
-            ml-12
-            space-y-1
-          "
-        >
-
-          <label
-            className="
-              text-l
-              font-semibold
-              uppercase
-              tracking-wider
-              text-muted-foreground
-            "
-          >
-            Select a football league or cup competition.
-          </label>
-
-        </div>
 
 
         <Popover

@@ -139,6 +139,7 @@ export default function PredictionMobileCard({
           'ring-2 ring-primary ring-offset-1 ring-offset-background',
       )}
     >
+      {/* TOP ACCENT */}
       <div
         className={clsx(
           'absolute inset-x-0 top-0 h-0.5',
@@ -150,32 +151,43 @@ export default function PredictionMobileCard({
         )}
       />
 
-      <div className="space-y-2 p-2.5">
-        {/* HEADER */}
+      <div className="space-y-1.5 p-2">
+
+        {/* =====================================================
+            HEADER
+        ===================================================== */}
+
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
             {prediction?.league?.emblem && (
               <Image
                 src={prediction.league.emblem}
                 alt=""
-                width={20}
-                height={20}
-                className="h-5 w-5 shrink-0 rounded-md border border-border bg-muted object-contain p-0.5"
+                width={18}
+                height={18}
+                className="h-[18px] w-[18px] shrink-0 rounded-md border border-border bg-muted object-contain p-0.5"
               />
             )}
 
-            <div className="min-w-0">
-              <p className="truncate text-[9px] font-bold leading-tight">
+            <div className="min-w-0 leading-none">
+              <p className="truncate text-[9px] font-bold">
                 {prediction?.league?.name ??
                   prediction?.leagueCode ??
                   'Unknown League'}
               </p>
 
-              {prediction?.league?.country && (
-                <p className="truncate text-[7px] leading-tight text-muted-foreground">
-                  {prediction.league.country}
-                </p>
-              )}
+              <div className="mt-0.5 flex items-center gap-1 text-[7px] text-muted-foreground">
+                {prediction?.league?.country && (
+                  <span className="truncate">
+                    {prediction.league.country}
+                  </span>
+                )}
+
+                {prediction?.league?.country && (
+                  <span>•</span>
+                )}
+
+              </div>
             </div>
           </div>
 
@@ -184,50 +196,69 @@ export default function PredictionMobileCard({
           </div>
         </div>
 
-        {/* MATCH */}
-        <div className="rounded-lg border border-border bg-muted/20 px-2 py-1.5">
-          <div className="space-y-1">
+        {/* =====================================================
+            MATCH
+        ===================================================== */}
+
+        <div className="rounded-lg border border-border bg-muted/20 px-2 py-2">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+
+            {/* HOME */}
             <CompactTeam
               badge={prediction?.homeTeamBadge}
               name={prediction?.homeTeam}
+              align="left"
             />
 
-            <div className="flex items-center gap-1.5">
-              <div className="h-px flex-1 bg-border" />
-
+            {/* VS */}
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-background">
               <span className="text-[7px] font-bold text-muted-foreground">
                 VS
               </span>
-
-              <div className="h-px flex-1 bg-border" />
             </div>
 
+            {/* AWAY */}
             <CompactTeam
               badge={prediction?.awayTeamBadge}
               name={prediction?.awayTeam}
+              align="right"
             />
-          </div>
-
-          <div className="mt-1 flex items-center gap-1 border-t border-border pt-1 text-[7px] text-muted-foreground">
-            <CalendarDays size={9} />
-
-            <span className="truncate">
-              {formatMatchTime(prediction?.matchDate)}
-            </span>
           </div>
         </div>
 
-        {/* PROBABILITY */}
-        <CompactSection label="Probability">
-          <PredictionProbabilityCell prediction={cellPrediction} />
-        </CompactSection>
+        {/* =====================================================
+            PROBABILITY
+        ===================================================== */}
 
-        {/* PREDICTION */}
-        <CompactSection label="Prediction">
-          {canView ? (
-            <PredictionPredictionCell
+        <div className="rounded-lg border border-border bg-muted/10 px-2 py-1.5">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-[7px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Probability
+            </span>
+          </div>
+
+          <div className="prediction-probability-compact">
+            <PredictionProbabilityCell
               prediction={cellPrediction}
             />
+          </div>
+        </div>
+
+        {/* =====================================================
+            PREDICTION
+        ===================================================== */}
+
+        <div className="rounded-lg border border-border bg-background px-2.5 py-2">
+          <p className="mb-1 text-[7px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+            Prediction
+          </p>
+
+          {canView ? (
+            <div className="prediction-main-value">
+              <PredictionPredictionCell
+                prediction={cellPrediction}
+              />
+            </div>
           ) : (
             <CompactLock
               type="prediction"
@@ -241,53 +272,31 @@ export default function PredictionMobileCard({
               }
             />
           )}
-        </CompactSection>
+        </div>
 
-        {/* MARKETS */}
+
+        {/* =====================================================
+            MARKETS
+        ===================================================== */}
+
         {canView && (
-          <CompactSection label="Markets">
+          <div className="rounded-lg border border-border bg-muted/10 px-2 py-1.5">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[7px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                Markets
+              </span>
+            </div>
+
             <PredictionMarketsCell
               prediction={cellPrediction}
               onSubscriptionRequired={() =>
                 handleSubscription('markets')
               }
             />
-          </CompactSection>
+          </div>
         )}
       </div>
     </article>
-  );
-}
-
-/* =========================================================
-   CONFIDENCE
-========================================================= */
-
-function ConfidenceRow({
-  confidence,
-}: {
-  confidence: number;
-}) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/20 px-2 py-1.5">
-      <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
-        Confidence
-      </span>
-
-      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
-        <div
-          className={clsx(
-            'h-full rounded-full transition-all duration-300',
-            getConfidenceColor(confidence),
-          )}
-          style={{ width: `${confidence}%` }}
-        />
-      </div>
-
-      <span className="w-8 shrink-0 text-right text-[10px] font-black tabular-nums">
-        {confidence}%
-      </span>
-    </div>
   );
 }
 
@@ -298,54 +307,46 @@ function ConfidenceRow({
 function CompactTeam({
   badge,
   name,
+  align = 'left',
 }: {
   badge?: string;
   name?: string;
+  align?: 'left' | 'right';
 }) {
   const teamName = name ?? 'Unknown Team';
 
+  const isRight = align === 'right';
+
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div
+      className={clsx(
+        'flex min-w-0 items-center gap-1.5',
+        isRight && 'flex-row-reverse',
+      )}
+    >
       {badge ? (
         <Image
           src={badge}
           alt=""
           width={20}
           height={20}
-          className="h-4.5 w-4.5 shrink-0 rounded-full border border-border bg-background object-contain p-0.5"
+          className="h-5 w-5 shrink-0 rounded-full border border-border bg-background object-contain p-0.5"
         />
       ) : (
-        <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-muted text-[7px] font-bold">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[7px] font-bold">
           {teamName.charAt(0).toUpperCase()}
         </span>
       )}
 
-      <span className="min-w-0 truncate text-[10px] font-semibold leading-tight">
+      <span
+        className={clsx(
+          'min-w-0 truncate text-[10px] font-semibold leading-tight',
+          isRight ? 'text-right' : 'text-left',
+        )}
+      >
         {teamName}
       </span>
     </div>
-  );
-}
-
-/* =========================================================
-   SECTION
-========================================================= */
-
-function CompactSection({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-1">
-      <p className="px-0.5 text-[7px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-        {label}
-      </p>
-
-      {children}
-    </section>
   );
 }
 
@@ -375,9 +376,9 @@ function CompactLock({
   if (accessState === 'login_required') {
     return (
       <LockButton
-        icon={<Lock size={9} />}
+        icon={<Lock size={10} />}
         title="Login required"
-        description="Login to view"
+        description="Login to view this prediction"
         onClick={onClick}
       />
     );
@@ -387,8 +388,8 @@ function CompactLock({
     if (userPlan === 'free') {
       return (
         <LockButton
-          icon={<Crown size={9} />}
-          title="VIP locked"
+          icon={<Crown size={10} />}
+          title="VIP prediction"
           description="Upgrade to Regular or VIP"
           onClick={onClick}
         />
@@ -398,7 +399,7 @@ function CompactLock({
     if (userPlan === 'regular') {
       return (
         <LockButton
-          icon={<Crown size={9} />}
+          icon={<Crown size={10} />}
           title={
             released
               ? 'VIP required'
@@ -406,7 +407,7 @@ function CompactLock({
           }
           description={
             released
-              ? 'Upgrade to VIP'
+              ? 'Upgrade to VIP to view'
               : 'Upgrade to VIP for early access'
           }
           onClick={onClick}
@@ -421,7 +422,7 @@ function CompactLock({
   ) {
     return (
       <LockButton
-        icon={<Lock size={9} />}
+        icon={<Lock size={10} />}
         title="Regular required"
         description="Upgrade to Regular or VIP"
         onClick={onClick}
@@ -435,7 +436,7 @@ function CompactLock({
   ) {
     return (
       <LockButton
-        icon={<Lock size={9} />}
+        icon={<Lock size={10} />}
         title="Locked"
         description={
           accessMessage ??
@@ -450,9 +451,9 @@ function CompactLock({
     <LockButton
       icon={
         isVip ? (
-          <Crown size={9} />
+          <Crown size={10} />
         ) : (
-          <Lock size={9} />
+          <Lock size={10} />
         )
       }
       title={
@@ -464,7 +465,7 @@ function CompactLock({
       }
       description={
         isVip
-          ? 'Upgrade to VIP'
+          ? 'Upgrade to VIP to view'
           : 'Upgrade to Regular or VIP'
       }
       onClick={onClick}
@@ -594,22 +595,6 @@ function getTopAccentClass({
 }
 
 /* =========================================================
-   CONFIDENCE COLOR
-========================================================= */
-
-function getConfidenceColor(value: number) {
-  if (value >= 80) {
-    return 'bg-emerald-500';
-  }
-
-  if (value >= 65) {
-    return 'bg-amber-500';
-  }
-
-  return 'bg-orange-500';
-}
-
-/* =========================================================
    PLAN
 ========================================================= */
 
@@ -640,5 +625,8 @@ function clamp(value: unknown) {
     return 0;
   }
 
-  return Math.min(100, Math.max(0, Math.round(number)));
+  return Math.min(
+    100,
+    Math.max(0, Math.round(number)),
+  );
 }

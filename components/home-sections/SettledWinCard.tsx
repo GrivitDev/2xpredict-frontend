@@ -7,11 +7,13 @@ import {
   Trophy,
 } from 'lucide-react';
 
-import { formatMatchTime } from '@/lib/formatMatchTime';
-
 import type {
   PredictionDetails,
 } from '@/services/prediction.service';
+
+import type {
+  MatchScore,
+} from './features/Results';
 
 
 // ============================================================
@@ -20,6 +22,7 @@ import type {
 
 interface SettledWinCardProps {
   prediction: PredictionDetails;
+  score: MatchScore;
 }
 
 
@@ -28,37 +31,37 @@ interface SettledWinCardProps {
 // ============================================================
 
 function clampPercentage(
-  value: number | undefined,
+  value: unknown,
 ): number {
+  const number = Number(value);
 
-  if (
-    typeof value !== 'number' ||
-    Number.isNaN(value)
-  ) {
+  if (!Number.isFinite(number)) {
     return 0;
   }
 
   return Math.min(
     100,
-    Math.max(0, value),
+    Math.max(0, number),
   );
 }
 
 
+// ============================================================
+// PREDICTION LABEL
+// ============================================================
+
 function getPredictionLabel(
   prediction: PredictionDetails,
 ): string {
-
   switch (prediction.data?.prediction) {
-
     case 'HOME':
-      return `${prediction.homeTeam} To Win`;
+      return `${prediction.homeTeam} Win`;
 
     case 'DRAW':
       return 'Draw';
 
     case 'AWAY':
-      return `${prediction.awayTeam} To Win`;
+      return `${prediction.awayTeam} Win`;
 
     default:
       return 'Match Prediction';
@@ -72,17 +75,12 @@ function getPredictionLabel(
 
 export default function SettledWinCard({
   prediction,
+  score,
 }: SettledWinCardProps) {
-
   const leagueName =
     prediction.league?.name ??
     prediction.leagueCode ??
     'Football';
-
-  const matchDate =
-    prediction.matchDate ??
-    prediction.match?.utcDate ??
-    prediction.date;
 
   const probabilities =
     prediction.data?.probabilities;
@@ -112,6 +110,9 @@ export default function SettledWinCard({
       prediction,
     );
 
+  const hasScore =
+    score.home !== null &&
+    score.away !== null;
 
   return (
     <article
@@ -121,13 +122,16 @@ export default function SettledWinCard({
         border
         border-border
         bg-card
-        p-3
         text-card-foreground
         shadow-sm
+        transition
+        hover:border-primary/20
+        hover:shadow-md
       "
     >
-
-      {/* HEADER */}
+      {/* ====================================================
+          HEADER
+      ==================================================== */}
 
       <div
         className="
@@ -135,9 +139,12 @@ export default function SettledWinCard({
           items-center
           justify-between
           gap-2
+          border-b
+          border-border
+          px-3
+          py-2
         "
       >
-
         <div
           className="
             flex
@@ -146,67 +153,59 @@ export default function SettledWinCard({
             gap-2
           "
         >
-
           <div
             className="
               flex
-              h-7
-              w-7
+              h-6
+              w-6
               shrink-0
               items-center
               justify-center
               overflow-hidden
               rounded-md
-              border
-              border-border
-              bg-muted/50
-              p-1
+              bg-muted/60
             "
           >
-
             {prediction.league?.emblem ? (
-
               <Image
                 src={prediction.league.emblem}
                 alt={leagueName}
-                width={20}
-                height={20}
+                width={18}
+                height={18}
                 className="
-                  h-full
-                  w-full
+                  h-4
+                  w-4
                   object-contain
                 "
               />
-
             ) : (
-
               <Trophy
                 className="
-                  h-3.5
-                  w-3.5
+                  h-3
+                  w-3
                   text-muted-foreground
                 "
               />
-
             )}
-
           </div>
 
-          <p
+          <span
             className="
               min-w-0
               truncate
-              text-[10px]
+              text-[11px]
               font-semibold
+              text-muted-foreground
             "
+            title={leagueName}
           >
             {leagueName}
-          </p>
-
+          </span>
         </div>
 
+        {/* WON */}
 
-        <div
+        <span
           className="
             inline-flex
             shrink-0
@@ -214,161 +213,200 @@ export default function SettledWinCard({
             gap-1
             rounded-full
             bg-emerald-500/10
-            px-1.5
+            px-2
             py-0.5
-            text-[8px]
+            text-[9px]
             font-bold
             uppercase
             text-emerald-600
             dark:text-emerald-400
           "
         >
-
           <CheckCircle2
             className="
-              h-2.5
-              w-2.5
+              h-3
+              w-3
             "
           />
 
           WON
-
-        </div>
-
+        </span>
       </div>
 
 
-      {/* TEAMS */}
+      {/* ====================================================
+          MATCH
+      ==================================================== */}
 
       <div
         className="
-          mt-3
-          grid
-          grid-cols-[1fr_auto_1fr]
-          items-center
-          gap-2
+          px-3
+          pt-3
         "
       >
-
-        <Team
-          name={prediction.homeTeam}
-          badge={prediction.homeTeamBadge}
-        />
-
-
-        <span
+        <div
           className="
-            text-[8px]
-            font-bold
-            uppercase
-            tracking-wider
-            text-muted-foreground
+            grid
+            grid-cols-[1fr_auto_1fr]
+            items-center
+            gap-2
           "
         >
-          VS
-        </span>
+          {/* HOME */}
+
+          <Team
+            name={prediction.homeTeam}
+            badge={prediction.homeTeamBadge}
+          />
 
 
-        <Team
-          name={prediction.awayTeam}
-          badge={prediction.awayTeamBadge}
-        />
+          {/* SCORE */}
 
+          <div
+            className="
+              flex
+              min-w-[48px]
+              flex-col
+              items-center
+            "
+          >
+            {hasScore ? (
+              <div
+                className="
+                  rounded-lg
+                  bg-muted
+                  px-2.5
+                  py-1
+                  text-base
+                  font-black
+                  leading-none
+                  tabular-nums
+                "
+              >
+                {score.home}
+
+                <span
+                  className="
+                    mx-1
+                    text-muted-foreground
+                  "
+                >
+                  -
+                </span>
+
+                {score.away}
+              </div>
+            ) : (
+              <div
+                className="
+                  rounded-lg
+                  bg-muted/60
+                  px-2
+                  py-1
+                  text-[11px]
+                  font-bold
+                  text-muted-foreground
+                "
+              >
+                —
+              </div>
+            )}
+
+            <span
+              className="
+                mt-1
+                text-[9px]
+                font-bold
+                uppercase
+                tracking-wider
+                text-muted-foreground
+              "
+            >
+              FT
+            </span>
+          </div>
+
+
+          {/* AWAY */}
+
+          <Team
+            name={prediction.awayTeam}
+            badge={prediction.awayTeamBadge}
+          />
+        </div>
       </div>
 
 
-      {/* DATE */}
-
-      <p
-        className="
-          mt-2
-          text-center
-          text-[9px]
-          font-medium
-          text-muted-foreground
-        "
-      >
-        {matchDate
-          ? formatMatchTime(matchDate)
-          : '—'}
-      </p>
-
-
-      {/* PREDICTION */}
+      {/* ====================================================
+          PREDICTION
+      ==================================================== */}
 
       <div
         className="
+          mx-3
           mt-3
           rounded-lg
-          bg-muted/40
+          bg-primary/5
           px-2.5
           py-2
         "
       >
-
-        <p
-          className="
-            text-[9px]
-            font-bold
-            uppercase
-            tracking-wide
-            text-muted-foreground
-          "
-        >
-          Prediction
-        </p>
-
-        <p
-          className="
-            mt-0.5
-            truncate
-            text-[11px]
-            font-bold
-            text-foreground
-          "
-        >
-          {predictionLabel}
-        </p>
-
-      </div>
-
-
-      {/* CONFIDENCE */}
-
-      <div className="mt-3">
-
         <div
           className="
             flex
             items-center
             justify-between
-            text-[11px]
-            font-bold
-            uppercase
-            tracking-wide
-            text-muted-foreground
+            gap-2
           "
         >
-
-          <span>Confidence</span>
-
-          <span className="text-foreground">
-            {confidence}%
+          <span
+            className="
+              text-[9px]
+              font-bold
+              uppercase
+              tracking-wide
+              text-muted-foreground
+            "
+          >
+            Prediction
           </span>
 
+          <span
+            className="
+              text-[11px]
+              font-bold
+              text-primary
+            "
+          >
+            {confidence}%
+          </span>
         </div>
 
+        <p
+          className="
+            mt-0.5
+            truncate
+            text-sm
+            font-bold
+            leading-tight
+            text-foreground
+          "
+          title={predictionLabel}
+        >
+          {predictionLabel}
+        </p>
+
+        {/* CONFIDENCE */}
 
         <div
           className="
-            mt-1
-            h-1.5
+            mt-2
+            h-1
             overflow-hidden
             rounded-full
             bg-muted
           "
         >
-
           <div
             className="
               h-full
@@ -379,52 +417,68 @@ export default function SettledWinCard({
               width: `${confidence}%`,
             }}
           />
-
         </div>
-
       </div>
 
 
-      {/* PROBABILITIES */}
+      {/* ====================================================
+          PROBABILITIES
+      ==================================================== */}
+
+      <div
+        className="
+          mx-3
+          mt-3
+          grid
+          grid-cols-3
+          gap-1.5
+        "
+      >
+        <Probability
+          label="1"
+          value={homeProbability}
+          active={
+            prediction.data?.prediction ===
+            'HOME'
+          }
+        />
+
+        <Probability
+          label="X"
+          value={drawProbability}
+          active={
+            prediction.data?.prediction ===
+            'DRAW'
+          }
+        />
+
+        <Probability
+          label="2"
+          value={awayProbability}
+          active={
+            prediction.data?.prediction ===
+            'AWAY'
+          }
+        />
+      </div>
+
+
+      {/* ====================================================
+          FOOTER
+      ==================================================== */}
 
       <div
         className="
           mt-3
-          space-y-1.5
-        "
-      >
-
-        <ProbabilityBar
-          label="1"
-          value={homeProbability}
-        />
-
-        <ProbabilityBar
-          label="X"
-          value={drawProbability}
-        />
-
-        <ProbabilityBar
-          label="2"
-          value={awayProbability}
-        />
-
-      </div>
-
-
-      {/* SETTLED */}
-
-      <div
-        className="
-          mt-2
           flex
           items-center
           justify-center
           gap-1.5
           border-t
           border-border
-          pt-2
-          text-[8px]
+          px-3
+          py-2
+          text-[9px]
           font-bold
           uppercase
           tracking-wide
@@ -432,7 +486,6 @@ export default function SettledWinCard({
           dark:text-emerald-400
         "
       >
-
         <CheckCircle2
           className="
             h-3
@@ -440,10 +493,8 @@ export default function SettledWinCard({
           "
         />
 
-        SETTLED WIN
-
+        Settled Win
       </div>
-
     </article>
   );
 }
@@ -460,7 +511,6 @@ function Team({
   name: string;
   badge?: string;
 }) {
-
   return (
     <div
       className="
@@ -471,38 +521,36 @@ function Team({
         gap-1
       "
     >
-
       <div
         className="
           flex
-          h-9
-          w-9
+          h-8
+          w-8
+          shrink-0
           items-center
           justify-center
+          sm:h-9
+          sm:w-9
         "
       >
-
         {badge ? (
-
           <Image
             src={badge}
             alt={name}
-            width={40}
-            height={40}
+            width={36}
+            height={36}
             className="
               h-full
               w-full
               object-contain
             "
           />
-
         ) : (
-
           <div
             className="
               flex
-              h-8
-              w-8
+              h-7
+              w-7
               items-center
               justify-center
               rounded-full
@@ -514,99 +562,118 @@ function Team({
           >
             ?
           </div>
-
         )}
-
       </div>
-
 
       <p
         className="
           line-clamp-2
-          min-h-[24px]
+          min-h-[26px]
           w-full
           text-center
-          text-[9px]
+          text-[10px]
           font-semibold
           leading-3
         "
+        title={name}
       >
         {name}
       </p>
-
     </div>
   );
 }
 
 
 // ============================================================
-// PROBABILITY BAR
+// PROBABILITY
 // ============================================================
 
-function ProbabilityBar({
+function Probability({
   label,
   value,
+  active,
 }: {
   label: string;
   value: number;
+  active: boolean;
 }) {
-
   return (
     <div
-      className="
-        flex
-        items-center
-        gap-1.5
-      "
+      className={`
+        rounded-md
+        border
+        px-1.5
+        py-1.5
+        text-center
+        ${
+          active
+            ? 'border-primary/30 bg-primary/5'
+            : 'border-border bg-muted/20'
+        }
+      `}
     >
-
-      <span
+      <div
         className="
-          w-2.5
-          text-[10px]
-          font-bold
-          text-muted-foreground
+          flex
+          items-center
+          justify-center
+          gap-1
         "
       >
-        {label}
-      </span>
+        <span
+          className={`
+            text-[10px]
+            font-black
+            ${
+              active
+                ? 'text-primary'
+                : 'text-muted-foreground'
+            }
+          `}
+        >
+          {label}
+        </span>
 
+        <span
+          className={`
+            text-[10px]
+            font-bold
+            tabular-nums
+            ${
+              active
+                ? 'text-primary'
+                : 'text-foreground'
+            }
+          `}
+        >
+          {value}%
+        </span>
+      </div>
 
       <div
         className="
+          mt-1
           h-1
-          flex-1
           overflow-hidden
           rounded-full
           bg-muted
         "
       >
-
         <div
-          className="
+          className={`
             h-full
             rounded-full
-            bg-primary/70
-          "
+            ${
+              active
+                ? 'bg-primary'
+                : 'bg-primary/40'
+            }
+          `}
           style={{
             width: `${value}%`,
           }}
         />
-
       </div>
-
-
-      <span
-        className="
-          w-7
-          text-right
-          text-[10px]
-          font-bold
-        "
-      >
-        {value}%
-      </span>
-
     </div>
   );
 }

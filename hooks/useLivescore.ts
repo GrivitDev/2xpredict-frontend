@@ -15,7 +15,6 @@ import {
   getLeagues,
   getFixtures,
   getLiveMatches,
-  getPastResults,
   getStandings,
   splitMatches,
   type CompetitionStandingsResponse,
@@ -28,30 +27,28 @@ import {
 // CACHE / REFRESH SETTINGS
 // ============================================================
 //
-// Keep these intentionally different.
+// HOME PAGE API REQUESTS
 //
-// LEAGUES:
-// Rarely changes.
+// 1. Leagues
+// 2. Live matches
+// 3. Fixtures
+// 4. Standings
 //
-// FIXTURES:
-// Can change during the day.
+// Past results are intentionally NOT fetched here.
+// SettledWins handles settled-match results separately.
 //
-// RESULTS:
-// Changes whenever matches finish.
-//
-// STANDINGS:
-// Changes whenever completed matches affect the table.
-//
-// LIVE:
-// Must refresh frequently.
-//
+// ============================================================
+
+
+// ------------------------------------------------------------
+// LEAGUES
+// ------------------------------------------------------------
 
 const LEAGUES_STALE_TIME =
   1000 *
   60 *
   60 *
   12;
-
 
 const LEAGUES_GC_TIME =
   1000 *
@@ -60,11 +57,14 @@ const LEAGUES_GC_TIME =
   24;
 
 
+// ------------------------------------------------------------
+// FIXTURES
+// ------------------------------------------------------------
+
 const FIXTURES_STALE_TIME =
   1000 *
   60 *
   15;
-
 
 const FIXTURES_GC_TIME =
   1000 *
@@ -72,23 +72,14 @@ const FIXTURES_GC_TIME =
   60;
 
 
-const RESULTS_STALE_TIME =
-  1000 *
-  60 *
-  5;
-
-
-const RESULTS_GC_TIME =
-  1000 *
-  60 *
-  30;
-
+// ------------------------------------------------------------
+// STANDINGS
+// ------------------------------------------------------------
 
 const STANDINGS_STALE_TIME =
   1000 *
   60 *
   5;
-
 
 const STANDINGS_GC_TIME =
   1000 *
@@ -96,10 +87,13 @@ const STANDINGS_GC_TIME =
   30;
 
 
+// ------------------------------------------------------------
+// LIVE
+// ------------------------------------------------------------
+
 const LIVE_STALE_TIME =
   1000 *
   20;
-
 
 const LIVE_GC_TIME =
   1000 *
@@ -139,15 +133,6 @@ export const livescoreKeys = {
   ] as const,
 
 
-  results: (
-    leagueCode: string,
-  ) => [
-    ...livescoreKeys.all,
-    'results',
-    leagueCode,
-  ] as const,
-
-
   standings: (
     leagueCode: string,
   ) => [
@@ -167,14 +152,9 @@ function getRandomLeague(
   leagues: League[],
 ): League | null {
 
-  if (
-    !leagues.length
-  ) {
-
+  if (!leagues.length) {
     return null;
-
   }
-
 
   const index =
     Math.floor(
@@ -182,12 +162,10 @@ function getRandomLeague(
       leagues.length,
     );
 
-
   return (
     leagues[index] ??
     null
   );
-
 }
 
 
@@ -249,15 +227,12 @@ export function useLivescore() {
         !selectedLeagueCode ||
         !leaguesQuery.data?.length
       ) {
-
         return '';
-
       }
-
 
       return (
         leaguesQuery.data.find(
-          league =>
+          (league) =>
             league.code ===
             selectedLeagueCode,
         )?.country ??
@@ -280,24 +255,17 @@ export function useLivescore() {
       selectedLeagueCode ||
       !leaguesQuery.data?.length
     ) {
-
       return;
-
     }
-
 
     const randomLeague =
       getRandomLeague(
         leaguesQuery.data,
       );
 
-
     if (!randomLeague) {
-
       return;
-
     }
-
 
     setSelectedLeagueCode(
       randomLeague.code,
@@ -319,7 +287,7 @@ export function useLivescore() {
 
         return (
           leaguesQuery.data?.find(
-            league =>
+            (league) =>
               league.code ===
               selectedLeagueCode,
           ) ??
@@ -365,15 +333,13 @@ export function useLivescore() {
 
         const countryLeagues =
           leaguesQuery.data?.filter(
-            league =>
+            (league) =>
               league.country ===
               country,
           ) ?? [];
 
-
         const firstLeague =
           countryLeagues[0];
-
 
         setSelectedLeagueCode(
           firstLeague?.code ??
@@ -402,7 +368,9 @@ export function useLivescore() {
   // ==========================================================
   // LIVE MATCHES
   //
-  // Live data is always allowed to refresh.
+  // This is the only continuously refreshing request.
+  //
+  // It refreshes once every 60 seconds.
   // ==========================================================
 
   const liveQuery =
@@ -484,47 +452,6 @@ export function useLivescore() {
 
 
   // ==========================================================
-  // RESULTS
-  // ==========================================================
-
-  const resultsQuery =
-    useQuery<Match[]>({
-
-      queryKey:
-        livescoreKeys.results(
-          selectedLeagueCode,
-        ),
-
-      queryFn:
-        () =>
-          getPastResults(
-            selectedLeagueCode,
-          ),
-
-      enabled:
-        Boolean(
-          selectedLeagueCode,
-        ),
-
-      staleTime:
-        RESULTS_STALE_TIME,
-
-      gcTime:
-        RESULTS_GC_TIME,
-
-      refetchOnMount:
-        true,
-
-      refetchOnWindowFocus:
-        false,
-
-      refetchOnReconnect:
-        true,
-
-    });
-
-
-  // ==========================================================
   // STANDINGS
   // ==========================================================
 
@@ -573,10 +500,6 @@ export function useLivescore() {
     fixturesQuery.data ?? [];
 
 
-  const results =
-    resultsQuery.data ?? [];
-
-
   const standings =
     standingsQuery.data ??
     null;
@@ -601,18 +524,35 @@ export function useLivescore() {
 
 
   // ==========================================================
-  // LOADING
+  // INITIAL LOADING
   // ==========================================================
+  //
+  // The HomePage should remain on its loading screen until
+  // ALL required HomePage data has been loaded:
+  //
+  // 1. Leagues
+  // 2. Live matches
+  // 3. Fixtures
+  // 4. Standings
+  //
+  // SettledWins is deliberately NOT included here because
+  // its results request is independent of useLivescore.
+  //
+  // ==========================================================
+
+  const hasSelectedLeague =
+    Boolean(
+      selectedLeagueCode,
+    );
+
 
   const isLoading =
     leaguesQuery.isLoading ||
+    liveQuery.isLoading ||
     (
-      Boolean(
-        selectedLeagueCode,
-      ) &&
+      hasSelectedLeague &&
       (
         fixturesQuery.isLoading ||
-        resultsQuery.isLoading ||
         standingsQuery.isLoading
       )
     );
@@ -626,7 +566,6 @@ export function useLivescore() {
     leaguesQuery.isFetching ||
     liveQuery.isFetching ||
     fixturesQuery.isFetching ||
-    resultsQuery.isFetching ||
     standingsQuery.isFetching;
 
 
@@ -671,13 +610,6 @@ export function useLivescore() {
 
 
     // --------------------------------------------------------
-    // RESULTS
-    // --------------------------------------------------------
-
-    results,
-
-
-    // --------------------------------------------------------
     // STANDINGS
     // --------------------------------------------------------
 
@@ -702,9 +634,6 @@ export function useLivescore() {
     isLoadingFixtures:
       fixturesQuery.isLoading,
 
-    isLoadingResults:
-      resultsQuery.isLoading,
-
     isLoadingStandings:
       standingsQuery.isLoading,
 
@@ -717,9 +646,6 @@ export function useLivescore() {
 
     isFetchingFixtures:
       fixturesQuery.isFetching,
-
-    isFetchingResults:
-      resultsQuery.isFetching,
 
     isFetchingStandings:
       standingsQuery.isFetching,
@@ -737,9 +663,6 @@ export function useLivescore() {
 
     fixturesError:
       fixturesQuery.error,
-
-    resultsError:
-      resultsQuery.error,
 
     standingsError:
       standingsQuery.error,

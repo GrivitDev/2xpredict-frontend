@@ -8,16 +8,18 @@ import {
 
 import {
   Search,
+  X,
   RotateCcw,
   SlidersHorizontal,
 } from 'lucide-react';
+
+import LeagueSelector from './LeagueSelector';
+import type { League } from '@/services/sports.service';
 
 type SectionView =
   | 'all'
   | 'predictions'
   | 'live'
-  | 'today'
-  | 'results'
   | 'upcoming'
   | 'table';
 
@@ -28,6 +30,10 @@ type ResultFilter =
   | 'draw';
 
 interface Props {
+  leagues: League[];
+  selectedLeague: string;
+  onLeagueChange: (leagueCode: string) => void;
+
   search: string;
   selectedDate: string;
   goalFilter: string;
@@ -48,18 +54,8 @@ const sectionOptions: [SectionView, string][] = [
   ['all', 'All'],
   ['predictions', 'Predictions'],
   ['live', 'Live'],
-  ['today', 'Today'],
-  ['results', 'Results'],
   ['upcoming', 'Upcoming'],
   ['table', 'Table'],
-];
-
-const goalOptions = [
-  ['1', '1+'],
-  ['2', '2+'],
-  ['3', '3+'],
-  ['4', '4+'],
-  ['5', '5+'],
 ];
 
 const pointsOptions = [
@@ -162,11 +158,9 @@ function SearchBar({
 
 function FilterPanel({
   selectedDate,
-  goalFilter,
   pointsFilter,
   resultFilter,
   onDateChange,
-  onGoalFilterChange,
   onPointsFilterChange,
   onResultFilterChange,
   onReset,
@@ -207,43 +201,6 @@ function FilterPanel({
           }
           className={inputClass}
         />
-      </div>
-
-      {/* GOALS */}
-
-      <div>
-        <label
-          className="
-            mb-1
-            block
-            text-xs
-            font-medium
-            text-muted-foreground
-          "
-        >
-          Goals
-        </label>
-
-        <select
-          value={goalFilter}
-          onChange={(e) =>
-            onGoalFilterChange(e.target.value)
-          }
-          className={`${inputClass} cursor-pointer`}
-        >
-          <option value="">Any</option>
-
-          {goalOptions.map(
-            ([value, label]) => (
-              <option
-                key={value}
-                value={value}
-              >
-                {label}
-              </option>
-            ),
-          )}
-        </select>
       </div>
 
       {/* POINTS */}
@@ -353,12 +310,17 @@ function FilterPanel({
 }
 
 export default function LivescoreFilters({
+  leagues,
+  selectedLeague,
+  onLeagueChange,
+
   search,
   selectedDate,
   goalFilter,
   pointsFilter,
   resultFilter,
   sectionView,
+
   onSearchChange,
   onDateChange,
   onGoalFilterChange,
@@ -371,6 +333,9 @@ export default function LivescoreFilters({
     showFilters,
     setShowFilters,
   ] = useState(false);
+
+  const [showSearch, setShowSearch] =
+  useState(false);
 
   const desktopFilterRef =
     useRef<HTMLDivElement>(null);
@@ -445,221 +410,261 @@ export default function LivescoreFilters({
           DESKTOP
       ==================================================== */}
 
+<div
+  className="
+    hidden
+    items-center
+    gap-3
+    md:flex
+  "
+>
+  <div className="flex-1">
+    {showSearch ? (
+      <SearchBar
+        search={search}
+        onSearchChange={onSearchChange}
+      />
+    ) : (
+      <LeagueSelector
+        leagues={leagues}
+        selectedLeague={selectedLeague}
+        onLeagueChange={onLeagueChange}
+      />
+    )}
+  </div>
+
+  <button
+    type="button"
+    onClick={() =>
+      setShowSearch((value) => !value)
+    }
+    className={`
+      flex
+      h-11
+      w-11
+      items-center
+      justify-center
+      rounded-xl
+      border
+      ${glassClass}
+    `}
+  >
+    {showSearch ? (
+      <X size={18} />
+    ) : (
+      <Search size={18} />
+    )}
+  </button>
+
+  <div
+    ref={desktopFilterRef}
+    className="relative"
+  >
+    <button
+      type="button"
+      onClick={() =>
+        setShowFilters((v) => !v)
+      }
+      className={`
+        flex
+        h-11
+        w-11
+        items-center
+        justify-center
+        rounded-xl
+        border
+        ${glassClass}
+      `}
+    >
+      <SlidersHorizontal size={18} />
+    </button>
+
+    {showFilters && (
       <div
-        className="
-          hidden
-          items-center
-          gap-3
-          md:flex
-        "
+        className={`
+          absolute
+          right-0
+          top-14
+          z-[100]
+          w-72
+          rounded-xl
+          border
+          p-4
+          shadow-xl
+          ${glassClass}
+        `}
       >
-        {/* SEARCH */}
-
-        <SearchBar
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-
-        {/* FILTER */}
-
-        <div
-          ref={desktopFilterRef}
-          className="relative"
-        >
-          <button
-            type="button"
-            onClick={() =>
-              setShowFilters(
-                (current) => !current,
-              )
-            }
-            className={`
-              inline-flex
-              h-11
-              items-center
-              gap-2
-              rounded-xl
-              border
-              px-4
-              text-xs
-              font-medium
-              transition
-              hover:bg-muted/50
-              ${glassClass}
-            `}
-          >
-            <SlidersHorizontal
-              size={18}
-            />
-
-            Filters
-          </button>
-
-          {showFilters && (
-            <div
-              className={`
-                absolute
-                right-0
-                top-14
-                z-[100]
-                w-72
-                rounded-xl
-                border
-                p-4
-                shadow-xl
-                ${glassClass}
-              `}
-            >
-              {filterContent}
-            </div>
-          )}
-        </div>
+        {filterContent}
       </div>
+    )}
+  </div>
+</div>
 
       {/* ====================================================
           MOBILE
       ==================================================== */}
 
       <div className="md:hidden">
-        <div
-          className="
-            flex
-            items-center
-            gap-2
-          "
-        >
-          {/* SEARCH BAR */}
+<div
+  className="
+    flex
+    items-center
+    gap-2
+  "
+>
+  <div className="flex-1">
+    {showSearch ? (
+      <SearchBar
+        search={search}
+        onSearchChange={onSearchChange}
+        mobile
+      />
+    ) : (
+      <LeagueSelector
+        leagues={leagues}
+        selectedLeague={selectedLeague}
+        onLeagueChange={onLeagueChange}
+      />
+    )}
+  </div>
 
-          <SearchBar
-            search={search}
-            onSearchChange={onSearchChange}
-            mobile
-          />
+  <button
+    type="button"
+    onClick={() =>
+      setShowSearch((v) => !v)
+    }
+    className={`
+      flex
+      h-11
+      w-11
+      items-center
+      justify-center
+      rounded-xl
+      border
+      ${glassClass}
+    `}
+  >
+    {showSearch ? (
+      <X size={18} />
+    ) : (
+      <Search size={18} />
+    )}
+  </button>
 
-          {/* FILTER BUTTON */}
+  <div
+    ref={mobileFilterRef}
+    className="relative"
+  >
+    <button
+      type="button"
+      onClick={() =>
+        setShowFilters((v) => !v)
+      }
+      className={`
+        flex
+        h-11
+        w-11
+        items-center
+        justify-center
+        rounded-xl
+        border
+        ${glassClass}
+      `}
+    >
+      <SlidersHorizontal size={18} />
+    </button>
 
-          <div
-            ref={mobileFilterRef}
-            className="relative shrink-0"
-          >
-            <button
-              type="button"
-              aria-label="Open filters"
-              onClick={() =>
-                setShowFilters(
-                  (current) => !current,
-                )
-              }
-              className={`
-                flex
-                h-11
-                w-11
-                items-center
-                justify-center
-                rounded-xl
-                border
-                transition
-                hover:bg-muted/50
-                ${glassClass}
-              `}
-            >
-              <SlidersHorizontal
-                size={18}
-              />
-            </button>
-
-            {showFilters && (
-              <div
-                className={`
-                  absolute
-                  right-0
-                  top-12
-                  z-[100]
-                  w-72
-                  max-w-[calc(100vw-2rem)]
-                  rounded-xl
-                  border
-                  p-4
-                  shadow-xl
-                  ${glassClass}
-                `}
-              >
-                {filterContent}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ====================================================
-          SECTION SELECTOR
-      ==================================================== */}
-
+    {showFilters && (
       <div
-        className="
-          flex
-          w-full
-          items-center
-          justify-center
+        className={`
+          absolute
+          right-0
+          top-12
+          z-[100]
+          w-72
           rounded-xl
           border
-          border-border/60
-          bg-muted/30
-          p-1
-          shadow-sm
-          md:ml-auto
-          md:w-fit
-          md:justify-end
-        "
+          p-4
+          shadow-xl
+          ${glassClass}
+        `}
       >
-        {sectionOptions.map(
-          ([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() =>
-                onSectionViewChange(value)
-              }
-              className={`
-                min-w-0
-                flex-1
-                whitespace-nowrap
-                rounded-lg
-                px-1
-                py-1.5
-                text-[9px]
-                font-semibold
-                leading-none
-                transition-all
-                duration-200
-                sm:px-2
-                sm:text-[10px]
-                md:flex-none
-                md:px-3
-                md:py-1.5
-                md:text-xs
-                ${
-                  sectionView === value
-                    ? `
-                      bg-background
-                      text-primary
-                      shadow-sm
-                      ring-1
-                      ring-border/50
-                    `
-                    : `
-                      text-muted-foreground
-                      hover:bg-background/70
-                      hover:text-foreground
-                    `
-                }
-              `}
-            >
-              {label}
-            </button>
-          ),
-        )}
+        {filterContent}
       </div>
+    )}
+  </div>
+</div>
+      </div>
+{/* ====================================================
+    SECTION SELECTOR
+==================================================== */}
+
+<div
+  className="
+    hidden
+    w-full
+    items-center
+    justify-center
+    rounded-xl
+    border
+    border-border/60
+    bg-muted/30
+    p-1
+    shadow-sm
+    md:ml-auto
+    md:flex
+    md:w-fit
+    md:justify-end
+  "
+>
+  {sectionOptions.map(
+    ([value, label]) => (
+      <button
+        key={value}
+        type="button"
+        onClick={() =>
+          onSectionViewChange(value)
+        }
+        className={`
+          min-w-0
+          flex-1
+          whitespace-nowrap
+          rounded-lg
+          px-1
+          py-1.5
+          text-[9px]
+          font-semibold
+          leading-none
+          transition-all
+          duration-200
+          sm:px-2
+          sm:text-[10px]
+          md:flex-none
+          md:px-3
+          md:py-1.5
+          md:text-xs
+          ${
+            sectionView === value
+              ? `
+                bg-background
+                text-primary
+                shadow-sm
+                ring-1
+                ring-border/50
+              `
+              : `
+                text-muted-foreground
+                hover:bg-background/70
+                hover:text-foreground
+              `
+          }
+        `}
+      >
+        {label}
+      </button>
+    ),
+  )}
+</div>
     </section>
   );
 }

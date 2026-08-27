@@ -12,10 +12,11 @@ import {
 } from 'next/navigation';
 
 import {
+  ArrowLeft,
   ArrowRight,
-  ChevronDown,
   Loader2,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 
 import {
@@ -59,7 +60,11 @@ interface PredictionsPreviewProps {
 // CONSTANTS
 // ============================================================
 
-const INITIAL_VISIBLE_COUNT = 10;
+const MOBILE_INITIAL_COUNT = 6;
+const MOBILE_MAX_COUNT = 10;
+
+const DESKTOP_INITIAL_COUNT = 10;
+const DESKTOP_MAX_COUNT = 20;
 
 
 // ============================================================
@@ -74,19 +79,110 @@ function getPredictionDate(
     typeof prediction.matchId === 'object' &&
     prediction.matchId !== null
   ) {
-
     return (
       prediction.matchId as {
         utcDate?: string;
       }
     ).utcDate;
-
   }
 
   return (
     prediction.match?.utcDate ??
     prediction.matchDate ??
     prediction.date
+  );
+}
+
+
+// ============================================================
+// DATE KEY
+// ============================================================
+
+function getDateKey(
+  value: string | Date,
+): string {
+
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date
+    .toISOString()
+    .slice(0, 10);
+}
+
+
+// ============================================================
+// DATE LABEL
+// ============================================================
+
+function formatDateLabel(
+  dateKey: string,
+): string {
+
+  const date =
+    new Date(
+      `${dateKey}T12:00:00`,
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return dateKey;
+  }
+
+  const today =
+    new Date();
+
+  const todayKey =
+    getDateKey(today);
+
+  const tomorrow =
+    new Date(today);
+
+  tomorrow.setDate(
+    tomorrow.getDate() + 1,
+  );
+
+  const tomorrowKey =
+    getDateKey(tomorrow);
+
+  const yesterday =
+    new Date(today);
+
+  yesterday.setDate(
+    yesterday.getDate() - 1,
+  );
+
+  const yesterdayKey =
+    getDateKey(yesterday);
+
+  if (dateKey === yesterdayKey) {
+    return 'Yesterday';
+  }
+
+  if (dateKey === todayKey) {
+    return 'Today';
+  }
+
+  if (dateKey === tomorrowKey) {
+    return 'Tomorrow';
+  }
+
+  return date.toLocaleDateString(
+    'en-NG',
+    {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    },
   );
 }
 
@@ -144,109 +240,133 @@ export default function PredictionsPreview({
   // LOAD PREDICTIONS
   // ==========================================================
 
-  const loadPredictions = useCallback(
-    async () => {
+  const loadPredictions =
+    useCallback(
+      async () => {
 
-      try {
+        try {
 
-        setLoading(true);
-        setError(false);
+          setLoading(true);
+          setError(false);
 
-        const response =
-          await getPredictions();
+          const response =
+            await getPredictions();
 
-        let data: PredictionDetails[] = [];
+          let data:
+            PredictionDetails[] =
+            [];
 
-        if (Array.isArray(response)) {
+          if (
+            Array.isArray(response)
+          ) {
 
-          data = response;
+            data = response;
 
-        } else if (
-          Array.isArray(response?.data)
-        ) {
+          } else if (
+            Array.isArray(
+              response?.data,
+            )
+          ) {
 
-          data = response.data;
+            data =
+              response.data;
 
-        } else if (
-          Array.isArray(response?.predictions)
-        ) {
+          } else if (
+            Array.isArray(
+              response?.predictions,
+            )
+          ) {
 
-          data = response.predictions;
+            data =
+              response.predictions;
+
+          }
+
+
+          const now =
+            Date.now();
+
+
+          const upcoming =
+            data
+              .filter(
+                prediction =>
+                  Boolean(
+                    prediction?._id,
+                  ),
+              )
+              .filter(
+                prediction => {
+
+                  const dateValue =
+                    getPredictionDate(
+                      prediction,
+                    );
+
+                  if (!dateValue) {
+                    return false;
+                  }
+
+                  const timestamp =
+                    new Date(
+                      dateValue,
+                    ).getTime();
+
+                  return (
+                    !Number.isNaN(
+                      timestamp,
+                    ) &&
+                    timestamp >= now
+                  );
+
+                },
+              )
+              .sort(
+                (a, b) => {
+
+                  const first =
+                    new Date(
+                      getPredictionDate(a) ??
+                        '',
+                    ).getTime();
+
+                  const second =
+                    new Date(
+                      getPredictionDate(b) ??
+                        '',
+                    ).getTime();
+
+                  return (
+                    first - second
+                  );
+
+                },
+              );
+
+
+          setPredictions(
+            upcoming,
+          );
+
+        } catch (err) {
+
+          console.error(
+            'Failed to load predictions:',
+            err,
+          );
+
+          setError(true);
+          setPredictions([]);
+
+        } finally {
+
+          setLoading(false);
 
         }
 
-
-        const now = Date.now();
-
-        const upcoming =
-          data
-            .filter(
-              prediction =>
-                Boolean(prediction?._id),
-            )
-            .filter(
-              prediction => {
-
-                const dateValue =
-                  getPredictionDate(
-                    prediction,
-                  );
-
-                if (!dateValue) {
-                  return false;
-                }
-
-                const timestamp =
-                  new Date(
-                    dateValue,
-                  ).getTime();
-
-                return (
-                  !Number.isNaN(timestamp) &&
-                  timestamp >= now
-                );
-
-              },
-            )
-            .sort(
-              (a, b) => {
-
-                const first =
-                  new Date(
-                    getPredictionDate(a) ?? '',
-                  ).getTime();
-
-                const second =
-                  new Date(
-                    getPredictionDate(b) ?? '',
-                  ).getTime();
-
-                return first - second;
-
-              },
-            );
-
-        setPredictions(upcoming);
-
-      } catch (err) {
-
-        console.error(
-          'Failed to load predictions:',
-          err,
-        );
-
-        setError(true);
-        setPredictions([]);
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    [],
-  );
+      },
+      [],
+    );
 
 
   // ==========================================================
@@ -255,10 +375,105 @@ export default function PredictionsPreview({
 
   useEffect(
     () => {
-      loadPredictions();
+      void loadPredictions();
     },
     [loadPredictions],
   );
+
+
+  // ==========================================================
+  // AVAILABLE DATES
+  // ==========================================================
+
+  const availableDates =
+    useMemo(
+      () => {
+
+        const dates =
+          new Set<string>();
+
+        for (
+          const prediction of
+            predictions
+        ) {
+
+          const dateValue =
+            getPredictionDate(
+              prediction,
+            );
+
+          if (!dateValue) {
+            continue;
+          }
+
+          const dateKey =
+            getDateKey(
+              dateValue,
+            );
+
+          if (dateKey) {
+            dates.add(dateKey);
+          }
+
+        }
+
+        return Array.from(
+          dates,
+        ).sort();
+
+      },
+      [predictions],
+    );
+
+
+  // ==========================================================
+  // ACTIVE DATE
+  // ==========================================================
+
+  const activeDate =
+    useMemo(
+      () => {
+
+        if (
+          selectedDate &&
+          availableDates.includes(
+            selectedDate,
+          )
+        ) {
+          return selectedDate;
+        }
+
+        return (
+          availableDates[0] ??
+          ''
+        );
+
+      },
+      [
+        selectedDate,
+        availableDates,
+      ],
+    );
+
+
+  // ==========================================================
+  // ACTIVE DATE INDEX
+  // ==========================================================
+
+  const activeDateIndex =
+    availableDates.indexOf(
+      activeDate,
+    );
+
+
+  const canGoPrevious =
+    activeDateIndex > 0;
+
+
+  const canGoNext =
+    activeDateIndex >= 0 &&
+    activeDateIndex <
+      availableDates.length - 1;
 
 
   // ==========================================================
@@ -279,8 +494,36 @@ export default function PredictionsPreview({
             ? Number(goalFilter)
             : null;
 
+
         return predictions.filter(
           prediction => {
+
+            // ----------------------------------------------
+            // DATE
+            // ----------------------------------------------
+
+            const dateValue =
+              getPredictionDate(
+                prediction,
+              );
+
+            if (!dateValue) {
+              return false;
+            }
+
+            const predictionDate =
+              getDateKey(
+                dateValue,
+              );
+
+            if (
+              activeDate &&
+              predictionDate !==
+                activeDate
+            ) {
+              return false;
+            }
+
 
             // ----------------------------------------------
             // SEARCH
@@ -313,40 +556,6 @@ export default function PredictionsPreview({
 
 
             // ----------------------------------------------
-            // DATE
-            // ----------------------------------------------
-
-            if (selectedDate) {
-
-              const dateValue =
-                getPredictionDate(
-                  prediction,
-                );
-
-              if (!dateValue) {
-                return false;
-              }
-
-              const predictionDate =
-                new Date(
-                  dateValue,
-                )
-                  .toISOString()
-                  .slice(0, 10);
-
-              if (
-                predictionDate !==
-                selectedDate
-              ) {
-
-                return false;
-
-              }
-
-            }
-
-
-            // ----------------------------------------------
             // GOALS
             // ----------------------------------------------
 
@@ -357,9 +566,7 @@ export default function PredictionsPreview({
                 (prediction.awayScore ?? 0)
               ) < minimumGoals
             ) {
-
               return false;
-
             }
 
 
@@ -372,10 +579,12 @@ export default function PredictionsPreview({
             ) {
 
               const home =
-                prediction.homeScore ?? 0;
+                prediction.homeScore ??
+                0;
 
               const away =
-                prediction.awayScore ?? 0;
+                prediction.awayScore ??
+                0;
 
               if (
                 resultFilter === 'home' &&
@@ -409,8 +618,8 @@ export default function PredictionsPreview({
       },
       [
         predictions,
+        activeDate,
         search,
-        selectedDate,
         goalFilter,
         resultFilter,
       ],
@@ -426,12 +635,12 @@ export default function PredictionsPreview({
       ? filteredPredictions
       : filteredPredictions.slice(
           0,
-          INITIAL_VISIBLE_COUNT,
+          DESKTOP_INITIAL_COUNT,
         );
 
 
   // ==========================================================
-  // RESET EXPANSION WHEN FILTERS CHANGE
+  // RESET EXPANSION
   // ==========================================================
 
   useEffect(
@@ -439,12 +648,277 @@ export default function PredictionsPreview({
       setExpanded(false);
     },
     [
+      activeDate,
       search,
-      selectedDate,
       goalFilter,
       resultFilter,
     ],
   );
+
+
+  // ==========================================================
+  // DATE NAVIGATION
+  // ==========================================================
+
+  const goToDate =
+    useCallback(
+      (
+        direction:
+          | 'previous'
+          | 'next',
+      ) => {
+
+        if (
+          activeDateIndex < 0
+        ) {
+          return;
+        }
+
+        const nextIndex =
+          direction === 'previous'
+            ? activeDateIndex - 1
+            : activeDateIndex + 1;
+
+        if (
+          nextIndex < 0 ||
+          nextIndex >=
+            availableDates.length
+        ) {
+          return;
+        }
+
+        const nextDate =
+          availableDates[
+            nextIndex
+          ];
+
+        if (!nextDate) {
+          return;
+        }
+
+        // The parent owns selectedDate.
+        // Navigation is therefore exposed through
+        // the browser URL only if the parent uses
+        // controlled state. For local behavior,
+        // we keep the active date internally below.
+
+      },
+      [
+        activeDateIndex,
+        availableDates,
+      ],
+    );
+
+
+  // ==========================================================
+  // LOCAL DATE STATE
+  // ==========================================================
+
+  const [
+    internalDate,
+    setInternalDate,
+  ] = useState('');
+
+
+  useEffect(
+    () => {
+
+      if (
+        selectedDate &&
+        availableDates.includes(
+          selectedDate,
+        )
+      ) {
+
+        setInternalDate(
+          selectedDate,
+        );
+
+        return;
+
+      }
+
+      if (
+        !internalDate &&
+        availableDates.length
+      ) {
+
+        setInternalDate(
+          availableDates[0],
+        );
+
+      }
+
+    },
+    [
+      selectedDate,
+      availableDates,
+      internalDate,
+    ],
+  );
+
+
+  const currentDate =
+    internalDate &&
+    availableDates.includes(
+      internalDate,
+    )
+      ? internalDate
+      : activeDate;
+
+
+  const currentDateIndex =
+    availableDates.indexOf(
+      currentDate,
+    );
+
+
+  const displayedPredictions =
+    useMemo(
+      () => {
+
+        const query =
+          search
+            .trim()
+            .toLowerCase();
+
+        const minimumGoals =
+          goalFilter
+            ? Number(goalFilter)
+            : null;
+
+
+        return predictions
+          .filter(
+            prediction => {
+
+              const dateValue =
+                getPredictionDate(
+                  prediction,
+                );
+
+              if (!dateValue) {
+                return false;
+              }
+
+              if (
+                getDateKey(
+                  dateValue,
+                ) !== currentDate
+              ) {
+                return false;
+              }
+
+
+              if (query) {
+
+                const matchesSearch =
+                  prediction.homeTeam
+                    ?.toLowerCase()
+                    .includes(query) ||
+
+                  prediction.awayTeam
+                    ?.toLowerCase()
+                    .includes(query) ||
+
+                  prediction.league?.name
+                    ?.toLowerCase()
+                    .includes(query) ||
+
+                  prediction.venue
+                    ?.toLowerCase()
+                    .includes(query);
+
+                if (!matchesSearch) {
+                  return false;
+                }
+
+              }
+
+
+              if (
+                minimumGoals !== null &&
+                (
+                  (prediction.homeScore ?? 0) +
+                  (prediction.awayScore ?? 0)
+                ) < minimumGoals
+              ) {
+                return false;
+              }
+
+
+              if (
+                resultFilter !== 'all'
+              ) {
+
+                const home =
+                  prediction.homeScore ??
+                  0;
+
+                const away =
+                  prediction.awayScore ??
+                  0;
+
+                if (
+                  resultFilter === 'home' &&
+                  home <= away
+                ) {
+                  return false;
+                }
+
+                if (
+                  resultFilter === 'away' &&
+                  away <= home
+                ) {
+                  return false;
+                }
+
+                if (
+                  resultFilter === 'draw' &&
+                  home !== away
+                ) {
+                  return false;
+                }
+
+              }
+
+
+              return true;
+
+            },
+          );
+
+      },
+      [
+        predictions,
+        currentDate,
+        search,
+        goalFilter,
+        resultFilter,
+      ],
+    );
+
+
+  // ==========================================================
+  // RESPONSIVE VISIBLE COUNT
+  // ==========================================================
+
+  const mobileVisible =
+    displayedPredictions.slice(
+      0,
+      expanded
+        ? MOBILE_MAX_COUNT
+        : MOBILE_INITIAL_COUNT,
+    );
+
+
+  const desktopVisible =
+    displayedPredictions.slice(
+      0,
+      expanded
+        ? DESKTOP_MAX_COUNT
+        : DESKTOP_INITIAL_COUNT,
+    );
 
 
   // ==========================================================
@@ -489,7 +963,8 @@ export default function PredictionsPreview({
   const handlePredictionClick =
     useCallback(
       async (
-        prediction: PredictionDetails,
+        prediction:
+          PredictionDetails,
       ) => {
 
         const predictionId =
@@ -590,6 +1065,60 @@ export default function PredictionsPreview({
 
 
   // ==========================================================
+  // DATE NAVIGATION HANDLERS
+  // ==========================================================
+
+  const handlePreviousDate =
+    () => {
+
+      if (
+        currentDateIndex <= 0
+      ) {
+        return;
+      }
+
+      const date =
+        availableDates[
+          currentDateIndex - 1
+        ];
+
+      if (!date) {
+        return;
+      }
+
+      setInternalDate(date);
+      setExpanded(false);
+
+    };
+
+
+  const handleNextDate =
+    () => {
+
+      if (
+        currentDateIndex < 0 ||
+        currentDateIndex >=
+          availableDates.length - 1
+      ) {
+        return;
+      }
+
+      const date =
+        availableDates[
+          currentDateIndex + 1
+        ];
+
+      if (!date) {
+        return;
+      }
+
+      setInternalDate(date);
+      setExpanded(false);
+
+    };
+
+
+  // ==========================================================
   // RENDER
   // ==========================================================
 
@@ -603,14 +1132,10 @@ export default function PredictionsPreview({
         bg-background
         py-4
         text-foreground
-        sm:py-4
-        lg:py-4
       "
     >
 
-      {/* ====================================================
-          LIGHTWEIGHT BACKGROUND DECORATION
-      ==================================================== */}
+      {/* BACKGROUND */}
 
       <div
         className="
@@ -646,10 +1171,6 @@ export default function PredictionsPreview({
       />
 
 
-      {/* ====================================================
-          CONTENT
-      ==================================================== */}
-
       <div
         className="
           relative
@@ -670,10 +1191,9 @@ export default function PredictionsPreview({
             mb-4
             flex
             flex-col
-            gap-5
-            sm:mb-4
+            gap-4
             lg:flex-row
-            lg:items-end
+            lg:items-center
             lg:justify-between
           "
         >
@@ -687,21 +1207,12 @@ export default function PredictionsPreview({
               sm:text-3xl
             "
           >
-
             Our Latest{' '}
-
-            <span
-              className="
-                text-primary
-              "
-            >
+            <span className="text-primary">
               Predictions
             </span>
-
           </h2>
 
-
-          {/* DASHBOARD */}
 
           <button
             type="button"
@@ -711,7 +1222,6 @@ export default function PredictionsPreview({
               group
               inline-flex
               w-fit
-              shrink-0
               items-center
               gap-2
               rounded-xl
@@ -720,14 +1230,13 @@ export default function PredictionsPreview({
               bg-card
               px-4
               py-2.5
-              text-s
+              text-xs
               font-semibold
               text-foreground
               shadow-sm
               transition
               hover:border-primary/40
               hover:bg-primary/5
-              hover:shadow-md
               disabled:pointer-events-none
               disabled:opacity-60
             "
@@ -788,7 +1297,7 @@ export default function PredictionsPreview({
                 flex
                 items-center
                 gap-3
-                text-s
+                text-sm
                 text-muted-foreground
               "
             >
@@ -834,24 +1343,25 @@ export default function PredictionsPreview({
 
             <p
               className="
-                text-s
+                text-sm
                 font-semibold
-                text-foreground
               "
             >
               Unable to load predictions.
             </p>
 
+
             <p
               className="
                 mt-2
-                text-s
+                text-sm
                 text-muted-foreground
               "
             >
               Something went wrong while loading
               the latest predictions.
             </p>
+
 
             <button
               type="button"
@@ -867,9 +1377,8 @@ export default function PredictionsPreview({
                 bg-background
                 px-4
                 py-2
-                text-s
+                text-sm
                 font-semibold
-                text-foreground
                 transition
                 hover:border-primary/40
                 hover:bg-primary/5
@@ -893,219 +1402,474 @@ export default function PredictionsPreview({
 
 
         {/* ==================================================
-            EMPTY
+            CONTENT
         ================================================== */}
 
         {!loading &&
           !error &&
-          filteredPredictions.length === 0 && (
+          predictions.length > 0 && (
+
+          <>
+
+            {/* =================================================
+                DATE SELECTOR
+            ================================================= */}
 
             <div
               className="
-                rounded-2xl
-                border
-                border-border
-                bg-card/70
-                p-8
-                text-center
+                mb-4
+                flex
+                items-center
+                justify-center
               "
             >
 
-              <p
-                className="
-                  text-s
-                  font-semibold
-                  text-foreground
-                "
-              >
-                No Latest predictions available.
-              </p>
-
-              <p
-                className="
-                  mt-2
-                  text-s
-                  text-muted-foreground
-              "
-              >
-                Check Back Later.
-              </p>
-
-            </div>
-
-          )}
-
-
-        {/* ==================================================
-            PREDICTIONS
-        ================================================== */}
-
-        {!loading &&
-          !error &&
-          filteredPredictions.length > 0 && (
-
-            <>
-
               <div
                 className="
-                  grid
-                  grid-cols-1
-                  gap-3
-                  sm:grid-cols-2
-                  lg:grid-cols-4
+                  flex
+                  w-full
+                  max-w-sm
+                  items-center
+                  justify-between
+                  rounded-xl
+                  border
+                  border-border
+                  bg-card
+                  px-1.5
+                  py-1.5
+                  shadow-sm
                 "
               >
 
-                {visiblePredictions.map(
-                  prediction => {
-
-                    const predictionId =
-                      prediction._id;
-
-                    const isOpening =
-                      openingPredictionId ===
-                      predictionId;
-
-
-                    return (
-
-                      <div
-                        key={predictionId}
-                        className="
-                          relative
-                        "
-                      >
-
-                        <PredictionPreviewCard
-                          prediction={prediction}
-                          onClick={() => {
-
-                            if (!isOpening) {
-
-                              handlePredictionClick(
-                                prediction,
-                              );
-
-                            }
-
-                          }}
-                        />
-
-
-                        {isOpening && (
-
-                          <div
-                            className="
-                              pointer-events-none
-                              absolute
-                              inset-0
-                              flex
-                              items-center
-                              justify-center
-                              rounded-2xl
-                              bg-background/60
-                              backdrop-blur-[2px]
-                            "
-                          >
-
-                            <Loader2
-                              className="
-                                h-5
-                                w-5
-                                animate-spin
-                                text-primary
-                              "
-                            />
-
-                          </div>
-
-                        )}
-
-                      </div>
-
-                    );
-
-                  },
-                )}
-
-              </div>
-
-
-              {/* =================================================
-                  SHOW MORE / LESS
-              ================================================= */}
-
-              {filteredPredictions.length >
-                INITIAL_VISIBLE_COUNT && (
-
-                <div
+                <button
+                  type="button"
+                  onClick={
+                    handlePreviousDate
+                  }
+                  disabled={
+                    !canGoPrevious
+                  }
+                  aria-label="Previous date"
                   className="
-                    mt-7
                     flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
                     justify-center
+                    rounded-lg
+                    text-muted-foreground
+                    transition
+                    hover:bg-muted
+                    hover:text-foreground
+                    disabled:pointer-events-none
+                    disabled:opacity-30
                   "
                 >
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpanded(
-                        current => !current,
-                      )
-                    }
+                  <ArrowLeft
                     className="
-                      group
-                      inline-flex
-                      items-center
-                      gap-2
-                      rounded-xl
-                      border
-                      border-border
-                      bg-card
-                      px-5
-                      py-2.5
-                      text-s
-                      font-semibold
+                      h-4
+                      w-4
+                    "
+                  />
+
+                </button>
+
+
+                <div
+                  className="
+                    min-w-0
+                    flex-1
+                    text-center
+                  "
+                >
+
+                  <p
+                    className="
+                      truncate
+                      text-sm
+                      font-bold
                       text-foreground
-                      shadow-sm
-                      transition
-                      hover:border-primary/40
-                      hover:bg-primary/5
-                      hover:shadow-md
                     "
                   >
+                    {currentDate
+                      ? formatDateLabel(
+                          currentDate,
+                        )
+                      : 'No date'}
+                  </p>
 
-                    {expanded
-                      ? 'Show less'
-                      : `Show all ${filteredPredictions.length} predictions`}
 
-                    <ChevronDown
-                      className={`
-                        h-4
-                        w-4
-                        transition-transform
-                        ${
-                          expanded
-                            ? 'rotate-180'
-                            : ''
-                        }
-                      `}
-                    />
-
-                  </button>
+                  <p
+                    className="
+                      mt-0.5
+                      text-[9px]
+                      font-medium
+                      uppercase
+                      tracking-wider
+                      text-muted-foreground
+                    "
+                  >
+                    {displayedPredictions.length}{' '}
+                    {displayedPredictions.length === 1
+                      ? 'prediction'
+                      : 'predictions'}
+                  </p>
 
                 </div>
 
-              )}
 
-            </>
+                <button
+                  type="button"
+                  onClick={
+                    handleNextDate
+                  }
+                  disabled={
+                    !canGoNext
+                  }
+                  aria-label="Next date"
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
+                    text-muted-foreground
+                    transition
+                    hover:bg-muted
+                    hover:text-foreground
+                    disabled:pointer-events-none
+                    disabled:opacity-30
+                  "
+                >
 
-          )}
+                  <ArrowRight
+                    className="
+                      h-4
+                      w-4
+                    "
+                  />
+
+                </button>
+
+              </div>
+
+            </div>
+
+
+            {/* =================================================
+                EMPTY DATE
+            ================================================= */}
+
+            {displayedPredictions.length === 0 ? (
+
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-border
+                  bg-card/70
+                  p-8
+                  text-center
+                "
+              >
+
+                <p
+                  className="
+                    text-sm
+                    font-semibold
+                    text-foreground
+                  "
+                >
+                  No upcoming fixtures for this date.
+                </p>
+
+              </div>
+
+            ) : (
+
+              <>
+
+                {/* =================================================
+                    MOBILE
+                ================================================= */}
+
+                <div
+                  className="
+                    grid
+                    grid-cols-1
+                    gap-2
+                    sm:hidden
+                  "
+                >
+
+                  {mobileVisible.map(
+                    prediction => {
+
+                      const predictionId =
+                        prediction._id;
+
+                      const isOpening =
+                        openingPredictionId ===
+                        predictionId;
+
+                      return (
+
+                        <div
+                          key={
+                            predictionId
+                          }
+                          className="
+                            relative
+                          "
+                        >
+
+                          <PredictionPreviewCard
+                            prediction={
+                              prediction
+                            }
+                            onClick={() => {
+
+                              if (
+                                !isOpening
+                              ) {
+
+                                void handlePredictionClick(
+                                  prediction,
+                                );
+
+                              }
+
+                            }}
+                          />
+
+
+                          {isOpening && (
+
+                            <div
+                              className="
+                                pointer-events-none
+                                absolute
+                                inset-0
+                                flex
+                                items-center
+                                justify-center
+                                rounded-xl
+                                bg-background/60
+                                backdrop-blur-[2px]
+                              "
+                            >
+
+                              <Loader2
+                                className="
+                                  h-5
+                                  w-5
+                                  animate-spin
+                                  text-primary
+                                "
+                              />
+
+                            </div>
+
+                          )}
+
+                        </div>
+
+                      );
+
+                    },
+                  )}
+
+                </div>
+
+
+                {/* =================================================
+                    DESKTOP
+                ================================================= */}
+
+                <div
+                  className="
+                    hidden
+                    grid-cols-2
+                    gap-3
+                    sm:grid
+                    lg:grid-cols-4
+                  "
+                >
+
+                  {desktopVisible.map(
+                    prediction => {
+
+                      const predictionId =
+                        prediction._id;
+
+                      const isOpening =
+                        openingPredictionId ===
+                        predictionId;
+
+                      return (
+
+                        <div
+                          key={
+                            predictionId
+                          }
+                          className="
+                            relative
+                          "
+                        >
+
+                          <PredictionPreviewCard
+                            prediction={
+                              prediction
+                            }
+                            onClick={() => {
+
+                              if (
+                                !isOpening
+                              ) {
+
+                                void handlePredictionClick(
+                                  prediction,
+                                );
+
+                              }
+
+                            }}
+                          />
+
+
+                          {isOpening && (
+
+                            <div
+                              className="
+                                pointer-events-none
+                                absolute
+                                inset-0
+                                flex
+                                items-center
+                                justify-center
+                                rounded-2xl
+                                bg-background/60
+                                backdrop-blur-[2px]
+                              "
+                            >
+
+                              <Loader2
+                                className="
+                                  h-5
+                                  w-5
+                                  animate-spin
+                                  text-primary
+                                "
+                              />
+
+                            </div>
+
+                          )}
+
+                        </div>
+
+                      );
+
+                    },
+                  )}
+
+                </div>
+
+
+                {/* =================================================
+                    SHOW MORE / LESS
+                ================================================= */}
+
+                {displayedPredictions.length >
+                  MOBILE_INITIAL_COUNT && (
+
+                  <div
+                    className="
+                      mt-5
+                      flex
+                      justify-center
+                    "
+                  >
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpanded(
+                          current =>
+                            !current,
+                        )
+                      }
+                      className="
+                        inline-flex
+                        items-center
+                        gap-2
+                        rounded-xl
+                        border
+                        border-border
+                        bg-card
+                        px-4
+                        py-2
+                        text-xs
+                        font-semibold
+                        text-foreground
+                        shadow-sm
+                        transition
+                        hover:border-primary/40
+                        hover:bg-primary/5
+                      "
+                    >
+
+                      <span className="sm:hidden">
+                        {expanded
+                          ? 'Show less'
+                          : `Show all ${Math.min(
+                              displayedPredictions.length,
+                              MOBILE_MAX_COUNT,
+                            )} fixtures`}
+                      </span>
+
+                      <span className="hidden sm:inline">
+                        {expanded
+                          ? 'Show less'
+                          : `Show all ${Math.min(
+                              displayedPredictions.length,
+                              DESKTOP_MAX_COUNT,
+                            )} fixtures`}
+                      </span>
+
+                      <ChevronDown
+                        className={`
+                          h-4
+                          w-4
+                          transition-transform
+                          ${
+                            expanded
+                              ? 'rotate-180'
+                              : ''
+                          }
+                        `}
+                      />
+
+                    </button>
+
+                  </div>
+
+                )}
+
+              </>
+
+            )}
+
+          </>
+
+        )}
 
       </div>
 
     </section>
-
   );
-
 }
