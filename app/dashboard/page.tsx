@@ -197,7 +197,18 @@ export default function DashboardPage() {
 
       <DashboardAds />
 
-
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4276900328805915"
+     crossOrigin="anonymous"></script>
+{/*<!-- Dashboard -->*/}
+<ins className="adsbygoogle"
+  style={{ display: 'block' }}
+     data-ad-client="ca-pub-4276900328805915"
+     data-ad-slot="3733070258"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 
       {/* ======================================================
           INTERNAL ADS

@@ -939,7 +939,18 @@ export default function HomePage() {
 
             <SettledWins />
 
-
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4276900328805915"
+     crossOrigin="anonymous"></script>
+            {/*<!-- Home Page -->*/}
+<ins className="adsbygoogle"
+    style={{ display: "block" }}
+     data-ad-client="ca-pub-4276900328805915"
+     data-ad-slot="2950521951"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
             {/* ==============================================
                 COMMUNITY
             ============================================== */}
