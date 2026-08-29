@@ -19,6 +19,7 @@ import paymentGatewayService, {
   type PaymentGateway,
   type VerifyPaymentResponse,
 } from '@/services/payment-gateway.service';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 type VerificationState =
   | 'verifying'
@@ -42,6 +43,8 @@ export default function PaymentCallbackPage() {
 
   const [transactionId, setTransactionId] =
     useState<string | null>(null);
+
+    const analytics = useAnalytics();
 
   // =====================================================
   // VERIFY PAYMENT
@@ -78,6 +81,19 @@ export default function PaymentCallbackPage() {
           result.status === 'success'
         ) {
           setStatus('success');
+
+          analytics.track({
+            eventType: 'custom',
+            eventName: 'payment_success',
+            properties: {
+              gateway: selectedGateway,
+              reference: paymentReference,
+              transactionId:
+                result.transactionId ?? null,
+              status:
+                result.status ?? 'approved',
+            },
+          });
 
           setMessage(
             result.message ??

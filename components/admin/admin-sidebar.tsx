@@ -24,6 +24,7 @@ import {
   Gift,
   PanelLeftClose,
   PanelLeftOpen,
+  ChartNoAxesCombined,
 } from 'lucide-react';
 
 import {
@@ -68,6 +69,11 @@ const sections = [
         name: 'Users',
         href: '/admin/users',
         icon: Users,
+      },
+      {
+        name: 'Analytics',
+        href: '/admin/analytics',
+        icon: ChartNoAxesCombined,
       },
       {
         name: 'Subscriptions',

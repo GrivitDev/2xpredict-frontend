@@ -22,6 +22,7 @@ import {
 } from '@/services/community.service';
 
 import { uploadService } from '@/services/uploads.service';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 interface Props {
   open: boolean;
@@ -39,7 +40,7 @@ export default function CreateMediaPostModal({
   const [message, setMessage] = useState('');
   const [media, setMedia] = useState<File>();
   const [loading, setLoading] = useState(false);
-
+const analytics = useAnalytics();
   async function submit() {
     if (!media) {
       toast.error(
@@ -57,20 +58,31 @@ export default function CreateMediaPostModal({
         );
 
       await createPost({
-        type: CommunityPostType.MEDIA,
-        message: message.trim(),
-        media: {
-          type: media.type.startsWith('image/')
-            ? CommunityMediaType.IMAGE
-            : CommunityMediaType.VIDEO,
-          url: uploaded.url,
-          publicId: uploaded.publicId,
-        },
-      });
+  type: CommunityPostType.MEDIA,
+  message: message.trim(),
+  media: {
+    type: media.type.startsWith('image/')
+      ? CommunityMediaType.IMAGE
+      : CommunityMediaType.VIDEO,
+    url: uploaded.url,
+    publicId: uploaded.publicId,
+  },
+});
 
-      toast.success(
-        'Your match moment was posted successfully.',
-      );
+analytics.track({
+  eventType: 'community_post_create',
+  eventName: 'community_post_create',
+  properties: {
+    type: 'media',
+    mediaType: media.type.startsWith('image/')
+      ? 'image'
+      : 'video',
+  },
+});
+
+toast.success(
+  'Your match moment was posted successfully.',
+);
 
       setMessage('');
       setMedia(undefined);

@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 
 import { useMyReferrals } from '@/hooks/use-referrals';
+import { useEffect } from 'react';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 
 // ============================================================
@@ -41,6 +43,15 @@ export function ReferralActivity() {
     isLoading,
     isError,
   } = useMyReferrals();
+
+  const analytics = useAnalytics();
+
+  useEffect(() => {
+    analytics.track({
+      eventType: 'referral_view',
+      eventName: 'referral_view',
+    });
+  }, [analytics]);
 
   if (isLoading) {
     return <ReferralState message="Loading..." />;

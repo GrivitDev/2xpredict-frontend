@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/providers/theme-provider';
 import { SEO } from '@/config/seo';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
 
 
 
@@ -182,7 +183,9 @@ export default function RootLayout({
               <QueryProvider>
                 <AuthProvider>
                   <ThemeProvider>
-                    {children}
+                      <AnalyticsProvider>
+                        {children}
+                      </AnalyticsProvider>
                       <Toaster
                         position="top-right"
                         toastOptions={{

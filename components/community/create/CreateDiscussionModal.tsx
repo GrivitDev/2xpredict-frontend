@@ -24,6 +24,7 @@ import {
   CommunityPostType,
   type CreatePostPayload,
 } from '@/services/community.service';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 interface Props {
   open: boolean;
@@ -42,6 +43,7 @@ export default function CreateDiscussionModal({
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const analytics = useAnalytics();
   async function submit() {
     const trimmedMessage = message.trim();
 
@@ -59,6 +61,14 @@ export default function CreateDiscussionModal({
         type: CommunityPostType.DISCUSSION,
         title: title.trim(),
         message: trimmedMessage,
+      });
+
+      analytics.track({
+        eventType: 'community_post_create',
+        eventName: 'community_post_create',
+        properties: {
+          type: 'discussion',
+        },
       });
 
       toast.success(

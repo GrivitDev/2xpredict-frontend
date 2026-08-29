@@ -41,6 +41,7 @@ import {
   getPredictionAccess,
 } from '@/services/prediction.service';
 import { useNavbar } from '@/components/navbar/NavbarContext';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 
 /* =========================================================
@@ -532,6 +533,7 @@ function PredictionsPageContent() {
       visible: navbarVisible,
     } = useNavbar();
 
+    const analytics = useAnalytics();
   /* =======================================================
      STATE
   ======================================================= */
@@ -1013,17 +1015,28 @@ function PredictionsPageContent() {
      FILTER HANDLER
   ======================================================= */
 
-  const handleFiltersChange =
-    (
-      nextFilters:
-        PredictionFilterState,
-    ) => {
-      setFilters(
-        nextFilters,
-      );
+const handleFiltersChange = (
+  nextFilters: PredictionFilterState,
+) => {
+  setFilters(nextFilters);
 
-      setPage(1);
-    };
+  setPage(1);
+
+  analytics.track({
+    eventType: 'filter',
+    eventName: 'prediction_filter',
+    properties: {
+      league: nextFilters.league,
+      date: nextFilters.date,
+      dateRange: nextFilters.dateRange,
+      minConfidence:
+        nextFilters.minConfidence,
+      market: nextFilters.market,
+      plan: nextFilters.plan,
+      status: nextFilters.status,
+    },
+  });
+};
 
 
   /* =======================================================
@@ -1409,6 +1422,14 @@ function PredictionsPageContent() {
       return;
     }
 
+    analytics.track({
+  eventType: 'prediction_view',
+  eventName: 'prediction_view',
+  properties: {
+    predictionId,
+  },
+});
+
     const targetPage =
       Math.floor(
         index /
@@ -1473,11 +1494,12 @@ function PredictionsPageContent() {
         timer,
       );
     };
-  }, [
-    predictionId,
-    filtered,
-    page,
-  ]);
+}, [
+  predictionId,
+  filtered,
+  page,
+  analytics,
+]);
 
 
   /* =======================================================

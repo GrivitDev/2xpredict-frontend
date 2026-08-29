@@ -24,6 +24,7 @@ import {
   useJoinPromo,
   useReferralPromos,
 } from '@/hooks/use-promos';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 
 // ============================================================
@@ -56,7 +57,7 @@ export function AvailableCampaigns() {
   } = useReferralPromos();
 
   const joinMutation = useJoinPromo();
-
+const analytics = useAnalytics();
   if (isLoading) {
     return (
       <div
@@ -106,9 +107,19 @@ export function AvailableCampaigns() {
     }
 
     joinMutation.mutate(campaignId, {
-      onSuccess: () => {
-        toast.success('Campaign joined successfully');
-      },
+        onSuccess: () => {
+          analytics.track({
+            eventType: 'promo_claim',
+            eventName: 'promo_join',
+            properties: {
+              promoId: campaignId,
+            },
+          });
+
+          toast.success(
+            'Campaign joined successfully',
+          );
+        },
       onError: () => {
         toast.error('Unable to join campaign');
       },
