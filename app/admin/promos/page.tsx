@@ -1,7 +1,9 @@
 import Link from 'next/link';
 
 import {
+  AlertCircle,
   Plus,
+  RefreshCw,
 } from 'lucide-react';
 
 import {
@@ -26,8 +28,33 @@ import type {
   Promo,
 } from '@/types/promo';
 
+
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function AdminPromosPage() {
-  const promos: Promo[] = await getPromos();
+  let promos: Promo[] = [];
+
+  try {
+    promos = await getPromos();
+
+    if (!Array.isArray(promos)) {
+      throw new Error(
+        'The promotions service returned an invalid response.',
+      );
+    }
+  } catch (error) {
+    console.error(
+      '[AdminPromosPage] Failed to load promotions:',
+      error,
+    );
+
+    return (
+      <PromoErrorState />
+    );
+  }
+
 
   const total = promos.length;
 
@@ -43,18 +70,20 @@ export default async function AdminPromosPage() {
     (promo) => promo.campaignType === 'direct',
   ).length;
 
+
   return (
-    <div
+    <main
       className="
+        min-w-0
+        max-w-full
         space-y-6
-        animate-in
-        fade-in
-        slide-in-from-bottom-4
-        duration-500
-        sm:space-y-8
+        overflow-x-hidden
+        pb-8
       "
     >
-      {/* Header */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
       <header
         className="
@@ -66,7 +95,7 @@ export default async function AdminPromosPage() {
           sm:justify-between
         "
       >
-        <div>
+        <div className="min-w-0">
           <h1
             className="
               text-2xl
@@ -81,9 +110,8 @@ export default async function AdminPromosPage() {
           <p
             className="
               mt-1
-              text-s
+              text-sm
               text-muted-foreground
-              sm:text-base
             "
           >
             Create and manage promotional campaigns.
@@ -92,7 +120,11 @@ export default async function AdminPromosPage() {
 
         <Button
           asChild
-          className="w-full sm:w-auto"
+          className="
+            w-full
+            shrink-0
+            sm:w-auto
+          "
         >
           <Link href="/admin/promos/create">
             <Plus className="mr-2 h-4 w-4" />
@@ -101,7 +133,10 @@ export default async function AdminPromosPage() {
         </Button>
       </header>
 
-      {/* Stats */}
+
+      {/* =====================================================
+          STATS
+      ===================================================== */}
 
       <div
         className="
@@ -132,20 +167,135 @@ export default async function AdminPromosPage() {
         />
       </div>
 
-      {/* Promos */}
+
+      {/* =====================================================
+          PROMO CAMPAIGNS
+      ===================================================== */}
 
       <PromoTable
         promos={promos}
       />
 
-      {/* Rewards */}
+
+      {/* =====================================================
+          REWARDS
+      ===================================================== */}
 
       <AdminClaimedRewardsTable />
 
       <PendingCashRewardsTable />
-    </div>
+    </main>
   );
 }
+
+
+/* =========================================================
+   PROMO ERROR STATE
+========================================================= */
+
+function PromoErrorState() {
+  return (
+    <main
+      className="
+        min-w-0
+        max-w-full
+        pb-8
+      "
+    >
+      <Card
+        className="
+          overflow-hidden
+          border-destructive/20
+        "
+      >
+        <CardContent
+          className="
+            flex
+            min-h-72
+            flex-col
+            items-center
+            justify-center
+            px-6
+            py-12
+            text-center
+          "
+        >
+          <div
+            className="
+              mb-4
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-full
+              bg-destructive/10
+              text-destructive
+            "
+          >
+            <AlertCircle className="h-6 w-6" />
+          </div>
+
+          <h1
+            className="
+              text-xl
+              font-semibold
+              tracking-tight
+            "
+          >
+            Unable to load promotions
+          </h1>
+
+          <p
+            className="
+              mt-2
+              max-w-md
+              text-sm
+              leading-6
+              text-muted-foreground
+            "
+          >
+            We could not retrieve the promotional
+            campaigns from the server. Please try
+            again. If the problem continues, check
+            the API connection or server logs.
+          </p>
+
+          <div
+            className="
+              mt-6
+              flex
+              flex-col
+              gap-2
+              sm:flex-row
+            "
+          >
+            <Button
+              asChild
+              variant="outline"
+            >
+              <Link href="/admin/promos">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Link>
+            </Button>
+
+            <Button asChild>
+              <Link href="/admin">
+                Return to Dashboard
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}
+
+
+/* =========================================================
+   PROMO STAT
+========================================================= */
 
 function PromoStat({
   label,

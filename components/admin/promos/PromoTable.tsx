@@ -6,6 +6,10 @@ import PromoActions from './PromoActions';
 import PromoStatusBadge from './PromoStatusBadge';
 
 import {
+  AlertCircle,
+} from 'lucide-react';
+
+import {
   Card,
   CardContent,
   CardHeader,
@@ -26,29 +30,67 @@ import {
   PROMO_REQUIREMENT_LABELS,
 } from '@/constants/promo';
 
+
 interface Props {
   promos: Promo[];
 }
 
-function getRewardText(promo: Promo) {
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function getRewardText(
+  promo: Promo,
+): string {
   if (promo.rewardType === 'subscription') {
-    return [
-      promo.rewardPlan?.toUpperCase(),
+    const plan =
+      promo.rewardPlan?.toUpperCase();
+
+    const duration =
       promo.rewardDurationDays
         ? `${promo.rewardDurationDays} Days`
-        : null,
+        : null;
+
+    const reward = [
+      plan,
+      duration,
     ]
       .filter(Boolean)
       .join(' ');
+
+    return reward || 'Subscription reward';
   }
 
-  return `₦${(
-    promo.rewardAmount ?? 0
-  ).toLocaleString()}`;
+  if (promo.rewardType === 'cash') {
+    return `₦${(
+      promo.rewardAmount ?? 0
+    ).toLocaleString('en-NG')}`;
+  }
+
+  return 'Reward unavailable';
 }
 
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString(
+
+function formatDate(
+  date?: string,
+): string {
+  if (!date) {
+    return '—';
+  }
+
+  const parsedDate =
+    new Date(date);
+
+  if (
+    Number.isNaN(
+      parsedDate.getTime(),
+    )
+  ) {
+    return 'Invalid date';
+  }
+
+  return parsedDate.toLocaleDateString(
     'en-NG',
     {
       day: 'numeric',
@@ -58,129 +100,441 @@ function formatDate(date: string) {
   );
 }
 
+
+function getCampaignLabel(
+  campaignType: Promo['campaignType'],
+): string {
+  return (
+    PROMO_CAMPAIGN_LABELS[
+      campaignType
+    ] ?? 'Unknown campaign'
+  );
+}
+
+
+function getRequirementLabel(
+  requirement: Promo['requirement'],
+): string {
+  return (
+    PROMO_REQUIREMENT_LABELS[
+      requirement
+    ] ?? 'Unknown requirement'
+  );
+}
+
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function PromoTable({
   promos,
 }: Props) {
+  /*
+   * Defensive validation.
+   *
+   * This prevents the table from crashing if an unexpected
+   * API response reaches the component.
+   */
+  if (!Array.isArray(promos)) {
+    return (
+      <PromoTableError />
+    );
+  }
+
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border">
+    <Card
+      className="
+        overflow-hidden
+        border-border
+        bg-card
+      "
+    >
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      <CardHeader
+        className="
+          border-b
+          border-border
+          px-4
+          py-4
+          sm:px-6
+        "
+      >
         <CardTitle className="text-base">
           Promo Campaigns
         </CardTitle>
       </CardHeader>
 
+
+      {/* =====================================================
+          TABLE
+      ===================================================== */}
+
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/40">
-                <TableHead>Name</TableHead>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Requirement</TableHead>
-                <TableHead>Reward</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+        {promos.length === 0 ? (
+          <PromoTableEmpty />
+        ) : (
+          <div
+            className="
+              w-full
+              overflow-x-auto
+            "
+          >
+            <Table
+              className="
+                min-w-[900px]
+              "
+            >
+              <TableHeader>
+                <TableRow
+                  className="
+                    bg-muted/40
+                    hover:bg-muted/40
+                  "
+                >
+                  <TableHead>
+                    Name
+                  </TableHead>
 
-            <TableBody>
-              {promos.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="
-                      h-28
-                      text-center
-                      text-s
-                      text-muted-foreground
-                    "
+                  <TableHead>
+                    Campaign
+                  </TableHead>
+
+                  <TableHead>
+                    Requirement
+                  </TableHead>
+
+                  <TableHead>
+                    Reward
+                  </TableHead>
+
+                  <TableHead>
+                    Duration
+                  </TableHead>
+
+                  <TableHead>
+                    Status
+                  </TableHead>
+
+                  <TableHead
+                    className="text-right"
                   >
-                    No promo campaigns found.
-                  </TableCell>
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ) : (
-                promos.map((promo) => (
-                  <TableRow
-                    key={promo._id}
-                    className="
-                      transition-colors
-                      hover:bg-muted/30
-                    "
-                  >
-                    <TableCell>
-                      <div className="min-w-0">
-                        <p className="truncate text-s font-semibold">
-                          {promo.name}
-                        </p>
+              </TableHeader>
 
-                        {promo.promoCode && (
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {promo.promoCode}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
 
-                    <TableCell>
-                      <span className="text-s">
-                        {
-                          PROMO_CAMPAIGN_LABELS[
-                            promo.campaignType
-                          ]
-                        }
-                      </span>
-                    </TableCell>
+              <TableBody>
+                {promos.map(
+                  (promo) => (
+                    <PromoRow
+                      key={promo._id}
+                      promo={promo}
+                    />
+                  ),
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-                    <TableCell>
-                      <span className="text-s">
-                        {
-                          PROMO_REQUIREMENT_LABELS[
-                            promo.requirement
-                          ]
-                        }
-                      </span>
-                    </TableCell>
 
-                    <TableCell>
-                      <span className="font-semibold">
-                        {getRewardText(promo)}
-                      </span>
-                    </TableCell>
+/* =========================================================
+   PROMO ROW
+========================================================= */
 
-                    <TableCell>
-                      <div className="whitespace-nowrap text-xs">
-                        <p>
-                          {formatDate(promo.startDate)}
-                        </p>
+function PromoRow({
+  promo,
+}: {
+  promo: Promo;
+}) {
+  return (
+    <TableRow
+      className="
+        transition-colors
+        hover:bg-muted/30
+      "
+    >
+      {/* ===================================================
+          NAME
+      =================================================== */}
 
-                        <p className="my-0.5 text-muted-foreground">
-                          to
-                        </p>
+      <TableCell>
+        <div
+          className="
+            min-w-0
+            max-w-[220px]
+          "
+        >
+          <p
+            className="
+              truncate
+              text-sm
+              font-semibold
+            "
+            title={promo.name}
+          >
+            {promo.name || 'Unnamed promo'}
+          </p>
 
-                        <p>
-                          {formatDate(promo.endDate)}
-                        </p>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <PromoStatusBadge promo={promo} />
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex justify-end">
-                        <PromoActions promo={promo} />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          {promo.promoCode && (
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-xs
+                text-muted-foreground
+              "
+              title={promo.promoCode}
+            >
+              {promo.promoCode}
+            </p>
+          )}
         </div>
+      </TableCell>
+
+
+      {/* ===================================================
+          CAMPAIGN
+      =================================================== */}
+
+      <TableCell>
+        <span className="text-sm">
+          {getCampaignLabel(
+            promo.campaignType,
+          )}
+        </span>
+      </TableCell>
+
+
+      {/* ===================================================
+          REQUIREMENT
+      =================================================== */}
+
+      <TableCell>
+        <span className="text-sm">
+          {getRequirementLabel(
+            promo.requirement,
+          )}
+        </span>
+      </TableCell>
+
+
+      {/* ===================================================
+          REWARD
+      =================================================== */}
+
+      <TableCell>
+        <span
+          className="
+            whitespace-nowrap
+            text-sm
+            font-semibold
+          "
+        >
+          {getRewardText(promo)}
+        </span>
+      </TableCell>
+
+
+      {/* ===================================================
+          DURATION
+      =================================================== */}
+
+      <TableCell>
+        <div
+          className="
+            whitespace-nowrap
+            text-xs
+          "
+        >
+          <p>
+            {formatDate(
+              promo.startDate,
+            )}
+          </p>
+
+          <p
+            className="
+              my-0.5
+              text-muted-foreground
+            "
+          >
+            to
+          </p>
+
+          <p>
+            {formatDate(
+              promo.endDate,
+            )}
+          </p>
+        </div>
+      </TableCell>
+
+
+      {/* ===================================================
+          STATUS
+      =================================================== */}
+
+      <TableCell>
+        <PromoStatusBadge
+          promo={promo}
+        />
+      </TableCell>
+
+
+      {/* ===================================================
+          ACTIONS
+      =================================================== */}
+
+      <TableCell>
+        <div className="flex justify-end">
+          <PromoActions
+            promo={promo}
+          />
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+function PromoTableEmpty() {
+  return (
+    <div
+      className="
+        flex
+        min-h-40
+        flex-col
+        items-center
+        justify-center
+        px-6
+        py-10
+        text-center
+      "
+    >
+      <div
+        className="
+          mb-3
+          flex
+          h-10
+          w-10
+          items-center
+          justify-center
+          rounded-full
+          bg-muted
+        "
+      >
+        <AlertCircle
+          className="
+            h-5
+            w-5
+            text-muted-foreground
+          "
+        />
+      </div>
+
+      <p
+        className="
+          text-sm
+          font-medium
+        "
+      >
+        No promo campaigns found
+      </p>
+
+      <p
+        className="
+          mt-1
+          max-w-sm
+          text-xs
+          leading-5
+          text-muted-foreground
+        "
+      >
+        There are currently no promotional
+        campaigns available.
+      </p>
+    </div>
+  );
+}
+
+
+/* =========================================================
+   ERROR STATE
+========================================================= */
+
+function PromoTableError() {
+  return (
+    <Card
+      className="
+        overflow-hidden
+        border-destructive/20
+      "
+    >
+      <CardContent
+        className="
+          flex
+          min-h-40
+          flex-col
+          items-center
+          justify-center
+          px-6
+          py-10
+          text-center
+        "
+      >
+        <div
+          className="
+            mb-3
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+            rounded-full
+            bg-destructive/10
+            text-destructive
+          "
+        >
+          <AlertCircle className="h-5 w-5" />
+        </div>
+
+        <p
+          className="
+            text-sm
+            font-semibold
+          "
+        >
+          Unable to display promotions
+        </p>
+
+        <p
+          className="
+            mt-1
+            max-w-sm
+            text-xs
+            leading-5
+            text-muted-foreground
+          "
+        >
+          The promotions data received from the
+          server is invalid. Please refresh the
+          page and try again.
+        </p>
       </CardContent>
     </Card>
   );
