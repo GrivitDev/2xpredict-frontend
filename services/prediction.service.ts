@@ -21,6 +21,7 @@ export type PredictionPlan =
   | 'vip';
 
 export type PredictionAccessState =
+  | 'public_preview'
   | 'subscription'
   | 'purchased'
   | 'locked'
@@ -50,9 +51,11 @@ export interface PredictionMarket {
 // ========================================
 
 export interface PredictionDetails {
-  date?: any;
-  match?: any;
-  venue?: any;
+  date?: string;
+  match?: {
+    utcDate?: string;
+  };
+  venue?: string;
 
   homeScore?: number;
   awayScore?: number;
@@ -113,12 +116,7 @@ export interface CreatePredictionPayload {
 
   leagueCode: string;
 
-  league?: {
-    code: string;
-    name: string;
-    country: string;
-    emblem?: string;
-  };
+  league?: LeagueInfo;
 
   homeTeam: string;
 
@@ -130,21 +128,11 @@ export interface CreatePredictionPayload {
 
   confidence: number;
 
-  probabilities: {
-    home: number;
-    draw: number;
-    away: number;
-  };
+  probabilities: PredictionProbability;
 
-  markets: {
-    market: string;
-    selection?: string;
-  }[];
+  markets: PredictionMarket[];
 
-  accessType:
-    | 'free'
-    | 'regular'
-    | 'vip';
+  accessType: PredictionPlan;
 
   price: number;
 
@@ -163,12 +151,47 @@ export const createPrediction = async (
 };
 
 // ========================================
+// PUBLIC PREVIEW
+// ========================================
+//
+// Returns the five public predictions selected
+// by the backend.
+//
+// No authentication required.
+//
+// Backend rules:
+// - free predictions only
+// - confidence >= 80%
+// - pending
+// - unsettled
+// - not deleted
+// - current day first
+// - can use qualifying predictions from
+//   subsequent days when necessary
+//
+// ========================================
+
+export const getPublicPredictionPreview = async (): Promise<
+  PredictionDetails[]
+> => {
+  const res = await api.get(
+    '/predictions/public-preview',
+  );
+
+  return Array.isArray(res.data)
+    ? res.data
+    : [];
+};
+
+// ========================================
 // GET ALL
 // ADMIN / TABLE VIEW
 // ========================================
 
 export const getPredictions = async () => {
-  const res = await api.get('/predictions');
+  const res = await api.get(
+    '/predictions',
+  );
 
   return res.data;
 };
@@ -177,24 +200,13 @@ export const getPredictions = async () => {
 // GET SETTLED WINS
 // PUBLIC
 // ========================================
-//
-// Used by the homepage "Our Wins" section.
-//
-// Endpoint:
-// GET /predictions/settled-wins
-//
-// No JWT required.
-// Returns only:
-// - won predictions
-// - settled predictions
-// - non-deleted predictions
-//
-// Includes prediction + probabilities.
-// ========================================
+
 export const getSettledWins = async (): Promise<
   PredictionDetails[]
 > => {
-  const res = await api.get('/predictions/settled-wins');
+  const res = await api.get(
+    '/predictions/settled-wins',
+  );
 
   return Array.isArray(res.data)
     ? res.data
