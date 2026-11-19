@@ -281,6 +281,26 @@ export default function Footer() {
           </p>
 
           <Link
+            href="/privacy-policy"
+            className="
+              inline-flex
+              shrink-0
+              items-center
+              gap-1.5
+              text-[10px]
+              font-semibold
+              text-foreground
+              underline-offset-4
+              transition-colors
+              hover:text-primary
+              hover:underline
+              sm:text-xs
+            "
+          >
+            Privacy Policy
+            <FaArrowRight aria-hidden="true" className="h-2.5 w-2.5" />
+          </Link>
+          <Link
             href="/terms-of-use"
             className="
               inline-flex
