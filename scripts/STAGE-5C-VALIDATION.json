@@ -1,0 +1,59 @@
+{
+  "scannedTypeScriptFiles": 497,
+  "changedFiles": 3,
+  "requiredSupportFiles": 7,
+  "syntaxErrors": [],
+  "unresolvedLocalImports": [],
+  "missingFiles": [],
+  "checks": [
+    {
+      "name": "Paystack callback parses reference and trxref and validates gateway",
+      "pass": true
+    },
+    {
+      "name": "callback waits for authentication hydration before verification",
+      "pass": true
+    },
+    {
+      "name": "callback distinguishes approved, processing, pending and failed results",
+      "pass": true
+    },
+    {
+      "name": "temporary verification errors are not treated as declined payments",
+      "pass": true
+    },
+    {
+      "name": "401/403 verification errors require sign-in rather than starting a second payment",
+      "pass": true
+    },
+    {
+      "name": "processing state refreshes payment and subscription status",
+      "pass": true
+    },
+    {
+      "name": "confirmed payment refreshes caches through the verification mutation",
+      "pass": true
+    },
+    {
+      "name": "payment gateway query keys are account scoped",
+      "pass": true
+    },
+    {
+      "name": "new payment initialization invalidates payment history",
+      "pass": true
+    },
+    {
+      "name": "Paystack checkout URL is HTTPS and restricted to Paystack hosts",
+      "pass": true
+    },
+    {
+      "name": "existing active payment reference is exposed without starting another payment",
+      "pass": true
+    },
+    {
+      "name": "new checkout redirect requires both a valid reference and trusted authorization URL",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

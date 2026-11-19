@@ -1,21 +1,22 @@
 import { InternalAd } from '@/types/internal-ad';
 
 import { AdPosition } from '@/constants/ads/ad-position';
+import type { AdPosition as AdPositionValue } from '@/types/ads';
 
 export function sortAds(
   ads: InternalAd[],
-  position: AdPosition,
+  position: AdPositionValue,
 ) {
   return [...ads].sort(
     (a, b) => {
       const displayA =
-        a.displays.find(
+        (a.displays ?? []).find(
           (display) =>
             display.position === position,
         );
 
       const displayB =
-        b.displays.find(
+        (b.displays ?? []).find(
           (display) =>
             display.position === position,
         );

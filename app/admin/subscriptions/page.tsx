@@ -1,336 +1,84 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-import {
-  AlertCircle,
-  CheckCircle2,
-  CreditCard,
-  Settings,
-  Sparkles,
-  Wallet,
-} from 'lucide-react';
-
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSubscriptionsMonitor } from '@/hooks/use-subscriptions';
+import { paymentsQueryKeys } from '@/hooks/use-payments';
+import { planConfigQueryKey } from '@/hooks/use-plan-config';
 import PlanConfigPanel from '@/components/admin/subscriptions/PlanConfigPanel';
-import PaymentsReviewPanel from '@/components/admin/subscriptions/PaymentsReviewPanel';
 import BankDetailsPanel from '@/components/admin/subscriptions/BankDetailsPanel';
+import PaymentsReviewPanel from '@/components/admin/subscriptions/PaymentsReviewPanel';
+import BetLabSettingsPanel from '@/components/admin/subscriptions/BetLabSettingsPanel';
+import { AdminError, AdminPageFrame, AdminPanel, AdminTabs, adminButton, displayValue } from '@/components/admin/AdminWorkspace';
 
-const metrics = [
-  {
-    title: 'Subscription Plans',
-    value: 'Regular + VIP',
-    icon: CreditCard,
-  },
-  {
-    title: 'Payment Review',
-    value: 'Needs Attention',
-    icon: Wallet,
-  },
-  {
-    title: 'Configuration',
-    value: 'Managed',
-    icon: Settings,
-  },
-];
+type Tab = 'plans' | 'betlab' | 'bank' | 'payments' | 'monitor';
 
 export default function AdminSubscriptionsPage() {
-  const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>('plans');
+  const queryClient = useQueryClient();
+  const monitor = useSubscriptionsMonitor({ enabled: tab === 'monitor' });
 
-  useEffect(() => {
-    setToken(localStorage.getItem('token') || '');
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return <LoadingState />;
-  }
-
-  if (!token) {
-    return <SessionRequired />;
-  }
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: planConfigQueryKey });
+    void queryClient.invalidateQueries({ queryKey: paymentsQueryKeys.all });
+    void queryClient.invalidateQueries({ queryKey: ['bet-lab'] });
+    if (tab === 'monitor') void monitor.refetch();
+  };
 
   return (
-    <div className="relative space-y-8 overflow-hidden">
-      {/* Ambient Background */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-          -z-10
-          bg-gradient-to-br
-          from-primary/10
-          via-transparent
-          to-purple-500/10
-        "
+    <AdminPageFrame
+      title="Plans & payments"
+      description="Pricing, Bet Lab virtual points, payment review, transfer details and subscription-module health."
+      actions={<button type="button" className={adminButton} onClick={refresh}>Refresh</button>}
+    >
+      <AdminTabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { value: 'plans', label: 'Pricing' },
+          { value: 'betlab', label: 'Bet Lab settings' },
+          { value: 'bank', label: 'Bank details' },
+          { value: 'payments', label: 'Payment review' },
+          { value: 'monitor', label: 'Module health' },
+        ]}
       />
 
-      {/* Header */}
+      {tab === 'plans' && <PlanConfigPanel />}
+      {tab === 'betlab' && <BetLabSettingsPanel />}
+      {tab === 'bank' && <BankDetailsPanel />}
+      {tab === 'payments' && <PaymentsReviewPanel />}
 
-      <header
-        className="
-          flex
-          flex-col
-          gap-5
-          lg:flex-row
-          lg:items-center
-          lg:justify-between
-        "
-      >
-        <div>
-          <div
-            className="
-              mb-3
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              border
-              bg-primary/10
-              px-3
-              py-1.5
-              text-xs
-              font-medium
-              text-primary
-            "
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-
-            Subscription Control Center
-          </div>
-
-          <h1
-            className="
-              text-2xl
-              font-bold
-              tracking-tight
-              sm:text-3xl
-            "
-          >
-            Subscription Management
-          </h1>
-
-          <p
-            className="
-              mt-2
-              max-w-2xl
-              text-sm
-              leading-6
-              text-muted-foreground
-            "
-          >
-            Control pricing, payments, banking information,
-            and subscriber access from one unified workspace.
-          </p>
-        </div>
-
-        <SystemStatus />
-      </header>
-
-      {/* Action Center */}
-
-      <div
-        className="
-          rounded-3xl
-          border
-          bg-card/70
-          p-5
-          backdrop-blur
-          sm:p-6
-        "
-      >
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-destructive/10 p-2.5">
-            <AlertCircle className="h-5 w-5 text-destructive" />
-          </div>
-
-          <div>
-            <h3 className="font-semibold">
-              Admin Attention Required
-            </h3>
-
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Pending payment approvals and configuration updates
-              will appear here.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Metrics */}
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {metrics.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <div
-              key={item.title}
-              className="
-                group
-                rounded-3xl
-                border
-                bg-card/70
-                p-5
-                backdrop-blur
-                transition
-                hover:-translate-y-0.5
-                hover:shadow-lg
-              "
-            >
-              <Icon className="mb-4 h-6 w-6 text-primary" />
-
-              <p className="text-sm text-muted-foreground">
-                {item.title}
-              </p>
-
-              <h3 className="mt-1 text-lg font-bold">
-                {item.value}
-              </h3>
+      {tab === 'monitor' && (
+        <AdminPanel
+          title="Subscription module monitor"
+          meta={monitor.dataUpdatedAt ? `Updated ${new Date(monitor.dataUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Live health snapshot'}
+          actions={<button type="button" className={adminButton} disabled={monitor.isFetching} onClick={() => void monitor.refetch()}>{monitor.isFetching ? 'Refreshing…' : 'Refresh'}</button>}
+        >
+          {monitor.isLoading ? (
+            <div className="p-4 text-[11px] text-muted-foreground">Loading module health…</div>
+          ) : monitor.isError ? (
+            <div className="p-2.5"><AdminError error={monitor.error} retry={() => void monitor.refetch()} /></div>
+          ) : (
+            <div className="space-y-2 p-2.5">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 xl:grid-cols-4">
+                {Object.entries((monitor.data && typeof monitor.data === 'object' ? monitor.data : {}) as Record<string, unknown>)
+                  .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
+                  .slice(0, 16)
+                  .map(([key, value]) => (
+                    <div key={key} className="min-w-0 rounded-md border border-border/70 px-2 py-1.5">
+                      <p className="truncate text-[9px] uppercase tracking-wide text-muted-foreground">{key.replaceAll('_', ' ')}</p>
+                      <p className="truncate text-[11px] font-semibold" title={String(value)}>{displayValue(value)}</p>
+                    </div>
+                  ))}
+              </div>
+              <details className="rounded-md border border-border/60">
+                <summary className="cursor-pointer px-2 py-1.5 text-[10px] font-semibold">Full monitor response</summary>
+                <pre className="max-h-[420px] overflow-auto border-t p-2 text-[10px] leading-4">{JSON.stringify(monitor.data, null, 2)}</pre>
+              </details>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Plan Configuration */}
-
-      <section className="space-y-4">
-        <SectionTitle
-          title="Plan Configuration"
-          description="Manage pricing and subscription duration."
-        />
-
-        <PlanConfigPanel token={token} />
-      </section>
-
-      {/* Bank Configuration */}
-
-      <section className="space-y-4">
-        <SectionTitle
-          title="Bank Configuration"
-          description="Manage payment instructions visible to users."
-        />
-
-        <BankDetailsPanel token={token} />
-      </section>
-
-      {/* Payment Verification */}
-
-      <section className="space-y-4">
-        <SectionTitle
-          title="Payment Verification"
-          description="Review incoming subscription payments."
-        />
-
-        <PaymentsReviewPanel token={token} />
-      </section>
-    </div>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div className="space-y-6">
-      {[1, 2, 3].map((item) => (
-        <div
-          key={item}
-          className="
-            h-24
-            animate-pulse
-            rounded-2xl
-            bg-muted
-          "
-        />
-      ))}
-    </div>
-  );
-}
-
-function SessionRequired() {
-  return (
-    <div className="flex min-h-[400px] items-center justify-center">
-      <div
-        className="
-          w-full
-          max-w-md
-          rounded-2xl
-          border
-          bg-card
-          p-8
-          text-center
-        "
-      >
-        <AlertCircle
-          className="
-            mx-auto
-            mb-4
-            h-10
-            w-10
-            text-destructive
-          "
-        />
-
-        <h2 className="text-xl font-semibold">
-          Admin Session Required
-        </h2>
-
-        <p className="mt-2 text-sm text-muted-foreground">
-          Please login again to continue.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function SystemStatus() {
-  return (
-    <div
-      className="
-        flex
-        w-fit
-        items-center
-        gap-3
-        rounded-2xl
-        border
-        bg-card/70
-        px-4
-        py-3
-        backdrop-blur
-      "
-    >
-      <CheckCircle2 className="h-5 w-5 text-green-500" />
-
-      <div>
-        <p className="text-xs text-muted-foreground">
-          Subscription System
-        </p>
-
-        <p className="text-sm font-semibold">
-          Operational
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function SectionTitle({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div>
-      <h2 className="text-xl font-semibold tracking-tight">
-        {title}
-      </h2>
-
-      <p className="mt-1 text-sm text-muted-foreground">
-        {description}
-      </p>
-    </div>
+          )}
+        </AdminPanel>
+      )}
+    </AdminPageFrame>
   );
 }

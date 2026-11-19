@@ -1,0 +1,74 @@
+{
+  "scannedFiles": 492,
+  "requiredFiles": 14,
+  "missingRequiredFiles": [],
+  "syntaxErrors": [],
+  "unresolvedLocalImports": [],
+  "checks": [
+    {
+      "name": "realtime hook exported",
+      "pass": true
+    },
+    {
+      "name": "realtime hook mounted globally",
+      "pass": true
+    },
+    {
+      "name": "notification bell mounted in navbar",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useNotificationsMonitorQuery",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useNotificationsQuery",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useUnreadNotificationCountQuery",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useMarkAllNotificationsReadMutation",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useMarkNotificationReadMutation",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useNotificationPreferencesQuery",
+      "pass": true
+    },
+    {
+      "name": "endpoint inventory maps useUpdateNotificationPreferencesMutation",
+      "pass": true
+    },
+    {
+      "name": "notification query key supports prefix invalidation",
+      "pass": true
+    },
+    {
+      "name": "websocket namespace tracked separately from HTTP endpoints",
+      "pass": true
+    },
+    {
+      "name": "realtime handles notification:ready",
+      "pass": true
+    },
+    {
+      "name": "realtime handles notification:new",
+      "pass": true
+    },
+    {
+      "name": "realtime handles notification:read",
+      "pass": true
+    },
+    {
+      "name": "realtime handles notification:read-all",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

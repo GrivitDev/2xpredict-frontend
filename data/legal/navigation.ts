@@ -1,89 +1,27 @@
-import {
-  privacyToc,
-} from './privacy';
-
-import {
-  termsToc,
-} from './terms';
-
-import {
-  cookiesToc,
-} from './cookies';
-
-import {
-  disclaimerToc,
-} from './disclaimer';
-
-import {
-  refundPolicyToc,
-} from './refund-policy';
-
-import {
-  responsibleGamblingToc,
-} from './responsible-gambling';
-
-import {
-  advertisingPolicyToc,
-} from './advertising-policy';
-
-import { ownershipToc } from './ownership';
-
-
-
 export const legalNavigation = [
-
   {
-    title: 'Ownership Information',
-    href: '/ownership',
-    items: ownershipToc,
+    title: 'Terms of Use',
+    href: '/terms-of-use',
+    items: [
+      { id: 'ownership', title: 'Ownership and Scope' },
+      { id: 'acceptance', title: 'Acceptance of These Terms' },
+      { id: 'eligibility', title: 'Eligibility and Accounts' },
+      { id: 'services', title: 'Our Services' },
+      { id: 'predictions', title: 'Predictions and Information' },
+      { id: 'responsible-use', title: 'Responsible Use and Age Requirements' },
+      { id: 'subscriptions', title: 'Subscriptions and Paid Access' },
+      { id: 'payments', title: 'Payments and Transactions' },
+      { id: 'refunds', title: 'Refunds and Service Issues' },
+      { id: 'privacy', title: 'Privacy and Cookies' },
+      { id: 'advertising', title: 'Advertising and Third Parties' },
+      { id: 'acceptable-use', title: 'Acceptable Use' },
+      { id: 'intellectual-property', title: 'Intellectual Property' },
+      { id: 'availability', title: 'Availability and Changes' },
+      { id: 'suspension', title: 'Suspension and Closure' },
+      { id: 'liability', title: 'Disclaimers and Liability' },
+      { id: 'law', title: 'Complaints and Applicable Law' },
+      { id: 'changes', title: 'Changes to These Terms' },
+      { id: 'contact', title: 'Contact Information' },
+    ],
   },
-
-  {
-    title: 'Privacy Policy',
-    href: '/privacy-policy',
-    items: privacyToc,
-  },
-
-
-  {
-    title: 'Terms & Conditions',
-    href: '/terms-and-conditions',
-    items: termsToc,
-  },
-
-
-  {
-    title: 'Cookie Policy',
-    href: '/cookie-policy',
-    items: cookiesToc,
-  },
-
-
-  {
-    title: 'Disclaimer',
-    href: '/disclaimer',
-    items: disclaimerToc,
-  },
-
-
-  {
-    title: 'Responsible Gambling',
-    href: '/responsible-gambling',
-    items: responsibleGamblingToc,
-  },
-
-
-  {
-    title: 'Refund Policy',
-    href: '/refund-policy',
-    items: refundPolicyToc,
-  },
-
-
-  {
-    title: 'Advertising Policy',
-    href: '/advertising-policy',
-    items: advertisingPolicyToc,
-  },
-
 ];

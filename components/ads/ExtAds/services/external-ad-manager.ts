@@ -35,6 +35,12 @@ import {
   externalAdService,
 } from './external-ad.service';
 
+import {
+  getExternalAdDailyImpressionCount,
+  getExternalAdSessionImpressionCount,
+  recordExternalAdImpression,
+} from '../utils/storage';
+
 export interface ExternalAdManagerOptions {
   policy?: ExternalAdPolicy | null;
 
@@ -101,32 +107,19 @@ export class ExternalAdManager {
     );
   }
 
-  isFormatAllowed(
-    request: ExternalAdRequest,
-  ): boolean {
-    if (!this.policy?.enabled) {
-      return false;
-    }
+  isFormatAllowed(request: ExternalAdRequest): boolean {
+    const policy = this.policy;
+    if (!policy?.enabled) return false;
 
     switch (request.format) {
-      case ExternalAdFormat.POPUP:
-        return (
-          this.policy.allowPopup
-        );
-
-      case ExternalAdFormat.INTERSTITIAL:
-        return (
-          this.policy
-            .allowInterstitial
-        );
-
-      case ExternalAdFormat.REWARDED:
-        return (
-          this.policy.allowRewarded
-        );
-
-      default:
-        return true;
+      case ExternalAdFormat.BANNER: return policy.allowedTypes?.BANNER ?? policy.allowBanner;
+      case ExternalAdFormat.NATIVE: return policy.allowedTypes?.NATIVE ?? policy.allowNative;
+      case ExternalAdFormat.VIDEO: return policy.allowedTypes?.VIDEO ?? policy.allowVideo;
+      case ExternalAdFormat.POPUP: return policy.allowedTypes?.POPUP ?? policy.allowPopup;
+      case ExternalAdFormat.INTERSTITIAL: return policy.allowedTypes?.INTERSTITIAL ?? policy.allowInterstitial;
+      case ExternalAdFormat.REWARDED: return policy.allowedTypes?.REWARDED ?? policy.allowRewarded;
+      case ExternalAdFormat.STICKY: return policy.allowedTypes?.STICKY ?? policy.allowSticky;
+      default: return false;
     }
   }
 
@@ -135,18 +128,20 @@ export class ExternalAdManager {
       return false;
     }
 
-    if (
-      this.policy.frequency ===
-      'NONE'
-    ) {
-      return false;
-    }
+    if (this.policy.frequency === 'NONE') return false;
 
-    const refreshInterval =
-      Math.max(
-        0,
-        this.policy.refreshInterval,
-      ) * 1000;
+    const sessionCap = this.policy.maxImpressionsPerSession;
+    const dailyCap = this.policy.maxImpressionsPerDay;
+    if (typeof sessionCap === 'number' && sessionCap > 0 && getExternalAdSessionImpressionCount() >= sessionCap) return false;
+    if (typeof dailyCap === 'number' && dailyCap > 0 && getExternalAdDailyImpressionCount() >= dailyCap) return false;
+
+    const configuredRefreshSeconds = Math.max(
+      0,
+      this.policy.refreshIntervalSeconds ?? this.policy.refreshInterval,
+    );
+    // LOW uses a wider gap than NORMAL; NONE is rejected above.
+    const frequencyMultiplier = this.policy.frequency === 'LOW' ? 3 : 1;
+    const refreshInterval = configuredRefreshSeconds * frequencyMultiplier * 1000;
 
     if (refreshInterval === 0) {
       return true;
@@ -261,6 +256,7 @@ export class ExternalAdManager {
           );
         }
 
+        recordExternalAdImpression();
         this.emit({
           type:
             ExternalAdEventType.AD_LOADED,

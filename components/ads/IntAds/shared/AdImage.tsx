@@ -35,7 +35,7 @@ export function AdImage({
         <Image
           fill
           priority={priority}
-          src={ad.image.url}
+          src={ad.image}
           alt={ad.title}
           sizes="100vw"
           className={cn(
@@ -86,7 +86,7 @@ export function AdImage({
       "
     >
       <Image
-        src={ad.image.url}
+        src={ad.image}
         alt={ad.title}
         width={900}
         height={650}

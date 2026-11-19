@@ -1,8 +1,9 @@
 import { AdTrigger } from '@/constants/ads/ad-trigger';
+import type { AdTrigger as AdTriggerValue } from '@/types/ads';
 
 export function shouldDisplayAd(
   adId: string,
-  trigger: AdTrigger,
+  trigger: AdTriggerValue,
 ) {
   if (
     typeof window === 'undefined'

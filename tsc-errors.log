@@ -1,0 +1,13 @@
+components/admin/system-monitor/system-monitor-database.tsx(56,44): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number | null | undefined'.
+components/admin/system-monitor/system-monitor-database.tsx(57,42): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number | null | undefined'.
+components/admin/system-monitor/system-monitor-database.tsx(58,47): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number | null | undefined'.
+components/admin/system-monitor/system-monitor-database.tsx(58,128): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number | null | undefined'.
+components/admin/system-monitor/system-monitor-database.tsx(60,5): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+components/admin/system-monitor/system-monitor-database.tsx(60,250): error TS2322: Type '{}' is not assignable to type 'ReactNode'.
+components/admin/system-monitor/system-monitor-database.tsx(61,5): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+components/admin/system-monitor/system-monitor-database.tsx(61,94): error TS2322: Type '{}' is not assignable to type 'ReactNode'.
+components/pricing/GatewayModal.tsx(92,9): error TS2367: This comparison appears to be unintentional because the types '30' and '0' have no overlap.
+components/pricing/GatewayModal.tsx(106,9): error TS2353: Object literal may only specify known properties, and 'currency' does not exist in type 'InitializePaymentPayload'.
+components/pricing/PaymentModal.tsx(77,9): error TS2367: This comparison appears to be unintentional because the types '30' and '0' have no overlap.
+components/pricing/PricingSection.tsx(118,9): error TS2367: This comparison appears to be unintentional because the types '30' and '0' have no overlap.
+components/pricing/PricingSection.tsx(179,14): error TS2739: Type '{ key: "premium" | "vip" | "regular"; plan: { id: "regular"; name: string; price: number; description: string; features: string[]; } | { id: "premium"; name: string; price: number; description: string; features: string[]; } | { ...; }; currency: Currency; subscriptionDurationDays: 30; onSelect: (id: "premium" | ... ...' is missing the following properties from type 'PricingCardProps': currentPlan, displayPrice, priceLabel, actionLabel

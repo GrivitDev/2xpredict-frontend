@@ -1,18 +1,7 @@
-import api from '@/lib/axios';
+import { planConfigService } from '@/services/plan-config.service';
+import type { PlanConfig } from '@/types/plan-config';
 
-import type {
-  PlanConfig,
-} from '@/types/plan-config';
-
-
-
+/** Compatibility helper; new UI components should use usePlanConfigQuery. */
 export async function getPlanConfig(): Promise<PlanConfig> {
-
-  const response = await api.get<PlanConfig>(
-    '/plan-config',
-  );
-
-
-  return response.data;
-
+  return planConfigService.get();
 }

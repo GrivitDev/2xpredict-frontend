@@ -2,786 +2,730 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-
-import { ArrowUpRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 import {
+  FaArrowRight,
+  FaCrown,
+  FaCircle,
+  FaRightToBracket,
+  FaUserPlus,
   FaFacebookF,
-  FaXTwitter,
+  FaInstagram,
   FaTelegram,
+  FaXTwitter,
 } from 'react-icons/fa6';
 
 import { useAuth } from '@/providers/auth-provider';
 
-/* ============================================================================
-   NAVIGATION
-============================================================================ */
+type FooterPlan = 'free' | 'regular' | 'vip' | 'premium';
 
-const explore = [
-  { name: 'Home', href: '/' },
-  { name: 'Live Scores', href: '/live-scores' },
-  { name: 'Articles', href: '/articles' },
-  { name: 'Pricing', href: '/pricing' },
-];
+type SubscriptionRecord = {
+  plan?: string;
+  tier?: string;
+  status?: string;
+  expiresAt?: string;
+  expiryDate?: string;
+  endDate?: string;
+};
 
-const company = [
-  { name: 'About Us', href: '/about' },
-  { name: 'Contact', href: '/about#contact' },
-];
-
-const legal = [
-  { name: 'Privacy Policy', href: '/privacy-policy' },
-  {
-    name: 'Terms & Conditions',
-    href: '/terms-and-conditions',
-  },
-];
-
-/* ============================================================================
-   SOCIALS
-============================================================================ */
+type UserRecord = {
+  plan?: string;
+  subscriptionPlan?: string;
+  subscription?: SubscriptionRecord | null;
+  subscriptionExpiryDate?: string;
+  expiryDate?: string;
+};
 
 const socials = [
   {
-    name: 'X',
-    icon: FaXTwitter,
-    href: process.env.NEXT_PUBLIC_TWITTER || '#',
+    name: 'Facebook',
+    href: process.env.NEXT_PUBLIC_FACEBOOK,
+    icon: FaFacebookF,
   },
   {
-    name: 'Facebook',
-    icon: FaFacebookF,
-    href: process.env.NEXT_PUBLIC_FACEBOOK || '#',
+    name: 'X',
+    href: process.env.NEXT_PUBLIC_TWITTER,
+    icon: FaXTwitter,
+  },
+  {
+    name: 'Instagram',
+    href: process.env.NEXT_PUBLIC_INSTAGRAM,
+    icon: FaInstagram,
   },
   {
     name: 'Telegram',
+    href: process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL,
     icon: FaTelegram,
-    href: process.env.NEXT_PUBLIC_TELEGRAM || '#',
   },
-];
+].filter((social) => Boolean(social.href && social.href !== '#'));
 
-/* ============================================================================
-   FOOTER
-============================================================================ */
+function getFooterPlan(user: unknown): FooterPlan {
+  if (!user || typeof user !== 'object') {
+    return 'free';
+  }
+
+  const account = user as UserRecord;
+  const subscription = account.subscription;
+
+  const rawPlan =
+    subscription?.plan ??
+    subscription?.tier ??
+    account.plan ??
+    account.subscriptionPlan ??
+    'free';
+
+  const plan = String(rawPlan).trim().toLowerCase();
+
+  const inactiveStatuses = [
+    'expired',
+    'inactive',
+    'failed',
+    'rejected',
+    'suspended',
+  ];
+
+  const subscriptionStatus = String(
+    subscription?.status ?? '',
+  ).toLowerCase();
+
+  if (inactiveStatuses.includes(subscriptionStatus)) {
+    return 'free';
+  }
+
+  const expiry =
+    subscription?.expiryDate ??
+    subscription?.expiresAt ??
+    subscription?.endDate ??
+    account.subscriptionExpiryDate ??
+    account.expiryDate;
+
+  if (expiry) {
+    const expiryTime = new Date(expiry).getTime();
+
+    if (
+      Number.isFinite(expiryTime) &&
+      expiryTime <= Date.now()
+    ) {
+      return 'free';
+    }
+  }
+
+  if (plan === 'regular') return 'regular';
+  if (plan === 'vip') return 'vip';
+  if (plan === 'premium') return 'premium';
+
+  return 'free';
+}
+
+const primaryButtonClass = `
+  inline-flex
+  min-h-9
+  items-center
+  justify-center
+  gap-1.5
+  rounded-lg
+  bg-primary
+  px-3.5
+  py-2
+  text-xs
+  sm:min-h-11
+  sm:gap-2
+  sm:rounded-xl
+  sm:px-5
+  sm:py-2.5
+  sm:text-sm
+  font-bold
+  text-primary-foreground
+  shadow-md
+  shadow-primary/15
+  transition-all
+  duration-200
+  hover:-translate-y-0.5
+  hover:brightness-110
+  hover:shadow-lg
+  hover:shadow-primary/20
+  focus-visible:outline-none
+  focus-visible:ring-2
+  focus-visible:ring-primary
+  focus-visible:ring-offset-2
+  focus-visible:ring-offset-background
+`;
+
+const secondaryButtonClass = `
+  inline-flex
+  min-h-9
+  items-center
+  justify-center
+  gap-1.5
+  rounded-lg
+  border
+  border-border
+  bg-background
+  px-3.5
+  py-2
+  text-xs
+  sm:min-h-11
+  sm:gap-2
+  sm:rounded-xl
+  sm:px-5
+  sm:py-2.5
+  sm:text-sm
+  font-semibold
+  text-foreground
+  transition-all
+  duration-200
+  hover:border-primary/40
+  hover:bg-primary/5
+  hover:text-primary
+  focus-visible:outline-none
+  focus-visible:ring-2
+  focus-visible:ring-primary
+  focus-visible:ring-offset-2
+  focus-visible:ring-offset-background
+`;
 
 export default function Footer() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const pathname = usePathname();
 
-  const exploreLinks = user
-    ? [
-        ...explore,
-        {
-          name: 'Dashboard',
-          href:
-            user.role === 'admin'
-              ? '/admin'
-              : '/dashboard',
-        },
-      ]
-    : explore;
+  const isAdmin = pathname.startsWith('/admin');
+  const plan = getFooterPlan(user);
 
   return (
     <footer
-      className="
+      aria-label="Site footer"
+      className={`
         relative
+        isolate
+        w-full
+        shrink-0
         overflow-hidden
         border-t
-        border-border/50
+        border-border
         bg-background
-      "
+        text-foreground
+        ${
+          isAdmin
+            ? 'pb-0'
+            : 'pb-[calc(6rem_+_env(safe-area-inset-bottom))] lg:pb-0'
+        }
+      `}
     >
-      {/* BACKGROUND */}
+      {/* Subtle brand accent */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          top-0
+          h-[2px]
+          bg-gradient-to-r
+          from-transparent
+          via-primary
+          to-transparent
+        "
+      />
+
+      {/* Restrained slate and burgundy surface accents */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -right-28
+          top-12
+          -z-10
+          h-56
+          w-56
+          rounded-full
+          bg-primary/5
+          blur-3xl
+        "
+      />
 
       <div
         aria-hidden="true"
         className="
           pointer-events-none
           absolute
-          inset-0
-          overflow-hidden
+          -left-24
+          bottom-20
+          -z-10
+          h-48
+          w-48
+          rounded-full
+          bg-muted/40
+          blur-3xl
         "
-      >
-        <div
-          className="
-            absolute
-            left-1/2
-            top-0
-            h-[420px]
-            w-[900px]
-            -translate-x-1/2
-            rounded-full
-            bg-primary/[0.045]
-            blur-[130px]
-            dark:bg-primary/[0.08]
-          "
-        />
+      />
 
-        <div
-          className="
-            absolute
-            right-[-160px]
-            top-[180px]
-            h-[400px]
-            w-[400px]
-            rounded-full
-            bg-gold/[0.035]
-            blur-[120px]
-            dark:bg-gold/[0.06]
-          "
-        />
+      <div className="relative mx-auto w-full max-w-[1440px] px-3 sm:px-5 lg:px-8">
 
-        <div
-          className="
-            absolute
-            inset-0
-            opacity-[0.018]
-          "
-          style={{
-            backgroundImage: `
-              linear-gradient(to right,currentColor 1px,transparent 1px),
-              linear-gradient(to bottom,currentColor 1px,transparent 1px)
-            `,
-            backgroundSize: '48px 48px',
-          }}
-        />
-      </div>
-
-      {/* MAIN CONTAINER */}
-
-      <div
-        className="
-          relative
-          mx-auto
-          max-w-[1500px]
-          px-4
-          py-6
-          sm:px-6
-          sm:py-8
-          lg:px-8
-          lg:py-10
-        "
-      >
-        {/* BRAND STATEMENT */}
-
-        <div
-          className="
-            relative
-            overflow-hidden
-            rounded-[28px]
-            border
-            border-border/60
-            bg-card/40
-            px-3
-            py-3
-            shadow-xl
-            shadow-black/[0.03]
-            backdrop-blur-2xl
-            sm:px-2
-            sm:py-2
-            lg:px-2
-            lg:py-3
-          "
-        >
-          <div
-            className="
-              absolute
-              inset-x-0
-              top-0
-              h-px
-              bg-gradient-to-r
-              from-transparent
-              via-gold/70
-              to-transparent
-            "
-          />
-
-          <div
-            className="
-              flex
-              flex-col-reverse
-              items-center
-              gap-3
-              lg:flex-row
-              lg:items-center
-              lg:justify-between
-            "
-          >
-            {/* BRAND STATEMENT */}
-
-            <div
-              className="
-                flex
-                w-full
-                justify-center
-                lg:ml-10
-                lg:w-auto
-                lg:justify-end
-              "
-            >
-              <div
-                className="
-                  inline-flex
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-full
-                  border
-                  border-gold/20
-                  bg-gold/[0.06]
-                  px-3
-                  py-1.5
-                  shadow-sm
-                  shadow-gold/5
-                  backdrop-blur-md
-                  sm:gap-3
-                  sm:px-4
-                  sm:py-2
-                "
-              >
-                <span
-                  className="
-                    h-1.5
-                    w-1.5
-                    shrink-0
-                    rounded-full
-                    bg-gold
-                    shadow-[0_0_10px_rgba(234,179,8,0.7)]
-                  "
-                />
-
-                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-foreground sm:text-[10px] sm:tracking-[0.18em]">
-                  We Analyze
-                </span>
-
-                <span className="text-gold">•</span>
-
-                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-foreground sm:text-[10px] sm:tracking-[0.18em]">
-                  We Predict
-                </span>
-
-                <span className="text-gold">•</span>
-
-                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-gold sm:text-[10px] sm:tracking-[0.18em]">
-                  You WIN
-                </span>
-              </div>
-            </div>
-
-            {/* BRAND */}
-
-            <Link
-              href="/"
-              className="
-                group
-                inline-flex
-                w-fit
-                items-center
-                gap-1
-                lg:mr-30
-              "
-            >
-              <div
-                className="
-                  relative
-                  flex
-                  h-12
-                  w-12
-                  shrink-0
-                  items-center
-                  justify-center
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-border/70
-                  bg-background
-                  shadow-lg
-                  transition-all
-                  duration-300
-                  group-hover:border-gold/40
-                  group-hover:shadow-gold/10
-                  sm:h-13
-                  sm:w-13
-                "
-              >
-                <Image
-                  src="/logo.png"
-                  alt="2xpredict"
-                  width={56}
-                  height={56}
-                  priority
-                  className="h-full w-full object-cover"
-                />
-              </div>
-
-              <div>
-                <div
-                  className="
-                    text-lg
-                    font-black
-                    tracking-[-0.04em]
-                    text-foreground
-                    sm:text-xl
-                  "
-                >
-                  2xpredict
-                </div>
-
-                <div
-                  className="
-                    mt-0.5
-                    text-[8px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.25em]
-                    text-gold
-                  "
-                >
-                  Bet With Confidence
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* CONTENT GRID */}
-
-        <div
-          className="
-            mt-5
-            grid
-            gap-6
-            sm:grid-cols-2
-            lg:mt-8
-            lg:grid-cols-[1.5fr_1fr_1fr_1.4fr]
-            lg:gap-10
-          "
-        >
-          {/* ABOUT */}
-
-          <div>
-            <p
-              className="
-                max-w-sm
-                text-s
-                leading-6
-                text-muted-foreground
-              "
-            >
-              Follow the game with sharper insights,
-              live coverage, premium predictions and
-              carefully curated football analysis.
-            </p>
-
-            <Link
-              href="/about"
-              className="
-                group
-                mt-3
-                inline-flex
-                items-center
-                gap-2
-                text-s
-                font-semibold
-                text-foreground
-                transition-colors
-                hover:text-primary
-              "
-            >
-              Discover 2xpredict
-
-              <ArrowUpRight
-                className="
-                  h-4
-                  w-4
-                  transition-transform
-                  duration-300
-                  group-hover:-translate-y-0.5
-                  group-hover:translate-x-0.5
-                "
-              />
-            </Link>
-          </div>
-
-          {/* MOBILE NAVIGATION GROUP */}
-
-          <div
-            className="
-              grid
-              grid-cols-2
-              gap-6
-              lg:contents
-            "
-          >
-            <FooterColumn
-              title="Explore"
-              items={exploreLinks}
-            />
-
-            <FooterColumn
-              title="Company"
-              items={company}
-            />
-          </div>
-
-          {/* PREMIUM */}
-
-          <div className="hidden lg:block">
-            <div
-              className="
-                relative
-                -mt-4
-                overflow-hidden
-                rounded-2xl
-                border
-                border-gold/15
-                bg-gradient-to-br
-                from-gold/[0.08]
-                via-card/50
-                to-primary/[0.04]
-                p-3
-                shadow-lg
-              "
-            >
-              <div
-                className="
-                  absolute
-                  -right-10
-                  -top-10
-                  h-28
-                  w-28
-                  rounded-full
-                  bg-gold/10
-                  blur-3xl
-                "
-              />
-
-              <div
-                className="
-                  relative
-                  flex
-                  items-center
-                  justify-between
-                "
-              >
-                <span
-                  className="
-                    rounded-full
-                    border
-                    border-gold/20
-                    bg-gold/10
-                    px-2.5
-                    py-1
-                    text-[9px]
-                    font-bold
-                    uppercase
-                    tracking-[0.2em]
-                    text-gold
-                  "
-                >
-                  Premium
-                </span>
-
-                <span className="text-xs text-muted-foreground">
-                  VIP
-                </span>
-              </div>
-
-              <h3
-                className="
-                  relative
-                  mt-3
-                  text-lg
-                  font-bold
-                  tracking-tight
-                  text-foreground
-                "
-              >
-                Go beyond ordinary predictions.
-              </h3>
-
-              <p
-                className="
-                  relative
-                  mt-2
-                  text-s
-                  leading-5
-                  text-muted-foreground
-                "
-              >
-                Unlock premium predictions,
-                exclusive insights and deeper match
-                analysis.
-              </p>
-
-              <Link
-                href="/pricing"
-                className="
-                  group
-                  relative
-                  mt-4
-                  inline-flex
-                  items-center
-                  gap-2
-                  rounded-lg
-                  border
-                  border-gold/25
-                  bg-gold
-                  px-3.5
-                  py-2
-                  text-xs
-                  font-bold
-                  text-background
-                  transition-all
-                  duration-300
-                  hover:-translate-y-px
-                  hover:bg-gold/90
-                "
-              >
-                View Plans
-
-                <ArrowUpRight
-                  className="
-                    h-3.5
-                    w-3.5
-                    transition-transform
-                    duration-300
-                    group-hover:-translate-y-0.5
-                    group-hover:translate-x-0.5
-                  "
-                />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* DIVIDER */}
-
-        <div
-          className="
-            my-2
-            h-px
-            bg-gradient-to-r
-            from-transparent
-            via-border
-            to-transparent
-          "
-        />
-
-        {/* BOTTOM AREA */}
-
+        {/* Copyright and Terms of Use */}
         <div
           className="
             flex
-            flex-col
-            gap-4
-            lg:flex-row
-            lg:items-center
-            lg:justify-between
+            min-h-10
+            items-center
+            justify-between
+            gap-2
+            border-b
+            border-border/80
+            py-2
           "
         >
-          {/* LEGAL + COPYRIGHT */}
+          <p className="whitespace-nowrap text-[10px] font-medium text-muted-foreground sm:text-xs">
+            © {new Date().getFullYear()} 2xPredict. All rights reserved.
+          </p>
 
-          <div className="flex flex-col gap-2">
-            <div
-              className="
-                flex
-                flex-wrap
-                items-center
-                gap-x-4
-                gap-y-1
-              "
-            >
-              {legal.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="
-                    text-xs
-                    font-medium
-                    text-muted-foreground
-                    transition-colors
-                    hover:text-foreground
-                  "
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-
-            <div
-              className="
-                flex
-                flex-wrap
-                items-center
-                gap-x-3
-                text-xs
-                text-muted-foreground
-              "
-            >
-              <span>© 2026 2xpredict</span>
-              <span>•</span>
-              <span>All rights reserved.</span>
-            </div>
-          </div>
-
-          {/* DEVELOPER */}
-
-          <div
+          <Link
+            href="/terms-of-use"
             className="
-              text-xs
-              leading-5
-              text-muted-foreground
-              lg:text-center
+              inline-flex
+              shrink-0
+              items-center
+              gap-1.5
+              text-[10px]
+              font-semibold
+              text-foreground
+              underline-offset-4
+              transition-colors
+              hover:text-primary
+              hover:underline
+              sm:text-xs
             "
           >
-            <p>
-              Designed & Developed by{' '}
-              <a
-                href="https://wa.me/2348164580712?text=Hello%20GrivitDev,%20I%20would%20like%20to%20know%20more%20about%20your%20website%20development%20services."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                  font-semibold
-                  text-foreground
-                  transition-colors
-                  hover:text-primary
-                "
-              >
-                GrivitDev
-              </a>
-            </p>
-
-            <p className="text-[11px]">
-              Digital experiences built with precision.
-            </p>
-          </div>
-
-          {/* SOCIALS */}
-
-          <div className="flex items-center gap-1.5">
-            {socials.map(
-              ({ name, icon: Icon, href }) => (
-                <Link
-                  key={name}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={name}
-                  title={name}
-                  className="
-                    group
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border
-                    border-border/70
-                    bg-card/40
-                    text-muted-foreground
-                    transition-all
-                    duration-300
-                    hover:-translate-y-0.5
-                    hover:border-gold/30
-                    hover:bg-secondary
-                    hover:text-foreground
-                  "
-                >
-                  <Icon
-                    className="
-                      h-3.5
-                      w-3.5
-                      transition-transform
-                      duration-300
-                      group-hover:scale-110
-                    "
-                  />
-                </Link>
-              ),
-            )}
-          </div>
+            Terms of Use
+            <FaArrowRight aria-hidden="true" className="h-2.5 w-2.5" />
+          </Link>
         </div>
-      </div>
-    </footer>
-  );
-}
 
-/* ============================================================================
-   FOOTER COLUMN
-============================================================================ */
-
-function FooterColumn({
-  title,
-  items,
-}: {
-  title: string;
-  items: {
-    name: string;
-    href: string;
-  }[];
-}) {
-  return (
-    <div>
-      <div
-        className="
-          mb-1
-          flex
-          items-center
-          gap-1
-        "
-      >
-        <span className="h-px w-4 bg-gold/70" />
-
-        <h3
+        {/* Brand identity */}
+        <section
+          aria-label="About 2xPredict"
           className="
-            text-[11px]
-            font-bold
-            uppercase
-            tracking-[0.2em]
-            text-foreground
+            relative
+            flex
+            flex-col
+            items-center
+            justify-center
+            gap-1.5
+            py-1
+            text-center
           "
         >
-          {title}
-        </h3>
-      </div>
-
-      <ul className="space-y-1">
-        {items.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
+          {/* Social links — right side of the main footer content */}
+          {socials.length > 0 && (
+            <nav
+              aria-label="Social media links"
               className="
-                group
-                inline-flex
+                flex
+                shrink-0
                 items-center
-                text-s
-                text-muted-foreground
-                transition-colors
-                duration-200
-                hover:text-foreground
+                justify-end
+                gap-0.5
+                self-end
+                lg:absolute
+                lg:right-0
+                lg:top-8
               "
             >
-              <span>{item.name}</span>
+              {socials.map(({ name, href, icon: Icon }) => {
+                if (!href) return null;
 
-              <ArrowUpRight
+                return (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Follow 2xPredict on ${name}`}
+                    title={name}
+                    className="
+                      inline-flex
+                      h-8
+                      w-8
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-lg
+                      text-muted-foreground
+                      transition-all
+                      duration-200
+                      hover:bg-primary/10
+                      hover:text-primary
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-primary
+                    "
+                  >
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </a>
+                );
+              })}
+            </nav>
+          )}
+
+          {/* Centered logo and caption */}
+          <div
+            className="
+              mx-auto
+              flex
+              w-fit
+              max-w-full
+              flex-row
+              items-center
+              justify-center
+              gap-1
+              sm:gap-4
+            "
+          >
+            <Link
+              href="/"
+              aria-label="2xPredict home"
+              className="
+                group
+                flex
+                shrink-0
+                items-center
+                no-underline
+              "
+            >
+              <Image
+                src="/logo.png"
+                alt="2xPredict logo"
+                width={92}
+                height={142}
+                priority={false}
                 className="
-                  ml-1
-                  h-3
-                  w-3
-                  -translate-x-1
-                  translate-y-1
-                  opacity-0
-                  transition-all
+                  h-[70px]
+                  w-[158px]
+                  shrink-0
+                  object-contain
+                  transition-transform
                   duration-200
-                  group-hover:translate-x-0
-                  group-hover:translate-y-0
-                  group-hover:opacity-100
+                  group-hover:scale-[1.03]
+                  sm:h-[80px]
+                  sm:w-[172px]
                 "
               />
             </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+
+            <div
+              aria-hidden="true"
+              className="
+                h-11
+                w-px
+                shrink-0
+                sm:h-14
+                bg-gradient-to-b
+                from-transparent
+                via-border
+                to-transparent
+              "
+            />
+
+            <div className="min-w-0 text-left">
+              <p
+                className="
+                  text-sm
+                  font-bold
+                  leading-tight
+                  tracking-tight
+                  text-foreground
+                  sm:text-lg
+                "
+              >
+                Express the Passion. <br />
+                <span className="text-primary">
+                  {' '}Enjoy Every Moment.
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Account and subscription action */}
+          <div
+            className="
+              flex
+              w-full
+              flex-col
+              items-center
+              gap-2
+              sm:gap-3
+            "
+          >
+            {loading ? (
+              <div
+                role="status"
+                className="
+                  flex
+                  min-h-9
+                  items-center
+                  gap-1.5
+                  rounded-lg
+                  border
+                  border-border
+                  bg-background
+                  px-3
+                  text-xs
+                  sm:min-h-11
+                  sm:gap-2
+                  sm:rounded-xl
+                  sm:px-5
+                  sm:text-sm
+                  text-muted-foreground
+                "
+              >
+                <span
+                  aria-hidden="true"
+                  className="
+                    h-3.5
+                    w-3.5
+                    animate-spin
+                    rounded-full
+                    border-2
+                    border-primary/25
+                    border-t-primary
+                  "
+                />
+                Checking account...
+              </div>
+            ) : !user ? (
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                <Link
+                  href="/register"
+                  className={primaryButtonClass}
+                >
+                  <FaUserPlus
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  />
+                  Register Now
+
+                  <FaArrowRight
+                    aria-hidden="true"
+                    className="h-3 w-3"
+                  />
+                </Link>
+
+                <Link
+                  href="/login"
+                  className={secondaryButtonClass}
+                >
+                  <FaRightToBracket
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  />
+                  Log In
+                </Link>
+              </div>
+            ) : plan === 'free' ? (
+              <>
+                <Link
+                  href="/pricing"
+                  className={primaryButtonClass}
+                >
+                  <FaCrown
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  />
+                  Subscribe Now
+
+                  <FaArrowRight
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  />
+                </Link>
+
+                <p className="text-xs text-muted-foreground">
+                  Unlock more of the 2xPredict experience.
+                </p>
+              </>
+            ) : plan === 'regular' ? (
+              <>
+                <Link
+                  href="/pricing"
+                  className={primaryButtonClass}
+                >
+                  <FaCrown
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  />
+                  Upgrade to VIP
+
+                  <FaArrowRight
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  />
+                </Link>
+
+                <p className="text-xs text-muted-foreground">
+                  Take your football insights to the next level.
+                </p>
+              </>
+            ) : plan === 'vip' ? (
+              <>
+                <Link
+                  href="/pricing"
+                  className={primaryButtonClass}
+                >
+                  <FaCrown
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  />
+                  Upgrade to Premium
+
+                  <FaArrowRight
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                  />
+                </Link>
+
+                <p className="text-xs text-muted-foreground">
+                  Discover the full Premium experience.
+                </p>
+              </>
+            ) : (
+              <div
+                className="
+                  inline-flex
+                  max-w-full
+                  items-center
+                  gap-1
+                  rounded-2xl
+                  border
+                  border-primary/20
+                  bg-primary/5
+                  px-2
+                  py-1
+                  text-left
+                "
+              >
+                <span
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
+                    bg-primary/10
+                    text-primary
+                    sm:h-10
+                    sm:w-10
+                    sm:rounded-xl
+                  "
+                >
+                  <FaCrown
+                    aria-hidden="true"
+                    className="h-4 w-4 sm:h-5 sm:w-5"
+                  />
+                </span>
+
+                <div>
+                  <p className="text-xs font-bold text-foreground sm:text-sm">
+                    Enjoy your Premium experience.
+                  </p>
+
+                  <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground sm:text-xs">
+                    Thank you for being part of 2xPredict.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Compact design and development credit */}
+        <div className="flex flex-wrap items-center justify-center gap-x-1 text-center text-[10px] leading-4 text-muted-foreground sm:gap-x-1.5 sm:text-xs">
+          <span>Designed &amp; developed by</span>
+          <span className="font-semibold text-foreground">GrivitTech</span>
+          <span aria-hidden="true" className="text-border">|</span>
+          <a
+            href="https://www.grivittech.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visit www.grivittech.com"
+            className="font-semibold text-primary underline decoration-primary/40 underline-offset-2 transition-colors hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            www.grivittech.com
+          </a>
+        </div>
+        </section>
+
+        {/* Responsible gambling notice */}
+        <section
+          aria-labelledby="responsible-gambling-heading"
+          className="
+            border-t
+            border-border
+            py-1
+            sm:py-1.5
+          "
+        >
+          <div
+            className="
+              mx-auto
+              flex
+              w-full
+              max-w-7xl
+              flex-col
+              items-center
+              gap-0.5
+              text-center
+            "
+          >
+            <div className="max-w-6xl space-y-0.5">
+              <p
+                className="
+                  text-xs
+                  font-bold
+                  leading-4
+                  text-foreground
+                  sm:text-sm
+                  sm:leading-5
+                "
+              >
+                18+ Only. 2XPREDICT is for adults aged 18 and above.
+              </p>
+
+              <p
+                className="
+                  text-[10px]
+                  leading-4
+                  text-muted-foreground
+                  sm:text-xs
+                  sm:leading-5
+                "
+              >
+                Betting can be harmful and psychologically dangerous.
+              </p>
+            </div>
+
+            <div
+              className="
+                inline-flex
+                items-center
+                text-[10px]
+                font-bold
+                leading-4
+                text-primary
+                sm:text-xs
+              "
+            >
+              <FaCircle
+                aria-hidden="true"
+                className="h-1.5 w-1.5"
+              />
+
+              Gamble wisely. Your wellbeing comes first.
+            </div>
+          </div>
+        </section>
+      </div>
+    </footer>
   );
 }

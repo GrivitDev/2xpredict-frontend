@@ -1,4 +1,4 @@
-import {
+import type {
   PromoCampaignType,
   PromoRequirement,
   RewardPlan,
@@ -59,8 +59,8 @@ export const PROMO_REQUIREMENT_OPTIONS: {
   },
 
   {
-    label:'Prediction Purchase',
-    value:'prediction_purchase',
+    label:'Premium Subscription',
+    value:'premium_subscription',
   },
 
 ];
@@ -82,8 +82,8 @@ export const REWARD_TYPE_OPTIONS: {
   },
 
   {
-    label:'Cash Reward',
-    value:'cash',
+    label:'Bet Lab Points',
+    value:'bet_lab_points',
   },
 
 ];
@@ -177,6 +177,6 @@ export const REWARD_TYPE_LABELS = {
 
   subscription:'Subscription',
 
-  cash:'Cash',
+  bet_lab_points:'Bet Lab Points',
 
 };

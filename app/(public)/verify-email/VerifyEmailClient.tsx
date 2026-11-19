@@ -1,319 +1,67 @@
 'use client';
 
-import Image from 'next/image';
-import { useEffect } from 'react';
-
-import {
-  useRouter,
-  useSearchParams,
-} from 'next/navigation';
-
-import {
-  ShieldCheck,
-  TrendingUp,
-  Trophy,
-} from 'lucide-react';
-
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { FaCheck, FaEnvelope } from 'react-icons/fa6';
 import VerifyOtpModal from '@/components/VerifyOtpModal';
+import AuthShell, { authButtonClassName } from '@/components/auth/AuthShell';
+import { useAuth } from '@/providers/auth-provider';
+
+function getSafeReturnPath(value: string): string | undefined {
+  const path = value.trim();
+  if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) return undefined;
+
+  try {
+    const safeOrigin = 'https://2xpredict.local';
+    const target = new URL(path, safeOrigin);
+    return target.origin === safeOrigin ? `${target.pathname}${target.search}${target.hash}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export default function VerifyEmailClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading } = useAuth();
+  const queryEmail = (searchParams.get('email') || '').trim().toLowerCase();
+  const email = user?.email?.trim().toLowerCase() || queryEmail;
+  const requestedReturnTo = searchParams.get('returnTo') || '';
+  const returnTo = getSafeReturnPath(requestedReturnTo);
 
-  const email = searchParams.get('email') || '';
+  if (loading) {
+    return <div className="flex min-h-[100svh] items-center justify-center bg-background"><span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  }
 
-  useEffect(() => {
-    if (!email) {
-      router.replace('/register');
-    }
-  }, [email, router]);
+  if (user?.isVerified === true) {
+    return (
+      <AuthShell eyebrow="Email status" title="Your email is verified" description="Your account is ready for email-verified actions.">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+            <FaCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <div className="min-w-0"><p className="text-sm font-semibold">Verified account</p><p className="break-all text-xs text-muted-foreground">{email}</p></div>
+          </div>
+          <Link href={returnTo || '/dashboard'} className={authButtonClassName}>Continue to 2xPredict</Link>
+        </div>
+      </AuthShell>
+    );
+  }
 
   if (!email) {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-background
-        "
-      >
-        <div
-          className="
-            h-8
-            w-8
-            animate-spin
-            rounded-full
-            border-4
-            border-primary
-            border-t-transparent
-          "
-        />
-      </main>
+      <AuthShell eyebrow="Email verification" title="Verify your email" description="Sign in first to verify the email address connected to your account, or open the verification link sent after registration.">
+        <Link href="/login" className={authButtonClassName}>Sign in to continue</Link>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Need an account? <Link href="/register" className="font-semibold text-primary hover:underline">Create one</Link></p>
+      </AuthShell>
     );
   }
 
   return (
-    <main
-      className="
-        relative
-        min-h-screen
-        overflow-hidden
-        bg-background
-        text-foreground
-      "
-    >
-      {/* BACKGROUND */}
-
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          className="
-            absolute
-            -left-32
-            -top-32
-            h-[420px]
-            w-[420px]
-            rounded-full
-            bg-primary/15
-            blur-[150px]
-          "
-        />
-
-        <div
-          className="
-            absolute
-            -bottom-32
-            -right-32
-            h-[420px]
-            w-[420px]
-            rounded-full
-            bg-cyan-500/10
-            blur-[150px]
-          "
-        />
-
-        <div
-          className="
-            absolute
-            inset-0
-            bg-gradient-to-b
-            from-transparent
-            via-background/20
-            to-background
-          "
-        />
+    <AuthShell eyebrow="Email verification" title="Confirm your email" description="This is a one-time step to unlock the account actions that require a verified email.">
+      <div className="mb-4 flex items-center gap-2 rounded-xl border border-border/70 bg-muted/25 px-3 py-2.5 text-xs text-muted-foreground">
+        <FaEnvelope className="h-4 w-4 shrink-0 text-primary" />
+        <span>You can keep using the platform while your email is unverified.</span>
       </div>
-
-      {/* CONTENT */}
-
-      <div
-        className="
-          relative
-          z-10
-          mx-auto
-          flex
-          min-h-screen
-          max-w-6xl
-          items-center
-          px-4
-          py-6
-          sm:px-6
-          lg:px-8
-        "
-      >
-        <div
-          className="
-            grid
-            w-full
-            items-center
-            gap-8
-            lg:grid-cols-[1fr_420px]
-            lg:gap-12
-          "
-        >
-          {/* LEFT BRANDING */}
-
-          <div className="hidden lg:block">
-            <div className="max-w-lg">
-              {/* LABEL */}
-
-              <div className="mb-5 flex items-center gap-3">
-                <div className="h-px w-10 bg-primary" />
-
-                <span
-                  className="
-                    text-xs
-                    font-semibold
-                    uppercase
-                    tracking-[0.2em]
-                    text-primary
-                  "
-                >
-                  Account Verification
-                </span>
-              </div>
-
-              {/* IMAGE */}
-
-              <div className="mb-3">
-                <Image
-                  src="/images/teamcup.png"
-                  alt="Football Predictions"
-                  width={560}
-                  height={170}
-                  className="
-                    h-auto
-                    w-full
-                    max-w-[300px]
-                    object-contain
-                  "
-                  priority
-                />
-              </div>
-
-              {/* TITLE */}
-
-              <h1
-                className="
-                  text-3xl
-                  font-black
-                  leading-tight
-                  tracking-tight
-                "
-              >
-                Verify
-                <br />
-
-                <span
-                  className="
-                    bg-gradient-to-r
-                    from-primary
-                    via-primary
-                    to-cyan-500
-                    bg-clip-text
-                    text-4xl
-                    text-transparent
-                  "
-                >
-                  Your Account.
-                </span>
-              </h1>
-
-              {/* DESCRIPTION */}
-
-              <p
-                className="
-                  mt-4
-                  max-w-md
-                  text-sm
-                  leading-6
-                  text-muted-foreground
-                "
-              >
-                Confirm your email address to activate
-                your 2xPredict account and access
-                football predictions and statistics.
-              </p>
-
-              {/* FEATURES */}
-
-              <div
-                className="
-                  mt-6
-                  grid
-                  max-w-md
-                  grid-cols-3
-                  gap-2
-                "
-              >
-                <FeatureCard
-                  icon={
-                    <ShieldCheck className="h-5 w-5" />
-                  }
-                  title="Secure"
-                  description="Verification"
-                />
-
-                <FeatureCard
-                  icon={
-                    <TrendingUp className="h-5 w-5" />
-                  }
-                  title="Fast"
-                  description="Activation"
-                />
-
-                <FeatureCard
-                  icon={
-                    <Trophy className="h-5 w-5" />
-                  }
-                  title="Ready"
-                  description="Predict"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* OTP CARD */}
-
-          <div className="flex justify-center">
-            <div
-              className="
-                w-full
-                max-w-[420px]
-                rounded-2xl
-                border
-                border-border/70
-                bg-card/75
-                p-1
-                shadow-2xl
-                backdrop-blur-2xl
-              "
-            >
-              <VerifyOtpModal
-                email={email}
-                onClose={() => {}}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div
-      className="
-        rounded-xl
-        border
-        border-border/70
-        bg-card/60
-        p-3
-        shadow-sm
-        backdrop-blur-xl
-      "
-    >
-      <div className="mb-1.5 text-primary">
-        {icon}
-      </div>
-
-      <h3 className="text-xs font-bold sm:text-sm">
-        {title}
-      </h3>
-
-      <p className="text-[10px] text-muted-foreground sm:text-xs">
-        {description}
-      </p>
-    </div>
+      <VerifyOtpModal email={email} returnTo={returnTo} />
+    </AuthShell>
   );
 }

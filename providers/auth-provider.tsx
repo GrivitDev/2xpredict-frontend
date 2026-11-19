@@ -1,140 +1,140 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import api from '@/lib/axios';
+import type { AuthContextType, AuthUser, User } from '@/types/auth';
 
-import {
-  AuthContextType,
-  User,
-} from '@/types/auth';
-
-const AuthContext =
-  createContext<AuthContextType | null>(null);
-
-export function AuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [user, setUser] =
-    useState<User | null>(null);
-
-  const [token, setToken] =
-    useState<string | null>(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  useEffect(() => {
-    const storedToken =
-      Cookies.get('token');
-
-    if (
-      storedToken &&
-      storedToken.split('.').length === 3
-    ) {
-      try {
-        const decoded =
-          jwtDecode<User>(storedToken);
-
-        setUser(decoded);
-
-        setToken(storedToken);
-      } catch (error) {
-        console.error(
-          'Invalid token:',
-          error,
-        );
-
-        Cookies.remove('token');
-
-        setUser(null);
-
-        setToken(null);
-      }
-    } else {
-      Cookies.remove('token');
-    }
-
-    setLoading(false);
-  }, []);
-
-  const login = (
-    newToken: string,
-  ) => {
-    if (
-      !newToken ||
-      newToken.split('.').length !== 3
-    ) {
-      throw new Error(
-        'Invalid JWT token',
-      );
-    }
-
-    Cookies.set(
-      'token',
-      newToken,
-      {
-        expires: 7,
-      },
-    );
-
-    const decoded =
-      jwtDecode<User>(newToken);
-
-    setUser(decoded);
-
-    setToken(newToken);
-  };
-
-  const logout = () => {
-    Cookies.remove('token');
-
-    setUser(null);
-
-    setToken(null);
-  };
-
-  const value =
-    useMemo(
-      () => ({
-        user,
-        token,
-        loading,
-        login,
-        logout,
-      }),
-      [
-        user,
-        token,
-        loading,
-      ],
-    );
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+interface JwtUser extends AuthUser {
+  userId?: string;
+  exp?: number;
+  iat?: number;
 }
 
-export const useAuth = () => {
-  const context =
-    useContext(AuthContext);
+const AuthContext = createContext<AuthContextType | null>(null);
+const TOKEN_COOKIE = 'token';
+const TOKEN_MAX_AGE_DAYS = 7;
 
-  if (!context) {
-    throw new Error(
-      'useAuth must be used within AuthProvider',
-    );
+function readTokenUser(token: string): AuthUser | null {
+  try {
+    const payload = jwtDecode<JwtUser>(token);
+    if (payload.exp && payload.exp * 1000 <= Date.now()) return null;
+    const userId = payload.userId ?? payload.id ?? payload.sub ?? payload._id;
+    if (!payload.email || !userId) return null;
+    return {
+      ...payload,
+      id: userId,
+      userId,
+    };
+  } catch {
+    return null;
   }
+}
 
+function mergeUser(decoded: AuthUser | null, serverUser: unknown): AuthUser | null {
+  if (!serverUser || typeof serverUser !== 'object') return decoded;
+  const source = serverUser as Partial<AuthUser>;
+  if (!source.email) return decoded;
+  return {
+    ...(decoded ?? {} as AuthUser),
+    ...source,
+    id: source.id ?? source._id ?? source.userId ?? decoded?.id ?? decoded?.userId,
+    userId: source.userId ?? source._id ?? source.id ?? decoded?.userId ?? decoded?.id,
+  } as AuthUser;
+}
+
+function toContextUser(value: AuthUser | null): User | null {
+  if (!value?.email) return null;
+  const userId = value.userId ?? value.id ?? value.sub ?? value._id;
+  if (!userId) return null;
+
+  return {
+    ...value,
+    userId,
+    email: value.email,
+    role: value.role ?? 'user',
+    sessionId: value.sessionId ?? '',
+    country: value.country ?? '',
+    countryCode: value.countryCode ?? '',
+    currency: value.currency === 'USD' ? 'USD' : 'NGN',
+  };
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refreshUser = useCallback(async () => {
+    const currentToken = Cookies.get(TOKEN_COOKIE);
+    if (!currentToken) {
+      setUser(null);
+      setToken(null);
+      return;
+    }
+
+    const decoded = readTokenUser(currentToken);
+    if (!decoded) {
+      Cookies.remove(TOKEN_COOKIE);
+      setUser(null);
+      setToken(null);
+      return;
+    }
+
+    setToken(currentToken);
+    setUser((current) => mergeUser(decoded, current));
+    try {
+      // /users/me returns the persisted user, including isVerified/status.
+      const response = await api.get('/users/me');
+      setUser(mergeUser(decoded, response.data));
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      // Preserve the decoded identity on network/server errors; only discard an
+      // invalid session when the backend explicitly rejects it.
+      if (status === 401 || status === 403) {
+        Cookies.remove(TOKEN_COOKIE);
+        setUser(null);
+        setToken(null);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    const initialize = async () => {
+      try {
+        if (Cookies.get(TOKEN_COOKIE)) await refreshUser();
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+    void initialize();
+    return () => { alive = false; };
+  }, [refreshUser]);
+
+  const login = useCallback((newToken: string, responseUser?: Partial<AuthUser>) => {
+    const decoded = readTokenUser(newToken);
+    if (!decoded) throw new Error('The server returned an invalid or expired JWT.');
+    Cookies.set(TOKEN_COOKIE, newToken, { expires: TOKEN_MAX_AGE_DAYS, sameSite: 'lax', secure: typeof window !== 'undefined' && window.location.protocol === 'https:' });
+    setToken(newToken);
+    setUser(mergeUser(decoded, responseUser));
+  }, []);
+
+  const logout = useCallback(() => {
+    Cookies.remove(TOKEN_COOKIE);
+    setUser(null);
+    setToken(null);
+  }, []);
+
+  const contextUser = useMemo(() => toContextUser(user), [user]);
+  const value = useMemo<AuthContextType>(() => ({ user: contextUser, token, loading, login, logout, refreshUser }), [contextUser, token, loading, login, logout, refreshUser]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider.');
   return context;
-};
+}
+

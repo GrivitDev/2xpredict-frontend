@@ -1,0 +1,141 @@
+{
+  "stage": "9",
+  "scannedTypeScriptFiles": 506,
+  "changedSourceFiles": 10,
+  "syntaxErrorCount": 0,
+  "unresolvedLocalImportCount": 0,
+  "preExistingUnresolvedImportCountInSuppliedSnapshot": 41,
+  "checksPassed": 16,
+  "checksTotal": 16,
+  "checks": [
+    {
+      "name": "Full TypeScript/TSX source parses without syntax errors",
+      "pass": true,
+      "detail": "506 files scanned; 0 syntax errors"
+    },
+    {
+      "name": "All relative and @/ imports in changed files resolve",
+      "pass": true,
+      "detail": "0 unresolved imports in changed files"
+    },
+    {
+      "name": "All Stage 9 source files exist",
+      "pass": true,
+      "detail": "10 expected files"
+    },
+    {
+      "name": "Hooks barrel exports existing settlement and system monitor modules",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Public Matches route reuses normalized Sports v2 fixture section",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Universal Search query is passed into the Matches fixture filter",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Fixture rows link to normalized match detail routes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Public Bonuses route uses the authenticated GET /bonuses/my hook",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Bonus query cache is scoped to the authenticated principal",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Bonus history displays paginated points and subscription grants",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Bonus page handles guest, loading, empty and error states",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Billing section exposes an account-billing deep-link anchor",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Legacy dashboard, subscription and purchase destinations redirect to existing profile sections",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Universal Search uses the existing Terms of Use route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Universal Search no longer advertises known missing public pages",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "All five audited public destinations resolve to App Router pages",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "diagnostics": {
+    "syntaxErrors": [],
+    "changedFilesUnresolvedLocalImports": [],
+    "allSnapshotUnresolvedLocalImports": [
+      "app/(public)/referrals/page.tsx -> @/components/dashboard/referrals/ReferralLinkCard",
+      "app/(public)/referrals/page.tsx -> @/components/dashboard/referrals/ReferralStatsCards",
+      "app/(public)/referrals/page.tsx -> @/components/dashboard/referrals/AvailableCampaigns",
+      "app/(public)/referrals/page.tsx -> @/components/dashboard/referrals/ActiveCampaigns",
+      "app/(public)/referrals/page.tsx -> @/components/dashboard/referrals/ReferralActivity",
+      "app/(public)/referrals/page.tsx -> @/components/dashboard/referrals/RewardHistory",
+      "app/layout.tsx -> @/config/seo",
+      "app/robots.ts -> @/config/seo",
+      "app/sitemap.ts -> @/config/seo",
+      "components/admin/ads/AdActionBuilder.tsx -> @/types/ad",
+      "components/admin/ads/AdDisplayBuilder.tsx -> @/types/ad",
+      "components/admin/ads/AdTable.tsx -> @/types/ad",
+      "components/admin/referrals/ReferralStats.tsx -> @/types/referral",
+      "components/admin/referrals/ReferralTable.tsx -> @/types/referral",
+      "components/admin/users/UsersTable.tsx -> @/types/admin-user.types",
+      "components/ads/IntAds/InternalAdRenderer.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/InternalAdsCarousel.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/hooks/useInternalAdImpression.ts -> @/hooks/useAds",
+      "components/ads/IntAds/hooks/useWeightedAds.ts -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/BannerLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/BottomLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/FooterLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/HeroLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/InlineLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/PopupLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/layouts/SidebarLayout.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/shared/AdActions.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/shared/AdContent.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/shared/AdDescription.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/shared/AdImage.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/shared/AdInstructions.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/shared/AdTitle.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/utils/popup-selector.ts -> @/types/internal-ad",
+      "components/ads/IntAds/utils/sortAds.ts -> @/types/internal-ad",
+      "components/ads/IntAds/variants/BottomAd.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/variants/HeroAd.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/variants/InlineAd.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/variants/PopupAd.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/variants/SidebarAd.tsx -> @/types/internal-ad",
+      "components/ads/IntAds/variants/TickerAd.tsx -> @/types/internal-ad",
+      "components/legal/LegalContentLayout.tsx -> @/data/legal/navigation"
+    ]
+  },
+  "buildStatus": "Not run: the supplied snapshot does not include package.json, tsconfig.json or installed frontend dependencies.",
+  "runtimeStatus": "Not run: no deployed API credentials or live backend URL were supplied for authenticated smoke tests."
+}

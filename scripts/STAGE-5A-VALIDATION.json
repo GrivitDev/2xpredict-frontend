@@ -1,0 +1,74 @@
+{
+  "scannedTypeScriptFiles": 497,
+  "changedFiles": 28,
+  "syntaxErrors": [],
+  "unresolvedLocalImports": [],
+  "missingFiles": [],
+  "checks": [
+    {
+      "name": "Payment services use fixed response types rather than caller-selected generics",
+      "pass": true
+    },
+    {
+      "name": "POST /payments body matches backend fields and omits client-supplied currency",
+      "pass": true
+    },
+    {
+      "name": "Payment quote contract uses backend amount field rather than finalAmount",
+      "pass": true
+    },
+    {
+      "name": "Payment status and gateway-initialization enums match backend schema values",
+      "pass": true
+    },
+    {
+      "name": "Gateway verification models approved, processing, pending and failed outcomes",
+      "pass": true
+    },
+    {
+      "name": "Plan configuration update type exposes only backend-editable fields",
+      "pass": true
+    },
+    {
+      "name": "Subscription upgrade quote includes actual backend credit and upgrade fields",
+      "pass": true
+    },
+    {
+      "name": "Public pricing reads shared React Query plan and subscription hooks",
+      "pass": true
+    },
+    {
+      "name": "Payment checkout uses gateway and manual-payment hooks instead of raw service calls",
+      "pass": true
+    },
+    {
+      "name": "Admin payment review uses separate typed list, approve and reject hooks",
+      "pass": true
+    },
+    {
+      "name": "Admin plan and bank configuration share the same typed plan-config query and mutation",
+      "pass": true
+    },
+    {
+      "name": "Successful payment verification invalidates payment and subscription caches",
+      "pass": true
+    },
+    {
+      "name": "Payment decisions invalidate payment records, with approvals also refreshing entitlements",
+      "pass": true
+    },
+    {
+      "name": "Subscription, payment and plan-config query keys are centralized",
+      "pass": true
+    },
+    {
+      "name": "Endpoint inventory maps all payment and subscription routes to existing hooks",
+      "pass": true
+    },
+    {
+      "name": "Email verification requirements are reflected in payment endpoint metadata",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

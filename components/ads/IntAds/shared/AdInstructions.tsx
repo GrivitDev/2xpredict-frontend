@@ -15,7 +15,8 @@ export function AdInstructions({
   ad,
   light = false,
 }: Props) {
-  if (!ad.instructions.length) {
+  const instructions = ad.instructions ?? [];
+  if (!instructions.length) {
     return null;
   }
 
@@ -34,7 +35,7 @@ export function AdInstructions({
       </h4>
 
       <ul className="space-y-2">
-        {ad.instructions.map(
+        {instructions.map(
           (
             instruction,
           ) => (

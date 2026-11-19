@@ -1,0 +1,1 @@
+/* Request contracts for referrals endpoints. */

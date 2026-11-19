@@ -15,12 +15,13 @@ interface Props {
 export function AdActions({
   ad,
 }: Props) {
-  if (!ad.actions.length) {
+  const actions = ad.actions ?? [];
+  if (!actions.length) {
     return null;
   }
 
   const action =
-    ad.actions[0];
+    actions[0];
 
   const external =
     action.url.startsWith(

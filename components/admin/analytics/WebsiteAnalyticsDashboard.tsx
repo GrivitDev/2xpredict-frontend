@@ -1,2252 +1,349 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-
+  FaArrowTrendUp,
+  FaBolt,
+  FaChartLine,
+  FaClock,
+  FaGlobe,
+  FaRotate,
+  FaUsers,
+  FaWindowMaximize,
+} from 'react-icons/fa6';
+import type {
+  WebsiteAnalyticsDashboardResponse,
+  WebsiteAnalyticsRealtime,
+  WebsiteAnalyticsVisitorTypes,
+  WebsiteAnalyticsConversions,
+  WebsiteAnalyticsVisitorBreakdown,
+  WebsiteAnalyticsDailyRow,
+  WebsiteAnalyticsHourlyTrend,
+} from '@/types/website-analytics.types';
 import {
-  Activity,
-  BarChart3,
-  Globe,
-  Clock3,
-  Globe2,
-  Laptop2,
-  Monitor,
-  MousePointerClick,
-  RefreshCw,
-  Smartphone,
-  TrendingUp,
-  Users,
-  Workflow,
-} from 'lucide-react';
+  useGetDashboardQuery,
+  useGetRealtimeQuery,
+  useGetPageEngagementQuery,
+  useGetVisitorTypesQuery,
+  useGetConversionsQuery,
+  useGetEntryPagesQuery,
+  useGetExitPagesQuery,
+  useGetVisitorsQuery,
+  useGetDailyTrendQuery,
+  useGetHourlyTrendQuery,
+} from '@/hooks/use-website-analytics';
 
-import {
-  getWebsiteAnalyticsBrowsers,
-  getWebsiteAnalyticsCountries,
-  getWebsiteAnalyticsDailyTrend,
-  getWebsiteAnalyticsDevices,
-  getWebsiteAnalyticsEvents,
-  getWebsiteAnalyticsExitPages,
-  getWebsiteAnalyticsMonthlyTrend,
-  getWebsiteAnalyticsOperatingSystems,
-  getWebsiteAnalyticsOverview,
-  getWebsiteAnalyticsPages,
-  getWebsiteAnalyticsRealtime,
-  getWebsiteAnalyticsSources,
-  getWebsiteAnalyticsVisitors,
-  type AnalyticsBrowser,
-  type AnalyticsCountry,
-  type AnalyticsDevice,
-  type AnalyticsEventType,
-  type AnalyticsOperatingSystem,
-  type AnalyticsPage,
-  type AnalyticsTrend,
-  type AnalyticsTrafficSource,
-  type AnalyticsVisitorBreakdown,
-  type WebsiteAnalyticsOverview,
-  getWebsiteAnalyticsEntryPages,
-} from '@/services/website-analytics.service';
+type RecordValue = Record<string, unknown>;
+type ChartDatum = { name: string; count: number };
 
-/* =========================================================
-   TYPES
-========================================================= */
+const PALETTE = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f43f5e', '#64748b', '#84cc16'];
 
-type RangePreset =
-  | 'today'
-  | '7d'
-  | '30d'
-  | '90d'
-  | '6m'
-  | 'year';
-
-interface RealtimeData {
-  totalActive: number;
-  registered: number;
-  anonymous: number;
-
-  pages: Array<{
-    path: string;
-    count: number;
-  }>;
-}
-
-interface ChartItem {
-  label: string;
-  value: number;
-  secondary?: string;
-}
-
-/* =========================================================
-   DEFAULTS
-========================================================= */
-
-const EMPTY_OVERVIEW: WebsiteAnalyticsOverview = {
-  visitors: 0,
-  sessions: 0,
-  activeSessions: 0,
-  pageViews: 0,
-  events: 0,
-  totalTimeMs: 0,
-  averageSessionDurationMs: 0,
-  bounceRate: 0,
-  bouncedSessions: 0,
-};
-
-const EMPTY_REALTIME: RealtimeData = {
-  totalActive: 0,
-  registered: 0,
-  anonymous: 0,
-  pages: [],
-};
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function pad(value: number) {
-  return String(value).padStart(2, '0');
-}
-
-function formatDate(date: Date) {
-  return `${date.getFullYear()}-${pad(
-    date.getMonth() + 1,
-  )}-${pad(date.getDate())}`;
-}
-
-function getRange(preset: RangePreset) {
-  const now = new Date();
-
-  const to = formatDate(now);
-
-  const from = new Date(now);
-
-  switch (preset) {
-    case 'today':
-      break;
-
-    case '7d':
-      from.setDate(
-        from.getDate() - 6,
-      );
-      break;
-
-    case '30d':
-      from.setDate(
-        from.getDate() - 29,
-      );
-      break;
-
-    case '90d':
-      from.setDate(
-        from.getDate() - 89,
-      );
-      break;
-
-    case '6m':
-      from.setMonth(
-        from.getMonth() - 6,
-      );
-      break;
-
-    case 'year':
-      from.setFullYear(
-        from.getFullYear() - 1,
-      );
-      break;
+function unwrap(value: unknown): unknown {
+  let current = value;
+  for (let i = 0; i < 3; i++) {
+    if (current && typeof current === 'object' && !Array.isArray(current) && 'data' in current) {
+      current = (current as RecordValue).data;
+    } else break;
   }
+  return current;
+}
+function record(value: unknown): RecordValue {
+  const v = unwrap(value);
+  return v && typeof v === 'object' && !Array.isArray(v) ? v as RecordValue : {};
+}
+function array(value: unknown, keys: string[] = []): RecordValue[] {
+  const v = unwrap(value);
+  if (Array.isArray(v)) return v.filter((x): x is RecordValue => !!x && typeof x === 'object');
+  if (v && typeof v === 'object') {
+    const r = v as RecordValue;
+    for (const key of keys) if (Array.isArray(r[key])) return (r[key] as unknown[]).filter((x): x is RecordValue => !!x && typeof x === 'object');
+  }
+  return [];
+}
+function num(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+function str(value: unknown, fallback = 'Unknown'): string {
+  return typeof value === 'string' && value.trim() ? value : fallback;
+}
+function pick(row: RecordValue, keys: string[], fallback?: unknown): unknown {
+  for (const key of keys) if (row[key] !== undefined && row[key] !== null) return row[key];
+  return fallback;
+}
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(value);
+}
+function formatDuration(ms: number): string {
+  if (!ms || ms < 0) return '0m';
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
+}
+function dateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+function rangeFor(days: number): { from: string; to: string } {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - (days - 1));
+  return { from: dateKey(from), to: dateKey(to) };
+}
+function queryArgs(range: { from: string; to: string }) {
+  return { query: range };
+}
 
-  return {
-    from: formatDate(from),
-    to,
+function Panel({ title, action, children, className = '' }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={`min-w-0 overflow-hidden rounded-xl border border-border bg-card ${className}`}>
+      <div className="flex min-h-10 items-center justify-between gap-3 border-b border-border px-3 py-2">
+        <h2 className="text-[12px] font-semibold tracking-tight">{title}</h2>
+        {action}
+      </div>
+      <div className="p-3">{children}</div>
+    </section>
+  );
+}
+function Metric({ label, value, detail, icon: Icon, tone = 'blue' }: {
+  label: string; value: string; detail?: string; icon: React.ComponentType<{ className?: string }>; tone?: 'blue' | 'green' | 'amber' | 'violet';
+}) {
+  const tones = {
+    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    green: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    violet: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
   };
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat(
-    'en-NG',
-  ).format(value || 0);
-}
-
-function formatPercent(value: number) {
-  return `${Number(value || 0).toFixed(1)}%`;
-}
-
-function formatDuration(ms: number) {
-  const totalMinutes = Math.round(
-    (ms || 0) / 60000,
-  );
-
-  if (totalMinutes < 60) {
-    return `${totalMinutes}m`;
-  }
-
-  const hours = Math.floor(
-    totalMinutes / 60,
-  );
-
-  const minutes =
-    totalMinutes % 60;
-
-  return minutes
-    ? `${hours}h ${minutes}m`
-    : `${hours}h`;
-}
-
-function formatDateLabel(
-  value: string,
-) {
-  const date = new Date(
-    `${value}T00:00:00`,
-  );
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString(
-    'en-GB',
-    {
-      day: '2-digit',
-      month: 'short',
-    },
+  return (
+    <div className="min-w-0 rounded-xl border border-border bg-card px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-[11px] font-medium text-muted-foreground">{label}</span>
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}><Icon className="h-3.5 w-3.5" /></span>
+      </div>
+      <div className="mt-1 text-xl font-semibold leading-6 tracking-tight tabular-nums">{value}</div>
+      {detail ? <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{detail}</div> : null}
+    </div>
   );
 }
-
-function shortPath(path: string) {
-  if (!path) {
-    return 'Unknown';
-  }
-
-  if (path.length <= 34) {
-    return path;
-  }
-
-  return `${path.slice(0, 31)}...`;
+function Donut({ data, emptyLabel = 'No data' }: { data: ChartDatum[]; emptyLabel?: string }) {
+  const valid = data.filter(x => x.count > 0).slice(0, 8);
+  const total = valid.reduce((sum, x) => sum + x.count, 0);
+  let offset = 0;
+  const gradient = valid.map((item, index) => {
+    const start = offset;
+    offset += (item.count / Math.max(total, 1)) * 100;
+    return `${PALETTE[index % PALETTE.length]} ${start}% ${offset}%`;
+  }).join(', ');
+  return (
+    <div className="grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3">
+      <div className="relative mx-auto h-28 w-28 rounded-full" style={{ background: total ? `conic-gradient(${gradient})` : 'var(--muted)' }}>
+        <div className="absolute inset-[22px] flex flex-col items-center justify-center rounded-full bg-card">
+          <span className="text-lg font-semibold tabular-nums">{formatNumber(total)}</span>
+          <span className="text-[9px] text-muted-foreground">Total</span>
+        </div>
+      </div>
+      <div className="min-w-0 space-y-2">
+        {valid.length ? valid.map((item, index) => (
+          <div key={`${item.name}-${index}`} className="flex items-center gap-2">
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: PALETTE[index % PALETTE.length] }} />
+            <span className="min-w-0 flex-1 truncate text-[11px]">{item.name}</span>
+            <span className="text-[10px] tabular-nums text-muted-foreground">{formatNumber(item.count)}</span>
+            <span className="w-9 text-right text-[10px] tabular-nums text-muted-foreground">{Math.round(item.count / Math.max(total, 1) * 100)}%</span>
+          </div>
+        )) : <p className="text-[11px] text-muted-foreground">{emptyLabel}</p>}
+      </div>
+    </div>
+  );
 }
-
-/* =========================================================
-   PAGE
-========================================================= */
+function Bars({ data, labelKey = 'name', valueKey = 'count', maxRows = 7 }: { data: RecordValue[]; labelKey?: string; valueKey?: string; maxRows?: number }) {
+  const rows = data.slice(0, maxRows).map(row => ({ label: str(pick(row, [labelKey, 'path', 'date', 'eventType', 'name'])), value: num(pick(row, [valueKey, 'views', 'pageViews', 'events', 'sessions'])) }));
+  const max = Math.max(1, ...rows.map(x => x.value));
+  if (!rows.length) return <p className="py-3 text-[11px] text-muted-foreground">No data for this period.</p>;
+  return <div className="space-y-3">{rows.map((row, i) => (
+    <div key={`${row.label}-${i}`} className="min-w-0">
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <span className="min-w-0 truncate text-[11px]">{row.label}</span>
+        <span className="shrink-0 text-[10px] font-semibold tabular-nums">{formatNumber(row.value)}</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${Math.max(row.value > 0 ? 2 : 0, row.value / max * 100)}%`, backgroundColor: PALETTE[i % PALETTE.length] }} /></div>
+    </div>
+  ))}</div>;
+}
+function TrendChart({ data }: { data: RecordValue[] }) {
+  const rows = data.map(row => ({
+    date: str(pick(row, ['date', 'day', 'dayKey']), ''),
+    views: num(pick(row, ['pageViews'])),
+    sessions: num(pick(row, ['sessions'])),
+    visitors: num(pick(row, ['uniqueVisitors'])),
+  }));
+  if (!rows.length) return <div className="flex h-44 items-center justify-center text-[11px] text-muted-foreground">No trend data for this period.</div>;
+  const width = 600, height = 175, padX = 10, padY = 12;
+  const max = Math.max(1, ...rows.flatMap(r => [r.views, r.sessions, r.visitors]));
+  const points = (key: 'views' | 'sessions' | 'visitors') => rows.map((r, i) => {
+    const x = rows.length === 1 ? width / 2 : padX + i * (width - padX * 2) / (rows.length - 1);
+    const y = height - padY - (r[key] / max) * (height - padY * 2);
+    return `${x},${y}`;
+  }).join(' ');
+  const series = [{ key: 'views' as const, label: 'Page views', color: '#2563eb' }, { key: 'sessions' as const, label: 'Sessions', color: '#10b981' }, { key: 'visitors' as const, label: 'Unique visitor-days', color: '#f59e0b' }];
+  return <div>
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-44 w-full" role="img" aria-label="Daily website analytics trend">
+      {[0, 1, 2, 3].map(i => <line key={i} x1="0" x2={width} y1={padY + i * (height - padY * 2) / 3} y2={padY + i * (height - padY * 2) / 3} stroke="currentColor" opacity=".1" />)}
+      {series.map(s => <polyline key={s.key} points={points(s.key)} fill="none" stroke={s.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />)}
+    </svg>
+    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">{series.map(s => <span key={s.key} className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="h-2 w-2 rounded-full" style={{ background: s.color }} />{s.label}</span>)}</div>
+    <div className="mt-2 flex justify-between text-[9px] text-muted-foreground"><span>{rows[0]?.date}</span><span>{rows[Math.floor(rows.length / 2)]?.date}</span><span>{rows[rows.length - 1]?.date}</span></div>
+  </div>;
+}
+function TableList({ rows, labelKeys, valueKeys, loading, empty = 'No data for this period.', valueFormat = 'number' }: { rows: RecordValue[]; labelKeys: string[]; valueKeys: string[]; loading: boolean; empty?: string; valueFormat?: 'number' | 'duration-ms' }) {
+  if (loading && !rows.length) return <p className="py-5 text-center text-[11px] text-muted-foreground">Loading…</p>;
+  if (!rows.length) return <p className="py-5 text-center text-[11px] text-muted-foreground">{empty}</p>;
+  return <div className="divide-y divide-border">{rows.slice(0, 7).map((row, i) => <div key={`${str(pick(row, labelKeys), String(i))}-${i}`} className="flex items-center justify-between gap-3 py-2">
+    <span className="min-w-0 truncate text-[11px]">{str(pick(row, labelKeys))}</span>
+    <span className="shrink-0 text-[11px] font-semibold tabular-nums">{valueFormat === 'duration-ms' ? formatDuration(num(pick(row, valueKeys))) : formatNumber(num(pick(row, valueKeys)))}</span>
+  </div>)}</div>;
+}
 
 export default function WebsiteAnalyticsDashboard() {
-  const [
-    preset,
-    setPreset,
-  ] = useState<RangePreset>('30d');
-
-  const [
-    overview,
-    setOverview,
-  ] = useState<WebsiteAnalyticsOverview>(
-    EMPTY_OVERVIEW,
-  );
-
-  const [
-    visitors,
-    setVisitors,
-  ] = useState<AnalyticsVisitorBreakdown[]>(
-    [],
-  );
-
-  const [
-    pages,
-    setPages,
-  ] = useState<AnalyticsPage[]>([]);
-
-  const [
-    entryPages,
-    setEntryPages,
-  ] = useState<AnalyticsPage[]>([]);
-
-  const [
-    exitPages,
-    setExitPages,
-  ] = useState<AnalyticsPage[]>([]);
-
-  const [
-    countries,
-    setCountries,
-  ] = useState<AnalyticsCountry[]>([]);
-
-  const [
-    devices,
-    setDevices,
-  ] = useState<AnalyticsDevice[]>([]);
-
-  const [
-    browsers,
-    setBrowsers,
-  ] = useState<AnalyticsBrowser[]>([]);
-
-  const [
-    operatingSystems,
-    setOperatingSystems,
-  ] = useState<
-    AnalyticsOperatingSystem[]
-  >([]);
-
-  const [
-    sources,
-    setSources,
-  ] = useState<AnalyticsTrafficSource[]>(
-    [],
-  );
-
-  const [
-    events,
-    setEvents,
-  ] = useState<AnalyticsEventType[]>([]);
-
-  const [
-    dailyTrend,
-    setDailyTrend,
-  ] = useState<AnalyticsTrend[]>([]);
-
-  const [
-    monthlyTrend,
-    setMonthlyTrend,
-  ] = useState<AnalyticsTrend[]>([]);
-
-  const [
-    realtime,
-    setRealtime,
-  ] = useState<RealtimeData>(
-    EMPTY_REALTIME,
-  );
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
-
-  const [
-    refreshing,
-    setRefreshing,
-  ] = useState(false);
-
-  const [
-    error,
-    setError,
-  ] = useState<string | null>(null);
-
-  const range = useMemo(
-    () => getRange(preset),
-    [preset],
-  );
-
-  /* =======================================================
-     LOAD DATA
-  ======================================================= */
-
-  const loadAnalytics =
-    useCallback(
-      async (
-        silent = false,
-      ) => {
-        if (silent) {
-          setRefreshing(true);
-        } else {
-          setLoading(true);
-        }
-
-        setError(null);
-
-        try {
-          const query = {
-            from: range.from,
-            to: `${range.to}T23:59:59.999Z`,
-          };
-
-          const [
-            overviewData,
-            visitorsData,
-            pagesData,
-            entryPagesData,
-            exitPagesData,
-            countriesData,
-            devicesData,
-            browsersData,
-            operatingSystemsData,
-            sourcesData,
-            eventsData,
-            dailyTrendData,
-            monthlyTrendData,
-          ] = await Promise.all([
-            getWebsiteAnalyticsOverview(query),
-
-            getWebsiteAnalyticsVisitors(query),
-
-            getWebsiteAnalyticsPages(query),
-
-            getWebsiteAnalyticsEntryPages(
-              query,
-            ),
-
-            getWebsiteAnalyticsExitPages(
-              query,
-            ),
-
-            getWebsiteAnalyticsCountries(
-              query,
-            ),
-
-            getWebsiteAnalyticsDevices(
-              query,
-            ),
-
-            getWebsiteAnalyticsBrowsers(
-              query,
-            ),
-
-            getWebsiteAnalyticsOperatingSystems(
-              query,
-            ),
-
-            getWebsiteAnalyticsSources(query),
-
-            getWebsiteAnalyticsEvents(query),
-
-            getWebsiteAnalyticsDailyTrend(
-              query,
-            ),
-
-            getWebsiteAnalyticsMonthlyTrend(
-              query,
-            ),
-          ]);
-
-          setOverview(
-            overviewData ?? EMPTY_OVERVIEW,
-          );
-
-          setVisitors(
-            visitorsData ?? [],
-          );
-
-          setPages(
-            pagesData ?? [],
-          );
-
-          setEntryPages(
-            entryPagesData ?? [],
-          );
-
-          setExitPages(
-            exitPagesData ?? [],
-          );
-
-          setCountries(
-            countriesData ?? [],
-          );
-
-          setDevices(
-            devicesData ?? [],
-          );
-
-          setBrowsers(
-            browsersData ?? [],
-          );
-
-          setOperatingSystems(
-            operatingSystemsData ?? [],
-          );
-
-          setSources(
-            sourcesData ?? [],
-          );
-
-          setEvents(
-            eventsData ?? [],
-          );
-
-          setDailyTrend(
-            dailyTrendData ?? [],
-          );
-
-          setMonthlyTrend(
-            monthlyTrendData ?? [],
-          );
-
-          try {
-            const realtimeData =
-              await getWebsiteAnalyticsRealtime();
-
-            setRealtime(
-              realtimeData ??
-                EMPTY_REALTIME,
-            );
-          } catch {
-            // Realtime failure must not
-            // break the main dashboard.
-          }
-        } catch (requestError: any) {
-          console.error(
-            'Failed to load website analytics:',
-            requestError,
-          );
-
-          setError(
-            requestError?.response?.data
-              ?.message ??
-              'Unable to load website analytics.',
-          );
-        } finally {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      },
-      [range.from, range.to],
-    );
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadAnalytics();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [loadAnalytics]);
-
-  /* =======================================================
-     REALTIME REFRESH
-  ======================================================= */
-
-  useEffect(() => {
-    const timer =
-      window.setInterval(
-        async () => {
-          try {
-            const data =
-              await getWebsiteAnalyticsRealtime();
-
-            setRealtime(
-              data ??
-                EMPTY_REALTIME,
-            );
-          } catch {
-            // Ignore realtime-only failures.
-          }
-        },
-        30000,
-      );
-
-    return () =>
-      window.clearInterval(timer);
-  }, []);
-
-  /* =======================================================
-     DERIVED DATA
-  ======================================================= */
-
-  const registeredVisitors =
-    visitors.find(
-      (item) =>
-        item.visitorType ===
-        'registered',
-    )?.visitors ?? 0;
-
-  const anonymousVisitors =
-    visitors.find(
-      (item) =>
-        item.visitorType ===
-        'anonymous',
-    )?.visitors ?? 0;
-
-  const trendData =
-    dailyTrend.length > 0
-      ? dailyTrend
-      : monthlyTrend;
-
-  const trendLabel =
-    dailyTrend.length > 0
-      ? 'Daily'
-      : 'Monthly';
-
-  const visitorTrend: ChartItem[] =
-    trendData.map((item) => ({
-      label:
-        item.date ??
-        item.month ??
-        '',
-      value:
-        item.visitors ?? 0,
-    }));
-
-  const sessionTrend: ChartItem[] =
-    trendData.map((item) => ({
-      label:
-        item.date ??
-        item.month ??
-        '',
-      value:
-        item.sessions ?? 0,
-    }));
-
-  const pageViewTrend: ChartItem[] =
-    trendData.map((item) => ({
-      label:
-        item.date ??
-        item.month ??
-        '',
-      value:
-        item.pageViews ?? 0,
-    }));
-
-  const pageChart: ChartItem[] =
-    pages
-      .slice(0, 8)
-      .map((item) => ({
-        label:
-          shortPath(item.path),
-        value: item.views,
-        secondary:
-          `${formatNumber(
-            item.uniqueVisitors,
-          )} visitors`,
-      }));
-
-  const countryChart: ChartItem[] =
-    countries
-      .slice(0, 8)
-      .map((item) => ({
-        label:
-          item.country ||
-          item.countryCode ||
-          'Unknown',
-        value: item.visitors,
-        secondary:
-          `${formatNumber(
-            item.sessions,
-          )} sessions`,
-      }));
-
-  const deviceChart: ChartItem[] =
-    devices
-      .filter(
-        (item) => item.deviceType,
-      )
-      .slice(0, 6)
-      .map((item) => ({
-        label: item.deviceType,
-        value: item.visitors,
-      }));
-
-  const browserChart: ChartItem[] =
-    browsers
-      .filter(
-        (item) => item.browser,
-      )
-      .slice(0, 6)
-      .map((item) => ({
-        label: item.browser,
-        value: item.visitors,
-      }));
-
-  const osChart: ChartItem[] =
-    operatingSystems
-      .filter(
-        (item) =>
-          item.operatingSystem,
-      )
-      .slice(0, 6)
-      .map((item) => ({
-        label:
-          item.operatingSystem,
-        value: item.visitors,
-      }));
-
-  const eventChart: ChartItem[] =
-    events
-      .slice(0, 8)
-      .map((item) => ({
-        label: item.eventType,
-        value: item.count,
-      }));
-
-  /* =======================================================
-     LOADING
-  ======================================================= */
-
-  if (loading) {
-    return (
-      <AdminAnalyticsShell>
-        <DashboardLoading />
-      </AdminAnalyticsShell>
-    );
-  }
-
-  /* =======================================================
-     ERROR
-  ======================================================= */
-
-  if (error) {
-    return (
-      <AdminAnalyticsShell>
-        <section className="rounded-2xl border border-destructive/20 bg-destructive/5 p-10 text-center">
-          <p className="text-sm font-semibold">
-            Unable to load website analytics
-          </p>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            {error}
-          </p>
-
-          <button
-            type="button"
-            onClick={() =>
-              void loadAnalytics()
-            }
-            className="mt-5 inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-xs font-semibold transition hover:bg-muted"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Retry
-          </button>
-        </section>
-      </AdminAnalyticsShell>
-    );
-  }
+  const [days, setDays] = useState(30);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const range = useMemo(() => rangeFor(days), [days, refreshKey]);
+  const args = useMemo(() => queryArgs(range), [range]);
+
+  const dashboardQ = useGetDashboardQuery<WebsiteAnalyticsDashboardResponse>(args, { staleTime: 30_000 });
+  const realtimeQ = useGetRealtimeQuery<WebsiteAnalyticsRealtime>({ refetchInterval: 30_000, staleTime: 15_000 });
+  const engagementQ = useGetPageEngagementQuery({ query: { ...range, limit: '10' } }, { staleTime: 30_000 });
+  const visitorTypesQ = useGetVisitorTypesQuery<WebsiteAnalyticsVisitorTypes>(args, { staleTime: 30_000 });
+  const conversionsQ = useGetConversionsQuery<WebsiteAnalyticsConversions>(args, { staleTime: 30_000 });
+  const entryQ = useGetEntryPagesQuery({ query: { ...range, limit: '7' } }, { staleTime: 30_000 });
+  const exitQ = useGetExitPagesQuery({ query: { ...range, limit: '7' } }, { staleTime: 30_000 });
+  const visitorsQ = useGetVisitorsQuery<WebsiteAnalyticsVisitorBreakdown[]>(args, { staleTime: 30_000 });
+  const dailyQ = useGetDailyTrendQuery<WebsiteAnalyticsDailyRow[]>(args, { staleTime: 30_000 });
+  const hourlyQ = useGetHourlyTrendQuery<WebsiteAnalyticsHourlyTrend[]>(args, { staleTime: 30_000 });
+
+  const dashboard = record(dashboardQ.data);
+  const overview = record(dashboard.overview);
+  const technology = record(dashboard.technology);
+  const geography = record(dashboard.geography);
+  const traffic = record(dashboard.traffic);
+  const realtime = record(realtimeQ.data);
+  const conversions = record(conversionsQ.data);
+  const visitorTypes = record(visitorTypesQ.data);
+  const visitors = array(visitorsQ.data, ['visitors', 'items', 'results']);
+  const pages = array(dashboard.pages, ['pages', 'items', 'results']);
+  const sources = array(traffic.sources, ['sources', 'items', 'results']);
+  const countries = array(geography.countries, ['countries', 'items', 'results']);
+  const devices = array(technology.devices, ['devices', 'items', 'results']);
+  const browsers = array(technology.browsers, ['browsers', 'items', 'results']);
+  const events = array(dashboard.events, ['events', 'items', 'results']);
+  const engagement = array(engagementQ.data, ['pages', 'items', 'results']);
+  const entryPages = array(entryQ.data, ['pages', 'items', 'results']);
+  const exitPages = array(exitQ.data, ['pages', 'items', 'results']);
+  const daily = array(dailyQ.data, ['items', 'results', 'rows']);
+  const hourly = array(hourlyQ.data, ['items', 'results', 'rows']);
+
+  const active = num(pick(realtime, ['activeVisitors']));
+  const totalVisitors = num(pick(overview, ['visitors']));
+  const uniqueVisitorDays = num(pick(overview, ['uniqueVisitorDays']));
+  const sessions = num(pick(overview, ['sessions']));
+  const pageViews = num(pick(overview, ['pageViews']));
+  const eventsCount = num(pick(overview, ['events']));
+  const conversionsCount = num(pick(conversions, ['conversions'], pick(overview, ['conversions'])));
+  const conversionRate = num(pick(conversions, ['conversionRate']));
+  const bounceRate = num(pick(overview, ['bounceRate']));
+  const avgSession = num(pick(overview, ['averageSessionDurationMs']));
+  const registered = num(pick(visitors.find(v => pick(v, ['visitorType']) === 'registered') ?? {}, ['visitors']));
+  const anonymous = num(pick(visitors.find(v => pick(v, ['visitorType']) === 'anonymous') ?? {}, ['visitors']));
+  const visitorPie = [
+    { name: 'Registered', count: registered },
+    { name: 'Anonymous', count: anonymous },
+  ];
+  const newReturningPie = [
+    { name: 'New', count: num(pick(visitorTypes, ['newVisitors'])) },
+    { name: 'Returning', count: num(pick(visitorTypes, ['returningVisitors'])) },
+  ];
+  const devicePie = devices.map(row => ({ name: str(pick(row, ['name', 'device', 'type'])), count: num(pick(row, ['count', 'sessions', 'visitors'])) }));
+  const sourcePie = sources.map(row => ({ name: str(pick(row, ['name', 'source'])), count: num(pick(row, ['count', 'sessions', 'visitors'])) }));
+  const trendError = dashboardQ.isError && dailyQ.isError;
+  const refresh = () => {
+    setRefreshKey(v => v + 1);
+    void dashboardQ.refetch(); void realtimeQ.refetch(); void engagementQ.refetch(); void visitorTypesQ.refetch();
+    void conversionsQ.refetch(); void entryQ.refetch(); void exitQ.refetch(); void visitorsQ.refetch(); void dailyQ.refetch(); void hourlyQ.refetch();
+  };
 
   return (
-    <AdminAnalyticsShell>
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+    <main className="mx-auto w-full max-w-[1600px] space-y-3 p-1 sm:p-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"><FaChartLine className="h-4 w-4" /></span>
+          <h1 className="text-base font-semibold tracking-tight">Website analytics</h1>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live · {formatNumber(active)}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <select aria-label="Analytics date range" value={days} onChange={e => setDays(Number(e.target.value))} className="h-8 rounded-lg border border-border bg-card px-2 text-[11px] outline-none focus:ring-2 focus:ring-primary/30">
+            <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option><option value={180}>Last 180 days</option>
+          </select>
+          <button type="button" onClick={refresh} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-[11px] font-medium hover:bg-muted"><FaRotate className={`h-3 w-3 ${dashboardQ.isFetching ? 'animate-spin' : ''}`} /> Refresh</button>
+        </div>
+      </div>
 
-      <header className="rounded-2xl border bg-card/95 p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary">
-              <BarChart3 className="h-5 w-5" />
-            </div>
+      {dashboardQ.isError && !dashboardQ.data ? <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-3 py-4 text-[12px] text-rose-600">Could not load website analytics. Check the admin API connection and retry.</div> : null}
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">
-                  Website Analytics
-                </h1>
+      <div className="grid grid-cols-2 gap-2 xl:grid-cols-6">
+        <Metric label="Active visitors" value={formatNumber(active)} detail="Last 5 minutes" icon={FaUsers} tone="green" />
+        <Metric label="Visitors" value={formatNumber(totalVisitors)} detail="Visitor profiles in range" icon={FaGlobe} />
+        <Metric label="Unique visitor-days" value={formatNumber(uniqueVisitorDays)} detail="Daily unique identities" icon={FaUsers} tone="violet" />
+        <Metric label="Sessions" value={formatNumber(sessions)} detail={`${formatNumber(pageViews)} page views`} icon={FaWindowMaximize} tone="blue" />
+        <Metric label="Conversions" value={formatNumber(conversionsCount)} detail={`${conversionRate.toFixed(2)}% conversion rate`} icon={FaArrowTrendUp} tone="green" />
+        <Metric label="Bounce rate" value={`${bounceRate.toFixed(1)}%`} detail={`${formatDuration(avgSession)} avg session`} icon={FaBolt} tone="amber" />
+      </div>
 
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Live
-                </span>
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,1fr)]">
+        <Panel title="Traffic trend" action={<span className="text-[10px] text-muted-foreground">{range.from} — {range.to}</span>}>
+          {dailyQ.isLoading ? <div className="flex h-44 items-center justify-center text-[11px] text-muted-foreground">Loading trend…</div> : trendError ? <p className="py-10 text-center text-[11px] text-muted-foreground">Trend data unavailable.</p> : <TrendChart data={daily} />}
+        </Panel>
+        <Panel title="Visitor composition">
+          <div className="space-y-4">
+            <div><div className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Registered vs anonymous</div><Donut data={visitorPie} /></div>
+            <div className="border-t border-border pt-3"><div className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">New vs returning</div><Donut data={newReturningPie} /></div>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        <Panel title="Top pages"><TableList rows={pages} labelKeys={['path']} valueKeys={['views']} loading={dashboardQ.isLoading} /></Panel>
+        <Panel title="Traffic sources"><Donut data={sourcePie} /></Panel>
+        <Panel title="Devices"><Donut data={devicePie} /></Panel>
+        <Panel title="Countries"><TableList rows={countries} labelKeys={['name', 'country']} valueKeys={['count']} loading={dashboardQ.isLoading} /></Panel>
+        <Panel title="Page engagement"><TableList rows={engagement} labelKeys={['path']} valueKeys={['averageTimeMs']} loading={engagementQ.isLoading} valueFormat="duration-ms" /></Panel>
+        <Panel title="Event types"><Bars data={events} labelKey="name" valueKey="count" /></Panel>
+        <Panel title="Entry pages"><TableList rows={entryPages} labelKeys={['path']} valueKeys={['count']} loading={entryQ.isLoading} /></Panel>
+        <Panel title="Exit pages"><TableList rows={exitPages} labelKeys={['path']} valueKeys={['count']} loading={exitQ.isLoading} /></Panel>
+        <Panel title="Browsers"><TableList rows={browsers} labelKeys={['name']} valueKeys={['count']} loading={dashboardQ.isLoading} /></Panel>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Panel title="Hourly activity">
+          <Bars data={hourly.map(row => ({ ...row, name: `${String(num(row.hour)).padStart(2, '0')}:00`, count: num(row.events) })).sort((a, b) => num(b.count) - num(a.count))} />
+        </Panel>
+        <Panel title="Realtime activity" action={<span className="text-[10px] text-muted-foreground">Auto refresh · 30s</span>}>
+          {realtimeQ.isLoading ? <p className="py-5 text-center text-[11px] text-muted-foreground">Loading…</p> : array(realtime.recentEvents, ['recentEvents']).length ? (
+            <div className="divide-y divide-border">{array(realtime.recentEvents, ['recentEvents']).slice(0, 7).map((event, i) => (
+              <div key={`${str(pick(event, ['eventId', 'eventName']), String(i))}-${i}`} className="flex items-center gap-2 py-2">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                <div className="min-w-0 flex-1"><div className="truncate text-[11px] font-medium">{str(pick(event, ['eventName', 'eventType']))}</div><div className="truncate text-[10px] text-muted-foreground">{str(pick(event, ['path']), '/')} · {str(pick(event, ['visitorType']), 'visitor')}</div></div>
+                <span className="shrink-0 text-[9px] text-muted-foreground">{pick(event, ['occurredAt']) ? new Date(String(pick(event, ['occurredAt']))).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
               </div>
-
-              <p className="mt-1 text-xs text-muted-foreground">
-                Monitor traffic, engagement,
-                behaviour and visitor activity.
-              </p>
-
-              <p className="mt-2 text-[10px] text-muted-foreground">
-                {range.from} — {range.to}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex flex-wrap rounded-lg border bg-muted/20 p-1">
-              {(
-                [
-                  ['today', 'Today'],
-                  ['7d', '7 days'],
-                  ['30d', '30 days'],
-                  ['90d', '90 days'],
-                  ['6m', '6 months'],
-                  ['year', '1 year'],
-                ] as const
-              ).map(
-                ([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() =>
-                      setPreset(value)
-                    }
-                    className={`
-                      rounded-md
-                      px-2.5
-                      py-1.5
-                      text-[10px]
-                      font-semibold
-                      transition
-                      ${
-                        preset === value
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'text-muted-foreground hover:bg-background hover:text-foreground'
-                      }
-                    `}
-                  >
-                    {label}
-                  </button>
-                ),
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                void loadAnalytics(true)
-              }
-              disabled={refreshing}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border bg-background px-3 text-[10px] font-semibold transition hover:bg-muted disabled:opacity-60"
-            >
-              <RefreshCw
-                className={
-                  refreshing
-                    ? 'h-3.5 w-3.5 animate-spin'
-                    : 'h-3.5 w-3.5'
-                }
-              />
-
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* =====================================================
-          LIVE PANEL
-      ===================================================== */}
-
-      <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <div className="flex flex-col gap-4 border-b bg-muted/[0.02] p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/15 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <Activity className="h-4 w-4" />
-
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-card" />
-            </div>
-
-            <div>
-              <p className="text-sm font-bold">
-                Real-time activity
-              </p>
-
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
-                Visitors active within the last
-                90 seconds.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <LiveStat
-              label="Online"
-              value={
-                realtime.totalActive
-              }
-            />
-
-            <LiveStat
-              label="Registered"
-              value={
-                realtime.registered
-              }
-            />
-
-            <LiveStat
-              label="Anonymous"
-              value={
-                realtime.anonymous
-              }
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-0 lg:grid-cols-[1.2fr_1fr]">
-          <div className="border-b p-4 lg:border-b-0 lg:border-r">
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Current pages
-            </p>
-
-            {realtime.pages.length ? (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {realtime.pages
-                  .slice(0, 8)
-                  .map((page) => (
-                    <div
-                      key={page.path}
-                      className="flex items-center justify-between gap-3 rounded-lg border bg-muted/[0.03] px-3 py-2.5"
-                    >
-                      <span className="min-w-0 truncate text-[10px] font-medium">
-                        {page.path}
-                      </span>
-
-                      <span className="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 px-1.5 text-[9px] font-bold text-primary">
-                        {page.count}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <EmptyState text="No active pages." />
-            )}
-          </div>
-
-          <div className="p-4">
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Live distribution
-            </p>
-
-            <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              <DistributionRow
-                label="Registered"
-                value={
-                  realtime.registered
-                }
-                total={
-                  realtime.totalActive
-                }
-              />
-
-              <DistributionRow
-                label="Anonymous"
-                value={
-                  realtime.anonymous
-                }
-                total={
-                  realtime.totalActive
-                }
-              />
-
-              <DistributionRow
-                label="Total active"
-                value={
-                  realtime.totalActive
-                }
-                total={
-                  realtime.totalActive
-                }
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          PRIMARY KPIs
-      ===================================================== */}
-
-      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <KpiCard
-          icon={Users}
-          label="Unique visitors"
-          value={formatNumber(
-            overview.visitors,
-          )}
-          description="Unique visitors"
-        />
-
-        <KpiCard
-          icon={Workflow}
-          label="Sessions"
-          value={formatNumber(
-            overview.sessions,
-          )}
-          description="Recorded visits"
-        />
-
-        <KpiCard
-          icon={Clock3}
-          label="Total time"
-          value={formatDuration(
-            overview.totalTimeMs,
-          )}
-          description="Total recorded time"
-        />
-
-        <KpiCard
-          icon={MousePointerClick}
-          label="Page views"
-          value={formatNumber(
-            overview.pageViews,
-          )}
-          description="Pages viewed"
-        />
-      </section>
-
-      {/* =====================================================
-          SECONDARY KPIs
-      ===================================================== */}
-
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MiniMetric
-          label="Avg. session"
-          value={formatDuration(
-            overview.averageSessionDurationMs,
-          )}
-        />
-
-        <MiniMetric
-          label="Bounce rate"
-          value={formatPercent(
-            overview.bounceRate,
-          )}
-        />
-
-        <MiniMetric
-          label="Events"
-          value={formatNumber(
-            overview.events,
-          )}
-        />
-
-        <MiniMetric
-          label="Active sessions"
-          value={formatNumber(
-            overview.activeSessions,
-          )}
-        />
-      </section>
-
-      {/* =====================================================
-          TREND ANALYSIS
-      ===================================================== */}
-
-      <section className="grid gap-3 xl:grid-cols-[1.65fr_1fr]">
-        <Panel
-          title={`${trendLabel} traffic`}
-          description="Visitor and session movement"
-          icon={TrendingUp}
-        >
-          <DualLineChart
-            primary={visitorTrend}
-            secondary={sessionTrend}
-            primaryLabel="Visitors"
-            secondaryLabel="Sessions"
-          />
+            ))}</div>
+          ) : <p className="py-5 text-center text-[11px] text-muted-foreground">No recent activity.</p>}
         </Panel>
+      </div>
 
-        <Panel
-          title="Visitor composition"
-          description="Registered vs anonymous"
-          icon={Users}
-        >
-          <DonutChart
-            registered={
-              registeredVisitors
-            }
-            anonymous={
-              anonymousVisitors
-            }
-          />
-
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            <LegendMetric
-              label="Registered"
-              value={
-                registeredVisitors
-              }
-            />
-
-            <LegendMetric
-              label="Anonymous"
-              value={
-                anonymousVisitors
-              }
-            />
-          </div>
-        </Panel>
-      </section>
-
-      {/* =====================================================
-          PAGE PERFORMANCE
-      ===================================================== */}
-
-      <section className="grid gap-3 xl:grid-cols-[1.25fr_1fr]">
-        <Panel
-          title="Top pages"
-          description="Most viewed pages in the selected period"
-          icon={Monitor}
-        >
-          <HorizontalBars
-            items={pageChart}
-          />
-        </Panel>
-
-        <Panel
-          title="Page views trend"
-          description="Daily or monthly page-view movement"
-          icon={BarChart3}
-        >
-          <CompactLineChart
-            data={pageViewTrend}
-          />
-        </Panel>
-      </section>
-
-      {/* =====================================================
-          ENTRY / EXIT
-      ===================================================== */}
-
-      <section className="grid gap-3 xl:grid-cols-2">
-        <RankedTable
-        title="Top entry pages"
-        description="Where sessions begin"
-        data={entryPages}
-        />
-
-        <RankedTable
-        title="Top exit pages"
-        description="Where sessions end"
-        data={exitPages}
-        />
-    </section>
-
-      {/* =====================================================
-          GEO + DEVICES
-      ===================================================== */}
-
-      <section className="grid gap-3 xl:grid-cols-2">
-        <Panel
-          title="Countries"
-          description="Visitor distribution by country"
-          icon={Globe2}
-        >
-          <HorizontalBars
-            items={countryChart}
-          />
-        </Panel>
-
-        <Panel
-          title="Devices"
-          description="Visitor distribution by device"
-          icon={Smartphone}
-        >
-          <VerticalBars
-            items={deviceChart}
-          />
-        </Panel>
-      </section>
-
-      {/* =====================================================
-          BROWSER + OS
-      ===================================================== */}
-
-      <section className="grid gap-3 xl:grid-cols-2">
-        <Panel
-          title="Browsers"
-          description="Browser usage among visitors"
-          icon={Globe}
-        >
-          <VerticalBars
-            items={browserChart}
-          />
-        </Panel>
-
-        <Panel
-          title="Operating systems"
-          description="Operating systems used by visitors"
-          icon={Laptop2}
-        >
-          <HorizontalBars
-            items={osChart}
-          />
-        </Panel>
-      </section>
-
-      {/* =====================================================
-          EVENTS + SOURCES
-      ===================================================== */}
-
-      <section className="grid gap-3 xl:grid-cols-[1fr_1.25fr]">
-        <Panel
-          title="Event activity"
-          description="Most frequently recorded actions"
-          icon={MousePointerClick}
-        >
-          <HorizontalBars
-            items={eventChart}
-          />
-        </Panel>
-
-        <TrafficSourcesTable
-          data={sources}
-        />
-      </section>
-
-      {/* =====================================================
-          MONTHLY OVERVIEW
-      ===================================================== */}
-
-      {monthlyTrend.length > 0 && (
-        <Panel
-          title="Long-term traffic"
-          description="Monthly visitors, sessions and page views"
-          icon={BarChart3}
-        >
-          <MultiMetricBars
-            data={monthlyTrend}
-          />
-        </Panel>
-      )}
-    </AdminAnalyticsShell>
-  );
-}
-
-/* =========================================================
-   SHELL
-========================================================= */
-
-function AdminAnalyticsShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <main className="min-w-0 space-y-3 p-3 sm:p-4 xl:space-y-4 xl:p-5">
-      {children}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-muted-foreground">
+        <span>{formatNumber(eventsCount)} tracked events · {formatNumber(num(pick(overview, ['registeredEvents'])))} registered · {formatNumber(num(pick(overview, ['anonymousEvents'])))} anonymous</span>
+        <span className="inline-flex items-center gap-1"><FaClock className="h-2.5 w-2.5" /> Updated {dashboardQ.dataUpdatedAt ? new Date(dashboardQ.dataUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+      </div>
     </main>
   );
 }
 
-/* =========================================================
-   KPI
-========================================================= */
-
-function KpiCard({
-  icon: Icon,
-  label,
-  value,
-  description,
-}: {
-  icon: typeof Users;
-  label: string;
-  value: string | number;
-  description: string;
-}) {
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/20">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-70" />
-
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/10 bg-primary/10 text-primary">
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-
-      <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </p>
-
-      <p className="mt-1 text-xl font-bold tracking-tight tabular-nums xl:text-2xl">
-        {value}
-      </p>
-
-      <p className="mt-1 text-[9px] text-muted-foreground">
-        {description}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   MINI METRIC
-========================================================= */
-
-function MiniMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="rounded-xl border bg-card px-3.5 py-3">
-      <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-        {label}
-      </p>
-
-      <p className="mt-1 text-base font-bold tabular-nums">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   LIVE
-========================================================= */
-
-function LiveStat({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="min-w-[88px] rounded-xl border bg-background px-3 py-2 text-center">
-      <p className="text-lg font-bold tabular-nums">
-        {formatNumber(value)}
-      </p>
-
-      <p className="mt-0.5 text-[8px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-function DistributionRow({
-  label,
-  value,
-  total,
-}: {
-  label: string;
-  value: number;
-  total: number;
-}) {
-  const percent =
-    total > 0
-      ? (value / total) * 100
-      : 0;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[10px] font-medium">
-          {label}
-        </span>
-
-        <span className="text-[9px] font-semibold tabular-nums">
-          {formatNumber(value)}
-        </span>
-      </div>
-
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted/50">
-        <div
-          className="h-full rounded-full bg-primary"
-          style={{
-            width: `${Math.max(
-              value > 0 ? 2 : 0,
-              percent,
-            )}%`,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   PANEL
-========================================================= */
-
-function Panel({
-  title,
-  description,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  description: string;
-  icon: typeof BarChart3;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex items-start gap-2.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/10 bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5" />
-        </div>
-
-        <div className="min-w-0">
-          <h2 className="text-sm font-bold tracking-tight">
-            {title}
-          </h2>
-
-          <p className="mt-0.5 text-[9px] text-muted-foreground">
-            {description}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-5">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-/* =========================================================
-   DUAL LINE CHART
-========================================================= */
-
-function DualLineChart({
-  primary,
-  secondary,
-  primaryLabel,
-  secondaryLabel,
-}: {
-  primary: ChartItem[];
-  secondary: ChartItem[];
-  primaryLabel: string;
-  secondaryLabel: string;
-}) {
-  if (!primary.length) {
-    return <EmptyState text="No trend data available." />;
-  }
-
-  const width = 800;
-  const height = 280;
-  const paddingX = 34;
-  const paddingTop = 20;
-  const paddingBottom = 34;
-
-  const allValues = [
-    ...primary.map(
-      (item) => item.value,
-    ),
-    ...secondary.map(
-      (item) => item.value,
-    ),
-  ];
-
-  const maxValue = Math.max(
-    ...allValues,
-    1,
-  );
-
-  const count = Math.max(
-    primary.length,
-    1,
-  );
-
-  const step =
-    count > 1
-      ? (width -
-          paddingX * 2) /
-        (count - 1)
-      : 0;
-
-  const toPoint = (
-    value: number,
-    index: number,
-  ) => ({
-    x:
-      paddingX +
-      index * step,
-
-    y:
-      height -
-      paddingBottom -
-      (value / maxValue) *
-        (height -
-          paddingTop -
-          paddingBottom),
-  });
-
-  const primaryPoints =
-    primary.map(
-      (item, index) =>
-        toPoint(
-          item.value,
-          index,
-        ),
-    );
-
-  const secondaryPoints =
-    secondary.map(
-      (item, index) =>
-        toPoint(
-          item.value,
-          index,
-        ),
-    );
-
-  const primaryPolyline =
-    primaryPoints
-      .map(
-        (point) =>
-          `${point.x},${point.y}`,
-      )
-      .join(' ');
-
-  const secondaryPolyline =
-    secondaryPoints
-      .map(
-        (point) =>
-          `${point.x},${point.y}`,
-      )
-      .join(' ');
-
-  const labelEvery =
-    Math.max(
-      1,
-      Math.ceil(
-        primary.length / 6,
-      ),
-    );
-
-  return (
-    <div>
-      <div className="mb-3 flex items-center gap-4">
-        <ChartLegend
-          label={primaryLabel}
-          primary
-        />
-
-        <ChartLegend
-          label={secondaryLabel}
-        />
-      </div>
-
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="h-[280px] w-full"
-      >
-        {[0, 25, 50, 75, 100].map(
-          (percent) => {
-            const y =
-              height -
-              paddingBottom -
-              (percent / 100) *
-                (height -
-                  paddingTop -
-                  paddingBottom);
-
-            return (
-              <line
-                key={percent}
-                x1={paddingX}
-                x2={
-                  width - paddingX
-                }
-                y1={y}
-                y2={y}
-                className="stroke-border/60"
-                strokeWidth="1"
-              />
-            );
-          },
-        )}
-
-        <polyline
-          points={primaryPolyline}
-          fill="none"
-          className="stroke-primary"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        <polyline
-          points={
-            secondaryPolyline
-          }
-          fill="none"
-          className="stroke-muted-foreground/60"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeDasharray="6 5"
-        />
-
-        {primaryPoints.map(
-          (point, index) => (
-            <circle
-              key={`primary-${index}`}
-              cx={point.x}
-              cy={point.y}
-              r="3"
-              className="fill-primary"
-            />
-          ),
-        )}
-
-        {primary.map(
-          (item, index) => {
-            if (
-              index % labelEvery !== 0 &&
-              index !==
-                primary.length - 1
-            ) {
-              return null;
-            }
-
-            return (
-              <text
-                key={`label-${index}`}
-                x={
-                  primaryPoints[
-                    index
-                  ]?.x ?? 0
-                }
-                y={
-                  height - 10
-                }
-                textAnchor="middle"
-                className="fill-muted-foreground text-[10px]"
-              >
-                {item.label.includes(
-                  '-',
-                )
-                  ? formatDateLabel(
-                      item.label,
-                    )
-                  : item.label}
-              </text>
-            );
-          },
-        )}
-      </svg>
-    </div>
-  );
-}
-
-/* =========================================================
-   COMPACT LINE CHART
-========================================================= */
-
-function CompactLineChart({
-  data,
-}: {
-  data: ChartItem[];
-}) {
-  if (!data.length) {
-    return <EmptyState text="No chart data available." />;
-  }
-
-  const max = Math.max(
-    ...data.map(
-      (item) => item.value,
-    ),
-    1,
-  );
-
-  return (
-    <div className="h-[280px] overflow-hidden">
-      <div className="flex h-full items-end gap-1.5 overflow-x-auto pb-6">
-        {data.map(
-          (
-            item,
-            index,
-          ) => {
-            const height =
-              Math.max(
-                item.value > 0
-                  ? 4
-                  : 0,
-                (item.value / max) *
-                  100,
-              );
-
-            return (
-              <div
-                key={`${item.label}-${index}`}
-                className="flex h-full min-w-[24px] flex-1 flex-col items-center justify-end gap-2"
-              >
-                <span className="text-[8px] font-semibold tabular-nums text-muted-foreground">
-                  {formatNumber(
-                    item.value,
-                  )}
-                </span>
-
-                <div className="relative flex h-[190px] w-full items-end rounded-md bg-muted/25">
-                  <div
-                    className="w-full rounded-md bg-primary/80 transition-all"
-                    style={{
-                      height: `${height}%`,
-                    }}
-                  />
-                </div>
-
-                <span className="max-w-14 truncate text-[7px] text-muted-foreground">
-                  {item.label}
-                </span>
-              </div>
-            );
-          },
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   DONUT
-========================================================= */
-
-function DonutChart({
-  registered,
-  anonymous,
-}: {
-  registered: number;
-  anonymous: number;
-}) {
-  const total =
-    registered +
-    anonymous;
-
-  if (!total) {
-    return (
-      <EmptyState text="No visitor composition data." />
-    );
-  }
-
-  const registeredPercent =
-    (registered / total) *
-    100;
-
-  return (
-    <div className="flex justify-center">
-      <div
-        className="relative flex h-52 w-52 items-center justify-center rounded-full"
-        style={{
-          background: `conic-gradient(
-            hsl(var(--primary)) 0 ${registeredPercent}%,
-            hsl(var(--muted)) ${registeredPercent}% 100%
-          )`,
-        }}
-      >
-        <div className="flex h-36 w-36 flex-col items-center justify-center rounded-full border bg-card shadow-sm">
-          <span className="text-2xl font-bold tabular-nums">
-            {formatNumber(total)}
-          </span>
-
-          <span className="mt-1 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
-            visitors
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   HORIZONTAL BAR CHART
-========================================================= */
-
-function HorizontalBars({
-  items,
-}: {
-  items: ChartItem[];
-}) {
-  if (!items.length) {
-    return (
-      <EmptyState text="No data available." />
-    );
-  }
-
-  const max = Math.max(
-    ...items.map(
-      (item) => item.value,
-    ),
-    1,
-  );
-
-  return (
-    <div className="space-y-3.5">
-      {items.map(
-        (
-          item,
-          index,
-        ) => {
-          const width =
-            Math.max(
-              item.value > 0
-                ? 2
-                : 0,
-              (item.value / max) *
-                100,
-            );
-
-          return (
-            <div
-              key={`${item.label}-${index}`}
-              className="min-w-0"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-[10px] font-medium">
-                  {item.label}
-                </span>
-
-                <div className="flex shrink-0 items-center gap-2">
-                  {item.secondary && (
-                    <span className="text-[8px] text-muted-foreground">
-                      {item.secondary}
-                    </span>
-                  )}
-
-                  <span className="text-[9px] font-bold tabular-nums">
-                    {formatNumber(
-                      item.value,
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted/50">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{
-                    width: `${width}%`,
-                  }}
-                />
-              </div>
-            </div>
-          );
-        },
-      )}
-    </div>
-  );
-}
-
-/* =========================================================
-   VERTICAL BARS
-========================================================= */
-
-function VerticalBars({
-  items,
-}: {
-  items: ChartItem[];
-}) {
-  if (!items.length) {
-    return (
-      <EmptyState text="No data available." />
-    );
-  }
-
-  const max = Math.max(
-    ...items.map(
-      (item) => item.value,
-    ),
-    1,
-  );
-
-  return (
-    <div className="flex h-[250px] items-end gap-2 overflow-x-auto pb-6">
-      {items.map(
-        (
-          item,
-          index,
-        ) => {
-          const height =
-            Math.max(
-              item.value > 0
-                ? 4
-                : 0,
-              (item.value / max) *
-                100,
-            );
-
-          return (
-            <div
-              key={`${item.label}-${index}`}
-              className="flex min-w-12 flex-1 flex-col items-center justify-end gap-2"
-            >
-              <span className="text-[8px] font-bold tabular-nums text-muted-foreground">
-                {formatNumber(
-                  item.value,
-                )}
-              </span>
-
-              <div className="flex h-40 w-full items-end rounded-lg bg-muted/25">
-                <div
-                  className="w-full rounded-lg bg-primary/80"
-                  style={{
-                    height: `${height}%`,
-                  }}
-                />
-              </div>
-
-              <span className="max-w-16 truncate text-center text-[8px] font-medium text-muted-foreground">
-                {item.label}
-              </span>
-            </div>
-          );
-        },
-      )}
-    </div>
-  );
-}
-
-/* =========================================================
-   MULTI METRIC MONTHLY
-========================================================= */
-
-function MultiMetricBars({
-  data,
-}: {
-  data: AnalyticsTrend[];
-}) {
-  if (!data.length) {
-    return (
-      <EmptyState text="No long-term data available." />
-    );
-  }
-
-  const max = Math.max(
-    ...data.flatMap(
-      (item) => [
-        item.visitors,
-        item.sessions,
-        item.pageViews,
-      ],
-    ),
-    1,
-  );
-
-  return (
-    <div className="space-y-4">
-      {data.map(
-        (
-          item,
-          index,
-        ) => (
-          <div
-            key={`${item.month}-${index}`}
-            className="grid grid-cols-[64px_1fr] items-center gap-4"
-          >
-            <span className="text-[9px] font-semibold text-muted-foreground">
-              {item.month}
-            </span>
-
-            <div className="space-y-1.5">
-              <MultiBar
-                label="Visitors"
-                value={
-                  item.visitors
-                }
-                max={max}
-              />
-
-              <MultiBar
-                label="Sessions"
-                value={
-                  item.sessions
-                }
-                max={max}
-              />
-
-              <MultiBar
-                label="Views"
-                value={
-                  item.pageViews
-                }
-                max={max}
-              />
-            </div>
-          </div>
-        ),
-      )}
-    </div>
-  );
-}
-
-function MultiBar({
-  label,
-  value,
-  max,
-}: {
-  label: string;
-  value: number;
-  max: number;
-}) {
-  const width =
-    Math.max(
-      value > 0 ? 1.5 : 0,
-      (value / max) *
-        100,
-    );
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-12 text-[8px] text-muted-foreground">
-        {label}
-      </span>
-
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted/50">
-        <div
-          className="h-full rounded-full bg-primary/80"
-          style={{
-            width: `${width}%`,
-          }}
-        />
-      </div>
-
-      <span className="w-14 text-right text-[8px] font-semibold tabular-nums">
-        {formatNumber(value)}
-      </span>
-    </div>
-  );
-}
-
-/* =========================================================
-   TRAFFIC TABLE
-========================================================= */
-
-function TrafficSourcesTable({
-  data,
-}: {
-  data: AnalyticsTrafficSource[];
-}) {
-  return (
-    <section className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex items-start gap-2.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/10 bg-primary/10 text-primary">
-          <Workflow className="h-3.5 w-3.5" />
-        </div>
-
-        <div>
-          <h2 className="text-sm font-bold">
-            Traffic sources
-          </h2>
-
-          <p className="mt-0.5 text-[9px] text-muted-foreground">
-            Where your visitors originated.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-5 overflow-hidden rounded-xl border">
-        {data.length ? (
-          <table className="w-full text-left">
-            <thead className="bg-muted/30">
-              <tr>
-                <th className="px-3 py-2.5 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Source
-                </th>
-
-                <th className="px-3 py-2.5 text-right text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Visitors
-                </th>
-
-                <th className="px-3 py-2.5 text-right text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Sessions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y">
-              {data
-                .slice(0, 8)
-                .map(
-                  (
-                    item,
-                    index,
-                  ) => (
-                    <tr
-                      key={`${item.utmSource}-${item.referrer}-${index}`}
-                      className="transition-colors hover:bg-muted/20"
-                    >
-                      <td className="max-w-[240px] px-3 py-2.5">
-                        <div className="min-w-0">
-                          <p className="truncate text-[10px] font-semibold">
-                            {item.utmSource ||
-                              item.referrer ||
-                              'Direct'}
-                          </p>
-
-                          {(item.utmMedium ||
-                            item.utmCampaign) && (
-                            <p className="mt-0.5 truncate text-[8px] text-muted-foreground">
-                              {item.utmMedium ||
-                                'organic'}
-
-                              {item.utmCampaign
-                                ? ` · ${item.utmCampaign}`
-                                : ''}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-3 py-2.5 text-right text-[9px] font-semibold tabular-nums">
-                        {formatNumber(
-                          item.visitors,
-                        )}
-                      </td>
-
-                      <td className="px-3 py-2.5 text-right text-[9px] font-semibold tabular-nums">
-                        {formatNumber(
-                          item.sessions,
-                        )}
-                      </td>
-                    </tr>
-                  ),
-                )}
-            </tbody>
-          </table>
-        ) : (
-          <EmptyState text="No traffic-source data." />
-        )}
-      </div>
-    </section>
-  );
-}
-
-/* =========================================================
-   RANKED TABLE
-========================================================= */
-
-function RankedTable({
-  title,
-  description,
-  data,
-}: {
-  title: string;
-  description: string;
-  data: AnalyticsPage[];
-}) {
-  return (
-    <section className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-bold">
-            {title}
-          </h2>
-
-          <p className="mt-0.5 text-[9px] text-muted-foreground">
-            {description}
-          </p>
-        </div>
-
-        <span className="rounded-full border bg-muted/30 px-2 py-1 text-[8px] font-semibold text-muted-foreground">
-          Top 10
-        </span>
-      </div>
-
-      <div className="mt-4 divide-y">
-        {data.length ? (
-          data
-            .slice(0, 10)
-            .map(
-              (
-                item,
-                index,
-              ) => (
-                <div
-                  key={`${item.path}-${index}`}
-                  className="flex items-center gap-3 py-2.5"
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted/40 text-[8px] font-bold text-muted-foreground">
-                    {index + 1}
-                  </span>
-
-                  <span className="min-w-0 flex-1 truncate text-[10px] font-medium">
-                    {item.path}
-                  </span>
-
-                  <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-[9px] font-bold tabular-nums text-primary">
-                    {formatNumber(
-                      item.views,
-                    )}
-                  </span>
-                </div>
-              ),
-            )
-        ) : (
-          <EmptyState text="No data available." />
-        )}
-      </div>
-    </section>
-  );
-}
-
-/* =========================================================
-   LEGEND
-========================================================= */
-
-function ChartLegend({
-  label,
-  primary = false,
-}: {
-  label: string;
-  primary?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span
-        className={`
-          h-2 w-2 rounded-full
-          ${
-            primary
-              ? 'bg-primary'
-              : 'bg-muted-foreground/50'
-          }
-        `}
-      />
-
-      <span className="text-[9px] font-medium text-muted-foreground">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function LegendMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-lg border bg-muted/[0.03] p-2.5">
-      <p className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-
-      <p className="mt-1 text-sm font-bold tabular-nums">
-        {formatNumber(value)}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   EMPTY
-========================================================= */
-
-function EmptyState({
-  text,
-}: {
-  text: string;
-}) {
-  return (
-    <div className="flex min-h-28 items-center justify-center rounded-xl border border-dashed bg-muted/[0.02]">
-      <p className="text-[10px] text-muted-foreground">
-        {text}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   LOADING
-========================================================= */
-
-function DashboardLoading() {
-  return (
-    <div className="space-y-3">
-      <div className="h-24 animate-pulse rounded-2xl border bg-muted/20" />
-
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {Array.from({
-          length: 4,
-        }).map((_, index) => (
-          <div
-            key={index}
-            className="h-32 animate-pulse rounded-2xl border bg-muted/20"
-          />
-        ))}
-      </div>
-
-      <div className="grid gap-3 xl:grid-cols-2">
-        {Array.from({
-          length: 2,
-        }).map((_, index) => (
-          <div
-            key={index}
-            className="h-80 animate-pulse rounded-2xl border bg-muted/20"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}

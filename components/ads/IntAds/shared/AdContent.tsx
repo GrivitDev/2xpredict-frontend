@@ -86,7 +86,7 @@ export function AdContent({
       observer.disconnect();
   }, [
     ad.title,
-    ad.subTitle,
+    ad.subtitle,
     ad.description,
     ad.instructions,
   ]);

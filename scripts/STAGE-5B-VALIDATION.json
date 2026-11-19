@@ -1,0 +1,83 @@
+{
+  "scannedTypeScriptFiles": 497,
+  "changedFiles": 9,
+  "requiredSupportFiles": 8,
+  "syntaxErrors": [],
+  "unresolvedLocalImports": [],
+  "missingFiles": [],
+  "checks": [
+    {
+      "name": "profile page mounts the account billing and payment history panel",
+      "pass": true
+    },
+    {
+      "name": "payment history uses the authenticated /payments/me query",
+      "pass": true
+    },
+    {
+      "name": "payment history cache is scoped to the current account",
+      "pass": true
+    },
+    {
+      "name": "subscription status cache is scoped and protected from anonymous requests",
+      "pass": true
+    },
+    {
+      "name": "public subscription entitlements remain available to anonymous users",
+      "pass": true
+    },
+    {
+      "name": "profile shows current subscription dates, days remaining and backend entitlements",
+      "pass": true
+    },
+    {
+      "name": "Paystack initialization recovery calls the user-owned initialization endpoint",
+      "pass": true
+    },
+    {
+      "name": "Paystack continuation only uses a confirmed, trusted HTTPS Paystack URL",
+      "pass": true
+    },
+    {
+      "name": "payment verification handles approved, processing, pending and failed results",
+      "pass": true
+    },
+    {
+      "name": "admin payment history is fetched from the dedicated paginated endpoint",
+      "pass": true
+    },
+    {
+      "name": "admin subscription history is fetched from the dedicated paginated endpoint",
+      "pass": true
+    },
+    {
+      "name": "admin user detail renders paginated payment and subscription histories",
+      "pass": true
+    },
+    {
+      "name": "admin payment history tolerates optional pagination metadata",
+      "pass": true
+    },
+    {
+      "name": "Paystack reconciliation uses the existing reference and does not create a new payment",
+      "pass": true
+    },
+    {
+      "name": "manual approve/reject actions are separated from Paystack reconciliation",
+      "pass": true
+    },
+    {
+      "name": "reconciliation errors can be cleared and retried",
+      "pass": true
+    },
+    {
+      "name": "history routes are represented in the endpoint inventory",
+      "pass": true
+    },
+    {
+      "name": "admin history services and hooks contain no duplicate import declarations",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

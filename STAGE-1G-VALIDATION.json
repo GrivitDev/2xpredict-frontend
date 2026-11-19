@@ -1,0 +1,243 @@
+{
+  "parsedFiles": 478,
+  "syntaxIssues": [],
+  "unresolvedLocalImports": [
+    {
+      "file": "app/(public)/profile/page.tsx",
+      "line": 3,
+      "module": "@/components/dashboard/profile/ProfileHero"
+    },
+    {
+      "file": "app/(public)/profile/page.tsx",
+      "line": 5,
+      "module": "@/hooks/useProfile"
+    },
+    {
+      "file": "app/(public)/profile/page.tsx",
+      "line": 6,
+      "module": "@/hooks/usePurchases"
+    },
+    {
+      "file": "app/(public)/referrals/page.tsx",
+      "line": 3,
+      "module": "@/components/dashboard/referrals/ReferralLinkCard"
+    },
+    {
+      "file": "app/(public)/referrals/page.tsx",
+      "line": 7,
+      "module": "@/components/dashboard/referrals/ReferralStatsCards"
+    },
+    {
+      "file": "app/(public)/referrals/page.tsx",
+      "line": 11,
+      "module": "@/components/dashboard/referrals/AvailableCampaigns"
+    },
+    {
+      "file": "app/(public)/referrals/page.tsx",
+      "line": 15,
+      "module": "@/components/dashboard/referrals/ActiveCampaigns"
+    },
+    {
+      "file": "app/(public)/referrals/page.tsx",
+      "line": 19,
+      "module": "@/components/dashboard/referrals/ReferralActivity"
+    },
+    {
+      "file": "app/(public)/referrals/page.tsx",
+      "line": 23,
+      "module": "@/components/dashboard/referrals/RewardHistory"
+    },
+    {
+      "file": "app/layout.tsx",
+      "line": 10,
+      "module": "@/config/seo"
+    },
+    {
+      "file": "app/robots.ts",
+      "line": 2,
+      "module": "@/config/seo"
+    },
+    {
+      "file": "app/sitemap.ts",
+      "line": 5,
+      "module": "@/config/seo"
+    },
+    {
+      "file": "components/admin/ads/AdActionBuilder.tsx",
+      "line": 16,
+      "module": "@/types/ad"
+    },
+    {
+      "file": "components/admin/ads/AdDisplayBuilder.tsx",
+      "line": 24,
+      "module": "@/types/ad"
+    },
+    {
+      "file": "components/admin/ads/AdTable.tsx",
+      "line": 14,
+      "module": "@/types/ad"
+    },
+    {
+      "file": "components/admin/referrals/ReferralStats.tsx",
+      "line": 12,
+      "module": "@/types/referral"
+    },
+    {
+      "file": "components/admin/referrals/ReferralTable.tsx",
+      "line": 3,
+      "module": "@/types/referral"
+    },
+    {
+      "file": "components/admin/users/UsersTable.tsx",
+      "line": 4,
+      "module": "@/types/admin-user.types"
+    },
+    {
+      "file": "components/ads/IntAds/InternalAdRenderer.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/InternalAds.tsx",
+      "line": 4,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/InternalAds.tsx",
+      "line": 6,
+      "module": "@/hooks/useInternalAds"
+    },
+    {
+      "file": "components/ads/IntAds/InternalAdsCarousel.tsx",
+      "line": 8,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/hooks/useInternalAdImpression.ts",
+      "line": 8,
+      "module": "@/hooks/useAds"
+    },
+    {
+      "file": "components/ads/IntAds/hooks/useWeightedAds.ts",
+      "line": 5,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/BannerLayout.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/BottomLayout.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/FooterLayout.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/HeroLayout.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/InlineLayout.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/PopupLayout.tsx",
+      "line": 9,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/layouts/SidebarLayout.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/shared/AdActions.tsx",
+      "line": 9,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/shared/AdContent.tsx",
+      "line": 9,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/shared/AdDescription.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/shared/AdImage.tsx",
+      "line": 7,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/shared/AdInstructions.tsx",
+      "line": 5,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/shared/AdTitle.tsx",
+      "line": 9,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/utils/popup-selector.ts",
+      "line": 1,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/utils/sortAds.ts",
+      "line": 1,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/variants/BottomAd.tsx",
+      "line": 11,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/variants/HeroAd.tsx",
+      "line": 11,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/variants/InlineAd.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/variants/PopupAd.tsx",
+      "line": 7,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/variants/SidebarAd.tsx",
+      "line": 3,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/ads/IntAds/variants/TickerAd.tsx",
+      "line": 8,
+      "module": "@/types/internal-ad"
+    },
+    {
+      "file": "components/legal/LegalContentLayout.tsx",
+      "line": 6,
+      "module": "@/data/legal/navigation"
+    }
+  ],
+  "serviceRegistryConflicts": [],
+  "hookRegistryConflicts": [],
+  "serviceMethodProblems": [],
+  "inventoryCount": 288,
+  "inventoryMissingServices": [],
+  "inventoryMissingHooks": [],
+  "appHookImportProblems": []
+}

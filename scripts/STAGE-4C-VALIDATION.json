@@ -1,0 +1,172 @@
+{
+  "scannedTypeScriptFiles": 497,
+  "changedFiles": 6,
+  "backendFilesScanned": 0,
+  "backendContractSource": "supplied backend snapshot fallback",
+  "backendRealtimeEventsFound": [
+    "analytics:ingestion-update",
+    "analytics:update",
+    "bet-lab:ticket-placed",
+    "odds:cycle-completed",
+    "odds:retention-completed",
+    "odds:retention-error",
+    "odds:worker-error",
+    "payment:new",
+    "payment:update",
+    "predictions:event",
+    "predictions:worker-status",
+    "settlement:drain-started",
+    "settlement:job-completed",
+    "settlement:job-failed",
+    "settlement:job-requeued",
+    "settlement:job-skipped",
+    "settlement:job-started",
+    "settlement:worker-error",
+    "settlement:worker-ready",
+    "system:activity",
+    "system:error",
+    "system:module-health"
+  ],
+  "frontendRealtimeEventsFound": [
+    "analytics:ingestion-update",
+    "analytics:update",
+    "bet-lab:ticket-placed",
+    "odds:cycle-completed",
+    "odds:retention-completed",
+    "odds:retention-error",
+    "odds:worker-error",
+    "payment:new",
+    "payment:update",
+    "predictions:event",
+    "predictions:worker-status",
+    "settlement:drain-started",
+    "settlement:job-completed",
+    "settlement:job-failed",
+    "settlement:job-requeued",
+    "settlement:job-skipped",
+    "settlement:job-started",
+    "settlement:worker-error",
+    "settlement:worker-ready",
+    "system:activity",
+    "system:error",
+    "system:module-health"
+  ],
+  "syntaxErrors": [],
+  "unresolvedLocalImports": [],
+  "missingFiles": [],
+  "checks": [
+    {
+      "name": "server-initiated disconnect is explicitly retried",
+      "pass": true
+    },
+    {
+      "name": "server disconnect retry attempts are capped",
+      "pass": true
+    },
+    {
+      "name": "retry refreshes the active JWT cookie before reconnecting",
+      "pass": true
+    },
+    {
+      "name": "foreground visibility and network-online events trigger recovery",
+      "pass": true
+    },
+    {
+      "name": "foreground recovery invalidates active admin module queries",
+      "pass": true
+    },
+    {
+      "name": "event handlers use deduplication and bounded buffering helpers",
+      "pass": true
+    },
+    {
+      "name": "module status payloads are fully validated",
+      "pass": true
+    },
+    {
+      "name": "debounced invalidation timers are cleared on unmount",
+      "pass": true
+    },
+    {
+      "name": "socket listeners and browser listeners are removed on unmount",
+      "pass": true
+    },
+    {
+      "name": "React Query invalidation failures do not create unhandled rejections",
+      "pass": true
+    },
+    {
+      "name": "status bar exposes reconnection attempt count",
+      "pass": true
+    },
+    {
+      "name": "System Monitor displays reconnect state and gateway errors",
+      "pass": true
+    },
+    {
+      "name": "realtime provider remains mounted only inside authenticated admin layout",
+      "pass": true
+    },
+    {
+      "name": "the frontend event catalogue contains every backend event",
+      "pass": true
+    },
+    {
+      "name": "WebSocket inventory still contains every declared backend event",
+      "pass": true
+    },
+    {
+      "name": "explicit event ID produces stable deduplication identity",
+      "pass": true
+    },
+    {
+      "name": "events without an explicit ID are not incorrectly deduplicated",
+      "pass": true
+    },
+    {
+      "name": "duplicate event deliveries are ignored",
+      "pass": true
+    },
+    {
+      "name": "event buffer remains capped at 40 records",
+      "pass": true
+    },
+    {
+      "name": "payment updates invalidate payment, analytics and subscription queries",
+      "pass": true
+    },
+    {
+      "name": "Odds events also refresh System Monitor state",
+      "pass": true
+    },
+    {
+      "name": "settlement events refresh settlement and System Monitor state",
+      "pass": true
+    },
+    {
+      "name": "event family resolves to its owning module",
+      "pass": true
+    },
+    {
+      "name": "valid backend module readiness record is accepted",
+      "pass": true
+    },
+    {
+      "name": "invalid operational status is rejected",
+      "pass": true
+    },
+    {
+      "name": "ready snapshot must identify the admin audience",
+      "pass": true
+    },
+    {
+      "name": "admin ready snapshot parses and filters malformed modules",
+      "pass": true
+    },
+    {
+      "name": "server-disconnect retries are bounded and back off",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

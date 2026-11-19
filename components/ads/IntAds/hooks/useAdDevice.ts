@@ -6,8 +6,9 @@ import {
 } from 'react';
 
 import { AdDevice } from '@/constants/ads/ad-device';
+import type { AdDevice as AdDeviceValue } from '@/types/ads';
 
-function getAdDevice(): AdDevice {
+function getAdDevice(): AdDeviceValue {
   const width =
     window.innerWidth;
 
@@ -24,7 +25,7 @@ function getAdDevice(): AdDevice {
 
 export function useAdDevice() {
   const [device, setDevice] =
-    useState<AdDevice>(
+    useState<AdDeviceValue>(
       AdDevice.DESKTOP,
     );
 

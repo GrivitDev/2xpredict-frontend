@@ -1,188 +1,74 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import {
-  Upload,
-  X,
-} from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-
+import { FaUpload, FaXmark } from 'react-icons/fa6';
 import api from '@/lib/axios';
-import { AdImage } from '@/types/ad';
+import type { AdImage } from '@/types/ads';
 
 interface AdImageUploaderProps {
   value?: AdImage;
   onChange: (image?: AdImage) => void;
 }
 
-export function AdImageUploader({
-  value,
-  onChange,
-}: AdImageUploaderProps) {
-  const [preview, setPreview] = useState(
-    value?.url ?? '',
-  );
-
+export function AdImageUploader({ value, onChange }: AdImageUploaderProps) {
+  const [preview, setPreview] = useState(value?.url ?? '');
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
 
-  async function uploadImage(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
+  useEffect(() => setPreview(value?.url ?? ''), [value?.url]);
+
+  async function uploadImage(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    const formData = new FormData();
-
-    formData.append('image', file);
-
+    if (!file) return;
+    setError('');
+    const payload = new FormData();
+    payload.append('image', file);
     try {
       setUploading(true);
-
-      const response = await api.post(
-        '/uploads/ads',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      );
-
-      const image: AdImage = response.data.data;
-
-      setPreview(image.url);
-      onChange(image);
-    } catch {
-      // Keep the existing image state intact if upload fails.
+      const response = await api.post('/uploads/ads', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const uploaded = response.data?.data as AdImage | undefined;
+      if (!uploaded?.url || !uploaded.publicId) throw new Error('Upload response was incomplete.');
+      setPreview(uploaded.url);
+      onChange(uploaded);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Image upload failed.');
     } finally {
       setUploading(false);
-
-      // Allow selecting the same file again.
       event.target.value = '';
     }
   }
 
   function removeImage() {
     setPreview('');
+    setError('');
     onChange(undefined);
   }
 
   return (
-    <div className="space-y-2.5">
-      <div className="flex items-center justify-between">
-        <div>
-          <Label className="text-sm font-medium">
-            Advertisement Image
-          </Label>
-
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Upload the image displayed in the advertisement.
-          </p>
-        </div>
-
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-medium">Creative image</span>
         {preview && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={removeImage}
-            className="
-              h-7
-              px-2
-              text-xs
-              text-muted-foreground
-              hover:bg-destructive/10
-              hover:text-destructive
-            "
-          >
-            <X className="mr-1 size-3.5" />
-            Remove
-          </Button>
+          <button type="button" onClick={removeImage} className="inline-flex h-6 items-center gap-1 px-1.5 text-[10px] text-muted-foreground hover:text-destructive">
+            <FaXmark className="size-3" /> Remove
+          </button>
         )}
       </div>
-
       {preview ? (
-        <div
-          className="
-            relative
-            h-40
-            overflow-hidden
-            rounded-lg
-            border
-            bg-muted/30
-          "
-        >
-          <Image
-            src={preview}
-            alt="Advertisement preview"
-            fill
-            sizes="(max-width: 768px) 100vw, 800px"
-            className="object-cover"
-          />
+        <div className="relative h-32 overflow-hidden rounded-sm border bg-muted/20">
+          <Image src={preview} alt="Advertisement creative preview" fill sizes="(max-width: 768px) 100vw, 600px" className="object-contain" />
         </div>
       ) : (
-        <label
-          className={`
-            flex
-            h-28
-            cursor-pointer
-            items-center
-            justify-center
-            gap-3
-            rounded-lg
-            border
-            border-dashed
-            bg-muted/10
-            px-4
-            transition-colors
-            hover:bg-muted/30
-            ${uploading ? 'pointer-events-none opacity-60' : ''}
-          `}
-        >
-          <div
-            className="
-              flex
-              size-9
-              shrink-0
-              items-center
-              justify-center
-              rounded-md
-              border
-              bg-background
-              text-muted-foreground
-              shadow-sm
-            "
-          >
-            <Upload className="size-4" />
-          </div>
-
-          <div>
-            <p className="text-xs font-medium">
-              {uploading
-                ? 'Uploading image...'
-                : 'Click to upload image'}
-            </p>
-
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
-              PNG, JPG, WEBP
-            </p>
-          </div>
-
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            disabled={uploading}
-            onChange={uploadImage}
-          />
+        <label className={`flex h-20 cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed px-3 text-[11px] text-muted-foreground hover:bg-muted/30 ${uploading ? 'pointer-events-none opacity-60' : ''}`}>
+          <FaUpload className="size-3.5" />
+          <span>{uploading ? 'Uploading…' : 'Upload image'} <span className="text-[10px]">· PNG, JPG, WEBP</span></span>
+          <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={uploading} onChange={uploadImage} />
         </label>
       )}
+      {error && <p className="text-[10px] text-destructive">{error}</p>}
     </div>
   );
 }

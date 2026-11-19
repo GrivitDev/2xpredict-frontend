@@ -1,0 +1,116 @@
+{
+  "changedFiles": 9,
+  "backendFilesScanned": 0,
+  "backendContractSource": "supplied source snapshot fallback",
+  "syntaxErrors": [],
+  "unresolvedLocalImports": [],
+  "missingFiles": [],
+  "backendRealtimeEventsFound": [
+    "analytics:ingestion-update",
+    "analytics:update",
+    "bet-lab:ticket-placed",
+    "odds:cycle-completed",
+    "odds:retention-completed",
+    "odds:retention-error",
+    "odds:worker-error",
+    "payment:new",
+    "payment:update",
+    "predictions:event",
+    "predictions:worker-status",
+    "settlement:drain-started",
+    "settlement:job-completed",
+    "settlement:job-failed",
+    "settlement:job-requeued",
+    "settlement:job-skipped",
+    "settlement:job-started",
+    "settlement:worker-error",
+    "settlement:worker-ready",
+    "system:activity",
+    "system:error",
+    "system:module-health"
+  ],
+  "frontendRealtimeEventsFound": [
+    "analytics:ingestion-update",
+    "analytics:update",
+    "bet-lab:ticket-placed",
+    "odds:cycle-completed",
+    "odds:retention-completed",
+    "odds:retention-error",
+    "odds:worker-error",
+    "payment:new",
+    "payment:update",
+    "predictions:event",
+    "predictions:worker-status",
+    "realtime:module-status",
+    "settlement:drain-started",
+    "settlement:job-completed",
+    "settlement:job-failed",
+    "settlement:job-requeued",
+    "settlement:job-skipped",
+    "settlement:job-started",
+    "settlement:worker-error",
+    "settlement:worker-ready",
+    "system:activity",
+    "system:error",
+    "system:module-health"
+  ],
+  "checks": [
+    {
+      "name": "admin realtime connection includes every backend-published event",
+      "pass": true
+    },
+    {
+      "name": "root admin gateway handshake is JWT-authenticated",
+      "pass": true
+    },
+    {
+      "name": "admin realtime ready snapshot is handled",
+      "pass": true
+    },
+    {
+      "name": "module operational updates are handled",
+      "pass": true
+    },
+    {
+      "name": "event-driven invalidation includes payment and analytics",
+      "pass": true
+    },
+    {
+      "name": "event-driven invalidation includes prediction, odds and settlement",
+      "pass": true
+    },
+    {
+      "name": "invalidation is debounced",
+      "pass": true
+    },
+    {
+      "name": "provider mounted only in authenticated admin layout",
+      "pass": true
+    },
+    {
+      "name": "global admin realtime status indicator mounted",
+      "pass": true
+    },
+    {
+      "name": "System Monitor contains module readiness and event stream",
+      "pass": true
+    },
+    {
+      "name": "Business analytics reads realtime state",
+      "pass": true
+    },
+    {
+      "name": "websocket inventory includes root admin gateway",
+      "pass": true
+    },
+    {
+      "name": "websocket inventory tracks every declared admin event",
+      "pass": true
+    },
+    {
+      "name": "admin realtime provider exposes shared context",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

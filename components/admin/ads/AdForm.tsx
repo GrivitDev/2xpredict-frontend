@@ -1,747 +1,139 @@
 'use client';
-
-import {
-  useState,
-} from 'react';
-
-import {
-  useRouter,
-} from 'next/navigation';
-
-import {
-  AdImageUploader,
-} from './AdImageUploader';
-
-import {
-  AdInstructionsBuilder,
-} from './AdInstructionsBuilder';
-
-import {
-  AdActionBuilder,
-} from './AdActionBuilder';
-
-import {
-  AdDisplayBuilder,
-} from './AdDisplayBuilder';
-
-import {
-  zodResolver,
-} from '@hookform/resolvers/zod';
-
-
-import {
-  useForm,
-} from 'react-hook-form';
-
-
-import {
-  z,
-} from 'zod';
-
-
-import {
-  Input,
-} from '@/components/ui/input';
-
-import {
-  Textarea,
-} from '@/components/ui/textarea';
-
-import {
-  Button,
-} from '@/components/ui/button';
-
-import {
-  Label,
-} from '@/components/ui/label';
-
-import {
-  Switch,
-} from '@/components/ui/switch';
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
-import {
-  useCreateAd,
-  useUpdateAd,
-} from '@/hooks/useAdminAds';
-
-
-
-import {
-  AdImage,
-  AdminAd,
-} from '@/types/ad';
-
-import { AdAudience } from '@/constants/ads/ad-audience';
-
-
-
-
-const adSchema = z.object({
-
-  title:z.string()
-    .min(
-      2,
-      'Title is required',
-    ),
-
-
-  subTitle:z.string()
-    .optional(),
-
-
-  description:z.string()
-    .optional(),
-
-
-  priority:z.coerce
-    .number()
-    .min(1)
-    .max(10),
-
-
-});
-
-
-
-
-type FormValues =
-z.input<typeof adSchema>;
-
-type FormOutput =
-z.output<typeof adSchema>;
-
-
-
-
-interface AdFormProps {
-
-  mode:'create' | 'edit';
-
-  defaultValues?:AdminAd;
-
-}
-
-
-
-
-
-
-export function AdForm({
-
-  mode,
-
-  defaultValues,
-
-}:AdFormProps){
-
-
-
-  const router =
-    useRouter();
-
-
-
-
-  const [image,setImage] =
-    useState<AdImage | undefined>(
-      defaultValues?.image,
-    );
-
-
-
-
-  const [actions,setActions] =
-    useState(
-      defaultValues?.actions ?? [],
-    );
-
-
-
-
-  const [displays,setDisplays] =
-    useState(
-      defaultValues?.displays ?? [],
-    );
-
-
-
-
-  const [instructions,setInstructions] =
-    useState(
-      defaultValues?.instructions ?? [],
-    );
-
-
-
-
-  const [isActive,setIsActive] =
-    useState(
-      defaultValues?.isActive ?? true,
-    );
-
-
-    const [audience,setAudience] =
-  useState<AdAudience>(
-    defaultValues?.audience ??
-    AdAudience.ALL,
-  );
-
-const [startDate,setStartDate] =
-  useState(
-    defaultValues?.startDate ?? '',
-  );
-
-
-const [endDate,setEndDate] =
-  useState(
-    defaultValues?.endDate ?? '',
-  );
-
-
-const form =
-  useForm<FormValues, any, FormOutput>({
-    resolver: zodResolver(adSchema),
-
-    defaultValues:{
-      title: defaultValues?.title ?? '',
-      subTitle: defaultValues?.subTitle ?? '',
-      description: defaultValues?.description ?? '',
-      priority: defaultValues?.priority ?? 5,
-    },
-  });
-
-
-
-
-
-
-
-  const createMutation =
-    useCreateAd();
-
-
-
-
-  const updateMutation =
-    useUpdateAd();
-
-
-
-if(
-  startDate &&
-  endDate &&
-  new Date(startDate) > new Date(endDate)
-){
-
- alert(
-  'End date must be after start date'
- );
-
- return;
-
-}
-
-
-
-
-function submit(
-  values: FormOutput,
-){
-
-
-  if(displays.length === 0){
-
-    alert(
-      'Please add at least one display placement'
-    );
-
-    return;
-
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AdImageUploader } from './AdImageUploader';
+import { adDestinationFor, adDefaultActionLabel } from '@/constants/ads/ad-destination';
+import { useCreateAdMutation, useUpdateAdMutation, useAutomationOptionsQuery, useDiscoverAdContentQuery } from '@/hooks/use-admin-ads';
+import type { AdminAd, AdAudience, AdAudienceKey, AdAutomationKey, AdContentSource, AdContentVisibility, AdContentVisibilityByAudience, AdDisplay, AdImage, AdMedia, AdPosition, AdPage, AdDevice, AdTrigger, AdType, CreateAdPayload } from '@/types/ads';
+
+const field = 'h-7 w-full rounded-sm border border-input bg-background px-2 text-[11px] outline-none focus:border-foreground/50 focus:ring-1 focus:ring-ring/30';
+const label = 'mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground';
+const box = 'rounded-md border border-border bg-card p-2.5';
+const button = 'inline-flex h-7 items-center justify-center rounded-sm border px-2.5 text-[11px] font-medium disabled:opacity-50';
+const primary = `${button} border-primary bg-primary text-primary-foreground`;
+const muted = `${button} border-border bg-background hover:bg-muted`;
+const audienceKeys: AdAudienceKey[] = ['GUEST','FREE','REGULAR','VIP','PREMIUM'];
+const audiences: AdAudience[] = ['ALL',...audienceKeys];
+const types: AdType[] = ['BANNER','INTERSTITIAL','NATIVE','REWARDED','POPUP','STICKY','VIDEO'];
+const sources: AdContentSource[] = ['CUSTOM','PREDICTION','SLIP','SURE_ODDS','PROMO','BONUS','REFERRAL','SUBSCRIPTION','BET_LAB'];
+const pages: AdPage[] = ['HOME','DASHBOARD','PRICING','PREDICTIONS','ABOUT','PURCHASES','SUBSCRIPTIONS','REFERRALS','BET_LAB','PICK_CENTER','SLIP_CENTER','ODDS_CENTER','BONUSES','PROMOS','WALLET','REGISTER','LOGIN'];
+const positions: AdPosition[] = ['POPUP','HERO','TOP_BANNER','INLINE','SIDEBAR_LEFT','SIDEBAR_RIGHT','BOTTOM','FOOTER','INTERSTITIAL','STICKY_BOTTOM','STICKY_TOP','FEED'];
+const devices: AdDevice[] = ['ALL','MOBILE','TABLET','DESKTOP'];
+const triggers: AdTrigger[] = ['ALWAYS','EVERY_VISIT','FIRST_VISIT','ON_LOGIN','ON_REFRESH','ONCE_PER_SESSION','ONCE_PER_DAY'];
+const visibilityFields: Array<[keyof AdContentVisibility,string]> = [
+ ['showProbability','Probability'],['showConfidence','Confidence'],['showMarketName','Market name'],['showMarketSelections','Selections'],['showFairOdds','Fair odds'],['showBookmakerOdds','Bookmaker odds'],['showDecimalOdds','Decimal odds'],['showCombinedOdds','Combined odds'],['showCombinedProbability','Combined probability'],['showLegCount','Leg count'],['showTeams','Teams'],['showLeague','League'],['showFixtureDate','Fixture date'],['showProductName','Product name'],['showRewardValue','Reward value'],['showPromoCode','Promo code'],['showDescription','Description'],['showSportyBetCode','SportyBet code'],['showSelectionCount','Selection count'],['showSubscriptionPricing','Subscription pricing'],['showWelcomePoints','Welcome points']
+];
+const GUEST_DEFAULT: AdContentVisibility = { showProbability:false,showConfidence:false,showMarketName:false,showMarketSelections:false,showFairOdds:false,showBookmakerOdds:false,showDecimalOdds:false,showCombinedOdds:false,showCombinedProbability:false,showLegCount:true,showTeams:true,showLeague:false,showFixtureDate:true,showProductName:true,showRewardValue:true,showPromoCode:false,showDescription:true,showSportyBetCode:false,showSelectionCount:true,showSubscriptionPricing:false,showWelcomePoints:true };
+const PAID_DEFAULT: AdContentVisibility = Object.fromEntries(visibilityFields.map(([key])=>[key,true])) as AdContentVisibility;
+const defaultVisibility = (): AdContentVisibilityByAudience => Object.fromEntries(audienceKeys.map(a=>[a,{...(a==='GUEST'||a==='FREE'?GUEST_DEFAULT:PAID_DEFAULT)}])) as AdContentVisibilityByAudience;
+const blankDisplay = (index=1): AdDisplay => ({page:'HOME',position:'TOP_BANNER',device:'ALL',trigger:'ALWAYS',fixed:false,displayOrder:index,widthPercent:100,maxWidthPercent:100,maxWidth:1200,objectFit:'cover'});
+const blankPayload = (): CreateAdPayload => ({title:'',subTitle:'',description:'',instructions:[],actions:[],displays:[blankDisplay()],type:'BANNER',contentSource:'CUSTOM',contentVisibility:defaultVisibility(),design:{},targeting:{},priority:5,audience:['ALL'],isActive:true,automated:false,maxImpressionsPerVisitorPerDay:0});
+function toDateInput(value?: string | null) { if(!value)return ''; const d=new Date(value); if(Number.isNaN(d.getTime()))return ''; const pad=(n:number)=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function parseObject(value:string):Record<string,unknown>{ if(!value.trim())return {}; const parsed:unknown=JSON.parse(value); if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('Design settings must be a JSON object.'); return parsed as Record<string,unknown>; }
+
+export function AdForm({mode,defaultValues}:{mode:'create'|'edit';defaultValues?:AdminAd}) {
+  const router=useRouter();
+  const seed=useMemo<CreateAdPayload>(()=>{ const base=blankPayload(); if(!defaultValues)return base; return {...base,...defaultValues,audience:Array.isArray(defaultValues.audience)?defaultValues.audience:['ALL'],displays:defaultValues.displays?.length?defaultValues.displays:[blankDisplay()],contentVisibility:{...defaultVisibility(),...(defaultValues.contentVisibility??{})},targeting:defaultValues.targeting??{},instructions:defaultValues.instructions??[],actions:defaultValues.actions??[],design:defaultValues.design??{}}; },[defaultValues]);
+  const [form,setForm]=useState<CreateAdPayload>(seed);
+  const [image,setImage]=useState<AdImage|undefined>(seed.image);
+  const [media,setMedia]=useState<AdMedia|undefined>(seed.media);
+  const [actionLabel,setActionLabel]=useState(''); const [actionUrl,setActionUrl]=useState('');
+  const [instructionDraft,setInstructionDraft]=useState((seed.instructions??[]).join('\n'));
+  const [designDraft,setDesignDraft]=useState(JSON.stringify(seed.design??{},null,2));
+  const [error,setError]=useState('');
+  const createMutation=useCreateAdMutation(); const updateMutation=useUpdateAdMutation();
+  const automationQuery=useAutomationOptionsQuery();
+  const discoverQuery=useDiscoverAdContentQuery(form.contentSource==='CUSTOM'?undefined:form.contentSource,form.contentSource!=='CUSTOM'&&!form.automated);
+    const linkedItems=(discoverQuery.data?.items??[]).filter(x=>x.source===form.contentSource);
+  const busy=createMutation.isPending||updateMutation.isPending;
+  const set=<K extends keyof CreateAdPayload>(key:K,value:CreateAdPayload[K])=>setForm(current=>({...current,[key]:value}));
+  const updateDisplay=(index:number,change:Partial<AdDisplay>)=>set('displays',form.displays.map((d,i)=>i===index?{...d,...change}:d));
+  const changeSource=(source:AdContentSource)=>setForm(current=>({...current,contentSource:source,sourceId:undefined,automated:false,automationKey:undefined,actions:[]}));
+  const changeAutomation=(key:AdAutomationKey|'')=>{ const option=(automationQuery.data??[]).find(o=>o.key===key); setForm(current=>({...current,automated:Boolean(key),automationKey:key||undefined,contentSource:option?.source??current.contentSource,sourceId:undefined,actions:[],...(option?{title:option.title,subTitle:'',description:''}:{})})); };
+  const toggleAudience=(audience:AdAudience)=>{ const current: AdAudience[] = form.audience ?? ['ALL']; const next: AdAudience[] = audience === 'ALL' ? ['ALL'] : current.filter((item) => item !== 'ALL'); const values: AdAudience[] = audience === 'ALL' ? (current.includes('ALL') ? [] : ['ALL']) : next.includes(audience) ? next.filter((item) => item !== audience) : [...next, audience]; set('audience', values.length ? values : ['GUEST']); };
+  const changeVisibility=(audience:AdAudienceKey,key:keyof AdContentVisibility,value:boolean)=>set('contentVisibility',{...(form.contentVisibility??{}),[audience]:{...(form.contentVisibility?.[audience]??(audience==='GUEST'||audience==='FREE'?GUEST_DEFAULT:PAID_DEFAULT)),[key]:value}});
+  const togglePlan=(key:'allowedPlans'|'excludedPlans',audience:AdAudienceKey)=>{const current=form.targeting?.[key]??[];set('targeting',{...(form.targeting??{}),[key]:current.includes(audience)?current.filter(v=>v!==audience):[...current,audience]});};
+
+  useEffect(()=>{setForm(seed);setImage(seed.image);setMedia(seed.media);setInstructionDraft((seed.instructions??[]).join('\n'));setDesignDraft(JSON.stringify(seed.design??{},null,2));},[seed]);
+
+  // Pre-fill the create form when an admin starts from Content discovery or an automation card.
+  useEffect(()=>{
+    if(mode!=='create' || typeof window==='undefined') return;
+    const params=new URLSearchParams(window.location.search);
+    const rawSource=params.get('source');
+    const source=sources.includes(rawSource as AdContentSource)?rawSource as AdContentSource:undefined;
+    if(!source) return;
+    const automated=params.get('automated')==='true';
+    const rawKey=params.get('automationKey');
+    const automationKey=rawKey && (['TOP_PREDICTION','TODAYS_SURE_ODDS','FEATURED_SLIP','AVAILABLE_BONUS','ACTIVE_PROMO','REFERRAL_CAMPAIGN','SUBSCRIPTION_OFFER','BET_LAB_WELCOME_POINTS'] as string[]).includes(rawKey) ? rawKey as AdAutomationKey : undefined;
+    const destinationUrl=params.get('destinationUrl')||'';
+    const actionLabel=params.get('actionLabel')||'Learn More';
+    setForm(current=>({
+      ...current,
+      contentSource:source,
+      sourceId:automated?undefined:(params.get('sourceId')||undefined),
+      automated:Boolean(automated&&automationKey),
+      automationKey:automated?automationKey:undefined,
+      title:params.get('title')?.trim()||current.title,
+      subTitle:params.get('subTitle')?.trim()||current.subTitle,
+      description:params.get('description')?.trim()||current.description,
+      actions: !automated && destinationUrl ? [{label:actionLabel || adDefaultActionLabel(source),url:destinationUrl || adDestinationFor(source,params.get('sourceId')||undefined)}] : [],
+    }));
+  },[mode]);
+
+  async function submit(e:React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();setError('');
+    if(!form.title.trim()){setError('Title is required.');return;}
+    if(!form.displays.length){setError('Add at least one display placement.');return;}
+    if(form.contentSource==='CUSTOM'&&(form.automated||form.sourceId||form.automationKey)){setError('Custom ads cannot be linked or automated.');return;}
+    if(form.automated&&!form.automationKey){setError('Choose an automation.');return;}
+    if(form.automated&&form.sourceId){setError('Automated ads do not use a fixed source ID.');return;}
+    if(form.type==='VIDEO'&&(!media?.url||media.type!=='VIDEO')){setError('Video ads require a video URL and VIDEO media type.');return;}
+    if(!form.automated&&!['CUSTOM','SUBSCRIPTION','BET_LAB'].includes(form.contentSource)&&!form.sourceId){setError('Select a linked content item.');return;}
+    if(form.startDate&&form.endDate&&new Date(form.startDate)>new Date(form.endDate)){setError('End date must be after start date.');return;}
+    try {
+      const design=parseObject(designDraft);
+      const payload:CreateAdPayload={...form,title:form.title.trim(),subTitle:form.subTitle?.trim()||'',description:form.description?.trim()||'',instructions:instructionDraft.split('\n').map(s=>s.trim()).filter(Boolean),image,media,design,actions:form.actions??[],sourceId:form.automated||form.contentSource==='CUSTOM'||form.contentSource==='SUBSCRIPTION'||form.contentSource==='BET_LAB'?undefined:form.sourceId,automationKey:form.automated?form.automationKey:undefined,startDate:form.startDate===null?null:(form.startDate||undefined),endDate:form.endDate===null?null:(form.endDate||undefined),targeting:{...(form.targeting??{}),allowedPlans:form.targeting?.allowedPlans?.length?form.targeting.allowedPlans:undefined,excludedPlans:form.targeting?.excludedPlans?.length?form.targeting.excludedPlans:undefined}};
+      if(mode==='create') await createMutation.mutateAsync(payload); else if(defaultValues) await updateMutation.mutateAsync({id:defaultValues._id,body:payload});
+      router.push('/admin/ads');router.refresh();
+    } catch(cause) {setError(cause instanceof Error?cause.message:'Unable to save advertisement.');}
   }
 
-  if(!image){
-
-    alert(
-      'Please add an image for the advertisement'
-    );
-
-    return;
-
-  }
-
-const payload = {
-
-  ...values,
-
-  audience,
-
-  image,
-
-  actions,
-
-  displays,
-
-  instructions,
-
-  isActive,
-
-  startDate:
-    startDate || undefined,
-
-  endDate:
-    endDate || undefined,
-
-};
-
-
-
-
-    if(mode === 'create'){
-
-console.log(
-  'CREATE AD PAYLOAD',
-  payload,
-);
-createMutation.mutate(
- payload,
- {
-   onError:(error:any)=>{
-
-     console.log(
-       'CREATE AD ERROR',
-       error.response?.data
-     );
-
-   },
-
-   onSuccess:()=>{
-
-     router.push('/admin/ads');
-
-   },
- }
-);
-
-
-      return;
-
-    }
-
-
-
-
-
-
-    if(defaultValues?._id){
-
-
-
-      updateMutation.mutate(
-
-        {
-
-          id:defaultValues._id,
-
-          data:payload,
-
-        },
-
-
-        {
-
-          onSuccess:()=>{
-
-            router.push(
-              '/admin/ads',
-            );
-
-          },
-
-
-        },
-
-      );
-
-    }
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-  return (
-
-    <form
-
-      onSubmit={
-        form.handleSubmit(submit)
-      }
-
-      className="space-y-8"
-
-    >
-
-
-
-
-
-      {/* BASIC DETAILS */}
-
-
-      <div className="space-y-4">
-
-
-        <div>
-
-          <Label>
-            Title
-          </Label>
-
-
-          <Input
-
-            {...form.register('title')}
-
-            placeholder="Advertisement title"
-
-          />
-
-
-        </div>
-
-
-
-
-
-        <div>
-
-          <Label>
-            Subtitle
-          </Label>
-
-
-          <Input
-
-            {...form.register('subTitle')}
-
-            placeholder="Short subtitle"
-
-          />
-
-
-        </div>
-
-
-
-
-
-        <div>
-
-          <Label>
-            Description
-          </Label>
-
-
-          <Textarea
-
-            {...form.register('description')}
-
-            placeholder="Advertisement description"
-
-          />
-
-
-        </div>
-
-
-      </div>
-
-<div>
-
-  <Label>
-    Audience
-  </Label>
-
-  <Select
-    value={audience}
-    onValueChange={(value) =>
-      setAudience(value as AdAudience)
-    }
-  >
-
-    <SelectTrigger>
-
-      <SelectValue />
-
-    </SelectTrigger>
-
-    <SelectContent>
-
-      <SelectItem value={AdAudience.ALL}>
-        Everyone
-      </SelectItem>
-
-      <SelectItem value={AdAudience.GUEST}>
-        Guests
-      </SelectItem>
-
-      <SelectItem value={AdAudience.FREE}>
-        Free Members
-      </SelectItem>
-
-      <SelectItem value={AdAudience.REGULAR}>
-        Regular Members
-      </SelectItem>
-
-      <SelectItem value={AdAudience.VIP}>
-        VIP Members
-      </SelectItem>
-
-    </SelectContent>
-
-  </Select>
-
-</div>
-
-{/* INSTRUCTIONS */}
-
-
-<AdInstructionsBuilder
-
-  value={instructions}
-
-  onChange={setInstructions}
-
-/>
-
-
-{/* ACTIONS */}
-
-<AdActionBuilder
-
-  value={actions}
-
-  onChange={setActions}
-
-/>
-
-
-      {/* IMAGE */}
-
-
-
-      <AdImageUploader
-
-        value={image}
-
-        onChange={setImage}
-
-      />
-
-
-
-
-
-
-
-
-
-      {/* DISPLAY RULES */}
-
-
-
-      <AdDisplayBuilder
-
-        value={displays}
-
-        onChange={setDisplays}
-
-      />
-
-
-
-
-{/* SCHEDULE */}
-
-
-<div className="space-y-4">
-
-
-  <div>
-
-    <Label>
-      Start Date
-    </Label>
-
-
-    <Input
-
-      type="datetime-local"
-
-      value={startDate}
-
-      onChange={(e)=>
-        setStartDate(
-          e.target.value
-        )
-      }
-
-    />
-
-
-  </div>
-
-
-
-
-
-  <div>
-
-    <Label>
-      End Date
-    </Label>
-
-
-    <Input
-
-      type="datetime-local"
-
-      value={endDate}
-
-      onChange={(e)=>
-        setEndDate(
-          e.target.value
-        )
-      }
-
-    />
-
-
-  </div>
-
-
-</div>
-
-
-
-
-      {/* SETTINGS */}
-
-
-
-      <div className="space-y-4">
-
-
-
-        <div>
-
-          <Label>
-            Priority
-          </Label>
-
-
-          <Input
-
-            type="number"
-
-            {...form.register(
-              'priority'
-            )}
-
-          />
-
-
-        </div>
-
-
-
-
-
-
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-          "
-        >
-
-
-          <div>
-
-            <Label>
-              Active
-            </Label>
-
-          </div>
-
-
-
-          <Switch
-
-            checked={isActive}
-
-            onCheckedChange={setIsActive}
-
-          />
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-
-
-
-
-
-
-      <Button
-
-        type="submit"
-
-        disabled={
-          createMutation.isPending ||
-          updateMutation.isPending
-        }
-
-      >
-
-        {
-          mode === 'create'
-          ? 'Create Advertisement'
-          : 'Update Advertisement'
-        }
-
-
-      </Button>
-
-
-
-
-
-    </form>
-
-  );
-
-
+  return <form onSubmit={submit} className="space-y-3 text-sm">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
+      <section className={`${box} space-y-2.5`}><h2 className="font-semibold">Campaign</h2>
+        <div className="grid gap-2 sm:grid-cols-2"><div><label className={label}>Title *</label><input className={field} maxLength={150} value={form.title} onChange={e=>set('title',e.target.value)} required/></div><div><label className={label}>Subtitle</label><input className={field} maxLength={150} value={form.subTitle??''} onChange={e=>set('subTitle',e.target.value)}/></div></div>
+        <div><label className={label}>Description</label><textarea className={`${field} h-16 resize-y py-2`} maxLength={2000} value={form.description??''} onChange={e=>set('description',e.target.value)}/></div>
+        <div className="grid gap-2 sm:grid-cols-3"><div><label className={label}>Ad format</label><select className={field} value={form.type} onChange={e=>set('type',e.target.value as AdType)}>{types.map(t=><option key={t}>{t}</option>)}</select></div><div><label className={label}>Content source</label><select className={field} value={form.contentSource} disabled={form.automated} onChange={e=>changeSource(e.target.value as AdContentSource)}>{sources.map(s=><option key={s}>{s}</option>)}</select></div><div><label className={label}>Priority (1–10)</label><input className={field} type="number" min={1} max={10} value={form.priority} onChange={e=>set('priority',Number(e.target.value))}/></div></div>
+        {form.contentSource!=='CUSTOM'&&<div className="rounded-md bg-muted/40 p-2.5">
+          <div className="mb-2 flex flex-wrap items-center gap-3"><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={form.automated} onChange={e=>setForm(current=>({...current,automated:e.target.checked,automationKey:undefined,sourceId:undefined,actions:[]}))}/>Automated content</label>{form.automated&&<span className="text-[10px] text-muted-foreground">Content resolved at delivery time</span>}</div>
+          {form.automated?<div><label className={label}>Automation</label><select className={field} value={form.automationKey??''} onChange={e=>changeAutomation(e.target.value as AdAutomationKey|'')} required><option value="">Select automation</option>{(automationQuery.data??[]).map(o=><option key={o.key} value={o.key}>{o.title} · {o.source}</option>)}</select>{form.automationKey&&<p className="mt-1 text-[10px] text-muted-foreground">{automationQuery.data?.find(o=>o.key===form.automationKey)?.resolves}</p>}</div>:!['SUBSCRIPTION','BET_LAB'].includes(form.contentSource)?<div><label className={label}>Linked content *</label><select className={field} value={form.sourceId??''} onChange={e=>{const id=e.target.value||undefined;const item=linkedItems.find(x=>x.sourceId===id);setForm(current=>({...current,sourceId:id,title:item?.title??current.title,subTitle:item?.subTitle??current.subTitle,description:item?.description??current.description,actions:item?[{label:item.defaultActionLabel??adDefaultActionLabel(form.contentSource),url:item.destinationUrl??adDestinationFor(form.contentSource,id)}]:[]}));}}><option value="">Select eligible {form.contentSource.toLowerCase()}…</option>{linkedItems.map((item,index)=><option key={`${item.sourceId??index}`} value={item.sourceId??''}>{item.title}{item.subTitle?` · ${item.subTitle}`:''}</option>)}</select>{discoverQuery.isLoading&&<p className="mt-1 text-[10px] text-muted-foreground">Loading options…</p>}{discoverQuery.isError&&<p className="mt-1 text-[10px] text-destructive">Could not load linked content.</p>}</div>:<p className="text-[10px] text-muted-foreground">Uses current configuration. It does not require a source ID.</p>}
+        </div>}
+        <div className="grid gap-2 sm:grid-cols-3"><div><label className={label}>Start date</label><input className={field} type="datetime-local" value={toDateInput(form.startDate)} onChange={e=>set('startDate',e.target.value?new Date(e.target.value).toISOString():null)}/></div><div><label className={label}>End date</label><input className={field} type="datetime-local" value={toDateInput(form.endDate)} onChange={e=>set('endDate',e.target.value?new Date(e.target.value).toISOString():null)}/></div><div><label className={label}>Impression cap / visitor / day</label><input className={field} type="number" min={0} max={1000} value={form.maxImpressionsPerVisitorPerDay??0} onChange={e=>set('maxImpressionsPerVisitorPerDay',Number(e.target.value))}/></div></div>
+        <div className="flex flex-wrap gap-4 border-t pt-2"><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={form.isActive} onChange={e=>set('isActive',e.target.checked)}/>Active</label></div>
+      </section>
+      <section className={`${box} space-y-2.5`}><h2 className="font-semibold">Audience & targeting</h2>
+        <div><label className={label}>Visible to</label><div className="grid grid-cols-3 gap-1.5">{audiences.map(a=><label key={a} className="flex items-center gap-1.5 rounded border px-2 py-1.5 text-[11px]"><input type="checkbox" checked={(form.audience??[]).includes(a)} onChange={()=>toggleAudience(a)}/>{a}</label>)}</div></div>
+        <div><label className={label}>Allowed plans (empty = all)</label><div className="grid grid-cols-3 gap-1">{audienceKeys.map(a=><label key={a} className="flex items-center gap-1.5 text-[10px]"><input type="checkbox" checked={(form.targeting?.allowedPlans??[]).includes(a)} onChange={()=>togglePlan('allowedPlans',a)}/>{a}</label>)}</div></div>
+        <div><label className={label}>Excluded plans</label><div className="grid grid-cols-3 gap-1">{audienceKeys.map(a=><label key={a} className="flex items-center gap-1.5 text-[10px]"><input type="checkbox" checked={(form.targeting?.excludedPlans??[]).includes(a)} onChange={()=>togglePlan('excludedPlans',a)}/>{a}</label>)}</div></div>
+        <div className="space-y-2"><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={form.targeting?.requireAuthenticated??false} onChange={e=>set('targeting',{...(form.targeting??{}),requireAuthenticated:e.target.checked,guestsOnly:e.target.checked?false:form.targeting?.guestsOnly})}/>Require authenticated user</label><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={form.targeting?.guestsOnly??false} onChange={e=>set('targeting',{...(form.targeting??{}),guestsOnly:e.target.checked,requireAuthenticated:e.target.checked?false:form.targeting?.requireAuthenticated})}/>Guests only</label></div>
+      </section>
+    </div>
+
+    <section className={`${box} space-y-3`}><h2 className="font-semibold">Media & creative</h2><div className="grid gap-3 lg:grid-cols-2"><div className="space-y-2"><AdImageUploader value={image} onChange={setImage}/></div><div className="space-y-2"><label className={label}>Media URL</label><input className={field} type="url" placeholder="https://…" value={media?.url??''} onChange={e=>setMedia(e.target.value?{url:e.target.value,type:form.type==='VIDEO'?'VIDEO':media?.type??'IMAGE',publicId:media?.publicId,posterUrl:media?.posterUrl,mimeType:media?.mimeType,durationSeconds:media?.durationSeconds,autoplay:media?.autoplay??false,muted:media?.muted??true,loop:media?.loop??false}:undefined)}/><div className="grid grid-cols-2 gap-2"><div><label className={label}>Media type</label><select className={field} value={media?.type??(form.type==='VIDEO'?'VIDEO':'IMAGE')} onChange={e=>setMedia(media?{...media,type:e.target.value as 'IMAGE'|'VIDEO'}:undefined)}><option value="IMAGE">IMAGE</option><option value="VIDEO">VIDEO</option></select></div><div><label className={label}>Duration (sec)</label><input className={field} type="number" min={0} max={3600} value={media?.durationSeconds??''} onChange={e=>setMedia(media?{...media,durationSeconds:e.target.value?Number(e.target.value):undefined}:undefined)}/></div><div><label className={label}>Poster URL</label><input className={field} value={media?.posterUrl??''} onChange={e=>setMedia(media?{...media,posterUrl:e.target.value||undefined}:undefined)}/></div><div><label className={label}>MIME type</label><input className={field} value={media?.mimeType??''} onChange={e=>setMedia(media?{...media,mimeType:e.target.value||undefined}:undefined)}/></div></div><div className="flex flex-wrap gap-3"><label className="flex items-center gap-1.5 text-[11px]"><input type="checkbox" checked={media?.autoplay??false} onChange={e=>setMedia(media?{...media,autoplay:e.target.checked}:undefined)}/>Autoplay</label><label className="flex items-center gap-1.5 text-[11px]"><input type="checkbox" checked={media?.muted??true} onChange={e=>setMedia(media?{...media,muted:e.target.checked}:undefined)}/>Muted</label><label className="flex items-center gap-1.5 text-[11px]"><input type="checkbox" checked={media?.loop??false} onChange={e=>setMedia(media?{...media,loop:e.target.checked}:undefined)}/>Loop</label><button type="button" className={muted} onClick={()=>setMedia(undefined)}>Clear media</button></div></div></div>
+      <div><label className={label}>Instructions (one per line)</label><textarea className={`${field} h-16 resize-y py-2`} value={instructionDraft} onChange={e=>setInstructionDraft(e.target.value)} placeholder="Optional instructions"/></div>
+      <div><div className="mb-1 flex items-center justify-between"><label className={label}>Call to action</label><div className="flex gap-1"><button type="button" className={muted} onClick={()=>set('actions',[])}>Use automatic destination</button><button type="button" className={muted} onClick={()=>{if(actionLabel.trim()&&actionUrl.trim()){set('actions',[...(form.actions??[]),{label:actionLabel.trim(),url:actionUrl.trim()}]);setActionLabel('');setActionUrl('');}}}>+ Add action</button></div></div><div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]"><input className={field} maxLength={50} placeholder="Button label" value={actionLabel} onChange={e=>setActionLabel(e.target.value)}/><input className={field} maxLength={500} placeholder="/internal-route or https://…" value={actionUrl} onChange={e=>setActionUrl(e.target.value)}/><button type="button" className={muted} onClick={()=>{if(actionLabel.trim()&&actionUrl.trim()){set('actions',[...(form.actions??[]),{label:actionLabel.trim(),url:actionUrl.trim()}]);setActionLabel('');setActionUrl('');}}}>Add</button></div><div className="mt-2 space-y-1">{(form.actions??[]).map((action,index)=><div key={`${action.url}-${index}`} className="flex items-center justify-between gap-2 rounded-sm border px-2 py-1.5 text-[11px]"><span className="min-w-0 truncate"><b>{action.label}</b> · {action.url}</span><button type="button" className="text-destructive" onClick={()=>set('actions',(form.actions??[]).filter((_,i)=>i!==index))}>Remove</button></div>)}{(form.actions??[]).length===0&&<p className="text-[10px] text-muted-foreground">Automatic destination: the backend links to the content selected for this campaign, including the live item resolved by an automation.</p>}</div></div>
+    </section>
+
+    <section className={`${box} space-y-3`}><h2 className="font-semibold">Placements & display sizes</h2>{form.displays.map((display,index)=><div key={index} className="rounded-md border p-2.5"><div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium">Placement {index+1}</span><button type="button" className="text-xs text-destructive" disabled={form.displays.length===1} onClick={()=>set('displays',form.displays.filter((_,i)=>i!==index))}>Remove</button></div><div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{([["Page",'page',pages],["Position",'position',positions],["Device",'device',devices],["Trigger",'trigger',triggers]] as Array<[string,'page'|'position'|'device'|'trigger',string[]]>).map(([title,key,options])=><div key={key}><label className={label}>{title}</label><select className={field} value={display[key]} onChange={e=>updateDisplay(index,{[key]:e.target.value} as Partial<AdDisplay>)}>{options.map(v=><option key={v}>{v}</option>)}</select></div>)}<div><label className={label}>Order</label><input className={field} type="number" min={1} value={display.displayOrder} onChange={e=>updateDisplay(index,{displayOrder:Number(e.target.value)})}/></div><div><label className={label}>Width px</label><input className={field} type="number" min={0} max={4000} value={display.width??''} onChange={e=>updateDisplay(index,{width:e.target.value?Number(e.target.value):undefined})}/></div><div><label className={label}>Height px</label><input className={field} type="number" min={0} max={4000} value={display.height??''} onChange={e=>updateDisplay(index,{height:e.target.value?Number(e.target.value):undefined})}/></div><div><label className={label}>Width %</label><input className={field} type="number" min={0} max={100} value={display.widthPercent??''} onChange={e=>updateDisplay(index,{widthPercent:e.target.value?Number(e.target.value):undefined})}/></div><div><label className={label}>Max width %</label><input className={field} type="number" min={0} max={100} value={display.maxWidthPercent??''} onChange={e=>updateDisplay(index,{maxWidthPercent:e.target.value?Number(e.target.value):undefined})}/></div><div><label className={label}>Max width px</label><input className={field} type="number" min={0} max={4000} value={display.maxWidth??''} onChange={e=>updateDisplay(index,{maxWidth:e.target.value?Number(e.target.value):undefined})}/></div><div><label className={label}>Max height px</label><input className={field} type="number" min={0} max={4000} value={display.maxHeight??''} onChange={e=>updateDisplay(index,{maxHeight:e.target.value?Number(e.target.value):undefined})}/></div><div><label className={label}>Aspect ratio</label><input className={field} placeholder="16:9" value={display.aspectRatio??''} onChange={e=>updateDisplay(index,{aspectRatio:e.target.value||undefined})}/></div><div><label className={label}>Object fit</label><select className={field} value={display.objectFit??'cover'} onChange={e=>updateDisplay(index,{objectFit:e.target.value as 'contain'|'cover'|'fill'})}><option value="cover">cover</option><option value="contain">contain</option><option value="fill">fill</option></select></div><label className="flex items-center gap-2 pt-5 text-[11px]"><input type="checkbox" checked={display.fixed} onChange={e=>updateDisplay(index,{fixed:e.target.checked})}/>Fixed placement</label></div></div>)}<button type="button" className={muted} onClick={()=>set('displays',[...form.displays,blankDisplay(form.displays.length+1)])}>+ Add placement</button></section>
+
+    <section className={`${box} space-y-2`}><div><h2 className="font-semibold">Content visibility</h2><p className="text-[10px] text-muted-foreground">Server-side field redaction is applied for each audience.</p></div>{audienceKeys.map(audience=><details key={audience} className="rounded-md border" open={audience==='GUEST'}><summary className="cursor-pointer px-2.5 py-2 text-xs font-medium">{audience} visibility</summary><div className="grid grid-cols-2 gap-x-4 gap-y-2 border-t p-2.5 sm:grid-cols-3 lg:grid-cols-5">{visibilityFields.map(([key,title])=><label key={key} className="flex items-center gap-1.5 text-[10px]"><input type="checkbox" checked={(form.contentVisibility?.[audience]?.[key]??((audience==='GUEST'||audience==='FREE')?GUEST_DEFAULT[key]:PAID_DEFAULT[key]))===true} onChange={e=>changeVisibility(audience,key,e.target.checked)}/>{title}</label>)}</div></details>)}</section>
+
+    <section className={`${box} space-y-2`}><h2 className="font-semibold">Design settings</h2><label className={label}>Design JSON</label><textarea className={`${field} h-20 resize-y py-2 font-mono`} value={designDraft} onChange={e=>setDesignDraft(e.target.value)}/><p className="text-[10px] text-muted-foreground">Optional style tokens consumed by ad renderers.</p></section>
+
+    {error&&<p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</p>}
+    {(createMutation.isError||updateMutation.isError)&&<p className="text-xs text-destructive">{(createMutation.error??updateMutation.error)?.message}</p>}
+    <div className="sticky bottom-0 flex items-center justify-between gap-2 border-t bg-background/95 py-2 backdrop-blur"><button type="button" className={muted} onClick={()=>router.push('/admin/ads')}>Cancel</button><button type="submit" className={primary} disabled={busy}>{busy?'Saving…':mode==='create'?'Create campaign':'Save changes'}</button></div>
+  </form>;
 }
+

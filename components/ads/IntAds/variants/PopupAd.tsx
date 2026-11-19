@@ -169,7 +169,7 @@ export function PopupAd({
               ad={ad}
             />
 
-            {ad.actions.length > 0 && (
+            {(ad.actions ?? []).length > 0 && (
 
               <div
                 className="

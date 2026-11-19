@@ -21,7 +21,8 @@ import { AdPage } from '@/constants/ads/ad-page';
 import { AdDevice } from '@/constants/ads/ad-device';
 import { AdPosition } from '@/constants/ads/ad-position';
 import { AdTrigger } from '@/constants/ads/ad-trigger';
-import { AdDisplay } from '@/types/ad';
+import type { AdPage as AdPageValue, AdPosition as AdPositionValue, AdDevice as AdDeviceValue, AdTrigger as AdTriggerValue } from '@/types/ads';
+import { AdDisplay } from '@/types/ads';
 
 interface AdDisplayBuilderProps {
   value: AdDisplay[];
@@ -168,7 +169,7 @@ export function AdDisplayBuilder({
                       updateDisplay(
                         index,
                         'page',
-                        value as AdPage,
+                        value as AdPageValue,
                       )
                     }
                   >
@@ -200,7 +201,7 @@ export function AdDisplayBuilder({
                       updateDisplay(
                         index,
                         'position',
-                        value as AdPosition,
+                        value as AdPositionValue,
                       )
                     }
                   >
@@ -232,7 +233,7 @@ export function AdDisplayBuilder({
                       updateDisplay(
                         index,
                         'device',
-                        value as AdDevice,
+                        value as AdDeviceValue,
                       )
                     }
                   >
@@ -264,7 +265,7 @@ export function AdDisplayBuilder({
                       updateDisplay(
                         index,
                         'trigger',
-                        value as AdTrigger,
+                        value as AdTriggerValue,
                       )
                     }
                   >
@@ -362,3 +363,4 @@ export function AdDisplayBuilder({
     </div>
   );
 }
+

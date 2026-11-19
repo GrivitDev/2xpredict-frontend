@@ -1,0 +1,66 @@
+{
+  "stage": "7",
+  "changedFiles": 5,
+  "syntaxErrors": 0,
+  "unresolvedLocalImports": 0,
+  "unresolvedImports": [],
+  "checksPassed": 11,
+  "checksTotal": 11,
+  "checks": [
+    {
+      "name": "Bet Lab reads Sports v2 competitions",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Guest fixtures use normalized cursor-paginated Sports v2",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Bet Lab no longer imports legacy competitions/live/upcoming Sports hooks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Authenticated Bet Lab fixture endpoint remains protected and unchanged",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Public fixture query uses selected date range and bounded page size",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Sports v2 fixture pagination follows nextCursor",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Load-more control is connected to infinite-query state",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Adapter preserves ESPN event ID and normalized fixture ID separately",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Guest match presentation reuses fetched Sports v2 fixture and competition data",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Fixture query stays within the exposed backend params and sorts accumulated pages chronologically",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Competition priority is not fabricated when Sports v2 does not provide it",
+      "passed": true,
+      "detail": ""
+    }
+  ]
+}

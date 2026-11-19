@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { InternalAd } from '@/types/internal-ad';
 
 import { useInternalAds } from '@/hooks/useInternalAds';
 
@@ -9,6 +10,7 @@ import { useAdDevice } from './hooks/useAdDevice';
 import { AdPage } from '@/constants/ads/ad-page';
 import { AdPosition } from '@/constants/ads/ad-position';
 import { AdDevice } from '@/constants/ads/ad-device';
+import type { AdPage as AdPageValue, AdPosition as AdPositionValue } from '@/types/ads';
 
 import { HeroLayout } from './layouts/HeroLayout';
 import { BannerLayout } from './layouts/BannerLayout';
@@ -22,9 +24,9 @@ import { sortAds } from './utils/sortAds';
 import { shouldDisplayAd } from './utils/shouldDisplayAd';
 
 interface Props {
-  page: AdPage;
+  page: AdPageValue;
 
-  position: AdPosition;
+  position: AdPositionValue;
 }
 
 export function InternalAds({
@@ -52,10 +54,10 @@ export function InternalAds({
 
     return sortAds(
 
-      data.filter((ad) => {
+      data.filter((ad: InternalAd) => {
 
         const display =
-          ad.displays.find(
+          (ad.displays ?? []).find(
             (display) =>
               display.page === page &&
               display.position === position &&
@@ -157,3 +159,4 @@ export function InternalAds({
   }
 
 }
+

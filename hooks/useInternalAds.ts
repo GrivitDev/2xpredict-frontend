@@ -1,29 +1,13 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { getPageAds } from '@/services/internal-ads.service';
+import type { AdDevice, AdPage, InternalAd } from '@/types/ads';
 
-import { getPageAds } from '@/services/ads.service';
-
-import { AdPage } from '@/constants/ads/ad-page';
-import { AdDevice } from '@/constants/ads/ad-device';
-
-export function useInternalAds(
-  page: AdPage,
-  device: AdDevice,
-) {
-  return useQuery({
-    queryKey: [
-      'internal-ads',
-      page,
-      device,
-    ],
-
-    queryFn: () =>
-      getPageAds(
-        page,
-        device,
-      ),
-
-    retry: false,
+export function useInternalAds(page: AdPage, device: AdDevice) {
+  return useQuery<InternalAd[]>({
+    queryKey: ['internal-ads', 'delivery', page, device],
+    queryFn: () => getPageAds(page, device),
+    staleTime: 60_000,
   });
 }

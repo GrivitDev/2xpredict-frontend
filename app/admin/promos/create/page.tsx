@@ -1,42 +1,4 @@
 import PromoForm from '@/components/admin/promos/PromoForm';
-
 export default function CreatePromoPage() {
-  return (
-    <div
-      className="
-        space-y-6
-        animate-in
-        fade-in
-        slide-in-from-bottom-4
-        duration-500
-        sm:space-y-8
-      "
-    >
-      <header>
-        <h1
-          className="
-            text-2xl
-            font-bold
-            tracking-tight
-            sm:text-3xl
-          "
-        >
-          Create Promo
-        </h1>
-
-        <p
-          className="
-            mt-1
-            text-s
-            text-muted-foreground
-            sm:text-base
-          "
-        >
-          Create a new promotional campaign for users.
-        </p>
-      </header>
-
-      <PromoForm />
-    </div>
-  );
+  return <main className="mx-auto w-full max-w-[1400px] space-y-3 p-2 sm:p-3"><header><h1 className="text-lg font-semibold tracking-tight">Create promotion</h1><p className="mt-0.5 text-xs text-muted-foreground">Configure a discount, reward campaign or discount-plus-points bundle.</p></header><PromoForm /></main>;
 }

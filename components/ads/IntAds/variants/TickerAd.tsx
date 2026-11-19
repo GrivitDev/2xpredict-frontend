@@ -107,7 +107,7 @@ export function TickerAd({
 
             {/* Subtitle */}
 
-            {ad.subTitle && (
+            {ad.subtitle && (
 
               <>
 
@@ -129,7 +129,7 @@ export function TickerAd({
                   "
                 >
 
-                  {ad.subTitle}
+                  {ad.subtitle}
 
                 </span>
 

@@ -1,93 +1,19 @@
-import api from '@/lib/axios';
+import { apiRequest } from '../lib/axios';
+import type { ReferralsMonitorResponse } from '../types/monitoring';
 
-import {
-  Referral,
-  ReferralAdminStats,
-  ReferralStats,
-  MyReferralLink,
-} from '@/types/referral';
+/** Single client for public, admin and monitoring endpoints in Referrals. */
+export const referralsService = {
+  getMyReferralLink: <TResponse = unknown>() => apiRequest<TResponse>({ method: 'GET', path: '/referrals/my-link' }),
+  getMyReferrals: <TResponse = unknown>() => apiRequest<TResponse>({ method: 'GET', path: '/referrals/my-referrals' }),
+  getStats: <TResponse = unknown>() => apiRequest<TResponse>({ method: 'GET', path: '/referrals/stats' }),
+  getAdminReferrals: <TResponse = unknown>() => apiRequest<TResponse>({ method: 'GET', path: '/referrals/admin/all' }),
+  getAdminReferralStats: <TResponse = unknown>() => apiRequest<TResponse>({ method: 'GET', path: '/referrals/admin/stats' }),
+  test: <TResponse = unknown>() => apiRequest<TResponse>({ method: 'GET', path: '/referrals/test' }),
+  getModuleMonitor: () => apiRequest<ReferralsMonitorResponse>({ method: 'GET', path: '/referrals/admin/monitor' }),
+} as const;
 
-
-// ============================================================
-// MY REFERRAL LINK
-// ============================================================
-
-export async function getMyReferralLink(): Promise<
-  MyReferralLink
-> {
-
-  const response =
-    await api.get<MyReferralLink>(
-      '/referrals/my-link',
-    );
-
-  return response.data;
-}
-
-
-// ============================================================
-// MY REFERRALS
-// ============================================================
-
-export async function getMyReferrals(): Promise<
-  Referral[]
-> {
-
-  const response =
-    await api.get<Referral[]>(
-      '/referrals/my-referrals',
-    );
-
-  return response.data;
-}
-
-
-// ============================================================
-// MY REFERRAL STATS
-// ============================================================
-
-export async function getReferralStats(): Promise<
-  ReferralStats
-> {
-
-  const response =
-    await api.get<ReferralStats>(
-      '/referrals/stats',
-    );
-
-  return response.data;
-}
-
-
-// ============================================================
-// ADMIN - ALL REFERRALS
-// ============================================================
-
-export async function getAdminReferrals(): Promise<
-  Referral[]
-> {
-
-  const response =
-    await api.get<Referral[]>(
-      '/referrals/admin/all',
-    );
-
-  return response.data;
-}
-
-
-// ============================================================
-// ADMIN - REFERRAL STATS
-// ============================================================
-
-export async function getAdminReferralStats(): Promise<
-  ReferralAdminStats
-> {
-
-  const response =
-    await api.get<ReferralAdminStats>(
-      '/referrals/admin/stats',
-    );
-
-  return response.data;
-}
+export const getMyReferralLink = () => referralsService.getMyReferralLink<any>();
+export const getMyReferrals = () => referralsService.getMyReferrals<any>();
+export const getReferralStats = () => referralsService.getStats<any>();
+export const getAdminReferrals = () => referralsService.getAdminReferrals<any>();
+export const getAdminReferralStats = () => referralsService.getAdminReferralStats<any>();

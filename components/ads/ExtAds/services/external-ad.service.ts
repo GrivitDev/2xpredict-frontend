@@ -55,85 +55,36 @@ export class ExternalAdService {
     );
   }
 
-  private validatePolicy(
-    value: unknown,
-  ): ExternalAdPolicy {
-    if (
-      !value ||
-      typeof value !== 'object'
-    ) {
-      throw new Error(
-        'Invalid external ad policy response',
-      );
-    }
-
-    const policy =
-      value as Record<
-        string,
-        unknown
-      >;
-
-    const validFrequency =
-      policy.frequency ===
-        'NONE' ||
-      policy.frequency ===
-        'LOW' ||
-      policy.frequency ===
-        'NORMAL';
-
-    if (
-      typeof policy.enabled !==
-        'boolean' ||
-      typeof policy.showInternalAds !==
-        'boolean' ||
-      !validFrequency ||
-      typeof policy.aggressive !==
-        'boolean' ||
-      typeof policy.refreshInterval !==
-        'number' ||
-      !Number.isFinite(
-        policy.refreshInterval,
-      ) ||
-      policy.refreshInterval < 0 ||
-      typeof policy.allowPopup !==
-        'boolean' ||
-      typeof policy.allowInterstitial !==
-        'boolean' ||
-      typeof policy.allowRewarded !==
-        'boolean'
-    ) {
-      throw new Error(
-        'Invalid external ad policy response',
-      );
-    }
-
+  private validatePolicy(value: unknown): ExternalAdPolicy {
+    if (!value || typeof value !== 'object') throw new Error('Invalid external ad policy response');
+    const root = value as Record<string, unknown>;
+    const policy = (root.external && typeof root.external === 'object' ? root.external : root) as Record<string, unknown>;
+    const rawTypes = (policy.allowedTypes && typeof policy.allowedTypes === 'object' ? policy.allowedTypes : {}) as Record<string, unknown>;
+    const rawAudiences = (policy.audiences && typeof policy.audiences === 'object' ? policy.audiences : {}) as Record<string, unknown>;
+    const bool = (value: unknown, fallback = false) => typeof value === 'boolean' ? value : fallback;
+    const number = (value: unknown, fallback: number) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback;
+    const frequency = policy.frequency === 'NONE' || policy.frequency === 'LOW' || policy.frequency === 'NORMAL' ? policy.frequency : 'NONE';
+    const enabled = bool(policy.enabledForCurrentAudience, bool(policy.enabled, bool(policy.configuredEnabled, false)));
+    const allowBanner = bool(rawTypes.BANNER, bool(policy.allowBanner, true));
+    const allowNative = bool(rawTypes.NATIVE, bool(policy.allowNative, true));
+    const allowInterstitial = bool(rawTypes.INTERSTITIAL, bool(policy.allowInterstitial, true));
+    const allowPopup = bool(rawTypes.POPUP, bool(policy.allowPopup, false));
+    const allowRewarded = bool(rawTypes.REWARDED, bool(policy.allowRewarded, false));
+    const allowSticky = bool(rawTypes.STICKY, bool(policy.allowSticky, true));
+    const allowVideo = bool(rawTypes.VIDEO, bool(policy.allowVideo, false));
     return {
-      enabled:
-        policy.enabled,
-
-      showInternalAds:
-        policy.showInternalAds,
-
-      frequency:
-        policy.frequency as ExternalAdPolicy['frequency'],
-
-      aggressive:
-        policy.aggressive,
-
-      refreshInterval:
-        Math.max(
-          0,
-          policy.refreshInterval,
-        ),
-
-      allowPopup:
-        policy.allowPopup,
-
-      allowInterstitial:
-        policy.allowInterstitial,
-
-      allowRewarded:
-        policy.allowRewarded,
+      enabled,
+      audiences: { GUEST:bool(rawAudiences.GUEST,true), FREE:bool(rawAudiences.FREE,true), REGULAR:bool(rawAudiences.REGULAR,true), VIP:bool(rawAudiences.VIP,false), PREMIUM:bool(rawAudiences.PREMIUM,false) },
+      frequency,
+      refreshIntervalSeconds:number(policy.refreshIntervalSeconds, number(policy.refreshInterval,60)),
+      maxImpressionsPerSession:number(policy.maxImpressionsPerSession,3),
+      maxImpressionsPerDay:number(policy.maxImpressionsPerDay,20),
+      allowedTypes:{ BANNER:allowBanner, INTERSTITIAL:allowInterstitial, NATIVE:allowNative, REWARDED:allowRewarded, POPUP:allowPopup, STICKY:allowSticky, VIDEO:allowVideo },
+      allowBanner, allowNative, allowInterstitial, allowPopup, allowRewarded, allowSticky, allowVideo,
+      // External policy must never switch off in-app campaign/InternalAds delivery.
+      showInternalAds:true,
+      aggressive:frequency==='NORMAL',
+      refreshInterval:number(policy.refreshIntervalSeconds,number(policy.refreshInterval,60)),
     };
   }
 

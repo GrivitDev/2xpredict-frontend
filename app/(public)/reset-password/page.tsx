@@ -2,9 +2,5 @@ import { Suspense } from 'react';
 import ResetPasswordForm from './ResetPasswordForm';
 
 export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordForm />
-    </Suspense>
-  );
+  return <Suspense fallback={<div className="flex min-h-[100svh] items-center justify-center bg-background"><span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}><ResetPasswordForm /></Suspense>;
 }

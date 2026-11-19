@@ -1,39 +1,25 @@
-import {
-  AdPage,
-} from './ad-page';
+import type { AdPage } from '@/types/ads';
 
-
-// ============================================================
-// AD ROUTES
-// ============================================================
-
-export const AD_ROUTES = {
-
-  [AdPage.HOME]:
-    '/',
-
-  [AdPage.DASHBOARD]:
-    '/dashboard',
-
-  [AdPage.PRICING]:
-    '/pricing',
-
-  [AdPage.PREDICTIONS]:
-    '/predictions',
-
-  [AdPage.COMMUNITY]:
-    '/community',
-
-  [AdPage.ABOUT]:
-    '/about',
-
-  [AdPage.PURCHASES]:
-    '/dashboard/purchases',
-
-  [AdPage.SUBSCRIPTIONS]:
-    '/dashboard/subscriptions',
-
-  [AdPage.REFFERALS]:
-    '/dashboard/referrals',
-
-} as const;
+/**
+ * Default URL for each legacy ad-page key. Older route names deliberately map
+ * to the current consolidated public pages rather than missing/admin pages.
+ */
+export const AD_ROUTES: Record<AdPage, string> = {
+  HOME: '/',
+  DASHBOARD: '/profile',
+  PRICING: '/pricing',
+  PREDICTIONS: '/predictions',
+  ABOUT: '/',
+  PURCHASES: '/profile#account-billing',
+  SUBSCRIPTIONS: '/profile#account-billing',
+  REFERRALS: '/profile#referrals',
+  BET_LAB: '/bet-lab',
+  PICK_CENTER: '/predictions',
+  SLIP_CENTER: '/predictions',
+  ODDS_CENTER: '/matches',
+  BONUSES: '/profile#rewards',
+  PROMOS: '/promos',
+  WALLET: '/profile#wallet',
+  REGISTER: '/register',
+  LOGIN: '/login',
+};

@@ -119,7 +119,7 @@ export function AdTitle({
         {ad.title}
       </h2>
 
-      {ad.subTitle && (
+      {ad.subtitle && (
         <p
           className={cn(
             `
@@ -136,7 +136,7 @@ export function AdTitle({
               : 'text-muted-foreground',
           )}
         >
-          {ad.subTitle}
+          {ad.subtitle}
         </p>
       )}
     </div>

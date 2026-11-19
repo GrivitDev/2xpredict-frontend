@@ -1,107 +1,59 @@
-import api from '@/lib/axios';
+/** Admin-only client for backend/src/admin-users/admin-users.controller.ts. */
+import { apiRequest } from '../lib/axios';
+import type {
+  AdminUserQueryDto,
+  SuspendUserDto,
+} from '../types/endpoint-args/admin-users';
+import type { LimitPageResult } from '../types/common';
+import type { Payment } from '../types/payments';
+import type { Subscription } from '../types/subscriptions';
 
-// =========================
-// GET USERS (ADMIN TABLE)
-// =========================
+export const adminUsersService = {
+  getUsers: <TResponse = unknown>(query: AdminUserQueryDto = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users', query }),
 
-export const getUsers = async (params: {
-  search?: string;
-  page?: number;
-  status?: string;
-  role?: string;
-}) => {
+  getUserDetails: <TResponse = unknown>(id: string) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/details', pathParams: { id } }),
 
-  const res =
-    await api.get(
-      '/admin/users',
-      {
-        params,
-      },
-    );
+  getPaymentHistory: (id: string, query: Pick<AdminUserQueryDto, 'page' | 'limit'> = {}) =>
+    apiRequest<LimitPageResult<Payment>>({ method: 'GET', path: '/admin/users/:id/payments', pathParams: { id }, query }),
 
-  return res.data;
-};
+  getSubscriptionHistory: (id: string, query: Pick<AdminUserQueryDto, 'page' | 'limit'> = {}) =>
+    apiRequest<LimitPageResult<Subscription>>({ method: 'GET', path: '/admin/users/:id/subscriptions', pathParams: { id }, query }),
 
+  getBetLabTickets: <TResponse = unknown>(id: string, query: { page?: number; limit?: number; status?: string } = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/bet-lab/tickets', pathParams: { id }, query }),
 
-// =========================
-// GET USER DETAILS
-// =========================
+  getBetLabLedger: <TResponse = unknown>(id: string, query: { page?: number; limit?: number } = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/bet-lab/ledger', pathParams: { id }, query }),
 
-export const getUser = async (
-  id:string,
-) => {
+  getReferrals: <TResponse = unknown>(id: string, query: { page?: number; limit?: number } = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/referrals', pathParams: { id }, query }),
 
-  const res =
-    await api.get(
-      `/admin/users/${id}/details`,
-    );
+  getPromotionRewards: <TResponse = unknown>(id: string, query: { page?: number; limit?: number } = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/promotions/rewards', pathParams: { id }, query }),
 
-  return res.data;
-};
+  getBonuses: <TResponse = unknown>(id: string, query: { page?: number; limit?: number } = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/bonuses', pathParams: { id }, query }),
 
+  getAuditHistory: <TResponse = unknown>(id: string, query: { page?: number; limit?: number } = {}) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/audit', pathParams: { id }, query }),
 
-// =========================
-// USER ACTIONS
-// =========================
+  suspend: <TResponse = unknown>(id: string, body: SuspendUserDto) =>
+    apiRequest<TResponse>({ method: 'PATCH', path: '/admin/users/:id/suspend', pathParams: { id }, body }),
 
-export const suspendUser = (
-  id:string,
-  data:{
-    reason?:string;
-    bannedUntil?:Date;
-  },
-) =>
-  api.patch(
-    `/admin/users/${id}/suspend`,
-    data,
-  );
+  activate: <TResponse = unknown>(id: string) =>
+    apiRequest<TResponse>({ method: 'PATCH', path: '/admin/users/:id/activate', pathParams: { id } }),
 
+  remove: <TResponse = unknown>(id: string) =>
+    apiRequest<TResponse>({ method: 'PATCH', path: '/admin/users/:id/delete', pathParams: { id } }),
 
-export const activateUser = (
-  id:string,
-) =>
-  api.patch(
-    `/admin/users/${id}/activate`,
-  );
+  logoutAll: <TResponse = unknown>(id: string) =>
+    apiRequest<TResponse>({ method: 'PATCH', path: '/admin/users/:id/logout-all', pathParams: { id } }),
 
+  getUserSessions: <TResponse = unknown>(id: string) =>
+    apiRequest<TResponse>({ method: 'GET', path: '/admin/users/:id/sessions', pathParams: { id } }),
 
-export const deleteUser = (
-  id:string,
-) =>
-  api.patch(
-    `/admin/users/${id}/delete`,
-  );
-
-
-export const forceLogout = (
-  id:string,
-) =>
-  api.patch(
-    `/admin/users/${id}/logout-all`,
-  );
-
-
-// =========================
-// SESSION MANAGEMENT
-// =========================
-
-
-// REVOKE SINGLE SESSION
-
-export const revokeUserSession = (
-  userId:string,
-  sessionId:string,
-) =>
-  api.patch(
-    `/admin/users/${userId}/sessions/${sessionId}/revoke`,
-  );
-
-
-// GET USER SESSIONS
-
-export const getUserSessions = (
-  userId:string,
-) =>
-  api.get(
-    `/admin/users/${userId}/sessions`,
-  );
+  revokeSession: <TResponse = unknown>(id: string, sessionId: string) =>
+    apiRequest<TResponse>({ method: 'PATCH', path: '/admin/users/:id/sessions/:sessionId/revoke', pathParams: { id, sessionId } }),
+} as const;

@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-import { AdminAd } from '@/types/ad';
+import { AdminAd } from '@/types/ads';
 
 interface AdTableProps {
   ads: AdminAd[];

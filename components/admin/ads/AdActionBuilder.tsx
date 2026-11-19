@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { AdAction } from '@/types/ad';
+import type { AdAction, AdPage as AdPageValue } from '@/types/ads';
 import { AdPage } from '@/constants/ads/ad-page';
 import { AD_ROUTES } from '@/constants/ads/ad-routes';
 
@@ -29,9 +29,9 @@ export function AdActionBuilder({
   const [label, setLabel] = useState('');
   const [url, setUrl] = useState('');
   const [selectedPage, setSelectedPage] =
-    useState<AdPage>();
+    useState<AdPageValue>();
 
-  function handlePageSelect(page: AdPage) {
+  function handlePageSelect(page: AdPageValue) {
     setSelectedPage(page);
     setUrl(AD_ROUTES[page]);
   }
@@ -105,7 +105,7 @@ export function AdActionBuilder({
           <Select
             value={selectedPage}
             onValueChange={(page) =>
-              handlePageSelect(page as AdPage)
+              handlePageSelect(page as AdPageValue)
             }
           >
             <SelectTrigger className="h-9 text-sm">
@@ -198,3 +198,4 @@ export function AdActionBuilder({
     </div>
   );
 }
+

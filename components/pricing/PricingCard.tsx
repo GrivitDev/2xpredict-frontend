@@ -1,387 +1,254 @@
 'use client';
 
 import {
-  Check,
-  Crown,
-  ShieldCheck,
-  Sparkles,
-  Trophy,
-} from 'lucide-react';
+  FaArrowRight,
+  FaCheck,
+  FaCrown,
+  FaShieldHalved,
+  FaStar,
+  FaTrophy,
+} from 'react-icons/fa6';
 
-import type { PaymentCurrency } from '@/services/payment-gateway.service';
+import type { Currency as PaymentCurrency } from '@/types/payments';
 
-interface PricingPlan {
-  id:
-    | 'free'
-    | 'regular'
-    | 'vip';
+type PlanId = 'free' | 'regular' | 'vip' | 'premium';
 
+export interface UpgradePriceBreakdown {
+  currentPlan: PlanId;
+  targetPlan: PlanId;
+  currency: PaymentCurrency;
+  subscriptionDurationDays: number;
+  daysRemaining: number;
+  currentDailyPrice: number;
+  targetDailyPrice: number;
+  upgradeDailyPrice: number;
+  credit: number;
+  upgradeCost: number;
+  amount: number;
+  canUpgrade: boolean;
+}
+
+export interface PricingPlanCardData {
+  id: PlanId;
   name: string;
-
   price: number;
-
   description: string;
-
   features: string[];
-
   popular?: boolean;
 }
 
 interface PricingCardProps {
-  plan: PricingPlan;
-
+  plan: PricingPlanCardData;
   currency: PaymentCurrency;
-
   subscriptionDurationDays: number;
-
-  onSelect: (
-    id:
-      | 'free'
-      | 'regular'
-      | 'vip',
-  ) => void;
+  currentPlan: PlanId;
+  displayPrice: number;
+  priceLabel: string;
+  upgradeQuote?: UpgradePriceBreakdown;
+  quoteLoading?: boolean;
+  quoteUnavailable?: boolean;
+  actionLabel: string;
+  actionDisabled?: boolean;
+  onSelect: (id: PlanId) => void;
 }
 
 const icons = {
-  free: ShieldCheck,
-  regular: Trophy,
-  vip: Crown,
+  free: FaShieldHalved,
+  regular: FaTrophy,
+  vip: FaCrown,
+  premium: FaStar,
+} satisfies Record<PlanId, typeof FaShieldHalved>;
+
+const cardStyles: Record<PlanId, string> = {
+  free: 'border-border/70 bg-card/70 hover:border-brand-burgundy/30',
+  regular:
+    'border-brand-burgundy/25 bg-gradient-to-b from-brand-burgundy/[0.06] via-card/80 to-card/60',
+  vip:
+    'border-brand-champagne/50 bg-gradient-to-b from-brand-champagne/[0.12] via-card/80 to-card/60 shadow-lg shadow-brand-champagne/10',
+  premium:
+    'border-brand-burgundy/40 bg-gradient-to-b from-brand-burgundy/[0.10] via-card/80 to-brand-champagne/[0.04] shadow-lg shadow-brand-burgundy/10',
 };
 
-const buttonText = {
-  free: 'Get Started',
-  regular: 'Subscribe',
-  vip: 'Become VIP',
+const iconStyles: Record<PlanId, string> = {
+  free: 'bg-muted text-muted-foreground',
+  regular: 'bg-brand-burgundy/10 text-brand-burgundy',
+  vip: 'bg-brand-champagne/25 text-foreground',
+  premium: 'bg-brand-burgundy text-white',
 };
 
-const cardStyles = {
-  free: `
-    border-border/70
-    bg-card/60
-    hover:border-primary/30
-  `,
-
-  regular: `
-    border-blue-500/40
-    bg-gradient-to-b
-    from-blue-500/[0.07]
-    via-card/70
-    to-card/50
-    shadow-lg
-    shadow-blue-500/10
-    lg:scale-[1.02]
-  `,
-
-  vip: `
-    border-gold/30
-    bg-gradient-to-b
-    from-gold/[0.08]
-    via-card/70
-    to-card/50
-    shadow-lg
-    shadow-gold/10
-  `,
-};
-
-const iconStyles = {
-  free: `
-    bg-muted
-    text-muted-foreground
-  `,
-
-  regular: `
-    bg-blue-500/10
-    text-blue-500
-  `,
-
-  vip: `
-    bg-gold/10
-    text-gold
-  `,
-};
+function formatPrice(value: number, currency: PaymentCurrency): string {
+  return new Intl.NumberFormat(currency === 'NGN' ? 'en-NG' : 'en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: currency === 'NGN' ? 0 : 2,
+  }).format(value);
+}
 
 export default function PricingCard({
   plan,
   currency,
   subscriptionDurationDays,
+  currentPlan,
+  displayPrice,
+  priceLabel,
+  upgradeQuote,
+  quoteLoading = false,
+  quoteUnavailable = false,
+  actionLabel,
+  actionDisabled = false,
   onSelect,
 }: PricingCardProps) {
-
   const Icon = icons[plan.id];
-
-  const currencySymbol =
-    currency === 'USD'
-      ? '$'
-      : '₦';
-
-
-  const handleSelectPlan = () => {
-    if (plan.id === 'free') {
-      window.location.href =
-        '/register';
-
-      return;
-    }
-
-    onSelect(plan.id);
-  };
-
+  const isCurrent = currentPlan === plan.id;
+  const isHigherThanCurrent =
+    ({ free: 0, regular: 1, vip: 2, premium: 3 }[plan.id] >
+      { free: 0, regular: 1, vip: 2, premium: 3 }[currentPlan]);
+  const isUpgradeQuote = Boolean(
+    upgradeQuote?.canUpgrade && isHigherThanCurrent,
+  );
 
   return (
-    <div
-      className={`
-        group
-        relative
-        overflow-hidden
-        rounded-2xl
-        border
-        p-5
-        ${cardStyles[plan.id]}
-      `}
+    <article
+      className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-6 ${cardStyles[plan.id]} ${plan.popular ? 'md:-translate-y-1' : ''}`}
     >
-
-      {/* VIP GLOW */}
-
-      {plan.id === 'vip' && (
+      {plan.id === 'premium' && (
         <div
-          className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-            h-40
-            w-40
-            rounded-full
-            bg-gold/10
-            blur-3xl
-          "
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-brand-burgundy/10 blur-3xl"
         />
       )}
 
-
-      {/* POPULAR */}
-
       {plan.popular && (
-        <div
-          className="
-            absolute
-            right-4
-            top-4
-            inline-flex
-            items-center
-            gap-1.5
-            rounded-full
-            border
-            border-blue-500/20
-            bg-blue-500/10
-            px-2.5
-            py-1
-            text-[9px]
-            font-bold
-            uppercase
-            tracking-wider
-            text-blue-500
-          "
-        >
-          <Sparkles className="h-3 w-3" />
-
+        <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-brand-burgundy/15 bg-brand-burgundy/5 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-brand-burgundy">
+          <FaStar aria-hidden="true" className="h-2.5 w-2.5" />
           Popular
-        </div>
+        </span>
       )}
 
-
-      <div className="relative">
-
-        {/* HEADER */}
-
-        <div className="flex items-center gap-3">
-
-          <div
-            className={`
-              flex
-              h-10
-              w-10
-              shrink-0
-              items-center
-              justify-center
-              rounded-xl
-              ${iconStyles[plan.id]}
-            `}
+      <div className="relative flex flex-1 flex-col">
+        <div className="flex items-center gap-3 pr-12">
+          <span
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconStyles[plan.id]}`}
           >
-            <Icon className="h-5 w-5" />
-          </div>
-
+            <Icon aria-hidden="true" className="h-4 w-4" />
+          </span>
           <div className="min-w-0">
-
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-              "
-            >
+            <h2 className="text-lg font-extrabold tracking-tight text-foreground">
               {plan.name}
             </h2>
-
-            <p
-              className="
-                mt-0.5
-                truncate
-                text-xs
-                text-muted-foreground
-              "
-            >
+            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
               {plan.description}
             </p>
-
           </div>
-
         </div>
 
-
-        {/* PRICE */}
-
-        <div className="mt-5">
-
-          {plan.price === 0 ? (
-            <div
-              className="
-                text-3xl
-                font-black
-                tracking-tight
-              "
-            >
-              Free
-            </div>
+        <div className="mt-5 min-h-[90px]">
+          {quoteLoading && isHigherThanCurrent && currentPlan !== 'free' ? (
+            <>
+              <p className="text-xs font-semibold text-muted-foreground">
+                Calculating your upgrade
+              </p>
+              <div className="mt-2 h-8 w-36 animate-pulse rounded-lg bg-muted" />
+            </>
+          ) : quoteUnavailable && isHigherThanCurrent && currentPlan !== 'free' ? (
+            <>
+              <p className="text-xs font-semibold text-muted-foreground">
+                Upgrade price unavailable
+              </p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Refresh the page to load your personalized calculation.
+              </p>
+            </>
+          ) : plan.id === 'free' ? (
+            <>
+              <p className="text-3xl font-black tracking-tight text-foreground">
+                Free
+              </p>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                No subscription payment
+              </p>
+            </>
           ) : (
-            <div
-              className="
-                flex
-                items-baseline
-                gap-1.5
-              "
-            >
-              <span
-                className="
-                  text-3xl
-                  font-black
-                  tracking-[-0.04em]
-                "
-              >
-                {currencySymbol}
-                {plan.price.toLocaleString()}
-              </span>
-
-              <span
-                className="
-                  text-[10px]
-                  font-medium
-                  text-muted-foreground
-                "
-              >
-                / {subscriptionDurationDays} days
-              </span>
-            </div>
+            <>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {priceLabel}
+              </p>
+              <p className="mt-1 text-3xl font-black tracking-[-0.04em] text-foreground">
+                {formatPrice(displayPrice, currency)}
+              </p>
+              <p className="mt-1 text-[10px] font-medium text-muted-foreground">
+                {isUpgradeQuote
+                  ? `Upgrade now · ${upgradeQuote?.daysRemaining ?? 0} days remaining`
+                  : `/${subscriptionDurationDays} days`}
+              </p>
+            </>
           )}
-
         </div>
 
+        {isUpgradeQuote && upgradeQuote && (
+          <div className="mt-3 rounded-xl border border-brand-burgundy/15 bg-background/70 p-3 text-xs">
+            <p className="font-bold text-foreground">Upgrade calculation</p>
+            <div className="mt-2 space-y-1.5 text-muted-foreground">
+              <div className="flex items-start justify-between gap-3">
+                <span>New plan price</span>
+                <span className="shrink-0 font-medium text-foreground">
+                  {formatPrice(
+                    upgradeQuote.targetDailyPrice * upgradeQuote.subscriptionDurationDays,
+                    currency,
+                  )}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span>Remaining subscription credit</span>
+                <span className="shrink-0 font-medium text-foreground">
+                  −{formatPrice(upgradeQuote.credit, currency)}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3 border-t border-border/70 pt-2 font-bold text-foreground">
+                <span>Pay now</span>
+                <span className="shrink-0">
+                  {formatPrice(upgradeQuote.amount, currency)}
+                </span>
+              </div>
+            </div>
+            <p className="mt-2 leading-5 text-muted-foreground">
+              Your upgrade takes effect immediately. Unused value from your current plan is credited toward the new plan.
+            </p>
+          </div>
+        )}
 
-        {/* FEATURES */}
-
-        <div className="mt-5">
-
-          <ul className="space-y-2.5">
-
-            {plan.features.map(
-              (feature) => (
-                <li
-                  key={feature}
-                  className="
-                    flex
-                    items-start
-                    gap-2
-                  "
-                >
-                  <span
-                    className="
-                      mt-0.5
-                      flex
-                      h-4
-                      w-4
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-green-500/10
-                    "
-                  >
-                    <Check
-                      className="
-                        h-2.5
-                        w-2.5
-                        text-green-500
-                      "
-                    />
-                  </span>
-
-                  <span
-                    className="
-                      text-xs
-                      leading-5
-                      text-muted-foreground
-                    "
-                  >
-                    {feature}
-                  </span>
-                </li>
-              ),
-            )}
-
-          </ul>
-
-        </div>
-
-
-        {/* ACTION */}
+        <ul className="mt-5 flex-1 space-y-2.5">
+          {plan.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2.5">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+                <FaCheck aria-hidden="true" className="h-2 w-2" />
+              </span>
+              <span className="text-xs leading-5 text-muted-foreground">
+                {feature}
+              </span>
+            </li>
+          ))}
+        </ul>
 
         <button
           type="button"
-          onClick={handleSelectPlan}
-          className={`
-            mt-6
-            flex
-            w-full
-            items-center
-            justify-center
-            rounded-xl
-            px-4
-            py-2.5
-            text-xs
-            font-bold
-            ${
-              plan.id === 'vip'
-                ? `
-                  bg-gold
-                  text-background
-                  shadow-md
-                  shadow-gold/10
-                  hover:bg-gold/90
-                `
-                : `
-                  bg-primary
-                  text-primary-foreground
-                  shadow-md
-                  shadow-primary/10
-                  hover:opacity-90
-                `
-            }
-          `}
+          disabled={actionDisabled}
+          onClick={() => onSelect(plan.id)}
+          className={`mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-burgundy focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${
+            plan.id === 'vip'
+              ? 'bg-brand-champagne text-foreground hover:brightness-95'
+              : plan.id === 'premium'
+                ? 'bg-brand-burgundy text-white hover:brightness-110'
+                : 'bg-primary text-primary-foreground hover:opacity-90'
+          }`}
         >
-          {buttonText[plan.id]}
+          {actionLabel}
+          {!actionDisabled && !isCurrent && (
+            <FaArrowRight aria-hidden="true" className="h-3 w-3" />
+          )}
         </button>
-
       </div>
-    </div>
+    </article>
   );
 }
+

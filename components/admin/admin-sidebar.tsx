@@ -1,445 +1,148 @@
 'use client';
 
-import {
-  useState,
-} from 'react';
-
 import Link from 'next/link';
-
+import { usePathname } from 'next/navigation';
 import {
-  usePathname,
-} from 'next/navigation';
-
-import {
-  LayoutDashboard,
-  PlusCircle,
-  List,
-  Users,
-  CreditCard,
-  LogOut,
-  ChevronRight,
-  ShieldCheck,
-  Megaphone,
-  TicketPercent,
-  Gift,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ChartNoAxesCombined,
-} from 'lucide-react';
-
-import {
-  useAuth,
-} from '@/providers/auth-provider';
+  FaChartLine,
+  FaCoins,
+  FaCreditCard,
+  FaFutbol,
+  FaGift,
+  FaGear,
+  FaGaugeHigh,
+  FaHouse,
+  FaLock,
+  FaMoneyBillWave,
+  FaBell,
+  FaShieldHalved,
+  FaTicket,
+  FaUsers,
+  FaXmark,
+} from 'react-icons/fa6';
+import { useAuth } from '@/providers/auth-provider';
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-const sections = [
+const groups = [
   {
     title: 'Overview',
     items: [
-      {
-        name: 'Dashboard',
-        href: '/admin',
-        icon: LayoutDashboard,
-      },
+      { name: 'Home', href: '/', icon: FaHouse },
+      { name: 'Dashboard', href: '/admin', icon: FaGaugeHigh },
+      { name: 'Analytics', href: '/admin/website-analytics', icon: FaChartLine },
+      { name: 'System', href: '/admin/system-monitor', icon: FaGear },
     ],
   },
   {
-    title: 'Predictions',
+    title: 'Products',
     items: [
-      {
-        name: 'Create Prediction',
-        href: '/admin/create-prediction',
-        icon: PlusCircle,
-      },
-      {
-        name: 'Manage Predictions',
-        href: '/admin/predictions',
-        icon: List,
-      },
+      { name: 'Odds', href: '/admin/odds-center', icon: FaCoins },
+      { name: 'Picks', href: '/admin/pick-center', icon: FaShieldHalved },
+      { name: 'Predictions', href: '/admin/predictions-center', icon: FaFutbol },
+      { name: 'Slips', href: '/admin/slip-center', icon: FaTicket },
     ],
   },
   {
-    title: 'Management',
+    title: 'Manage',
     items: [
-      {
-        name: 'Users',
-        href: '/admin/users',
-        icon: Users,
-      },
-      {
-        name: 'Analytics',
-        href: '/admin/analytics',
-        icon: ChartNoAxesCombined,
-      },
-      {
-        name: 'Subscriptions',
-        href: '/admin/subscriptions',
-        icon: CreditCard,
-      },
-      {
-        name: 'Ads',
-        href: '/admin/ads',
-        icon: Megaphone,
-      },
-      {
-        name: 'Promos',
-        href: '/admin/promos',
-        icon: Gift,
-      },
-      {
-        name: 'Referrals',
-        href: '/admin/referrals',
-        icon: TicketPercent,
-      },
+      { name: 'Users', href: '/admin/users', icon: FaUsers },
+      { name: 'Notifications', href: '/admin/notifications', icon: FaBell },
+      { name: 'customer', href: '/admin/customer-care', icon: FaUsers },
+      { name: 'Bonuses', href: '/admin/bonuses', icon: FaGift },
+      { name: 'Promos', href: '/admin/promos', icon: FaTicket },
+      { name: 'Referrals', href: '/admin/referrals', icon: FaUsers },
+      { name: 'Payments', href: '/admin/subscriptions', icon: FaCreditCard },
+      { name: 'Ads', href: '/admin/ads', icon: FaMoneyBillWave },
     ],
   },
 ];
 
-export default function AdminSidebar({
-  open,
-  onClose,
-}: Props) {
+export default function AdminSidebar({ open, onClose }: Props) {
   const pathname = usePathname();
   const { logout } = useAuth();
 
-  const [
-    collapsed,
-    setCollapsed,
-  ] = useState(false);
-
-  const toggleCollapsed = () => {
-    setCollapsed((value) => !value);
-  };
-
   return (
     <>
-      {/* MOBILE OVERLAY */}
-
-      {open && (
-        <div
+      {open ? (
+        <button
+          type="button"
+          aria-label="Close admin navigation"
           onClick={onClose}
-          className="
-            fixed
-            inset-0
-            z-40
-            bg-black/50
-            backdrop-blur-sm
-            lg:hidden
-          "
+          className="fixed inset-x-0 bottom-0 top-[calc(76px_+_env(safe-area-inset-top))] z-[70] bg-black/45 backdrop-blur-[2px] sm:top-[calc(84px_+_env(safe-area-inset-top))] lg:hidden"
         />
-      )}
-
-      {/* SIDEBAR */}
+      ) : null}
 
       <aside
-        className={`
-          fixed
-          inset-y-0
-          left-0
-          z-50
-          flex
-          h-screen
-          shrink-0
-          flex-col
-          overflow-hidden
-          border-r
-          border-border/60
-          bg-background/95
-          backdrop-blur-xl
-          transition-[width,transform]
-          duration-300
-          w-80
-          lg:static
-          lg:bg-background/80
-          ${collapsed ? 'lg:w-24' : 'lg:w-80'}
-          ${open ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0
-        `}
+        aria-label="Admin sidebar"
+        className={`fixed left-0 top-[calc(76px_+_env(safe-area-inset-top))] z-[80] flex h-[calc(100dvh_-_76px_-_env(safe-area-inset-top))] w-[min(84vw,290px)] shrink-0 flex-col border-r border-border/80 bg-card shadow-xl transition-transform duration-200 sm:top-[calc(84px_+_env(safe-area-inset-top))] sm:h-[calc(100dvh_-_84px_-_env(safe-area-inset-top))] lg:sticky lg:top-[92px] lg:z-30 lg:h-[calc(100dvh_-_92px)] lg:w-[84px] lg:max-w-[15vw] lg:translate-x-0 lg:shadow-none ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        {/* GLOWS */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            -left-32
-            -top-32
-            h-72
-            w-72
-            rounded-full
-            bg-primary/20
-            blur-[120px]
-          "
-        />
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            bottom-0
-            right-0
-            h-64
-            w-64
-            rounded-full
-            bg-emerald-500/10
-            blur-[120px]
-          "
-        />
-
-        {/* HEADER */}
-
-        <div
-          className={`
-            relative
-            flex
-            items-center
-            border-b
-            border-border/60
-            px-7
-            py-8
-            ${collapsed ? 'justify-center' : ''}
-          `}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
-                rounded-2xl
-                border
-                border-primary/20
-                bg-primary/10
-                text-primary
-                shadow-lg
-                shadow-primary/10
-              "
-            >
-              <ShieldCheck size={26} />
-            </div>
-
-            {!collapsed && (
-              <div className="min-w-0">
-                <h1 className="text-xl font-black tracking-tight">
-                  Admin Center
-                </h1>
-
-                <p className="text-xs text-muted-foreground">
-                  Platform Control
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* DESKTOP COLLAPSE */}
-
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            aria-label={
-              collapsed
-                ? 'Expand sidebar'
-                : 'Collapse sidebar'
-            }
-            className="
-              ml-auto
-              hidden
-              rounded-xl
-              p-2
-              text-muted-foreground
-              transition-colors
-              hover:bg-accent
-              hover:text-foreground
-              lg:flex
-            "
-          >
-            {collapsed ? (
-              <PanelLeftOpen size={18} />
-            ) : (
-              <PanelLeftClose size={18} />
-            )}
-          </button>
-
-          {/* MOBILE CLOSE */}
-
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close sidebar"
-            className="
-              ml-auto
-              rounded-xl
-              p-2
-              text-muted-foreground
-              transition-colors
-              hover:bg-accent
-              hover:text-foreground
-              lg:hidden
-            "
-          >
-            <PanelLeftClose size={18} />
-          </button>
+        <div className="border-b border-border/70 px-2 py-3 text-center lg:px-1.5 lg:py-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary lg:text-[8px] lg:tracking-[0.08em]">Administration</p>
+          <p className="mt-1 text-sm font-semibold text-foreground lg:text-[10px] lg:leading-tight">Control Center</p>
         </div>
 
-        {/* NAVIGATION */}
-
         <nav
-          className="
-            flex-1
-            space-y-7
-            overflow-y-auto
-            px-5
-            py-6
-            scrollbar-hide
-          "
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto px-2.5 py-3 lg:space-y-3 lg:px-1.5 lg:py-2"
+          aria-label="Administration navigation"
         >
-          {sections.map((section) => (
-            <div key={section.title}>
-              {!collapsed && (
-                <p
-                  className="
-                    mb-3
-                    px-3
-                    text-[11px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.2em]
-                    text-muted-foreground/70
-                  "
-                >
-                  {section.title}
-                </p>
-              )}
-
-              <div className="space-y-2">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-
+          {groups.map((group) => (
+            <section key={group.title}>
+              <h2 className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground lg:mb-1 lg:px-0 lg:text-center lg:text-[7px] lg:tracking-normal">
+                {group.title}
+              </h2>
+              <div className="space-y-0.5 lg:space-y-1">
+                {group.items.map(({ name, href, icon: Icon }) => {
                   const active =
-                    pathname === item.href ||
-                    (
-                      item.href !== '/admin' &&
-                      pathname.startsWith(`${item.href}/`)
-                    );
+                    href === '/'
+                      ? pathname === '/'
+                      : href === '/admin'
+                        ? pathname === href
+                        : pathname === href || pathname.startsWith(`${href}/`);
 
                   return (
                     <Link
-                      key={item.href}
-                      href={item.href}
+                      key={href}
+                      href={href}
                       onClick={onClose}
-                      title={collapsed ? item.name : undefined}
-                      className={`
-                        group
-                        relative
-                        flex
-                        items-center
-                        rounded-2xl
-                        py-3.5
-                        transition-colors
-                        duration-200
-                        ${
-                          collapsed
-                            ? 'justify-center px-0'
-                            : 'gap-4 px-4'
-                        }
-                        ${
-                          active
-                            ? `
-                              bg-primary
-                              text-primary-foreground
-                              shadow-xl
-                              shadow-primary/20
-                            `
-                            : `
-                              text-muted-foreground
-                              hover:bg-accent
-                              hover:text-foreground
-                            `
-                        }
-                      `}
+                      title={name}
+                      aria-label={name}
+                      aria-current={active ? 'page' : undefined}
+                      className={`flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[12px] font-medium transition-colors lg:min-h-[58px] lg:flex-col lg:justify-center lg:gap-1 lg:rounded-md lg:px-1 lg:py-1.5 lg:text-[9px] lg:leading-tight ${active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-primary/[0.07] hover:text-foreground'}`}
                     >
-                      <Icon
-                        size={20}
-                        className="
-                          shrink-0
-                          transition-transform
-                          duration-200
-                          group-hover:scale-105
-                        "
-                      />
-
-                      {!collapsed && (
-                        <>
-                          <span className="flex-1 font-medium">
-                            {item.name}
-                          </span>
-
-                          <ChevronRight
-                            size={16}
-                            className={`
-                              transition-opacity
-                              ${
-                                active
-                                  ? 'opacity-100'
-                                  : 'opacity-0 group-hover:opacity-100'
-                              }
-                            `}
-                          />
-                        </>
-                      )}
+                      <Icon className="h-4 w-4 shrink-0 lg:h-4 lg:w-4" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 lg:flex-none lg:whitespace-normal lg:break-words lg:text-center">
+                        {name}
+                      </span>
                     </Link>
                   );
                 })}
               </div>
-            </div>
+            </section>
           ))}
         </nav>
 
-        {/* FOOTER */}
-
-        <div className="border-t border-border/60 p-5">
+        <div className="border-t border-border/70 p-2.5 lg:p-1.5">
           <button
             type="button"
-            onClick={logout}
-            title={collapsed ? 'Logout' : undefined}
-            className={`
-              group
-              flex
-              w-full
-              items-center
-              rounded-2xl
-              py-3.5
-              text-red-500
-              transition-colors
-              hover:bg-red-500/10
-              ${
-                collapsed
-                  ? 'justify-center'
-                  : 'gap-4 px-4'
-              }
-            `}
+            onClick={() => {
+              void logout();
+              onClose();
+            }}
+            className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 lg:min-h-[54px] lg:flex-col lg:justify-center lg:gap-1 lg:rounded-md lg:px-1 lg:py-1.5 lg:text-[9px]"
           >
-            <LogOut
-              size={20}
-              className="
-                shrink-0
-                transition-transform
-                group-hover:-translate-x-0.5
-              "
-            />
-
-            {!collapsed && (
-              <span className="font-medium">
-                Logout
-              </span>
-            )}
+            <FaLock className="h-3.5 w-3.5 shrink-0 lg:h-4 lg:w-4" aria-hidden="true" />
+            <span className="flex-1 lg:flex-none lg:text-center">Sign out</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close admin navigation"
+            className="mt-1 flex h-8 w-full items-center justify-center rounded-lg text-muted-foreground hover:bg-muted lg:hidden"
+          >
+            <FaXmark className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
       </aside>

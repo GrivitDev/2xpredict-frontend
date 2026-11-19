@@ -11,6 +11,7 @@ import { SEO } from '@/config/seo';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
+import AppShell from '@/components/AppShell';
 
 
 
@@ -145,16 +146,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    {
-      media: '(prefers-color-scheme: light)',
-      color: '#ffffff',
-    },
-    {
-      media: '(prefers-color-scheme: dark)',
-      color: '#020617',
-    },
-  ],
+  themeColor: '#754356',
 };
 
 
@@ -184,7 +176,7 @@ export default function RootLayout({
                 <AuthProvider>
                   <ThemeProvider>
                       <AnalyticsProvider>
-                        {children}
+                        <AppShell>{children}</AppShell>
                       </AnalyticsProvider>
                       <Toaster
                         position="top-right"
