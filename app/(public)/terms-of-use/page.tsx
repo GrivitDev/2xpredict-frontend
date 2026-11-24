@@ -1,28 +1,9 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-const sections = [
-  { id: "ownership", title: "Ownership and Scope" },
-  { id: "acceptance", title: "Acceptance of These Terms" },
-  { id: "eligibility", title: "Eligibility and Accounts" },
-  { id: "services", title: "Our Services" },
-  { id: "predictions", title: "Predictions and Information" },
-  { id: "responsible-use", title: "Responsible Use and Age Requirements" },
-  { id: "subscriptions", title: "Subscriptions and Paid Access" },
-  { id: "payments", title: "Payments and Transactions" },
-  { id: "refunds", title: "Refunds and Service Issues" },
-  { id: "privacy", title: "Privacy and Cookies" },
-  { id: "advertising", title: "Advertising and Third Parties" },
-  { id: "acceptable-use", title: "Acceptable Use" },
-  { id: "intellectual-property", title: "Intellectual Property" },
-  { id: "availability", title: "Availability and Changes" },
-  { id: "suspension", title: "Suspension and Closure" },
-  { id: "liability", title: "Disclaimers and Liability" },
-  { id: "law", title: "Complaints and Applicable Law" },
-  { id: "changes", title: "Changes to These Terms" },
-  { id: "contact", title: "Contact Information" },
-];
+import { TERMS_OF_USE_SECTIONS } from '@/lib/terms-of-use-sections';
+import {
+  TermsOfUseDesktopNavigation,
+  TermsOfUseMobileNavigation,
+  TermsOfUseNavigationProvider,
+} from '@/components/legal/TermsOfUseNavigation';
 
 const sectionClass =
   "scroll-mt-20 border-b border-border/50 py-3 last:border-b-0 sm:py-3.5";
@@ -31,62 +12,9 @@ const headingClass =
 const paragraphClass =
   "text-justify text-sm leading-[1.55] text-muted-foreground";
 
-function TableOfContents({
-  activeSection,
-  onNavigate,
-}: {
-  activeSection: string;
-  onNavigate?: () => void;
-}) {
-  return (
-    <nav aria-label="Table of contents">
-      <ul className="list-none space-y-0.5 p-0">
-        {sections.map((section) => (
-          <li key={section.id}>
-            <a
-              href={`#${section.id}`}
-              onClick={onNavigate}
-              aria-current={activeSection === section.id ? "location" : undefined}
-              className={`block rounded-md px-2 py-1 text-[12px] leading-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                activeSection === section.id
-                  ? "bg-primary/10 font-medium text-primary"
-                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-              }`}
-            >
-              {section.title}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
 export default function TermsOfUsePage() {
-  const [activeSection, setActiveSection] = useState("ownership");
-  const [mobileTocOpen, setMobileTocOpen] = useState(false);
-
-  useEffect(() => {
-    const elements = sections
-      .map(({ id }) => document.getElementById(id))
-      .filter((element): element is HTMLElement => Boolean(element));
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visible[0]) setActiveSection(visible[0].target.id);
-      },
-      { rootMargin: "-12% 0px -72% 0px", threshold: 0 }
-    );
-
-    elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, []);
-
   return (
+    <TermsOfUseNavigationProvider>
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
         <header className="mx-auto mb-4 max-w-3xl text-center sm:mb-5">
@@ -106,49 +34,14 @@ export default function TermsOfUsePage() {
           </p>
         </header>
 
-        <div className="mb-2 md:hidden">
-          <div className="overflow-hidden rounded-xl border border-border/60 bg-card/60">
-            <button
-              type="button"
-              aria-expanded={mobileTocOpen}
-              aria-controls="mobile-terms-toc"
-              onClick={() => setMobileTocOpen((open) => !open)}
-              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
-            >
-              <span>Table of contents</span>
-              <span
-                aria-hidden="true"
-                className={`text-muted-foreground transition-transform ${
-                  mobileTocOpen ? "rotate-180" : ""
-                }`}
-              >
-                ▾
-              </span>
-            </button>
-            {mobileTocOpen && (
-              <div id="mobile-terms-toc" className="border-t border-border/50 p-1.5">
-                <TableOfContents
-                  activeSection={activeSection}
-                  onNavigate={() => setMobileTocOpen(false)}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+        <TermsOfUseMobileNavigation />
 
         <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-[190px_minmax(0,1fr)] md:items-start md:gap-5 xl:grid-cols-[210px_minmax(0,1fr)] xl:gap-6">
-          <aside className="sticky top-4 hidden h-fit self-start md:block">
-            <div className="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-lg border border-border/60 bg-card/50 p-2">
-              <h2 className="mb-1 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                On this page
-              </h2>
-              <TableOfContents activeSection={activeSection} />
-            </div>
-          </aside>
+          <TermsOfUseDesktopNavigation />
 
           <article className="min-w-0 rounded-lg border border-border/60 bg-card/40 px-3 sm:px-5">
             <section id="ownership" className={sectionClass}>
-              <h2 className={headingClass}>{sections[0].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[0].title}</h2>
               <p className={paragraphClass}>
                 2xPredict (the “Platform”) is owned and operated by{" "}
                 <strong className="font-semibold text-foreground">
@@ -174,7 +67,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="acceptance" className={sectionClass}>
-              <h2 className={headingClass}>{sections[1].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[1].title}</h2>
               <p className={paragraphClass}>
                 By visiting or using the Platform, opening an account,
                 purchasing a subscription, or accessing a feature, you confirm
@@ -195,7 +88,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="eligibility" className={sectionClass}>
-              <h2 className={headingClass}>{sections[2].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[2].title}</h2>
               <p className={paragraphClass}>
                 You may use the Platform only if you are legally permitted to
                 do so in your location and meet any age or eligibility
@@ -224,7 +117,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="services" className={sectionClass}>
-              <h2 className={headingClass}>{sections[3].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[3].title}</h2>
               <p className={paragraphClass}>
                 2xPredict provides football-related content and digital
                 features. Depending on the service available at the time, this
@@ -258,7 +151,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="predictions" className={sectionClass}>
-              <h2 className={headingClass}>{sections[4].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[4].title}</h2>
               <p className={paragraphClass}>
                 Predictions, probability estimates, odds, statistics, and
                 match analysis are assessments prepared from information and
@@ -297,7 +190,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="responsible-use" className={sectionClass}>
-              <h2 className={headingClass}>{sections[5].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[5].title}</h2>
               <p className={paragraphClass}>
                 You must meet the minimum legal age for the content or activity
                 concerned and comply with all laws that apply where you live.
@@ -320,7 +213,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="subscriptions" className={sectionClass}>
-              <h2 className={headingClass}>{sections[6].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[6].title}</h2>
               <p className={paragraphClass}>
                 The Platform may provide free access, paid subscriptions,
                 VIP or other membership levels, and one-off purchases of
@@ -356,7 +249,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="payments" className={sectionClass}>
-              <h2 className={headingClass}>{sections[7].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[7].title}</h2>
               <p className={paragraphClass}>
                 Payments must be made using the methods presented on the
                 Platform. You must be authorised to use the selected payment
@@ -384,7 +277,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="refunds" className={sectionClass}>
-              <h2 className={headingClass}>{sections[8].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[8].title}</h2>
               <p className={paragraphClass}>
                 Because subscriptions and predictions are digital services,
                 payments for access that has been successfully activated or
@@ -419,7 +312,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="privacy" className={sectionClass}>
-              <h2 className={headingClass}>{sections[9].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[9].title}</h2>
               <p className={paragraphClass}>
                 We may receive information that you give us when you create or
                 manage an account, subscribe, make a purchase, contact support,
@@ -462,7 +355,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="advertising" className={sectionClass}>
-              <h2 className={headingClass}>{sections[10].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[10].title}</h2>
               <p className={paragraphClass}>
                 The Platform may display advertisements, sponsored material,
                 promotional offers, or links to external websites. We may
@@ -490,7 +383,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="acceptable-use" className={sectionClass}>
-              <h2 className={headingClass}>{sections[11].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[11].title}</h2>
               <p className={paragraphClass}>
                 You must use the Platform lawfully, responsibly, and in a way
                 that does not compromise its security or another person’s
@@ -515,7 +408,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="intellectual-property" className={sectionClass}>
-              <h2 className={headingClass}>{sections[12].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[12].title}</h2>
               <p className={paragraphClass}>
                 Unless stated otherwise, the Platform’s original branding,
                 design, layout, text, graphics, software, and other materials
@@ -543,7 +436,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="availability" className={sectionClass}>
-              <h2 className={headingClass}>{sections[13].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[13].title}</h2>
               <p className={paragraphClass}>
                 We aim to keep the Platform reliable and accessible, but we
                 cannot promise uninterrupted service or that every feature
@@ -572,7 +465,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="suspension" className={sectionClass}>
-              <h2 className={headingClass}>{sections[14].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[14].title}</h2>
               <p className={paragraphClass}>
                 We may restrict, suspend, or terminate access if we reasonably
                 believe that an account has materially breached these Terms,
@@ -600,7 +493,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="liability" className={sectionClass}>
-              <h2 className={headingClass}>{sections[15].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[15].title}</h2>
               <p className={paragraphClass}>
                 We take reasonable care in operating the Platform, but the
                 service and its content are provided on an “as available”
@@ -630,7 +523,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="law" className={sectionClass}>
-              <h2 className={headingClass}>{sections[16].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[16].title}</h2>
               <p className={paragraphClass}>
                 If you have a concern about the Platform, a subscription, a
                 payment, or an account decision, please contact us first with
@@ -650,7 +543,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="changes" className={sectionClass}>
-              <h2 className={headingClass}>{sections[17].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[17].title}</h2>
               <p className={paragraphClass}>
                 We may revise these Terms when the Platform changes, new
                 features are introduced, our operating practices develop, or
@@ -670,7 +563,7 @@ export default function TermsOfUsePage() {
             </section>
 
             <section id="contact" className={sectionClass}>
-              <h2 className={headingClass}>{sections[18].title}</h2>
+              <h2 className={headingClass}>{TERMS_OF_USE_SECTIONS[18].title}</h2>
               <p className={paragraphClass}>
                 Questions or complaints about these Terms, account access,
                 subscriptions, payments, privacy, or the operation of the
@@ -699,5 +592,6 @@ export default function TermsOfUsePage() {
         </div>
       </div>
     </main>
+    </TermsOfUseNavigationProvider>
   );
 }

@@ -216,7 +216,7 @@ function NewsCard({
             "
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-[#8a7771] dark:text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-muted-foreground">
             <FaNewspaper className="size-7" aria-hidden="true" />
           </div>
         )}
@@ -289,8 +289,7 @@ function NewsCard({
               font-bold
               uppercase
               tracking-[0.14em]
-              text-[#956b57]
-              dark:text-primary
+              text-brand-accent
             "
           >
             Football desk
@@ -298,11 +297,11 @@ function NewsCard({
 
           {publishedAt ? (
             <>
-              <span className="text-[8px] text-[#b9a99a]">/</span>
+              <span className="text-[8px] text-muted-foreground/70">/</span>
 
               <time
                 dateTime={publishedAt}
-                className="truncate text-[8px] text-[#8a8179] dark:text-muted-foreground"
+                className="truncate text-[8px] text-muted-foreground"
               >
                 {formattedDate}
               </time>
@@ -323,9 +322,8 @@ function NewsCard({
             tracking-[-0.02em]
             text-[#332c2b]
             transition-colors
-            group-hover:text-[#702b3d]
+            group-hover:text-brand-accent
             dark:text-foreground
-            dark:group-hover:text-primary
           "
         >
           {title}
@@ -350,8 +348,7 @@ function NewsCard({
             className="
               truncate
               text-[8px]
-              text-[#928780]
-              dark:text-muted-foreground
+              text-muted-foreground
             "
           >
             Latest football reports
@@ -367,10 +364,9 @@ function NewsCard({
               font-bold
               uppercase
               tracking-[0.1em]
-              text-[#702b3d]
+              text-brand-accent
               transition-all
               group-hover:gap-1.5
-              dark:text-primary
             "
           >
             Read story
@@ -439,8 +435,7 @@ function SectionHeading() {
             font-bold
             uppercase
             tracking-[0.22em]
-            text-[#956b57]
-            dark:text-primary
+            text-brand-accent
           "
         >
           The football newsroom
@@ -462,7 +457,7 @@ function SectionHeading() {
           Latest Football News
         </h2>
 
-        <p className="mt-0.5 text-[9px] text-[#8b807a] sm:text-[10px] dark:text-muted-foreground">
+        <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">
           Important stories. Key developments. All the latest.
         </p>
       </div>
@@ -577,7 +572,7 @@ export default function LatestNewsPreviewSection() {
             <button
               type="button"
               onClick={() => void newsQuery.refetch()}
-              className="mt-2 text-[10px] font-bold text-[#702b3d] hover:underline dark:text-primary"
+              className="mt-2 text-[10px] font-bold text-brand-accent hover:underline "
             >
               Try again
             </button>
@@ -598,7 +593,7 @@ export default function LatestNewsPreviewSection() {
             "
           >
             <FaNewspaper
-              className="mx-auto size-5 text-[#9b897c] dark:text-muted-foreground"
+              className="mx-auto size-5 text-muted-foreground"
               aria-hidden="true"
             />
 

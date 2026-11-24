@@ -25,8 +25,9 @@ export default function PromoTable({ promos, onRefresh }: { promos: Promo[]; onR
       <td className="px-3 py-2.5 capitalize">{p.eligiblePlans?.length ? p.eligiblePlans.join(', ') : 'All / rule-based'}</td>
       <td className="px-3 py-2.5 tabular-nums">{p.redemptionCount ?? 0}{p.totalRedemptionLimit != null ? ` / ${p.totalRedemptionLimit}` : ''}<div className="text-[10px] text-muted-foreground">{p.reservedRedemptions ?? 0} reserved</div></td>
       <td className="whitespace-nowrap px-3 py-2.5">{p.startDate ? new Date(p.startDate).toLocaleDateString() : '—'}<div className="text-[10px] text-muted-foreground">to {p.endDate ? new Date(p.endDate).toLocaleDateString() : '—'}</div></td>
-      <td className="px-3 py-2.5"><span className={`rounded px-1.5 py-1 text-[10px] font-semibold ${p.isActive ? 'bg-emerald-500/10 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>{p.isActive ? 'Active' : 'Inactive'}</span></td>
-      <td className="px-3 py-2.5"><div className="flex items-center gap-2"><Link href={`/admin/promos/${p._id}`} className="font-medium text-primary hover:underline">Edit</Link>{p.isActive && <button disabled={busyId === p._id} onClick={() => void deactivate(p)} className="text-red-600 hover:underline disabled:opacity-50">{busyId === p._id ? '…' : 'Disable'}</button>}</div></td>
+      <td className="px-3 py-2.5"><span className={`rounded px-1.5 py-1 text-[10px] font-semibold ${p.isActive ? 'bg-emerald-500/10 text-status-success' : 'bg-muted text-muted-foreground'}`}>{p.isActive ? 'Active' : 'Inactive'}</span></td>
+      <td className="px-3 py-2.5"><div className="flex items-center gap-2"><Link href={`/admin/promos/${p._id}`} className="font-medium text-brand-accent hover:underline">Edit</Link>{p.isActive && <button disabled={busyId === p._id} onClick={() => void deactivate(p)} className="text-status-danger hover:underline disabled:opacity-50">{busyId === p._id ? '…' : 'Disable'}</button>}</div></td>
     </tr>)}</tbody></table></div>}
   </section>;
 }
+

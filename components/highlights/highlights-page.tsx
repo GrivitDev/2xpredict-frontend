@@ -16,6 +16,7 @@ import {
 
 import type { SportsYoutubeHighlightSummary } from '@/types/sports-v2';
 import type { SportsCompetition } from '@/types/sports-v2';
+import { resolveLeagueDisplayName, resolveTeamDisplayName } from '@/hooks/use-match-presentation';
 
 const HIGHLIGHT_LIMIT = 50;
 
@@ -226,11 +227,11 @@ function getLeagueName(
   highlight: SportsYoutubeHighlightSummary,
   competitionMap: Map<string, string>,
 ): string {
-  if (!highlight.competitionId) return 'Football';
+  if (!highlight.competitionId) return 'League name unavailable';
 
-  return (
-    competitionMap.get(highlight.competitionId.toLowerCase()) ??
-    highlight.competitionId
+  return resolveLeagueDisplayName(
+    competitionMap.get(highlight.competitionId.toLowerCase()),
+    highlight.competitionId,
   );
 }
 
@@ -240,8 +241,8 @@ function getSearchText(
 ): string {
   return [
     highlight.title,
-    highlight.homeTeam,
-    highlight.awayTeam,
+    resolveTeamDisplayName(highlight.homeTeam),
+    resolveTeamDisplayName(highlight.awayTeam),
     highlight.channelTitle,
     leagueName,
     highlight.competitionId,
@@ -337,7 +338,7 @@ function HighlightPlayer({
         src={embedUrl}
         title={
           highlight.title ??
-          `${highlight.homeTeam} vs ${highlight.awayTeam}`
+          `${resolveTeamDisplayName(highlight.homeTeam)} vs ${resolveTeamDisplayName(highlight.awayTeam)}`
         }
         className="h-full w-full"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -370,7 +371,7 @@ function HighlightCard({
 
   const title =
     highlight.title ??
-    `${highlight.homeTeam} vs ${highlight.awayTeam}`;
+    `${resolveTeamDisplayName(highlight.homeTeam)} vs ${resolveTeamDisplayName(highlight.awayTeam)}`;
 
   const publishedAt = getHighlightDate(highlight);
 
@@ -435,7 +436,7 @@ function HighlightCard({
             />
           ) : (
             <div className="flex h-full items-center justify-center px-2 text-center text-[10px] text-white/60">
-              {highlight.homeTeam} vs {highlight.awayTeam}
+              {resolveTeamDisplayName(highlight.homeTeam)} vs {resolveTeamDisplayName(highlight.awayTeam)}
             </div>
           )}
 
@@ -517,14 +518,13 @@ function HighlightCard({
               font-bold
               uppercase
               tracking-[0.1em]
-              text-[#8a4957]
-              dark:text-primary
+              text-brand-accent
             "
           >
             {leagueName}
           </span>
 
-          <time className="shrink-0 text-[8px] text-[#94877d] dark:text-muted-foreground">
+          <time className="shrink-0 text-[8px] text-muted-foreground">
             {formatDate(publishedAt)}
           </time>
         </div>
@@ -539,18 +539,17 @@ function HighlightCard({
             leading-[1.3]
             tracking-tight
             text-[#372c2c]
-            group-hover:text-[#702b3d]
+            group-hover:text-brand-accent
             sm:text-[11px]
             dark:text-foreground
-            dark:group-hover:text-primary
           "
         >
           {title}
         </h2>
 
-        <p className="mt-1 truncate text-[9px] text-[#81766e] dark:text-muted-foreground">
-          {highlight.homeTeam} <span className="px-0.5">vs</span>{' '}
-          {highlight.awayTeam}
+        <p className="mt-1 truncate text-[9px] text-muted-foreground">
+          {resolveTeamDisplayName(highlight.homeTeam)} <span className="px-0.5">vs</span>{' '}
+          {resolveTeamDisplayName(highlight.awayTeam)}
         </p>
 
         <div
@@ -567,7 +566,7 @@ function HighlightCard({
             dark:border-border/70
           "
         >
-          <span className="min-w-0 truncate text-[8px] text-[#958980] dark:text-muted-foreground">
+          <span className="min-w-0 truncate text-[8px] text-muted-foreground">
             {highlight.channelTitle || 'YouTube'}
           </span>
 
@@ -666,7 +665,7 @@ function HighlightsHeader({
       "
     >
       <div className="min-w-0">
-        <p className="mb-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-[#956b57] dark:text-primary">
+        <p className="mb-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-brand-accent">
           2XP / Matchday archive
         </p>
 
@@ -674,12 +673,12 @@ function HighlightsHeader({
           Football Highlights
         </h1>
 
-        <p className="mt-0.5 text-[9px] text-[#897d74] sm:text-[10px] dark:text-muted-foreground">
+        <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">
           The moments, the goals and the drama.
         </p>
 
         {search ? (
-          <p className="mt-1 text-[9px] text-[#702b3d] dark:text-primary">
+          <p className="mt-1 text-[9px] text-brand-accent">
             Search: <span className="font-semibold">{search}</span>
           </p>
         ) : null}
@@ -687,10 +686,10 @@ function HighlightsHeader({
 
       <div className="flex shrink-0 items-center gap-1.5">
         <div className="min-w-[62px] rounded-md border border-[#dfd1c0] bg-[#fffdf9] px-2 py-1.5 text-center dark:border-border dark:bg-card">
-          <p className="font-serif text-base font-semibold leading-none text-[#702b3d] dark:text-primary">
+          <p className="font-serif text-base font-semibold leading-none text-brand-accent">
             {total}
           </p>
-          <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.13em] text-[#8d8077] dark:text-muted-foreground">
+          <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
             Videos
           </p>
         </div>
@@ -726,7 +725,7 @@ export default function HighlightsPage() {
   const activeHighlightRef = useRef<HTMLElement | null>(null);
 
   const competitionsQuery = useGetV2CompetitionsQuery(
-    { query: { activeOnly: true, limit: 1000 } },
+    { query: { activeOnly: false, limit: 1000 } },
     { staleTime: 30 * 60_000, retry: 1, refetchOnWindowFocus: false },
   );
 
@@ -734,9 +733,14 @@ export default function HighlightsPage() {
    * The highlights query is the primary content request.
    * Competition data is intentionally excluded from loading state.
    */
-  const highlightsQuery = useGetV2HighlightsQuery({
-    query: { limit: HIGHLIGHT_LIMIT, sortBy: 'publishedAt', sortOrder: 'desc' },
-  });
+  const highlightsQuery = useGetV2HighlightsQuery(
+    { query: { limit: HIGHLIGHT_LIMIT, sortBy: 'publishedAt', sortOrder: 'desc' } },
+    {
+      staleTime: 3 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  );
 
   const competitions = useMemo<SportsCompetition[]>(
     () => competitionsQuery.data ?? [],
@@ -746,7 +750,7 @@ export default function HighlightsPage() {
   const competitionMap = useMemo(() => {
     const map = new Map<string, string>();
     for (const competition of competitions) {
-      const name = competition.displayName?.trim() || competition.name;
+      const name = resolveLeagueDisplayName(competition.displayName, competition.name, competition.slug, competition.id);
       for (const identifier of [competition.id, competition.slug, competition.espnId]) {
         const key = identifier?.trim().toLowerCase();
         if (key && name) map.set(key, name);
@@ -931,7 +935,7 @@ export default function HighlightsPage() {
               No highlights found
             </p>
 
-            <p className="mt-1 text-[10px] text-[#8b8078] dark:text-muted-foreground">
+            <p className="mt-1 text-[10px] text-muted-foreground">
               Try another search.
             </p>
           </div>
@@ -946,7 +950,7 @@ export default function HighlightsPage() {
                 className="mb-2.5 scroll-mt-32"
               >
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#702b3d] dark:text-primary">
+                  <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-brand-accent">
                     Now playing
                   </h2>
 
@@ -978,11 +982,11 @@ export default function HighlightsPage() {
             {remainingHighlights.length > 0 ? (
               <section aria-label="Football highlights">
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <p className="text-[8px] font-bold uppercase tracking-[0.17em] text-[#8d786c] dark:text-muted-foreground">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.17em] text-muted-foreground">
                     {activeHighlight ? 'More highlights' : 'Latest collection'}
                   </p>
 
-                  <span className="text-[8px] text-[#94877d] dark:text-muted-foreground">
+                  <span className="text-[8px] text-muted-foreground">
                     {remainingHighlights.length} videos
                   </span>
                 </div>
@@ -1027,3 +1031,5 @@ export default function HighlightsPage() {
     </main>
   );
 }
+
+

@@ -20,6 +20,7 @@ import {
   useGetV2TeamsQuery,
 } from '@/hooks/use-sports';
 import type { SportsFixture, SportsTeam } from '@/types/sports-v2';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 
 function dateLabel(value?: string): string {
   if (!value) return 'Date unavailable';
@@ -53,9 +54,9 @@ function resultFor(fixture: SportsFixture, teamId: string): 'W' | 'D' | 'L' | nu
 }
 
 function resultTone(result: 'W' | 'D' | 'L' | null): string {
-  if (result === 'W') return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600';
-  if (result === 'L') return 'border-rose-500/20 bg-rose-500/10 text-rose-600';
-  if (result === 'D') return 'border-amber-500/20 bg-amber-500/10 text-amber-700';
+  if (result === 'W') return 'border-success/25 bg-success/10 text-status-success';
+  if (result === 'L') return 'border-destructive/25 bg-destructive/10 text-status-danger';
+  if (result === 'D') return 'border-warning/25 bg-warning/10 text-status-warning';
   return 'border-border bg-muted text-muted-foreground';
 }
 
@@ -120,7 +121,7 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
     ?? null;
   const seasonsQuery = useGetV2CompetitionSeasonsQuery(
     { path: { competitionId: primaryCompetition?.id ?? '' } },
-    { enabled: Boolean(primaryCompetition?.id), staleTime: 30 * 60_000, retry: 1 },
+    { enabled: Boolean(primaryCompetition?.slug), staleTime: 30 * 60_000, retry: 1 },
   );
   const activeSeason = seasonsQuery.data?.find((season) => season.isCurrent)
     ?? seasonsQuery.data?.find((season) => season.id === primaryCompetition?.currentSeasonId)
@@ -150,8 +151,8 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
     retry: 1,
   });
   const competitionTeamsQuery = useGetV2TeamsQuery(
-    { query: { leagueId: primaryCompetition?.id, limit: 1000 } },
-    { enabled: Boolean(primaryCompetition?.id), staleTime: 30 * 60_000, retry: 1 },
+    { query: { leagueId: primaryCompetition?.slug, limit: 1000 } },
+    { enabled: Boolean(primaryCompetition?.slug), staleTime: 30 * 60_000, retry: 1 },
   );
 
   const opponentMap = useMemo(() => {
@@ -166,6 +167,15 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
     () => [...(fixturesQuery.data?.items ?? [])]
       .sort((left, right) => new Date(right.kickoffAt).getTime() - new Date(left.kickoffAt).getTime()),
     [fixturesQuery.data?.items],
+  );
+  const recentFixtureRefs = useMemo(
+    () => recentFixtures.map((fixture) => ({ eventId: fixture.id, fixtureDate: fixture.kickoffAt, fixtureRecord: fixture })),
+    [recentFixtures],
+  );
+  const recentPresentations = useMatchPresentation(
+    recentFixtureRefs,
+    { fixtures: recentFixtures, teams: [...new Set(opponentMap.values())] },
+    { refetchInterval: false },
   );
   const recentForm = useMemo(
     () => [...(formQuery.data?.results ?? [])]
@@ -205,7 +215,7 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
   const record = seasonStats;
 
   return (
-    <main className="min-h-screen bg-[#f8f5ef] pb-8 dark:bg-background">
+    <main className="min-h-screen bg-background pb-8">
       <div className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 sm:py-6">
         <Link href="/" className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground">
           <FaArrowLeft className="size-3" /> Back to 2xPredict
@@ -221,7 +231,7 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-white/75">
                 {venueLocation ? <span className="inline-flex items-center gap-1.5"><FaLocationDot /> {venueLocation}</span> : null}
                 {team.abbreviation ? <span className="rounded-md border border-white/20 px-2 py-1 font-bold tracking-wider">{team.abbreviation}</span> : null}
-                {primaryCompetition ? <span className="inline-flex items-center gap-1.5"><FaTrophy /> {primaryCompetition.displayName ?? primaryCompetition.name}</span> : null}
+                {primaryCompetition ? <span className="inline-flex items-center gap-1.5"><FaTrophy /> {primaryCompetition.displayName ?? primaryCompetition.name}{primaryCompetition.country ? <span className="ml-1 text-white/60">· {primaryCompetition.country}</span> : null}</span> : null}
               </div>
             </div>
             {team.primaryColor ? <span className="hidden h-12 w-12 rounded-full border-4 border-white/20 sm:block" style={{ backgroundColor: team.primaryColor.startsWith('#') ? team.primaryColor : `#${team.primaryColor}` }} aria-hidden="true" /> : null}
@@ -237,7 +247,7 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
               {teamCompetitions.map((competition) => (
                 <span key={competition.id} className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5 text-[10px] font-semibold text-foreground">
                   {competition.logo ? <img src={competition.logo} alt="" className="size-4 object-contain" /> : null}
-                  {competition.displayName ?? competition.name}
+                  {competition.displayName ?? competition.name}{competition.country ? <span className="text-[9px] font-normal text-muted-foreground">· {competition.country}</span> : null}
                 </span>
               ))}
             </div>
@@ -266,26 +276,30 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
             ) : recentFixtures.length ? (
               <div className="space-y-2">
                 {recentFixtures.slice(0, 12).map((fixture) => {
-                  const otherId = opponentId(fixture, team.id);
-                  const opponent = otherId ? opponentMap.get(otherId) : undefined;
+                  const presentation = recentPresentations.get(fixture.id);
                   const result = resultFor(fixture, team.id);
                   const homeCompetitor = fixture.competitors.find((item) => item.homeAway === 'HOME');
                   const awayCompetitor = fixture.competitors.find((item) => item.homeAway === 'AWAY');
                   const homeScore = homeCompetitor?.score ?? null;
                   const awayScore = awayCompetitor?.score ?? null;
-                  const opponentName = opponent?.displayName ?? opponent?.name ?? 'Opponent';
-                  const fixtureTitle = homeCompetitor?.teamId === team.id
-                    ? `${teamName} vs ${opponentName}`
-                    : `${opponentName} vs ${teamName}`;
+                  const homeName = resolveTeamDisplayName(presentation?.homeTeamName,
+                    homeCompetitor?.teamId === team.id ? teamName : undefined,
+                    homeCompetitor?.teamId ? opponentMap.get(homeCompetitor.teamId)?.displayName : undefined,
+                    homeCompetitor?.teamId ? opponentMap.get(homeCompetitor.teamId)?.name : undefined);
+                  const awayName = resolveTeamDisplayName(presentation?.awayTeamName,
+                    awayCompetitor?.teamId === team.id ? teamName : undefined,
+                    awayCompetitor?.teamId ? opponentMap.get(awayCompetitor.teamId)?.displayName : undefined,
+                    awayCompetitor?.teamId ? opponentMap.get(awayCompetitor.teamId)?.name : undefined);
+                  const fixtureTitle = `${homeName} vs ${awayName}`;
                   const status = fixture.status.shortDescription ?? fixture.status.description ?? fixture.status.state.replace(/_/g, ' ');
                   return (
                     <div key={fixture.id} className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2.5 py-2">
                       <span className={`grid size-7 shrink-0 place-items-center rounded-md border text-[10px] font-bold ${resultTone(result)}`}>{result ?? '—'}</span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-semibold text-foreground">
-                          {fixture.name ?? fixture.shortName ?? fixtureTitle}
+                          {fixtureTitle}
                         </p>
-                        <p className="mt-0.5 text-[9px] text-muted-foreground">{dateLabel(fixture.kickoffAt)} · {status}</p>
+                        <p className="mt-0.5 text-[9px] text-muted-foreground">{dateLabel(fixture.kickoffAt)} · {status}{presentation?.leagueName ? ` · ${presentation.leagueName}` : ''}{presentation?.leagueCountry ? ` · ${presentation.leagueCountry}` : ''}</p>
                       </div>
                       <span className="shrink-0 text-xs font-bold tabular-nums text-foreground">
                         {homeScore === null || awayScore === null ? '—' : `${homeScore} - ${awayScore}`}
@@ -333,3 +347,4 @@ export default function TeamProfilePage({ teamId }: { teamId: string }) {
     </main>
   );
 }
+

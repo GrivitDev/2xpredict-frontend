@@ -48,6 +48,7 @@ import type {
   PredictionAccessPolicy,
   PredictionPage,
   PredictionSlip,
+  PredictionSlipListItem,
   AdminCuratedPredictionResponse,
   AdminPickCenterResponse,
   AdminSlipListResponse,
@@ -159,7 +160,7 @@ export function useSettledMarkets(query: NonNullable<ListSettledArgs['query']> =
 
 export function usePredictionSlips(query: SlipListQuery = {}) {
   const args: ListSlipsArgs = { query };
-  return useQuery<PredictionPage<PredictionSlip>>({
+  return useQuery<PredictionPage<PredictionSlipListItem>>({
     queryKey: predictionQueryKeys.slips(query),
     queryFn: () => predictionEngineService.listSlips(args),
   });
@@ -176,7 +177,7 @@ export function usePredictionSlip(id: string) {
 
 export function useSureOdds(query: SureOddsQuery = {}) {
   const args: NonNullable<ListSureOddsArgs['query']> = query;
-  return useQuery<PredictionPage<PredictionSlip>>({
+  return useQuery<PredictionPage<PredictionSlipListItem>>({
     queryKey: predictionQueryKeys.sureOdds(args),
     queryFn: () => predictionAccessService.listSureOdds({ query: args }),
   });
@@ -256,3 +257,4 @@ export function usePredictionEngineActions() {
     }),
   };
 }
+

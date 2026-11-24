@@ -11,5 +11,6 @@ export default function PromoActions({ promoId, isActive, onChanged }: { promoId
     try { await deactivatePromo(promoId); toast.success('Campaign deactivated'); onChanged?.(); }
     catch (error) { toast.error(error instanceof Error ? error.message : 'Unable to deactivate campaign'); }
     finally { setLoading(false); }
-  }} className="text-xs text-red-600 disabled:opacity-50">{loading ? 'Disabling…' : 'Deactivate'}</button>;
+  }} className="text-xs text-status-danger disabled:opacity-50">{loading ? 'Disabling…' : 'Deactivate'}</button>;
 }
+

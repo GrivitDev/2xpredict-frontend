@@ -76,7 +76,10 @@ export default function NotificationsInbox() {
     },
   }, { enabled: Boolean(user) });
   const unread = useUnreadNotificationCountQuery({ enabled: Boolean(user) });
-  const preferences = useNotificationPreferencesQuery({ enabled: Boolean(user) });
+  const preferences = useNotificationPreferencesQuery({
+    enabled: Boolean(user) && showPreferences,
+    staleTime: 5 * 60_000,
+  });
   const markRead = useMarkNotificationReadMutation();
   const markAllRead = useMarkAllNotificationsReadMutation();
   const updatePreferences = useUpdateNotificationPreferencesMutation();
@@ -128,7 +131,7 @@ export default function NotificationsInbox() {
     <main className="mx-auto w-full max-w-5xl px-3 py-5 pb-28 sm:px-5 sm:py-7 lg:px-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+          <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-brand-accent">
             <FaBell className="h-3 w-3" /> Account updates
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">Notifications</h1>
@@ -150,7 +153,7 @@ export default function NotificationsInbox() {
       {showPreferences ? (
         <Card className="mb-5 border-border/70">
           <CardHeader className="border-b border-border/60 pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm"><FaEnvelope className="text-primary" /> Email notification preferences</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm"><FaEnvelope className="text-brand-accent" /> Email notification preferences</CardTitle>
             <p className="text-[11px] text-muted-foreground">These settings affect email delivery only. In-app notifications remain enabled.</p>
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
@@ -193,7 +196,7 @@ export default function NotificationsInbox() {
       <Card className="border-border/70">
         <CardHeader className="gap-3 border-b border-border/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 text-sm"><FaInbox className="text-primary" /> Your inbox</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm"><FaInbox className="text-brand-accent" /> Your inbox</CardTitle>
             <p className="mt-1 text-[11px] text-muted-foreground">New updates appear here automatically.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -245,15 +248,15 @@ export default function NotificationsInbox() {
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-foreground sm:text-sm">{notification.title}</span>
-                        {!notification.readAt ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">Unread</span> : null}
+                        {!notification.readAt ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase text-brand-accent">Unread</span> : null}
                       </span>
                       <span className="mt-1.5 block text-xs leading-relaxed text-muted-foreground">{notification.message}</span>
                       <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground/80">
                         <span>{categoryLabel(notification.category)}</span><span aria-hidden="true">·</span><span>{formatDate(notification.createdAt)}</span>
-                        {actionLabel ? <span className="font-bold text-primary">· {actionLabel}</span> : null}
+                        {actionLabel ? <span className="font-bold text-brand-accent">· {actionLabel}</span> : null}
                       </span>
                     </span>
-                    {!notification.readAt ? <FaCheck className="mt-1 h-3 w-3 shrink-0 text-primary/70" aria-label="Unread" /> : null}
+                    {!notification.readAt ? <FaCheck className="mt-1 h-3 w-3 shrink-0 text-brand-accent/70" aria-label="Unread" /> : null}
                   </button>
                 );
               })}
@@ -280,3 +283,5 @@ export default function NotificationsInbox() {
     </main>
   );
 }
+
+

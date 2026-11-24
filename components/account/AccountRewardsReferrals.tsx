@@ -57,7 +57,7 @@ export default function AccountRewardsReferrals() {
     <div id="rewards" className="space-y-3">
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaUsers /></span>
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaUsers /></span>
           <div><h2 className="text-sm font-bold">Referral activity</h2><p className="text-[10px] text-muted-foreground">Your referral link and the activity recorded against it.</p></div>
         </div>
 
@@ -96,7 +96,7 @@ export default function AccountRewardsReferrals() {
                 return (
                   <div key={item._id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
                     <div className="min-w-0"><p className="truncate text-xs font-semibold">{referredUserLabel(item.referredUserId)}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{item.registered ? 'Registered' : 'Registration pending'}{item.rewardClaimed ? ` · Reward claimed ${dateLabel(item.rewardClaimedAt)}` : ''}</p></div>
-                    <span className={`rounded-full px-2 py-1 text-[9px] font-bold ${subscribed ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>{item.premiumSubscription ? 'PREMIUM' : item.vipSubscription ? 'VIP' : item.regularSubscription ? 'REGULAR' : 'NOT SUBSCRIBED'}</span>
+                    <span className={`rounded-full px-2 py-1 text-[9px] font-bold ${subscribed ? 'bg-emerald-500/10 text-status-success' : 'bg-muted text-muted-foreground'}`}>{item.premiumSubscription ? 'PREMIUM' : item.vipSubscription ? 'VIP' : item.regularSubscription ? 'REGULAR' : 'NOT SUBSCRIBED'}</span>
                   </div>
                 );
               })}
@@ -107,7 +107,7 @@ export default function AccountRewardsReferrals() {
 
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaGift /></span>
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaGift /></span>
           <div><h2 className="text-sm font-bold">Bonus history</h2><p className="text-[10px] text-muted-foreground">Subscription bonuses and Bet Lab points granted to your account.</p></div>
         </div>
         {bonuses.isLoading ? <div className="mt-3 space-y-2">{[0, 1, 2].map((key) => <div key={key} className="h-16 animate-pulse rounded-lg bg-muted" />)}</div> : bonuses.isError ? (
@@ -119,9 +119,9 @@ export default function AccountRewardsReferrals() {
             <div className="mt-2 divide-y divide-border/60">
               {(bonuses.data?.items ?? []).map((item) => (
                 <article key={item._id} className="flex items-start gap-3 py-3">
-                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${item.type === 'BET_LAB_POINTS' ? 'bg-sky-500/10 text-sky-600' : 'bg-primary/10 text-primary'}`}>{item.type === 'BET_LAB_POINTS' ? <FaCoins /> : <FaCrown />}</span>
+                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${item.type === 'BET_LAB_POINTS' ? 'bg-sky-500/10 text-status-info' : 'bg-primary/10 text-brand-accent'}`}>{item.type === 'BET_LAB_POINTS' ? <FaCoins /> : <FaCrown />}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2"><p className="text-xs font-semibold">{bonusLabel(item)}</p><span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${item.status === 'GRANTED' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : item.status === 'PENDING' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'}`}>{item.status}</span></div>
+                    <div className="flex flex-wrap items-center gap-2"><p className="text-xs font-semibold">{bonusLabel(item)}</p><span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${item.status === 'GRANTED' ? 'bg-emerald-500/10 text-status-success' : item.status === 'PENDING' ? 'bg-amber-500/10 text-status-warning' : 'bg-muted text-muted-foreground'}`}>{item.status}</span></div>
                     {item.reason ? <p className="mt-0.5 text-[10px] text-muted-foreground">{item.reason}</p> : null}
                     <p className="mt-1 text-[9px] text-muted-foreground">Granted {dateLabel(item.startsAt)} · Expires {dateLabel(item.expiresAt)}</p>
                   </div>
@@ -145,3 +145,4 @@ export default function AccountRewardsReferrals() {
 function Metric({ label, value }: { label: string; value: number }) {
   return <div className="rounded-lg border border-border/60 bg-background px-3 py-2"><p className="text-[9px] text-muted-foreground">{label}</p><p className="mt-0.5 text-base font-bold tabular-nums">{Number(value ?? 0).toLocaleString('en-NG')}</p></div>;
 }
+

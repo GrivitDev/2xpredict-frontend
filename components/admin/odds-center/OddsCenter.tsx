@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { FaChevronDown, FaRotate } from 'react-icons/fa6';
-import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 import { useOddsCenter, useOddsMonitor, useRefreshOddsMonitor } from '@/hooks/use-odds';
 import type { OddsCenterFixture as Fixture, OddsCenterMarket as Market } from '@/types/odds-center';
 import { displayScore, displayStatusLabel, displayStatusTone, getDisplayMatchStatus } from '@/lib/match-status';
 
 type DateTab = { key: string; label: string; date: Date };
+type LeagueOption = { id: string; name: string; logo?: string | null; country?: string | null; count: number };
 
 
 function CompactLogo({ src, alt, fallback, size = 14 }: { src?: string | null; alt: string; fallback: string; size?: number }) {
@@ -154,10 +155,11 @@ function makeDateTabs(): DateTab[] {
 function leagueLabel(name?: string | null, id?: string | null) {
   const cleanName = String(name ?? '').trim();
   const cleanId = String(id ?? '').trim();
-  const looksLikeCode = (value: string) => /^[a-z0-9]+(?:[._][a-z0-9]+)+$/i.test(value);
-  if (cleanName && cleanName.toLowerCase() !== cleanId.toLowerCase() && !looksLikeCode(cleanName)) return cleanName;
-  if (cleanId && !looksLikeCode(cleanId)) return cleanId.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-  return cleanName && !looksLikeCode(cleanName) ? cleanName : 'League name unavailable';
+  const isIdentifier = (value: string) =>
+    !value || /^\s*(?:competition|league|team|fixture):/i.test(value) ||
+    /^[a-z0-9]+(?:[._-][a-z0-9]+)+$/i.test(value);
+  if (cleanName && cleanName.toLowerCase() !== cleanId.toLowerCase() && !isIdentifier(cleanName)) return cleanName;
+  return 'League name unavailable';
 }
 function marketFor(fixture: Fixture, ids: string[]) {
   return fixture.markets.find((market) => ids.includes(market.id));
@@ -193,7 +195,12 @@ export default function OddsCenter() {
   const loading = oddsQuery.isLoading;
   const error = oddsQuery.error ? errorText(oddsQuery.error) : '';
   const presentationRefs = useMemo(
-    () => fixtures.map((fixture) => ({ eventId: fixture.eventId, fixtureDate: fixture.kickoffAt })),
+    () => fixtures.map((fixture) => ({
+      eventId: fixture.eventId, fixtureDate: fixture.kickoffAt, leagueId: fixture.competitionId,
+      leagueName: fixture.competitionName, leagueRegion: fixture.competitionRegion,
+      homeTeamName: fixture.homeTeam, awayTeamName: fixture.awayTeam,
+      fixtureRecord: fixture,
+    })),
     [fixtures],
   );
   const matchPresentation = useMatchPresentation(presentationRefs);
@@ -210,7 +217,7 @@ export default function OddsCenter() {
   }
 
   const leagues = useMemo(() => {
-    const unique = new Map<string, { id: string; name: string; logo?: string | null; country?: string | null; count: number }>();
+    const unique = new Map<string, LeagueOption>();
     for (const fixture of fixtures) {
       const presentation = matchPresentation.get(fixture.eventId);
       const current = unique.get(fixture.competitionId);
@@ -219,7 +226,7 @@ export default function OddsCenter() {
         id: fixture.competitionId,
         name: leagueLabel(presentation?.leagueName ?? fixture.competitionName, fixture.competitionId),
         logo: presentation?.leagueLogo,
-        country: fixture.competitionRegion,
+        country: presentation?.leagueCountry ?? null,
         count: 1,
       });
     }
@@ -297,11 +304,11 @@ export default function OddsCenter() {
       </div>
       <div className="flex flex-wrap items-center justify-center gap-0.5 border-t border-border/70 pt-1" aria-label="League selector">
         <button type="button" onClick={() => { setActiveLeague('ALL'); setMoreOpen(false); }} className={`max-w-36 shrink-0 whitespace-normal break-words rounded-md px-2 py-1.5 text-[10px] ${activeLeague === 'ALL' ? 'bg-muted text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'}`}>All leagues <span className="opacity-60">{fixtures.length}</span></button>
-        {visibleLeagues.map((league) => <button key={league.id} type="button" title={league.name} onClick={() => { setActiveLeague(league.id); setMoreOpen(false); }} className={`max-w-40 shrink-0 whitespace-normal break-words rounded-md px-2 py-1.5 text-[10px] ${activeLeague === league.id ? 'bg-muted text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'}`}><span className="inline-flex items-center gap-1.5 whitespace-normal break-words"><CompactLogo src={league.logo} alt={league.name} fallback={league.name} size={13} />{league.name}</span></button>)}
+        {visibleLeagues.map((league) => <button key={league.id} type="button" title={`${league.name}${league.country ? ` · ${league.country}` : ''}`} onClick={() => { setActiveLeague(league.id); setMoreOpen(false); }} className={`max-w-40 shrink-0 whitespace-normal break-words rounded-md px-2 py-1.5 text-[10px] ${activeLeague === league.id ? 'bg-muted text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'}`}><span className="inline-flex items-center gap-1.5 whitespace-normal break-words"><CompactLogo src={league.logo} alt={league.name} fallback={league.name} size={13} />{league.name}{league.country ? <span className="ml-1 text-[8px] font-normal opacity-70">· {league.country}</span> : null}</span></button>)}
         {extraLeagues.length > 0 ? <div className="relative shrink-0">
           <button type="button" onClick={() => setMoreOpen((value) => !value)} aria-expanded={moreOpen} className={`inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[10px] ${moreOpen || extraLeagues.some((league) => league.id === activeLeague) ? 'bg-muted text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'}`}>More <span className="opacity-60">{extraLeagues.length}</span><FaChevronDown className="h-2 w-2" /></button>
           {moreOpen ? <div className="absolute right-0 top-full z-40 mt-1 max-h-64 w-56 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-xl">
-            {extraLeagues.map((league) => <button key={league.id} type="button" onClick={() => { setActiveLeague(league.id); setMoreOpen(false); }} className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-[10px] ${activeLeague === league.id ? 'bg-muted font-semibold' : 'hover:bg-muted'}`}><span className="flex min-w-0 items-center gap-1.5 whitespace-normal break-words"><CompactLogo src={league.logo} alt={league.name} fallback={league.name} size={13} />{league.name}</span><span className="shrink-0 text-[9px] text-muted-foreground">{league.count}</span></button>)}
+            {extraLeagues.map((league) => <button key={league.id} type="button" onClick={() => { setActiveLeague(league.id); setMoreOpen(false); }} className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-[10px] ${activeLeague === league.id ? 'bg-muted font-semibold' : 'hover:bg-muted'}`}><span className="flex min-w-0 items-center gap-1.5 whitespace-normal break-words"><CompactLogo src={league.logo} alt={league.name} fallback={league.name} size={13} />{league.name}{league.country ? <span className="opacity-70">· {league.country}</span> : null}</span><span className="shrink-0 text-[9px] text-muted-foreground">{league.count}</span></button>)}
           </div> : null}
         </div> : null}
         {leagues.length === 0 && !loading ? <span className="px-2 text-[10px] text-muted-foreground">No competitions with odds for this date.</span> : null}
@@ -326,13 +333,13 @@ export default function OddsCenter() {
                 {(() => {
                   const presentation = matchPresentation.get(fixture.eventId);
                   const status = getDisplayMatchStatus(presentation, fixture.status.state, fixture.kickoffAt);
-                  const homeName = presentation?.homeTeamName || fixture.homeTeam;
-                  const awayName = presentation?.awayTeamName || fixture.awayTeam;
+                  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, fixture.homeTeam);
+                  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, fixture.awayTeam);
                   const resolvedLeagueName = leagueLabel(presentation?.leagueName ?? fixture.competitionName, fixture.competitionId);
                   const homeScore = displayScore(presentation?.homeScore, status);
                   const awayScore = displayScore(presentation?.awayScore, status);
                   return <div className="flex max-w-[260px] flex-col gap-1">
-                    <div className="flex min-w-0 items-start gap-1"><CompactLogo src={presentation?.leagueLogo} alt={resolvedLeagueName} fallback={resolvedLeagueName} size={12} /><span className="min-w-0 flex-1 whitespace-normal break-words text-[8px] text-muted-foreground">{resolvedLeagueName}</span><span className={`inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 text-[7px] font-bold leading-none ${displayStatusTone(status)}`}>{displayStatusLabel(status, presentation)}</span></div>
+                    <div className="flex min-w-0 items-start gap-1"><CompactLogo src={presentation?.leagueLogo} alt={resolvedLeagueName} fallback={resolvedLeagueName} size={12} /><span className="min-w-0 flex-1 whitespace-normal break-words text-[8px] text-muted-foreground">{resolvedLeagueName}{presentation?.leagueCountry ? <span className="ml-1 opacity-70">· {presentation.leagueCountry}</span> : null}</span><span className={`inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 text-[7px] font-bold leading-none ${displayStatusTone(status)}`}>{displayStatusLabel(status, presentation)}</span></div>
                     <div className="flex min-w-0 items-start gap-1 text-[10px] font-semibold leading-tight" title={homeName}>
                       <CompactLogo src={presentation?.homeTeamLogo} alt={homeName} fallback={homeName} size={14} />
                       <span className="min-w-0 flex-1 whitespace-normal break-words">{homeName}</span><span className="shrink-0 min-w-[12px] text-right font-bold tabular-nums">{homeScore}</span>
@@ -353,3 +360,4 @@ export default function OddsCenter() {
     </> : <OddsMonitorPanel query={monitorQuery} />}
   </main>;
 }
+

@@ -557,6 +557,7 @@ export interface GetV2CompetitionsArgs { query?: GetV2CompetitionsQuery }
 export interface GetV2CompetitionArgs { path: { competitionId: string } }
 export interface GetV2CompetitionSeasonsArgs { path: { competitionId: string } }
 export interface GetV2TeamsArgs { query?: GetV2TeamsQuery }
+export interface GetV2TeamsByIdentifiersArgs { body: { ids: string[] } }
 export interface GetV2TeamArgs { path: { teamId: string } }
 export interface GetV2SeasonArgs { path: { seasonId: string } }
 export interface GetV2FixturesArgs { query?: GetV2FixturesQuery }

@@ -20,6 +20,7 @@ import type {
   PredictionAccessPolicy,
   PredictionPage,
   PredictionSlip,
+  PredictionSlipListItem,
 } from '../types/predictions';
 
 export const predictionAccessService = {
@@ -86,7 +87,7 @@ export const predictionAccessService = {
     }),
 
   listSlips: (args?: ListSlipsArgs) =>
-    apiRequest<PredictionPage<PredictionSlip>>({
+    apiRequest<PredictionPage<PredictionSlipListItem>>({
       method: 'GET',
       path: '/prediction-access/slips',
       query: args?.query,
@@ -100,9 +101,10 @@ export const predictionAccessService = {
     }),
 
   listSureOdds: (args?: ListSureOddsArgs) =>
-    apiRequest<PredictionPage<PredictionSlip>>({
+    apiRequest<PredictionPage<PredictionSlipListItem>>({
       method: 'GET',
       path: '/prediction-access/sure-odds',
       query: args?.query,
     }),
 } as const;
+

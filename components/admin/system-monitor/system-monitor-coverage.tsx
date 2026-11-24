@@ -58,9 +58,9 @@ export default function SystemMonitorCoverage() {
           <Metric label="Critical dependency issues" value={summary?.criticalDependencyIssues} />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <div className="flex items-center gap-2 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><FaCircleCheck className="text-emerald-600" /> Critical healthy <strong className="ml-auto">{number(summary?.criticalHealthy)}</strong></div>
-          <div className="flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs"><FaCircleExclamation className="text-amber-600" /> Degraded / unknown <strong className="ml-auto">{number(Number(summary?.criticalDegraded ?? 0) + Number(summary?.criticalUnknown ?? 0))}</strong></div>
-          <div className="flex items-center gap-2 rounded-md border border-rose-500/20 bg-rose-500/5 px-3 py-2 text-xs"><FaCircleXmark className="text-rose-600" /> Critical failed <strong className="ml-auto">{number(summary?.criticalFailed)}</strong></div>
+          <div className="flex items-center gap-2 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><FaCircleCheck className="text-status-success" /> Critical healthy <strong className="ml-auto">{number(summary?.criticalHealthy)}</strong></div>
+          <div className="flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs"><FaCircleExclamation className="text-status-warning" /> Degraded / unknown <strong className="ml-auto">{number(Number(summary?.criticalDegraded ?? 0) + Number(summary?.criticalUnknown ?? 0))}</strong></div>
+          <div className="flex items-center gap-2 rounded-md border border-rose-500/20 bg-rose-500/5 px-3 py-2 text-xs"><FaCircleXmark className="text-status-danger" /> Critical failed <strong className="ml-auto">{number(summary?.criticalFailed)}</strong></div>
           <div className="rounded-md border border-border/70 px-3 py-2 text-[11px] text-muted-foreground">Unclassified discovered: <strong className="text-foreground">{number(summary?.unclassifiedDiscoveredModules)}</strong></div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -85,3 +85,4 @@ export default function SystemMonitorCoverage() {
     </section>
   );
 }
+

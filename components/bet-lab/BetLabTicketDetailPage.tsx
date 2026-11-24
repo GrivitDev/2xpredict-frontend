@@ -31,14 +31,26 @@ export default function BetLabTicketDetailPage() {
 
   const presentationRefs = useMemo(() => {
     if (!ticket) return [];
-    const refs = new Map<string, string>();
+    const refs = new Map<string, Record<string, unknown>>();
     for (const rawLeg of rowsFrom(ticket.legs)) {
       const leg = asRecord(rawLeg);
       if (!leg) continue;
       const eventId = ticketLegEventId(leg);
-      if (eventId) refs.set(eventId, ticketLegFixtureDate(leg));
+      if (eventId) refs.set(eventId, {
+        eventId, fixtureDate: ticketLegFixtureDate(leg),
+        leagueId: firstValue(leg, ['leagueId', 'competitionId']) as string | undefined,
+        leagueName: firstValue(leg, ['leagueName', 'competitionName']) as string | undefined,
+        leagueCountry: firstValue(leg, ['country', 'leagueCountry', 'countryName']) as string | undefined,
+        homeTeamId: firstValue(leg, ['homeTeamId', 'homeId']) as string | undefined,
+        awayTeamId: firstValue(leg, ['awayTeamId', 'awayId']) as string | undefined,
+        homeTeamName: firstValue(leg, ['homeTeamName', 'homeName']) as string | undefined,
+        awayTeamName: firstValue(leg, ['awayTeamName', 'awayName']) as string | undefined,
+        homeTeamLogo: firstValue(leg, ['homeTeamLogo']) as string | undefined,
+        awayTeamLogo: firstValue(leg, ['awayTeamLogo']) as string | undefined,
+        fixtureRecord: leg,
+      });
     }
-    return [...refs.entries()].map(([eventId, fixtureDate]) => ({ eventId, fixtureDate }));
+    return [...refs.values()];
   }, [ticket]);
   const presentations = useMatchPresentation(presentationRefs);
 
@@ -70,3 +82,4 @@ export default function BetLabTicketDetailPage() {
     </main>
   );
 }
+

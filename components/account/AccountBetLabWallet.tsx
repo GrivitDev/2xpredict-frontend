@@ -26,7 +26,7 @@ export default function AccountBetLabWallet() {
         <div className="bg-gradient-to-br from-primary/[0.12] via-card to-card p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Bet Lab wallet</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-accent">Bet Lab wallet</p>
               <h2 className="mt-1 text-sm font-bold">Virtual points balance</h2>
               <p className="mt-0.5 text-[10px] text-muted-foreground">This balance is for the Bet Lab simulation environment.</p>
             </div>
@@ -34,7 +34,7 @@ export default function AccountBetLabWallet() {
           </div>
           {wallet.isLoading ? <div className="mt-4 h-16 w-48 animate-pulse rounded-lg bg-muted" /> : wallet.isError ? <p className="mt-4 text-xs text-destructive">Wallet balance could not be loaded. <button type="button" onClick={() => void wallet.refetch()} className="underline">Retry</button></p> : (
             <div className="mt-4 flex items-end gap-2">
-              <FaCoins className="mb-1 text-xl text-primary" />
+              <FaCoins className="mb-1 text-xl text-brand-accent" />
               <p className="text-3xl font-extrabold tracking-tight tabular-nums">{points(data?.balance)}</p>
               <span className="mb-1 text-[10px] font-semibold text-muted-foreground">points</span>
             </div>
@@ -67,16 +67,16 @@ export default function AccountBetLabWallet() {
       ) : null}
 
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-        <div className="flex items-center gap-2 border-b border-border/60 pb-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaTicket /></span><div><h3 className="text-sm font-bold">Wallet ledger</h3><p className="text-[10px] text-muted-foreground">Credits and debits recorded by the Bet Lab wallet.</p></div></div>
+        <div className="flex items-center gap-2 border-b border-border/60 pb-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaTicket /></span><div><h3 className="text-sm font-bold">Wallet ledger</h3><p className="text-[10px] text-muted-foreground">Credits and debits recorded by the Bet Lab wallet.</p></div></div>
         {ledger.isLoading ? <div className="mt-3 space-y-2">{[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-muted" />)}</div> : ledger.isError ? (
           <p className="mt-3 text-xs text-destructive">Wallet history could not be loaded. <button type="button" onClick={() => void ledger.refetch()} className="font-semibold underline">Retry</button></p>
         ) : entries.length === 0 ? <p className="py-7 text-center text-xs text-muted-foreground">No wallet transactions have been recorded yet.</p> : (
           <div className="mt-1 divide-y divide-border/60">
             {entries.map((entry) => (
               <article key={entry._id} className="flex flex-wrap items-center gap-2 py-3">
-                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${entry.delta >= 0 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}><FaCoins /></span>
+                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${entry.delta >= 0 ? 'bg-emerald-500/10 text-status-success' : 'bg-amber-500/10 text-status-warning'}`}><FaCoins /></span>
                 <div className="min-w-0 flex-1"><p className="text-xs font-semibold">{entry.description || entry.transactionType.replace(/[_-]/g, ' ')}</p><p className="mt-0.5 text-[9px] capitalize text-muted-foreground">{entry.bucket} · {entry.transactionType.replace(/[_-]/g, ' ')}</p></div>
-                <div className="text-right"><p className={`text-xs font-bold tabular-nums ${entry.delta >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground'}`}>{entry.delta > 0 ? '+' : ''}{points(entry.delta)}</p><p className="mt-0.5 text-[9px] text-muted-foreground">Balance {points(entry.balanceAfter)}</p></div>
+                <div className="text-right"><p className={`text-xs font-bold tabular-nums ${entry.delta >= 0 ? 'text-status-success' : 'text-foreground'}`}>{entry.delta > 0 ? '+' : ''}{points(entry.delta)}</p><p className="mt-0.5 text-[9px] text-muted-foreground">Balance {points(entry.balanceAfter)}</p></div>
               </article>
             ))}
           </div>
@@ -90,3 +90,4 @@ export default function AccountBetLabWallet() {
 function WalletMetric({ label, value }: { label: string; value: number }) {
   return <div className="bg-card px-3 py-2"><p className="text-[9px] text-muted-foreground">{label}</p><p className="mt-0.5 text-sm font-bold tabular-nums">{points(value)}</p></div>;
 }
+

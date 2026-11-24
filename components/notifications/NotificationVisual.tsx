@@ -33,11 +33,11 @@ const iconMap: Record<NotificationIcon, IconType> = {
 
 const variantClasses: Record<NotificationVariant, string> = {
   default: 'bg-muted text-muted-foreground ring-border/70',
-  info: 'bg-primary/10 text-primary ring-primary/15',
-  success: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/20 dark:text-emerald-300',
-  warning: 'bg-amber-500/10 text-amber-800 ring-amber-500/20 dark:text-amber-300',
-  danger: 'bg-rose-500/10 text-rose-700 ring-rose-500/20 dark:text-rose-300',
-  promotion: 'bg-primary/10 text-primary ring-primary/20',
+  info: 'bg-primary/10 text-brand-accent ring-primary/15',
+  success: 'bg-emerald-500/10 text-status-success ring-emerald-500/20',
+  warning: 'bg-amber-500/10 text-status-warning ring-amber-500/20',
+  danger: 'bg-rose-500/10 text-status-danger ring-rose-500/20',
+  promotion: 'bg-primary/10 text-brand-accent ring-primary/20',
 };
 
 interface NotificationVisualProps {
@@ -84,3 +84,4 @@ export function notificationActionLabel(
   const label = presentation?.actionLabel?.trim();
   return label || 'View details';
 }
+

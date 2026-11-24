@@ -16,11 +16,11 @@ export function useAdAnalyticsQuery(query: AdAnalyticsQuery = {}) {
 export function useSingleAdAnalyticsQuery(id: string, query: AdAnalyticsQuery = {}) {
   return useQuery({ queryKey: ['admin-ads', 'analytics', id, query], queryFn: () => adsService.adAnalytics({ path: { id }, query }), enabled: Boolean(id) });
 }
-export function useAdEventsQuery(query: AdEventQuery = {}) {
-  return useQuery({ queryKey: ['admin-ads', 'events', query], queryFn: () => adsService.events({ query }) });
+export function useAdEventsQuery(query: AdEventQuery = {}, enabled = true) {
+  return useQuery({ queryKey: ['admin-ads', 'events', query], queryFn: () => adsService.events({ query }), enabled });
 }
-export function useAutomationOptionsQuery() {
-  return useQuery({ queryKey: ['admin-ads', 'automation-options'], queryFn: () => adsService.automationOptions() });
+export function useAutomationOptionsQuery(enabled = true) {
+  return useQuery({ queryKey: ['admin-ads', 'automation-options'], queryFn: () => adsService.automationOptions(), enabled });
 }
 export function useDiscoverAdContentQuery(kind?: AdContentSource, enabled = true) {
   return useQuery({ queryKey: ['admin-ads', 'discover', kind ?? 'ALL'], queryFn: () => adsService.discover({ query: kind ? { kind } : {} }), enabled });
@@ -28,8 +28,8 @@ export function useDiscoverAdContentQuery(kind?: AdContentSource, enabled = true
 export function useAdPreviewQuery(id: string, audience: AdAudienceKey, enabled = true) {
   return useQuery({ queryKey: ['admin-ads', 'preview', id, audience], queryFn: () => adsService.preview({ path: { id }, query: { audience } }), enabled: enabled && Boolean(id) });
 }
-export function useExternalAdPolicyQuery() {
-  return useQuery({ queryKey: ['admin-ads', 'external-policy'], queryFn: () => adsService.externalPolicy() });
+export function useExternalAdPolicyQuery(enabled = true) {
+  return useQuery({ queryKey: ['admin-ads', 'external-policy'], queryFn: () => adsService.externalPolicy(), enabled });
 }
 export function useCreateAdMutation() {
   const client = useQueryClient();

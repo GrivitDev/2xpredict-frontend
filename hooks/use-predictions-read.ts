@@ -9,6 +9,7 @@ import type {
   PickCenterRecord,
   PredictionPage,
   PredictionSlip,
+  PredictionSlipListItem,
 } from '../types/predictions';
 import type {
   GetFixtureMarketsArgs,
@@ -63,11 +64,11 @@ export function useGetPickCenterQuery<TData = PickCenterRecord>(
   });
 }
 
-export function useListSlipsQuery<TData = PredictionPage<PredictionSlip>>(
+export function useListSlipsQuery<TData = PredictionPage<PredictionSlipListItem>>(
   args?: ListSlipsArgs,
-  options?: ApiQueryHookOptions<PredictionPage<PredictionSlip>, TData>,
+  options?: ApiQueryHookOptions<PredictionPage<PredictionSlipListItem>, TData>,
 ) {
-  return useQuery<PredictionPage<PredictionSlip>, Error, TData>({
+  return useQuery<PredictionPage<PredictionSlipListItem>, Error, TData>({
     queryKey: ['predictions-read', 'listSlips', args ?? null],
     queryFn: () => predictionsReadService.listSlips(args),
     ...options,
@@ -84,3 +85,4 @@ export function useGetSlipQuery<TData = PredictionSlip>(
     ...options,
   });
 }
+

@@ -101,11 +101,11 @@ export default function LeagueSelector({
             type="button"
             onClick={() => onSelect(item.id)}
             aria-pressed={selected === item.id}
-            title={item.name}
+            title={`${item.name}${item.country ? ` · ${item.country}` : ''}`}
             className={`${chipBase} league-selector__item ${visibility} ${selected === item.id ? activeChip : inactiveChip}`}
           >
             <LeagueLogo src={item.logo} name={item.name} />
-            <span className="min-w-0 truncate">{item.name}</span>
+            <span className="min-w-0 truncate">{item.name}{item.country ? <span className="ml-1 font-normal opacity-70">· {item.country}</span> : null}</span>
           </button>
         );
       })}
@@ -148,7 +148,7 @@ export default function LeagueSelector({
                   }`}
                 >
                   <LeagueLogo src={item.logo} name={item.name} />
-                  <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                  <span className="min-w-0 flex-1 truncate">{item.name}{item.country ? <span className="ml-1 text-[9px] font-normal opacity-70">· {item.country}</span> : null}</span>
                   {selected === item.id ? <FaCheck className="shrink-0 text-[9px]" /> : null}
                 </button>
               ))}
@@ -191,3 +191,4 @@ export default function LeagueSelector({
     </div>
   );
 }
+

@@ -41,10 +41,18 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* New semantic brand palette. */
+  /* Brand colours for surfaces, plus contrast-safe text accents. */
   --color-brand-burgundy: var(--brand-burgundy);
   --color-brand-champagne: var(--brand-champagne);
   --color-brand-slate: var(--brand-slate);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-hover: var(--brand-accent-hover);
+
+  /* Accessible status text colours; independent from status surface fills. */
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-danger: var(--status-danger);
+  --color-status-info: var(--status-info);
 
   /* Backward-compatible aliases used by existing components. */
   --color-brand-navy: var(--brand-navy);
@@ -103,6 +111,16 @@
   --brand-champagne: #f6e9d6;
   --brand-slate: #1e293b;
 
+  /* Contrast-safe brand text. Keep separate from burgundy surface fills. */
+  --brand-accent: #7a0f2e;
+  --brand-accent-hover: #641027;
+
+  /* Status text colours for light surfaces. */
+  --status-success: #166534;
+  --status-warning: #854d0e;
+  --status-danger: #b42336;
+  --status-info: #245a7a;
+
   /* Compatibility aliases: keep older utility names working. */
   --brand-navy: #1e293b;
   --brand-midnight: #0f172a;
@@ -129,7 +147,7 @@
   --secondary: #f6e9d6;
   --secondary-foreground: #462231;
   --muted: #f1ede7;
-  --muted-foreground: #687382;
+  --muted-foreground: #5f6b79;
   --accent: #f6e9d6;
   --accent-foreground: #1e293b;
 
@@ -157,7 +175,7 @@
   /* Text hierarchy. */
   --text-primary: #1e293b;
   --text-secondary: #465264;
-  --text-muted: #737d8b;
+  --text-muted: #626d7b;
   --text-disabled: #a7adb5;
   --text-inverse: #ffffff;
 
@@ -232,6 +250,14 @@
   --brand-champagne: #f6e9d6;
   --brand-slate: #1e293b;
 
+  /* Contrast-safe brand and status text for dark surfaces. */
+  --brand-accent: #f0a2b3;
+  --brand-accent-hover: #f6e9d6;
+  --status-success: #86efac;
+  --status-warning: #fcd34d;
+  --status-danger: #fda4af;
+  --status-info: #93c5fd;
+
   /* Compatibility aliases. */
   --brand-navy: #1e293b;
   --brand-midnight: #0b1220;
@@ -256,7 +282,7 @@
   --secondary: #293548;
   --secondary-foreground: #f6e9d6;
   --muted: #202c40;
-  --muted-foreground: #aeb8c7;
+  --muted-foreground: #b8c2d0;
   --accent: #3a2b35;
   --accent-foreground: #f6e9d6;
 
@@ -280,7 +306,7 @@
 
   --text-primary: #f8f5ef;
   --text-secondary: #d2d8e1;
-  --text-muted: #aeb8c7;
+  --text-muted: #b8c2d0;
   --text-disabled: #687589;
   --text-inverse: #1e293b;
 
@@ -410,15 +436,12 @@
   textarea::placeholder { color: var(--text-muted); }
 
   a {
-    color: var(--brand-burgundy);
+    color: var(--brand-accent);
     text-decoration: none;
     transition: color var(--transition-fast);
   }
 
-  a:hover { color: var(--brand-burgundy); }
-
-  .dark a { color: #f0a2b3; }
-  .dark a:hover { color: #f6e9d6; }
+  a:hover { color: var(--brand-accent-hover); }
 
   ::selection {
     background: var(--brand-burgundy);
@@ -632,4 +655,3 @@
 @media (min-width: 1024px) {
   :root { --navbar-offset: 4.0625rem; }
 }
-

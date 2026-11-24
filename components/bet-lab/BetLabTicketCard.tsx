@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { FaChevronDown, FaChevronUp, FaFutbol } from 'react-icons/fa6';
-import type { MatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveLeagueDisplayName, resolveTeamDisplayName, type MatchPresentation } from '@/hooks/use-match-presentation';
 import {
   asRecord,
   firstValue,
@@ -99,13 +99,11 @@ function leagueNameOf(leg: ApiRecord, fixture: ApiRecord, presentation?: MatchPr
   const league = asRecord(firstValue(leg, ['league', 'competition']))
     ?? asRecord(firstValue(fixture, ['league', 'competition']))
     ?? {};
-  return text(
+  return resolveLeagueDisplayName(
     presentation?.leagueName,
-    text(
-      firstValue(leg, ['leagueName', 'competitionName', 'leagueDisplayName']),
-      text(firstValue(league, ['displayName', 'fullName', 'name', 'leagueName']),
-        text(firstValue(fixture, ['leagueName', 'competitionName']), 'Competition')),
-    ),
+    firstValue(leg, ['leagueName', 'competitionName', 'leagueDisplayName']),
+    firstValue(league, ['displayName', 'fullName', 'name', 'leagueName']),
+    firstValue(fixture, ['leagueName', 'competitionName']),
   );
 }
 
@@ -122,10 +120,8 @@ function MatchTicketCard({
   const eventId = ticketLegEventId(firstLeg);
   const presentation = eventId ? presentations.get(eventId) : undefined;
 
-  const homeName = text(presentation?.homeTeamName,
-    text(firstValue(firstLeg, ['homeTeamName', 'homeName']), fixtureTeamName(fixture, 'home')));
-  const awayName = text(presentation?.awayTeamName,
-    text(firstValue(firstLeg, ['awayTeamName', 'awayName']), fixtureTeamName(fixture, 'away')));
+  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, firstValue(firstLeg, ['homeTeamName', 'homeName']), fixtureTeamName(fixture, 'home'));
+  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, firstValue(firstLeg, ['awayTeamName', 'awayName']), fixtureTeamName(fixture, 'away'));
 
   const homeLogo = [
     ...fixtureTeamLogoSources(fixture, 'home', presentation),
@@ -171,7 +167,7 @@ function MatchTicketCard({
     <article className="min-w-0 overflow-hidden rounded-md border border-border/65 bg-background/55">
       <header className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 border-b border-border/55 bg-muted/20 px-1.5 py-1">
         <BetLabLogo src={leagueLogo} name={leagueName} sizeClassName="h-3.5 w-3.5" shape="rounded" />
-        <span className="max-w-[36%] truncate text-[8px] font-extrabold text-foreground/85" title={leagueName}>{leagueName}</span>
+        <span className="max-w-[36%] truncate text-[8px] font-extrabold text-foreground/85" title={`${leagueName}${presentation?.leagueCountry ? ` · ${presentation.leagueCountry}` : ''}`}>{leagueName}{presentation?.leagueCountry ? <span className="ml-1 font-normal opacity-70">· {presentation.leagueCountry}</span> : null}</span>
         <span className={`rounded border px-1 py-0.5 text-[7px] font-extrabold uppercase ${statusTone(matchStatus)}`}>
           {statusLabel(matchStatus, presentation)}
         </span>
@@ -301,3 +297,4 @@ export default function BetLabTicketCard({ ticket, index, presentations, default
     </article>
   );
 }
+

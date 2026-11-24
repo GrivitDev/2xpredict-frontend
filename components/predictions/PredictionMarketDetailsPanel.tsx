@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { FaXmark } from 'react-icons/fa6';
 import { createPortal } from 'react-dom';
-import type { MatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, type MatchPresentation } from '@/hooks/use-match-presentation';
 import { firstValue, numeric, text, type ApiRecord } from '@/lib/api-shapes';
 import { formatPredictionOutcome, formatPredictionPrice, predictionConfidence, predictionOutcome, predictionPrice, predictionProbabilityPercent } from '@/lib/prediction-display';
 
@@ -192,8 +192,8 @@ export default function PredictionMarketDetailsPanel({
   mobileOpen,
   onCloseMobile,
 }: Props) {
-  const homeName = text(presentation?.homeTeamName, text(firstValue(fixture ?? {}, ['homeTeamName']), 'Home'));
-  const awayName = text(presentation?.awayTeamName, text(firstValue(fixture ?? {}, ['awayTeamName']), 'Away'));
+  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, firstValue(fixture ?? {}, ['homeTeamName']));
+  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, firstValue(fixture ?? {}, ['awayTeamName']));
   const leagueId = text(firstValue(fixture ?? {}, ['leagueId', 'competitionId']), '');
   const leagueCandidates = [
     firstValue(fixture ?? {}, ['leagueDisplayName', 'competitionDisplayName']),
@@ -400,5 +400,6 @@ export default function PredictionMarketDetailsPanel({
     </>
   );
 }
+
 
 

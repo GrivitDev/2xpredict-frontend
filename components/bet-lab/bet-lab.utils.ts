@@ -380,12 +380,19 @@ export function fixtureTeamName(item: ApiRecord, side: 'home' | 'away'): string 
   }) ?? (competitors.length >= 2 ? competitors[side === 'home' ? 0 : 1] : undefined);
   const competitorTeam = asRecord(firstValue(competitor ?? {}, ['team', 'competitor', 'participant'])) ?? competitor;
 
-  return text(
+  const candidates = [
     firstValue(item, directKeys),
-    text(firstValue(nested ?? {}, ['name', 'displayName', 'shortName']),
-      text(firstValue(competitorTeam ?? {}, ['displayName', 'shortDisplayName', 'name', 'fullName', 'shortName']),
-        side === 'home' ? 'Home' : 'Away')),
-  );
+    firstValue(nested ?? {}, ['name', 'displayName', 'shortName']),
+    firstValue(competitorTeam ?? {}, ['displayName', 'shortDisplayName', 'name', 'fullName', 'shortName']),
+  ];
+  for (const candidate of candidates) {
+    const value = text(candidate, '').trim();
+    if (!value || /^(?:home|away|home team|away team|team name unavailable|unknown|tbd|n\/a)$/i.test(value)) continue;
+    if (/^(?:team:|competition:|fixture:)/i.test(value) || /^\d+$/.test(value)) continue;
+    if (/(?:^|~)t:[^~]+(?:~|$)/i.test(value)) continue;
+    return value;
+  }
+  return 'Team name unavailable';
 }
 
 export function localDateKey(date: Date): string {
@@ -776,6 +783,7 @@ export function ticketStatusTone(status: string): string {
   if (['VOID', 'PUSH', 'CANCELLED'].includes(normalized)) return 'bg-amber-500/10 text-amber-700 dark:text-amber-400';
   return 'bg-primary/10 text-primary';
 }
+
 
 
 

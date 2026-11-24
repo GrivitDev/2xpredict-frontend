@@ -41,8 +41,14 @@ export interface SportsFixtureStatus {
   description?: string; shortDescription?: string; period?: number;
   clock?: string; displayClock?: string; isFinal: boolean;
 }
+export interface SportsFixtureTeamIdentity {
+  id: string; espnId?: string; name?: string; displayName?: string;
+  shortName?: string; abbreviation?: string; logo?: string; country?: string;
+  location?: string; slug?: string; primaryColor?: string; alternateColor?: string;
+}
 export interface SportsFixtureCompetitor {
-  teamId: string; espnCompetitorId?: string; homeAway: 'HOME' | 'AWAY';
+  teamId: string; teamIdentity?: SportsFixtureTeamIdentity;
+  espnCompetitorId?: string; homeAway: 'HOME' | 'AWAY';
   score?: number | null; winner?: boolean; form?: string;
   records?: Array<Record<string, unknown>>;
   statistics?: Array<Record<string, unknown>>;
@@ -509,3 +515,4 @@ export interface SportsOperationalMonitor {
     outboxPending: number;
   };
 }
+

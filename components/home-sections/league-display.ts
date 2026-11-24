@@ -2,6 +2,7 @@ export type HomeLeague = {
   id: string;
   name: string;
   logo?: string | null;
+  country?: string | null;
 };
 
 type CompetitionRecord = Record<string, any>;
@@ -293,3 +294,4 @@ export function resolveLeagueLogo(...candidates: unknown[]): string | null {
   }
   return null;
 }
+

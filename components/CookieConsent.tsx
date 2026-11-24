@@ -52,7 +52,7 @@ export default function CookieConsent() {
             justify-center
             rounded-xl
             bg-primary/10
-            text-primary
+            text-brand-accent
             sm:flex
           "
         >
@@ -87,7 +87,7 @@ export default function CookieConsent() {
               inline-flex
               text-s
               font-medium
-              text-primary
+              text-brand-accent
               hover:underline
             "
           >

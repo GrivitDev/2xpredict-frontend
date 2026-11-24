@@ -63,7 +63,7 @@ function getStatusConfig(status: string) {
       return {
         icon: CheckCircle2,
         classes:
-          'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+          'border-emerald-500/20 bg-emerald-500/10 text-status-success',
       };
 
     case 'rejected':
@@ -78,7 +78,7 @@ function getStatusConfig(status: string) {
       return {
         icon: Clock3,
         classes:
-          'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
+          'border-amber-500/20 bg-amber-500/10 text-status-warning',
       };
   }
 }
@@ -122,7 +122,7 @@ export default function PaymentHistoryTable({
               justify-center
               rounded-md
               bg-primary/10
-              text-primary
+              text-brand-accent
             "
           >
             <CreditCard
@@ -158,7 +158,7 @@ export default function PaymentHistoryTable({
             py-1
             text-[10px]
             font-semibold
-            text-primary
+            text-brand-accent
           "
         >
           {payments.length}{' '}
@@ -201,7 +201,7 @@ export default function PaymentHistoryTable({
                           justify-center
                           rounded-md
                           bg-primary/10
-                          text-primary
+                          text-brand-accent
                         "
                       >
                         <ReceiptText
@@ -221,7 +221,7 @@ export default function PaymentHistoryTable({
                       </div>
                     </div>
 
-                    <p className="shrink-0 text-xs font-bold text-primary">
+                    <p className="shrink-0 text-xs font-bold text-brand-accent">
                       {money(payment.amount)}
                     </p>
                   </div>
@@ -299,7 +299,7 @@ export default function PaymentHistoryTable({
                         <div className="flex items-center gap-2">
                           <CalendarDays
                             aria-hidden="true"
-                            className="h-3.5 w-3.5 shrink-0 text-primary"
+                            className="h-3.5 w-3.5 shrink-0 text-brand-accent"
                           />
 
                           <div>
@@ -326,7 +326,7 @@ export default function PaymentHistoryTable({
                             py-1
                             text-[10px]
                             font-medium
-                            text-primary
+                            text-brand-accent
                           "
                         >
                           {formatPaymentType(payment.type)}
@@ -334,7 +334,7 @@ export default function PaymentHistoryTable({
                       </td>
 
                       <td className="px-4 py-3">
-                        <span className="text-xs font-bold text-primary">
+                        <span className="text-xs font-bold text-brand-accent">
                           {money(payment.amount)}
                         </span>
                       </td>

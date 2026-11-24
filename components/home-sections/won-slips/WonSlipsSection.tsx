@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { FaChevronDown, FaChevronUp, FaTrophy } from 'react-icons/fa6';
 import { useListSlipsQuery } from '@/hooks/use-prediction-access';
 import { useGetV2CompetitionsQuery } from '@/hooks/use-sports';
-import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 import HomeDateSelector from '../HomeDateSelector';
 import LeagueSelector from '../LeagueSelector';
 import {
@@ -39,6 +39,33 @@ type Row = {
   selectionName?: string;
   settlementOutcome?: string;
 };
+
+function identifier(value: unknown): string | undefined {
+  if (typeof value === 'string') return value.trim() || undefined;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value !== 'object' || value === null) return undefined;
+
+  const record = value as Record<string, unknown>;
+  for (const key of ['id', 'teamId', 'espnId', 'uid', 'competitionId', 'leagueId']) {
+    const candidate = record[key];
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+    if (typeof candidate === 'number' && Number.isFinite(candidate)) return String(candidate);
+  }
+  return undefined;
+}
+
+function displayText(value: unknown): string | undefined {
+  if (typeof value === 'string') return value.trim() || undefined;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value !== 'object' || value === null) return undefined;
+
+  const record = value as Record<string, unknown>;
+  for (const key of ['name', 'displayName', 'countryName', 'title', 'code']) {
+    const candidate = record[key];
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+  }
+  return undefined;
+}
 
 const asRows = (value: unknown): Row[] => {
   if (Array.isArray(value)) return value as Row[];
@@ -116,7 +143,7 @@ export default function WonSlipsSection() {
   );
 
   const competitionsQuery = useGetV2CompetitionsQuery(
-    { query: { activeOnly: true, limit: 1000 } },
+    { query: { activeOnly: false, limit: 1000 } },
     { staleTime: 30 * 60_000, retry: 1, refetchOnWindowFocus: false },
   );
   const competitions = asRows(competitionsQuery.data);
@@ -130,13 +157,23 @@ export default function WonSlipsSection() {
     String(slip.settlementStatus ?? '').toUpperCase() === 'WON',
   ) as unknown as Row[], [query.data?.items]);
   const fixtureRefs = useMemo(() => slips.flatMap((slip: Row) => (slip.legs ?? []).map((leg: Row) => ({
-    eventId: leg.eventId == null ? leg.eventId : String(leg.eventId),
+    eventId: identifier(leg.eventId),
     fixtureDate: leg.fixtureDate,
+    leagueId: identifier(leg.leagueId),
+    leagueName: leg.leagueName,
+    leagueCountry: displayText(leg.country ?? leg.leagueCountry),
+    homeTeamId: identifier(leg.homeTeamId),
+    awayTeamId: identifier(leg.awayTeamId),
+    homeTeamName: leg.homeTeamName,
+    awayTeamName: leg.awayTeamName,
+    homeTeamLogo: logoUrl(leg.homeTeamLogo),
+    awayTeamLogo: logoUrl(leg.awayTeamLogo),
+    fixtureRecord: leg, summaryRecord: leg.summary,
   }))), [slips]);
   const presentations = useMatchPresentation(fixtureRefs);
 
   const leagues = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; logo?: string | null }>();
+    const map = new Map<string, { id: string; name: string; logo?: string | null; country?: string | null }>();
 
     for (const slip of slips) {
       for (const leg of slip.legs ?? []) {
@@ -160,6 +197,7 @@ export default function WonSlipsSection() {
             presentation?.leagueName,
             existing?.name,
           ]),
+          country: presentation?.leagueCountry ?? competition?.country ?? null,
           logo: resolveLeagueLogo(
             leg.leagueLogo,
             competition?.logo,
@@ -219,22 +257,22 @@ export default function WonSlipsSection() {
                 <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/25 px-2.5 py-1.5">
                   <div className="min-w-0">
                     <p className="flex min-w-0 items-center gap-1 text-[10px] font-bold">
-                      <FaTrophy className="shrink-0 text-emerald-600" />
+                      <FaTrophy className="shrink-0 text-status-success" />
                       <span className="truncate">{slip.name || slip.slipCode || 'Winning slip'}</span>
                     </p>
                     <p className="mt-0.5 truncate text-[8px] text-muted-foreground">{slip.slipCode || 'Settled combination'} · {(slip.legs ?? []).length} matches</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-[8px] uppercase tracking-wide text-muted-foreground">{(slip.legs ?? []).some((leg: Row) => String(leg.priceType ?? '').toUpperCase() === 'ESTIMATED') ? 'Est. total odds' : 'Total odds'}</p>
-                    <strong title={(slip.legs ?? []).some((leg: Row) => String(leg.priceType ?? '').toUpperCase() === 'ESTIMATED') ? 'At least one slip leg uses a Grivit estimate, not a bookmaker offer.' : 'Product of the stored slip-leg decimal prices.'} className="text-sm font-extrabold leading-none text-emerald-600">{Number(slip.combinedOdds ?? slip.odds ?? slip.combinedFairOdds ?? 0) > 0 ? `${(slip.legs ?? []).some((leg: Row) => String(leg.priceType ?? '').toUpperCase() === 'ESTIMATED') ? '~' : ''}${Number(slip.combinedOdds ?? slip.odds ?? slip.combinedFairOdds ?? 0).toFixed(2)}` : '—'}</strong>
+                    <strong title={(slip.legs ?? []).some((leg: Row) => String(leg.priceType ?? '').toUpperCase() === 'ESTIMATED') ? 'At least one slip leg uses a Grivit estimate, not a bookmaker offer.' : 'Product of the stored slip-leg decimal prices.'} className="text-sm font-extrabold leading-none text-status-success">{Number(slip.combinedOdds ?? slip.odds ?? slip.combinedFairOdds ?? 0) > 0 ? `${(slip.legs ?? []).some((leg: Row) => String(leg.priceType ?? '').toUpperCase() === 'ESTIMATED') ? '~' : ''}${Number(slip.combinedOdds ?? slip.odds ?? slip.combinedFairOdds ?? 0).toFixed(2)}` : '—'}</strong>
                   </div>
                 </div>
 
                 <div className="divide-y divide-border/50 px-2.5">
                   {(slip.legs ?? []).map((leg, index) => {
                     const presentation = presentations.get(String(leg.eventId));
-                    const homeName = presentation?.homeTeamName ?? leg.homeTeamName ?? 'Home';
-                    const awayName = presentation?.awayTeamName ?? leg.awayTeamName ?? 'Away';
+                    const homeName = resolveTeamDisplayName(presentation?.homeTeamName, leg.homeTeamName);
+                    const awayName = resolveTeamDisplayName(presentation?.awayTeamName, leg.awayTeamName);
                     const sourceLeagueId = leg.leagueId ?? presentation?.leagueId ?? '';
                     const competition = findCompetition(leagueById, sourceLeagueId);
                     const leagueName = resolveLeagueName(sourceLeagueId, [
@@ -286,7 +324,7 @@ export default function WonSlipsSection() {
 
                         <div className="mt-0.5 flex min-w-0 items-center justify-between gap-2">
                           <span className="min-w-0 truncate text-[9px] text-muted-foreground">{leg.marketName ?? 'Market'} · {leg.selectionName ?? 'Selection'}</span>
-                          <span className="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-bold text-emerald-600">{leg.settlementOutcome ?? 'WON'}</span>
+                          <span className="shrink-0 rounded-full bg-success/10 px-1.5 py-0.5 text-[8px] font-bold text-status-success">{leg.settlementOutcome ?? 'WON'}</span>
                         </div>
                       </div>
                     );

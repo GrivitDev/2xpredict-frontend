@@ -1,16 +1,18 @@
 'use client';
 
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FaBars, FaCoins, FaCrown, FaMagnifyingGlass } from 'react-icons/fa6';
 import NavLinks from './NavLinks';
 import UserMenu from './UserMenu';
-import UniversalSearch from './UniversalSearch';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useAuth } from '@/providers/auth-provider';
 import { useGetWalletQuery } from '@/hooks/use-bet-lab-wallet';
+
+const UniversalSearch = dynamic(() => import('./UniversalSearch'), { ssr: false });
 
 function formatPoints(value: unknown) {
   const amount = Number(value);
@@ -85,8 +87,12 @@ export default function Navbar() {
     [user],
   );
 
+  const onBetLab = pathname.startsWith('/bet-lab');
+
+  // Wallet points are displayed in the navbar only on Bet Lab routes.
+  // Do not fetch wallet data on every other page.
   const { data: walletResponse } = useGetWalletQuery({
-    enabled: Boolean(user),
+    enabled: Boolean(user) && onBetLab,
     staleTime: 30_000,
   });
 
@@ -97,8 +103,6 @@ export default function Navbar() {
     ?? wallet?.monthlyBalance
     ?? wallet?.currentBalance
     ?? null;
-
-  const onBetLab = pathname.startsWith('/bet-lab');
 
   const onPredictionsOrAccount =
     pathname.startsWith('/predictions') || isAccountRoute(pathname);
@@ -280,11 +284,13 @@ export default function Navbar() {
             </>
           ) : null}
 
-          <UniversalSearch
-            open={searchOpen}
-            onClose={() => setSearchOpen(false)}
-            isAdmin={isAdmin}
-          />
+          {searchOpen ? (
+            <UniversalSearch
+              open
+              onClose={() => setSearchOpen(false)}
+              isAdmin={isAdmin}
+            />
+          ) : null}
         </div>
       </header>
 

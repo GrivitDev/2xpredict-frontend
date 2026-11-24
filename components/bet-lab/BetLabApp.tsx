@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { FaLock } from 'react-icons/fa6';
 import { useAuth } from '@/providers/auth-provider';
 import {
-  useGetFixturesQuery,
+  useGetFixturesInfiniteQuery,
   useGetMarketCatalogQuery,
   usePlaceAccumulatorMutation,
   usePlaceSingleTicketMutation,
@@ -30,8 +31,8 @@ import {
   unwrapRecord,
   type ApiRecord,
 } from '@/lib/api-shapes';
-import type { BetLabMarketCode } from '@/types/bet-lab';
-import BetLabAccessModal from './BetLabAccessModal';
+import type { ActiveBetLabMarketCode, BetLabPlacementResponse } from '@/types/bet-lab';
+const BetLabAccessModal = dynamic(() => import('./BetLabAccessModal'), { ssr: false });
 import useBetLabScrollLock from './use-bet-lab-scroll-lock';
 import BetLabDateBar from './BetLabDateBar';
 import BetSlipPanel from './BetSlipPanel';
@@ -128,6 +129,9 @@ export default function BetLabApp() {
   const [showAccessPrompt, setShowAccessPrompt] = useState(false);
   const [mobileCountryOpen, setMobileCountryOpen] = useState(false);
   const [mobileSlipOpen, setMobileSlipOpen] = useState(false);
+  // Keep the same key for retries of an identical request. A timeout can occur
+  // after the backend has committed the ticket but before the browser receives it.
+  const placementIdempotencyKeysRef = useRef<Map<string, string>>(new Map());
 
   useBetLabScrollLock(showVerificationPrompt);
 
@@ -158,7 +162,7 @@ export default function BetLabApp() {
   // to the guest fixture list, authenticated Bet Lab rows use these records to
   // resolve team/league logos and ESPN presentation metadata.
   const competitionsQuery = useGetV2CompetitionsQuery(
-    { query: { activeOnly: true, limit: 1000 } },
+    { query: { activeOnly: false, limit: 1000 } },
     {
       staleTime: 30 * 60_000,
       gcTime: 60 * 60_000,
@@ -166,8 +170,10 @@ export default function BetLabApp() {
       retry: 1,
     },
   );
-  const authenticatedFixturesQuery = useGetFixturesQuery<unknown>(
-    { query: { from: dateRange.from, to: dateRange.to, page: 1, limit: 100 } },
+  // Authenticated fixture reads are paginated by the Bet Lab API (maximum
+  // page size: 100). Start with 50 rows and fetch later pages on demand.
+  const authenticatedFixturesQuery = useGetFixturesInfiniteQuery(
+    { query: { from: dateRange.from, to: dateRange.to, limit: 50 } },
     {
       enabled: !authLoading && authenticated,
       staleTime: 60_000,
@@ -185,9 +191,9 @@ export default function BetLabApp() {
     { query: { from: dateRange.from, to: dateRange.to, limit: 500 } },
     {
       enabled: !authLoading && !authenticated,
-      staleTime: selectedDate === today ? 20_000 : 90_000,
+      staleTime: selectedDate === today ? 45_000 : 3 * 60_000,
       gcTime: 15 * 60_000,
-      refetchInterval: selectedDate === today ? 30_000 : 120_000,
+      refetchInterval: selectedDate === today ? 60_000 : 5 * 60_000,
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -216,7 +222,7 @@ export default function BetLabApp() {
   const accumulator = usePlaceAccumulatorMutation();
 
   const rawBetLabFixtures = useMemo(
-    () => arrayFrom(authenticatedFixturesQuery.data, ['items', 'fixtures', 'results', 'data']),
+    () => authenticatedFixturesQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [],
     [authenticatedFixturesQuery.data],
   );
   const competitionRows = useMemo(
@@ -265,7 +271,20 @@ export default function BetLabApp() {
   const rawFixtures = authenticated ? rawBetLabFixtures : rawPublicFixtures;
 
   const presentationRefs = useMemo(
-    () => rawFixtures.map((item) => ({ eventId: eventIdOf(item), fixtureDate: fixtureDateOf(item) })),
+    () => rawFixtures.map((item) => ({
+      eventId: eventIdOf(item),
+      fixtureDate: fixtureDateOf(item),
+      leagueId: text(firstValue(item, ['leagueId', 'competitionId', 'espnCompetitionId']), '') || undefined,
+      leagueName: text(firstValue(item, ['leagueName', 'competitionName']), '') || undefined,
+      leagueCountry: text(firstValue(item, ['country', 'countryName']), '') || undefined,
+      homeTeamId: text(firstValue(item, ['homeTeamId', 'homeId']), '') || undefined,
+      awayTeamId: text(firstValue(item, ['awayTeamId', 'awayId']), '') || undefined,
+      homeTeamName: text(firstValue(item, ['homeTeamName', 'homeTeam']), '') || undefined,
+      awayTeamName: text(firstValue(item, ['awayTeamName', 'awayTeam']), '') || undefined,
+      homeTeamLogo: text(firstValue(item, ['homeTeamLogo']), '') || undefined,
+      awayTeamLogo: text(firstValue(item, ['awayTeamLogo']), '') || undefined,
+      fixtureRecord: item,
+    })),
     [rawFixtures],
   );
   // Bet Lab keeps its own fixture contract for eligibility and ticket placement;
@@ -327,8 +346,8 @@ export default function BetLabApp() {
       const leagueId = ids[0] || (leagueName
         ? leagueName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
         : `event-${eventId}`);
-      const displayLeagueName = leagueName ?? `Competition ${leagueId}`;
-      const priority = text(firstValue(competitionRecord, ['priority']), text(fixture.priority, 'UNKNOWN')).toUpperCase();
+      const displayLeagueName = leagueName ?? 'League name unavailable';
+      const priority = text(firstValue(competitionRecord, ['priority']), text(firstValue(fixture, ['priority']), 'UNKNOWN')).toUpperCase();
 
       // Resolve the real country from explicit competition/provider payload fields.
       // The region enum is deliberately not used as a country/category fallback.
@@ -385,7 +404,7 @@ export default function BetLabApp() {
       if (existingLeague) {
         existingLeague.fixtures.push(fixture);
         if (!existingLeague.logo && leagueLogo) existingLeague.logo = leagueLogo;
-        if (existingLeague.name.startsWith('Competition ') && leagueName) existingLeague.name = leagueName;
+        if (existingLeague.name === 'League name unavailable' && leagueName) existingLeague.name = leagueName;
       } else {
         entry.leagues.set(leagueKey, {
           id: leagueId,
@@ -606,38 +625,76 @@ export default function BetLabApp() {
         return;
       }
 
+      // The signature covers the exact placement payload, not displayed prices.
+      // If the request fails ambiguously, retrying the same slip and stake reuses
+      // its key; changing the slip or stake creates a different logical request.
+      const requestSignature = JSON.stringify({
+        ticketType: picks.length === 1 ? 'single' : 'accumulator',
+        stake: stakeAmount,
+        selections: picks.map((pick) => ({
+          eventId: pick.eventId,
+          marketCode: pick.marketCode,
+          selectionCode: pick.selectionCode,
+        })),
+      });
+      let idempotencyKey = placementIdempotencyKeysRef.current.get(requestSignature);
+      if (!idempotencyKey) {
+        idempotencyKey = makeIdempotencyKey('betlab');
+        placementIdempotencyKeysRef.current.set(requestSignature, idempotencyKey);
+        // Bound this in-memory retry map while preserving recent ambiguous retries.
+        if (placementIdempotencyKeysRef.current.size > 20) {
+          const oldestSignature = placementIdempotencyKeysRef.current.keys().next().value;
+          if (oldestSignature) placementIdempotencyKeysRef.current.delete(oldestSignature);
+        }
+      }
+
+      let placement: BetLabPlacementResponse;
       if (picks.length === 1) {
         const pick = picks[0];
-        await singleTicket.mutateAsync({
+        placement = await singleTicket.mutateAsync({
           body: {
             eventId: pick.eventId,
-            marketCode: pick.marketCode as BetLabMarketCode,
+            marketCode: pick.marketCode as ActiveBetLabMarketCode,
             selectionCode: pick.selectionCode,
             stake: stakeAmount,
-            idempotencyKey: makeIdempotencyKey('betlab'),
+            idempotencyKey,
           },
         });
       } else {
-        await accumulator.mutateAsync({
+        placement = await accumulator.mutateAsync({
           body: {
             legs: picks.map((pick) => ({
               eventId: pick.eventId,
-              marketCode: pick.marketCode as BetLabMarketCode,
+              marketCode: pick.marketCode as ActiveBetLabMarketCode,
               selectionCode: pick.selectionCode,
             })),
             stake: stakeAmount,
-            idempotencyKey: makeIdempotencyKey('betlab'),
+            idempotencyKey,
           },
         });
       }
 
-      setSuccess('Ticket placed successfully. You can follow its progress in My Tickets.');
+      // The placement response is authoritative: use its ticket and wallet
+      // snapshots rather than estimating the result or forcing an unnecessary
+      // wallet round-trip after a successful debit.
+      placementIdempotencyKeysRef.current.clear();
+      if (placement.wallet) {
+        queryClient.setQueryData(['bet-lab-wallet', 'getWallet'], placement.wallet);
+      } else {
+        void queryClient.invalidateQueries({ queryKey: ['bet-lab-wallet', 'getWallet'] }).catch(() => undefined);
+      }
+      void queryClient.invalidateQueries({ queryKey: ['bet-lab', 'getTickets'] }).catch(() => undefined);
+
+      const ticketNumber = text(placement.ticket?.ticketNumber, 'Ticket');
+      const acceptedOdds = numeric(placement.ticket?.combinedOdds, 0).toFixed(2);
+      const potentialReturn = numeric(placement.ticket?.potentialReturn, 0).toLocaleString('en-NG', {
+        maximumFractionDigits: 2,
+      });
+      setSuccess(
+        `${placement.alreadyPlaced ? 'This ticket was already placed' : 'Ticket placed successfully'}: ${ticketNumber}. Accepted odds: ${acceptedOdds}. Potential return: ${potentialReturn} points.`,
+      );
       setPicks([]);
       setMobileSlipOpen(false);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['bet-lab-wallet'] }),
-        queryClient.invalidateQueries({ queryKey: ['bet-lab', 'getTickets'] }),
-      ]);
     } catch (requestError) {
       setError(errorMessage(requestError, 'Unable to place this ticket. Check the selections and try again.'));
     }
@@ -689,9 +746,15 @@ export default function BetLabApp() {
           selectedEventId={selectedEventId}
           marketCatalog={marketCatalogRows}
           fixturesLoading={fixturesLoading}
-          fixturesHasMore={!authenticated && Boolean(publicFixturesQuery.hasNextPage)}
-          fixturesLoadingMore={!authenticated && publicFixturesQuery.isFetchingNextPage}
-          onLoadMoreFixtures={!authenticated ? () => void publicFixturesQuery.fetchNextPage() : undefined}
+          fixturesHasMore={authenticated
+            ? Boolean(authenticatedFixturesQuery.hasNextPage)
+            : Boolean(publicFixturesQuery.hasNextPage)}
+          fixturesLoadingMore={authenticated
+            ? authenticatedFixturesQuery.isFetchingNextPage
+            : publicFixturesQuery.isFetchingNextPage}
+          onLoadMoreFixtures={authenticated
+            ? () => void authenticatedFixturesQuery.fetchNextPage()
+            : () => void publicFixturesQuery.fetchNextPage()}
           marketCatalogLoading={authenticated && marketCatalogQuery.isLoading}
           marketCatalogMessage={!authenticated
             ? 'Sign in to view the supported markets.'
@@ -745,4 +808,3 @@ export default function BetLabApp() {
     </main>
   );
 }
-

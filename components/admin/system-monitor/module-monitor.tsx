@@ -185,8 +185,8 @@ export default function ModuleMonitorAdmin({ module }: { module: ModuleKey }) {
             <button type="button" onClick={() => void center.refetch()} disabled={!validRange || center.isFetching} className="h-7 rounded border border-border px-2 text-[10px] font-medium hover:bg-muted disabled:opacity-50">{center.isFetching ? 'Loading…' : 'Load odds'}</button>
             <span className="text-[10px] text-muted-foreground">{record(center.data).count === undefined ? '' : `${display(record(center.data).count)} fixtures`}</span>
           </div>
-          {!validRange ? <p className="text-[10px] text-rose-600">Choose a valid date range of no more than eight days.</p> : null}
-          {center.isError ? <p role="alert" className="text-[10px] text-rose-600">Could not load odds center data.</p> : null}
+          {!validRange ? <p className="text-[10px] text-status-danger">Choose a valid date range of no more than eight days.</p> : null}
+          {center.isError ? <p role="alert" className="text-[10px] text-status-danger">Could not load odds center data.</p> : null}
           <OddsCenterTable data={center.data} loading={center.isLoading || center.isFetching} />
         </div>
       ) : null}
@@ -233,3 +233,4 @@ function OddsCenterTable({ data, loading }: { data: unknown; loading: boolean })
     </table>
   </div>;
 }
+

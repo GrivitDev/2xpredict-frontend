@@ -154,15 +154,15 @@ const statusClass = (
     case 'ONLINE':
     case 'SUCCESS':
     case 'COMPLETED':
-      return 'bg-emerald-500/10 text-emerald-600';
+      return 'bg-emerald-500/10 text-status-success';
 
     case 'RUNNING':
     case 'PROCESSING':
-      return 'bg-blue-500/10 text-blue-600';
+      return 'bg-blue-500/10 text-status-info';
 
     case 'FAILED':
     case 'PARTIAL':
-      return 'bg-red-500/10 text-red-600';
+      return 'bg-red-500/10 text-status-danger';
 
     default:
       return 'bg-muted text-muted-foreground';
@@ -424,7 +424,7 @@ export default function SystemMonitorOverview() {
           valueClass={
             queueActive > 0 ||
             runningCrons.length > 0
-              ? 'bg-blue-500/10 text-blue-600'
+              ? 'bg-blue-500/10 text-status-info'
               : ''
           }
         />
@@ -444,8 +444,8 @@ export default function SystemMonitorOverview() {
           valueClass={
             totalOperationalAlerts >
             0
-              ? 'bg-red-500/10 text-red-600'
-              : 'bg-emerald-500/10 text-emerald-600'
+              ? 'bg-red-500/10 text-status-danger'
+              : 'bg-emerald-500/10 text-status-success'
           }
         />
 
@@ -474,7 +474,7 @@ export default function SystemMonitorOverview() {
             databaseFileSize,
           )}
           detail="Database data size"
-          valueClass="bg-blue-500/10 text-blue-600"
+          valueClass="bg-blue-500/10 text-status-info"
         />
       </div>
 
@@ -499,7 +499,7 @@ export default function SystemMonitorOverview() {
               value={queueProcessing}
               valueClass={
                 queueProcessing > 0
-                  ? 'text-blue-600'
+                  ? 'text-status-info'
                   : undefined
               }
             />
@@ -507,7 +507,7 @@ export default function SystemMonitorOverview() {
             <MiniMetric
               label="Completed"
               value={queueCompleted}
-              valueClass="text-emerald-600"
+              valueClass="text-status-success"
             />
 
             <MiniMetric
@@ -515,7 +515,7 @@ export default function SystemMonitorOverview() {
               value={queueFailed}
               valueClass={
                 queueFailed > 0
-                  ? 'text-red-600'
+                  ? 'text-status-danger'
                   : undefined
               }
             />
@@ -557,7 +557,7 @@ export default function SystemMonitorOverview() {
               valueClass={
                 runningCrons.length >
                 0
-                  ? 'text-blue-600'
+                  ? 'text-status-info'
                   : undefined
               }
             />
@@ -570,7 +570,7 @@ export default function SystemMonitorOverview() {
               valueClass={
                 failedCrons.length >
                 0
-                  ? 'text-red-600'
+                  ? 'text-status-danger'
                   : undefined
               }
             />
@@ -588,8 +588,8 @@ export default function SystemMonitorOverview() {
               value={recentErrors}
               valueClass={
                 recentErrors > 0
-                  ? 'text-red-600'
-                  : 'text-emerald-600'
+                  ? 'text-status-danger'
+                  : 'text-status-success'
               }
             />
           </div>
@@ -620,7 +620,7 @@ export default function SystemMonitorOverview() {
             <MiniMetric label="Provider" value="ESPN" />
             <MiniMetric label="Health" value={provider?.health ?? 'UNKNOWN'} />
             <MiniMetric label="Requests" value={formatNumber(provider?.requestAttempts ?? 0)} />
-            <MiniMetric label="Failures" value={formatNumber(provider?.consecutiveFailures ?? 0)} valueClass={(provider?.consecutiveFailures ?? 0) > 0 ? 'text-amber-600' : 'text-emerald-600'} />
+            <MiniMetric label="Failures" value={formatNumber(provider?.consecutiveFailures ?? 0)} valueClass={(provider?.consecutiveFailures ?? 0) > 0 ? 'text-status-warning' : 'text-status-success'} />
           </div>
         </Panel>
       </div>
@@ -703,7 +703,7 @@ export default function SystemMonitorOverview() {
           <div className="space-y-1.5 rounded-md border border-border bg-background/40 p-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-[11px] font-semibold text-foreground">ESPN v2 provider</span>
-              <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${lockedProviders.length ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+              <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${lockedProviders.length ? 'bg-amber-500/10 text-status-warning' : 'bg-emerald-500/10 text-status-success'}`}>
                 {lockedProviders.length ? 'COOLDOWN' : provider.health ?? 'UNKNOWN'}
               </span>
             </div>
@@ -922,8 +922,8 @@ function OperationRow({
       <span
         className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
           tone === 'red'
-            ? 'bg-red-500/10 text-red-600'
-            : 'bg-blue-500/10 text-blue-600'
+            ? 'bg-red-500/10 text-status-danger'
+            : 'bg-blue-500/10 text-status-info'
         }`}
       >
         {status}
@@ -931,3 +931,4 @@ function OperationRow({
     </div>
   );
 }
+

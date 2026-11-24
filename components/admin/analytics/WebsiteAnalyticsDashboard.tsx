@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   FaArrowTrendUp,
   FaBolt,
@@ -110,9 +111,9 @@ function Metric({ label, value, detail, icon: Icon, tone = 'blue' }: {
   label: string; value: string; detail?: string; icon: React.ComponentType<{ className?: string }>; tone?: 'blue' | 'green' | 'amber' | 'violet';
 }) {
   const tones = {
-    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-    green: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    blue: 'bg-blue-500/10 text-status-info',
+    green: 'bg-emerald-500/10 text-status-success',
+    amber: 'bg-amber-500/10 text-status-warning',
     violet: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
   };
   return (
@@ -206,20 +207,41 @@ function TableList({ rows, labelKeys, valueKeys, loading, empty = 'No data for t
 
 export default function WebsiteAnalyticsDashboard() {
   const [days, setDays] = useState(30);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const range = useMemo(() => rangeFor(days), [days, refreshKey]);
+  const [detailPanelsReady, setDetailPanelsReady] = useState(false);
+  const detailPanelsRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  const range = useMemo(() => rangeFor(days), [days]);
   const args = useMemo(() => queryArgs(range), [range]);
 
-  const dashboardQ = useGetDashboardQuery<WebsiteAnalyticsDashboardResponse>(args, { staleTime: 30_000 });
+  useEffect(() => {
+    const target = detailPanelsRef.current;
+    if (!target) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setDetailPanelsReady(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setDetailPanelsReady(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: '500px 0px' });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  const dashboardQ = useGetDashboardQuery<WebsiteAnalyticsDashboardResponse>(args, { staleTime: 60_000 });
   const realtimeQ = useGetRealtimeQuery<WebsiteAnalyticsRealtime>({ refetchInterval: 30_000, staleTime: 15_000 });
-  const engagementQ = useGetPageEngagementQuery({ query: { ...range, limit: '10' } }, { staleTime: 30_000 });
-  const visitorTypesQ = useGetVisitorTypesQuery<WebsiteAnalyticsVisitorTypes>(args, { staleTime: 30_000 });
-  const conversionsQ = useGetConversionsQuery<WebsiteAnalyticsConversions>(args, { staleTime: 30_000 });
-  const entryQ = useGetEntryPagesQuery({ query: { ...range, limit: '7' } }, { staleTime: 30_000 });
-  const exitQ = useGetExitPagesQuery({ query: { ...range, limit: '7' } }, { staleTime: 30_000 });
-  const visitorsQ = useGetVisitorsQuery<WebsiteAnalyticsVisitorBreakdown[]>(args, { staleTime: 30_000 });
-  const dailyQ = useGetDailyTrendQuery<WebsiteAnalyticsDailyRow[]>(args, { staleTime: 30_000 });
-  const hourlyQ = useGetHourlyTrendQuery<WebsiteAnalyticsHourlyTrend[]>(args, { staleTime: 30_000 });
+  const engagementQ = useGetPageEngagementQuery({ query: { ...range, limit: '10' } }, { enabled: detailPanelsReady, staleTime: 60_000 });
+  const visitorTypesQ = useGetVisitorTypesQuery<WebsiteAnalyticsVisitorTypes>(args, { staleTime: 60_000 });
+  const conversionsQ = useGetConversionsQuery<WebsiteAnalyticsConversions>(args, { staleTime: 60_000 });
+  const entryQ = useGetEntryPagesQuery({ query: { ...range, limit: '7' } }, { enabled: detailPanelsReady, staleTime: 60_000 });
+  const exitQ = useGetExitPagesQuery({ query: { ...range, limit: '7' } }, { enabled: detailPanelsReady, staleTime: 60_000 });
+  const visitorsQ = useGetVisitorsQuery<WebsiteAnalyticsVisitorBreakdown[]>(args, { staleTime: 60_000 });
+  const dailyQ = useGetDailyTrendQuery<WebsiteAnalyticsDailyRow[]>(args, { staleTime: 60_000 });
+  const hourlyQ = useGetHourlyTrendQuery<WebsiteAnalyticsHourlyTrend[]>(args, { enabled: detailPanelsReady, staleTime: 60_000 });
 
   const dashboard = record(dashboardQ.data);
   const overview = record(dashboard.overview);
@@ -266,9 +288,9 @@ export default function WebsiteAnalyticsDashboard() {
   const sourcePie = sources.map(row => ({ name: str(pick(row, ['name', 'source'])), count: num(pick(row, ['count', 'sessions', 'visitors'])) }));
   const trendError = dashboardQ.isError && dailyQ.isError;
   const refresh = () => {
-    setRefreshKey(v => v + 1);
-    void dashboardQ.refetch(); void realtimeQ.refetch(); void engagementQ.refetch(); void visitorTypesQ.refetch();
-    void conversionsQ.refetch(); void entryQ.refetch(); void exitQ.refetch(); void visitorsQ.refetch(); void dailyQ.refetch(); void hourlyQ.refetch();
+    // Invalidate the page's query family. Active datasets refresh immediately;
+    // deferred datasets remain idle until their panels approach the viewport.
+    void queryClient.invalidateQueries({ queryKey: ['website-analytics'] });
   };
 
   return (
@@ -277,7 +299,7 @@ export default function WebsiteAnalyticsDashboard() {
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"><FaChartLine className="h-4 w-4" /></span>
           <h1 className="text-base font-semibold tracking-tight">Website analytics</h1>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live · {formatNumber(active)}</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-status-success"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live · {formatNumber(active)}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <select aria-label="Analytics date range" value={days} onChange={e => setDays(Number(e.target.value))} className="h-8 rounded-lg border border-border bg-card px-2 text-[11px] outline-none focus:ring-2 focus:ring-primary/30">
@@ -287,7 +309,7 @@ export default function WebsiteAnalyticsDashboard() {
         </div>
       </div>
 
-      {dashboardQ.isError && !dashboardQ.data ? <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-3 py-4 text-[12px] text-rose-600">Could not load website analytics. Check the admin API connection and retry.</div> : null}
+      {dashboardQ.isError && !dashboardQ.data ? <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-4 text-[12px] text-status-danger">Could not load website analytics. Check the admin API connection and retry.</div> : null}
 
       <div className="grid grid-cols-2 gap-2 xl:grid-cols-6">
         <Metric label="Active visitors" value={formatNumber(active)} detail="Last 5 minutes" icon={FaUsers} tone="green" />
@@ -310,21 +332,21 @@ export default function WebsiteAnalyticsDashboard() {
         </Panel>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+      <div ref={detailPanelsRef} className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         <Panel title="Top pages"><TableList rows={pages} labelKeys={['path']} valueKeys={['views']} loading={dashboardQ.isLoading} /></Panel>
         <Panel title="Traffic sources"><Donut data={sourcePie} /></Panel>
         <Panel title="Devices"><Donut data={devicePie} /></Panel>
         <Panel title="Countries"><TableList rows={countries} labelKeys={['name', 'country']} valueKeys={['count']} loading={dashboardQ.isLoading} /></Panel>
-        <Panel title="Page engagement"><TableList rows={engagement} labelKeys={['path']} valueKeys={['averageTimeMs']} loading={engagementQ.isLoading} valueFormat="duration-ms" /></Panel>
+        <Panel title="Page engagement"><TableList rows={engagement} labelKeys={['path']} valueKeys={['averageTimeMs']} loading={!detailPanelsReady || engagementQ.isLoading} valueFormat="duration-ms" /></Panel>
         <Panel title="Event types"><Bars data={events} labelKey="name" valueKey="count" /></Panel>
-        <Panel title="Entry pages"><TableList rows={entryPages} labelKeys={['path']} valueKeys={['count']} loading={entryQ.isLoading} /></Panel>
-        <Panel title="Exit pages"><TableList rows={exitPages} labelKeys={['path']} valueKeys={['count']} loading={exitQ.isLoading} /></Panel>
+        <Panel title="Entry pages"><TableList rows={entryPages} labelKeys={['path']} valueKeys={['count']} loading={!detailPanelsReady || entryQ.isLoading} /></Panel>
+        <Panel title="Exit pages"><TableList rows={exitPages} labelKeys={['path']} valueKeys={['count']} loading={!detailPanelsReady || exitQ.isLoading} /></Panel>
         <Panel title="Browsers"><TableList rows={browsers} labelKeys={['name']} valueKeys={['count']} loading={dashboardQ.isLoading} /></Panel>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <Panel title="Hourly activity">
-          <Bars data={hourly.map(row => ({ ...row, name: `${String(num(row.hour)).padStart(2, '0')}:00`, count: num(row.events) })).sort((a, b) => num(b.count) - num(a.count))} />
+          {!detailPanelsReady || hourlyQ.isLoading ? <p className="py-5 text-center text-[11px] text-muted-foreground">Loading hourly activity…</p> : <Bars data={hourly.map(row => ({ ...row, name: `${String(num(row.hour)).padStart(2, '0')}:00`, count: num(row.events) })).sort((a, b) => num(b.count) - num(a.count))} />}
         </Panel>
         <Panel title="Realtime activity" action={<span className="text-[10px] text-muted-foreground">Auto refresh · 30s</span>}>
           {realtimeQ.isLoading ? <p className="py-5 text-center text-[11px] text-muted-foreground">Loading…</p> : array(realtime.recentEvents, ['recentEvents']).length ? (
@@ -346,4 +368,5 @@ export default function WebsiteAnalyticsDashboard() {
     </main>
   );
 }
+
 

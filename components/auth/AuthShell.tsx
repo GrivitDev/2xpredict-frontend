@@ -17,8 +17,8 @@ interface AuthFeedbackProps {
 
 export function AuthFeedback({ kind, children }: AuthFeedbackProps) {
   const styles = {
-    error: 'border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300',
-    success: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+    error: 'border-rose-500/25 bg-rose-500/10 text-status-danger',
+    success: 'border-emerald-500/25 bg-emerald-500/10 text-status-success',
     info: 'border-primary/20 bg-primary/5 text-foreground',
   } as const;
 
@@ -68,7 +68,7 @@ export default function AuthShell({
                 className="h-10 w-auto max-w-[9.75rem] object-contain object-left"
               />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary sm:text-[11px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-accent sm:text-[11px]">
               {eyebrow}
             </p>
             <h1 className="mt-1 text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl">
@@ -93,3 +93,4 @@ export default function AuthShell({
     </main>
   );
 }
+

@@ -11,7 +11,8 @@ import {
   FaLocationDot,
 } from 'react-icons/fa6';
 import { useGetV2FixtureQuery } from '@/hooks/use-sports';
-import type { SportsMatchReadModel, SportsNormalizedStatistic } from '@/types/sports-v2';
+import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import type { SportsMatchReadModel, SportsNormalizedStatistic, SportsTeam } from '@/types/sports-v2';
 
 function dateTime(value?: string): string {
   if (!value) return 'Kickoff time unavailable';
@@ -27,7 +28,7 @@ function dateTime(value?: string): string {
   }).format(date);
 }
 
-function TeamBadge({ name, logo }: { name: string; logo?: string }) {
+function TeamBadge({ name, logo, country }: { name: string; logo?: string | null; country?: string | null }) {
   return (
     <div className="flex min-w-0 flex-col items-center text-center">
       <div className="relative grid size-16 place-items-center overflow-hidden rounded-2xl border border-border/70 bg-card p-2 sm:size-20">
@@ -35,6 +36,7 @@ function TeamBadge({ name, logo }: { name: string; logo?: string }) {
         {logo ? <img src={logo} alt="" className="absolute inset-0 h-full w-full bg-card object-contain p-2" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}
       </div>
       <p className="mt-2 max-w-32 break-words text-xs font-semibold text-foreground sm:text-sm">{name}</p>
+      {country ? <p className="mt-0.5 text-[9px] text-muted-foreground">{country}</p> : null}
     </div>
   );
 }
@@ -56,9 +58,38 @@ function statValue(statistic: SportsNormalizedStatistic): string {
 export default function MatchDetailsPage({ fixtureId }: { fixtureId: string }) {
   const matchQuery = useGetV2FixtureQuery(
     { path: { fixtureId } },
-    { enabled: Boolean(fixtureId), staleTime: 30_000, retry: 1 },
+    { enabled: Boolean(fixtureId), staleTime: 2 * 60_000, gcTime: 15 * 60_000, retry: 1 },
   );
   const match: SportsMatchReadModel | null = matchQuery.data ?? null;
+  const presentationRefs = useMemo(() => {
+    if (!match?.fixture) return [];
+    const home = match.fixture.competitors.find((competitor) => competitor.homeAway === 'HOME');
+    const away = match.fixture.competitors.find((competitor) => competitor.homeAway === 'AWAY');
+    return [{
+      eventId: match.fixture.id,
+      fixtureDate: match.fixture.kickoffAt,
+      leagueId: match.competition?.id ?? match.fixture.competitionId,
+      leagueName: match.competition?.displayName ?? match.competition?.name,
+      leagueCountry: match.competition?.country,
+      leagueLogo: match.competition?.logo,
+      homeTeamId: home?.teamId,
+      awayTeamId: away?.teamId,
+      fixtureRecord: match.fixture,
+    }];
+  }, [match]);
+  const knownTeams = useMemo(
+    () => [match?.homeTeam, match?.awayTeam].filter((team): team is SportsTeam => Boolean(team)),
+    [match?.homeTeam, match?.awayTeam],
+  );
+  const presentations = useMatchPresentation(
+    presentationRefs,
+    {
+      fixtures: match?.fixture ? [match.fixture] : [],
+      competitions: match?.competition ? [match.competition] : [],
+      teams: knownTeams,
+    },
+  );
+  const presentation = presentations.get(match?.fixture.id ?? fixtureId);
 
   const statistics = useMemo(() => {
     const rows = match?.matchFacts?.teamStatistics ?? [];
@@ -89,8 +120,15 @@ export default function MatchDetailsPage({ fixtureId }: { fixtureId: string }) {
   }
 
   const { fixture, competition, season, homeTeam, awayTeam } = match;
-  const homeName = homeTeam?.displayName ?? homeTeam?.name ?? fixture.competitors.find((item) => item.homeAway === 'HOME')?.teamId ?? 'Home';
-  const awayName = awayTeam?.displayName ?? awayTeam?.name ?? fixture.competitors.find((item) => item.homeAway === 'AWAY')?.teamId ?? 'Away';
+  const homeName = presentation?.homeTeamName ?? homeTeam?.displayName ?? homeTeam?.name ?? homeTeam?.shortName ?? 'Team name unavailable';
+  const awayName = presentation?.awayTeamName ?? awayTeam?.displayName ?? awayTeam?.name ?? awayTeam?.shortName ?? 'Team name unavailable';
+  const homeLogo = presentation?.homeTeamLogo ?? homeTeam?.logo;
+  const awayLogo = presentation?.awayTeamLogo ?? awayTeam?.logo;
+  const homeCountry = presentation?.homeTeamCountry ?? homeTeam?.country;
+  const awayCountry = presentation?.awayTeamCountry ?? awayTeam?.country;
+  const competitionName = presentation?.leagueName ?? competition?.displayName ?? competition?.name ?? 'Football';
+  const competitionCountry = presentation?.leagueCountry ?? competition?.country;
+  const competitionLogo = presentation?.leagueLogo ?? competition?.logo;
   const homeScore = fixture.competitors.find((item) => item.homeAway === 'HOME')?.score;
   const awayScore = fixture.competitors.find((item) => item.homeAway === 'AWAY')?.score;
   const isFinal = fixture.status.isFinal || fixture.status.state === 'COMPLETED';
@@ -108,9 +146,10 @@ export default function MatchDetailsPage({ fixtureId }: { fixtureId: string }) {
         <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
             <div className="flex min-w-0 items-center gap-2">
-              {competition?.logo ? <img src={competition.logo} alt="" className="size-6 object-contain" /> : null}
+              {competitionLogo ? <img src={competitionLogo} alt="" className="size-6 object-contain" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : null}
               <div className="min-w-0">
-                <p className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{competition?.displayName ?? competition?.name ?? 'Football'}</p>
+                <p className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{competitionName}</p>
+                {competitionCountry ? <p className="mt-0.5 text-[9px] text-muted-foreground">{competitionCountry}</p> : null}
                 {season ? <p className="mt-0.5 text-[9px] text-muted-foreground">{season.displayName ?? season.year}</p> : null}
               </div>
             </div>
@@ -118,14 +157,14 @@ export default function MatchDetailsPage({ fixtureId }: { fixtureId: string }) {
           </div>
 
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-6 sm:gap-6 sm:py-8">
-            <TeamBadge name={homeName} logo={homeTeam?.logo} />
+            <TeamBadge name={homeName} logo={homeLogo} country={homeCountry} />
             <div className="min-w-0 text-center">
               <p className="text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
                 {hasScore ? `${homeScore} : ${awayScore}` : '— : —'}
               </p>
               <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{isFinal ? 'Full time' : fixture.status.state === 'SCHEDULED' ? 'Kickoff' : status}</p>
             </div>
-            <TeamBadge name={awayName} logo={awayTeam?.logo} />
+            <TeamBadge name={awayName} logo={awayLogo} country={awayCountry} />
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-border/60 pt-3 text-[10px] text-muted-foreground">
@@ -198,3 +237,5 @@ export default function MatchDetailsPage({ fixtureId }: { fixtureId: string }) {
     </main>
   );
 }
+
+

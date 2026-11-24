@@ -24,6 +24,7 @@ import type {
   PredictionCollection,
   PredictionPage,
   PredictionSlip,
+  PredictionSlipListItem,
 } from '../types/predictions';
 
 const DEFAULT_PAGE_SIZE = 100;
@@ -150,9 +151,9 @@ export function useGetPickCenterQuery(
 
 export function useListSlipsQuery(
   args?: ListSlipsArgs,
-  options?: ApiQueryHookOptions<PredictionPage<PredictionSlip>>,
+  options?: ApiQueryHookOptions<PredictionPage<PredictionSlipListItem>>,
 ) {
-  return useQuery<PredictionPage<PredictionSlip>>({
+  return useQuery<PredictionPage<PredictionSlipListItem>>({
     queryKey: predictionAccessQueryKeys.slips(args),
     queryFn: () => predictionAccessService.listSlips(args),
     ...options,
@@ -173,9 +174,9 @@ export function useGetSlipQuery(
 
 export function useListSureOddsQuery(
   args?: ListSureOddsArgs,
-  options?: ApiQueryHookOptions<PredictionPage<PredictionSlip>>,
+  options?: ApiQueryHookOptions<PredictionPage<PredictionSlipListItem>>,
 ) {
-  return useQuery<PredictionPage<PredictionSlip>>({
+  return useQuery<PredictionPage<PredictionSlipListItem>>({
     queryKey: predictionAccessQueryKeys.sureOdds(args),
     queryFn: () => predictionAccessService.listSureOdds(args),
     ...options,
@@ -289,11 +290,11 @@ export function useListCuratedPredictionsCollectionQuery(
 
 export function useListSlipsCollectionQuery(
   args: ListSlipsCollectionArgs,
-  options?: ApiQueryHookOptions<PredictionCollection<PredictionSlip>>,
+  options?: ApiQueryHookOptions<PredictionCollection<PredictionSlipListItem>>,
 ) {
   const pageSize = args.pageSize ?? DEFAULT_PAGE_SIZE;
   const maxPages = args.maxPages ?? MAX_COLLECTION_PAGES;
-  return useQuery<PredictionCollection<PredictionSlip>>({
+  return useQuery<PredictionCollection<PredictionSlipListItem>>({
     queryKey: [
       ...predictionAccessQueryKeys.slips({ query: args.query }),
       'collection', pageSize, maxPages, args.cacheScope ?? null,
@@ -311,11 +312,11 @@ export function useListSlipsCollectionQuery(
 
 export function useListSureOddsCollectionQuery(
   args: ListSureOddsCollectionArgs,
-  options?: ApiQueryHookOptions<PredictionCollection<PredictionSlip>>,
+  options?: ApiQueryHookOptions<PredictionCollection<PredictionSlipListItem>>,
 ) {
   const pageSize = args.pageSize ?? DEFAULT_PAGE_SIZE;
   const maxPages = args.maxPages ?? MAX_COLLECTION_PAGES;
-  return useQuery<PredictionCollection<PredictionSlip>>({
+  return useQuery<PredictionCollection<PredictionSlipListItem>>({
     queryKey: [
       ...predictionAccessQueryKeys.sureOdds({ query: args.query }),
       'collection', pageSize, maxPages, args.cacheScope ?? null,
@@ -330,3 +331,4 @@ export function useListSureOddsCollectionQuery(
     ...options,
   });
 }
+

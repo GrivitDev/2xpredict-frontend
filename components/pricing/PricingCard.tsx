@@ -71,7 +71,7 @@ const cardStyles: Record<PlanId, string> = {
 
 const iconStyles: Record<PlanId, string> = {
   free: 'bg-muted text-muted-foreground',
-  regular: 'bg-brand-burgundy/10 text-brand-burgundy',
+  regular: 'bg-brand-burgundy/10 text-brand-accent',
   vip: 'bg-brand-champagne/25 text-foreground',
   premium: 'bg-brand-burgundy text-white',
 };
@@ -119,7 +119,7 @@ export default function PricingCard({
       )}
 
       {plan.popular && (
-        <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-brand-burgundy/15 bg-brand-burgundy/5 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-brand-burgundy">
+        <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-brand-burgundy/15 bg-brand-burgundy/5 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-brand-accent">
           <FaStar aria-hidden="true" className="h-2.5 w-2.5" />
           Popular
         </span>
@@ -220,7 +220,7 @@ export default function PricingCard({
         <ul className="mt-5 flex-1 space-y-2.5">
           {plan.features.map((feature) => (
             <li key={feature} className="flex items-start gap-2.5">
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success/10 text-status-success">
                 <FaCheck aria-hidden="true" className="h-2 w-2" />
               </span>
               <span className="text-xs leading-5 text-muted-foreground">
@@ -234,9 +234,9 @@ export default function PricingCard({
           type="button"
           disabled={actionDisabled}
           onClick={() => onSelect(plan.id)}
-          className={`mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-burgundy focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${
+          className={`mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${
             plan.id === 'vip'
-              ? 'bg-brand-champagne text-foreground hover:brightness-95'
+              ? 'bg-brand-champagne text-brand-slate hover:brightness-95'
               : plan.id === 'premium'
                 ? 'bg-brand-burgundy text-white hover:brightness-110'
                 : 'bg-primary text-primary-foreground hover:opacity-90'

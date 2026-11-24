@@ -206,6 +206,7 @@ export default function AdminOperationalWorkspace({ module }: { module: ModuleKe
   const [manual, setManual] = useState({ eventId: '', leagueId: '', collection: 'sports_espn_fixtures', marketPredictionId: '', selectionKey: '', ticketId: '', legId: '', outcome: 'WON', reason: '', slipId: '', slipLegsJson: DEFAULT_SLIP_LEGS, sportyBetSlipCode: '', sportyBetSlipLink: '', marketKey: '' });
   const [buildSlipForm, setBuildSlipForm] = useState({ name: '', eventIds: '', selectionCount: '5', minimumProbabilityPercent: '40', minimumConfidence: '70', fixtureFrom: '', fixtureTo: '', productType: 'ODDS_10', sureOddsProduct: 'SURE_2' });
   const [formError, setFormError] = useState('');
+  const [responseDetailsOpen, setResponseDetailsOpen] = useState(false);
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ['admin-ops', module, tab, filters.limit, filters.status, filters.level, filters.eventId, filters.competitionId, filters.teamId, filters.seasonId, filters.collection, filters.from, filters.to],
@@ -223,6 +224,14 @@ export default function AdminOperationalWorkspace({ module }: { module: ModuleKe
   });
   const rows = useMemo(() => resultRows(query.data), [query.data]);
   const metrics = useMemo(() => numericEntries(query.data).slice(0, 8).map((item) => ({ ...item, label: item.label.replaceAll('_', ' ') })), [query.data]);
+  // Large operational responses can contain hundreds of records. Avoid pretty-
+  // printing the complete payload on every render while its disclosure is closed.
+  const formattedResponse = useMemo(
+    () => responseDetailsOpen && query.data !== undefined
+      ? JSON.stringify(query.data, null, 2)
+      : '',
+    [responseDetailsOpen, query.data],
+  );
   const cols = useMemo(() => {
     if (!rows.length) return [];
     const preferred = ['_id', 'eventId', 'jobKey', 'name', 'title', 'status', 'level', 'severity', 'leagueName', 'homeTeam', 'awayTeam', 'message', 'action', 'attempts', 'nextRunAt', 'occurredAt', 'createdAt', 'updatedAt'];
@@ -328,9 +337,10 @@ export default function AdminOperationalWorkspace({ module }: { module: ModuleKe
       {metrics.length > 0 && ['overview', 'monitor', 'storage', 'database', 'queue-summary', 'sync-summary'].includes(tab) && <AdminMetrics items={metrics.map((item) => ({ label: item.label, value: item.value.toLocaleString(), tone: /failed|error|critical/i.test(item.label) && item.value > 0 ? 'bad' : /healthy|active|completed/i.test(item.label) ? 'good' : 'default' }))} columns={Math.min(6, Math.max(2, metrics.length)) as 2 | 3 | 4 | 5 | 6} />}
       <AdminPanel title={compactLabel(tab)} meta={Array.isArray(query.data) ? `${query.data.length} records` : rows.length ? `${rows.length} records` : query.dataUpdatedAt ? 'Response received' : 'Awaiting response'} actions={<span className="text-[9px] text-muted-foreground">{query.isFetching ? 'Refreshing…' : 'Backend response'}</span>}>
         {rows.length > 0 ? <AdminTable rows={rows} columns={cols} limit={Math.min(500, Math.max(1, Number(filters.limit) || 50))} empty="No records match the selected filters." /> : <div className="px-3 py-5 text-center text-[11px] text-muted-foreground">{query.data && typeof query.data === 'object' && 'message' in (query.data as Record<string, unknown>) ? String((query.data as Record<string, unknown>).message) : 'No tabular records returned for this view. The full response is available below.'}</div>}
-        {query.data !== undefined && <details className="border-t border-border/60 px-2.5 py-2"><summary className="cursor-pointer text-[10px] font-semibold text-muted-foreground">Inspect complete response</summary><pre className="mt-2 max-h-[420px] overflow-auto rounded-md bg-muted/40 p-2 text-[9px] leading-4 text-foreground">{JSON.stringify(query.data, null, 2)}</pre></details>}
+        {query.data !== undefined && <details className="border-t border-border/60 px-2.5 py-2" onToggle={(event) => setResponseDetailsOpen(event.currentTarget.open)}><summary className="cursor-pointer text-[10px] font-semibold text-muted-foreground">Inspect complete response</summary>{responseDetailsOpen && <pre className="mt-2 max-h-[420px] overflow-auto rounded-md bg-muted/40 p-2 text-[9px] leading-4 text-foreground">{formattedResponse}</pre>}</details>}
       </AdminPanel>
     </>}
     <footer className="flex flex-wrap items-center justify-between gap-2 px-1 text-[9px] text-muted-foreground"><span>2xPredict · {meta.title}</span><span>{module === 'sports' ? 'Normalized Sports v2 reads · operational monitor is admin-only' : 'Admin API · read-only unless a named operation is provided'}</span></footer>
   </AdminPageFrame>;
 }
+

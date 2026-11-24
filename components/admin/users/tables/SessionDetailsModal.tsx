@@ -48,7 +48,7 @@ export default function SessionDetailsModal({
 
         <header className="flex items-center justify-between border-b border-border/60 px-5 py-4 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 text-status-info">
               <ShieldCheck className="h-[22px] w-[22px]" />
             </div>
 
@@ -76,7 +76,7 @@ export default function SessionDetailsModal({
         <div className="space-y-5 overflow-y-auto p-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:p-7">
           <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-card/50 p-4">
             <div className="flex items-center gap-3">
-              <Radio className="h-[18px] w-[18px] text-emerald-500" />
+              <Radio className="h-[18px] w-[18px] text-status-success" />
 
               <div>
                 <p className="text-s font-medium">
@@ -186,7 +186,7 @@ export default function SessionDetailsModal({
             />
           </InfoSection>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs text-blue-500">
+          <div className="flex items-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs text-status-info">
             <Activity className="h-[15px] w-[15px] shrink-0" />
 
             Session data protected by security monitoring system.
@@ -215,8 +215,8 @@ function StatusBadge({
         font-medium
         ${
           active
-            ? 'bg-emerald-500/10 text-emerald-500'
-            : 'bg-red-500/10 text-red-500'
+            ? 'bg-emerald-500/10 text-status-success'
+            : 'bg-red-500/10 text-status-danger'
         }
       `}
     >
@@ -239,7 +239,7 @@ function InfoSection({
   return (
     <section className="rounded-2xl border border-border/60 bg-card/40 p-4 shadow-sm backdrop-blur-xl">
       <div className="mb-4 flex items-center gap-2 text-s font-semibold">
-        <span className="text-blue-500">
+        <span className="text-status-info">
           {icon}
         </span>
 

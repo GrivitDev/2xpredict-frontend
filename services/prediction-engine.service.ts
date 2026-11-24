@@ -14,7 +14,7 @@ import type {
 import type {
   AdminCuratedPredictionResponse, AdminPickCenterResponse, AdminSlipListResponse,
   CuratedPrediction, CuratedPredictionRefreshResult, MarketPrediction,
-  PickCenterRecord, PredictionPage, PredictionSlip,
+  PickCenterRecord, PredictionPage, PredictionSlip, PredictionSlipListItem,
 } from '../types/predictions';
 import type {
   AutomaticSlipRefreshResult,
@@ -41,7 +41,7 @@ export const predictionEngineService = {
   getPickCenter: (args: GetPickCenterArgs) =>
     apiRequest<PickCenterRecord>({ method: 'GET', path: '/predictions/pick-center/:eventId', pathParams: args.path }),
   listSlips: (args?: ListSlipsArgs) =>
-    apiRequest<PredictionPage<PredictionSlip>>({ method: 'GET', path: '/predictions/slips', query: args?.query }),
+    apiRequest<PredictionPage<PredictionSlipListItem>>({ method: 'GET', path: '/predictions/slips', query: args?.query }),
   getPublishedSlip: (args: GetSlipArgs) =>
     apiRequest<PredictionSlip>({ method: 'GET', path: '/predictions/slips/:slipId', pathParams: args.path }),
 
@@ -93,3 +93,4 @@ export const predictionEngineService = {
     apiRequest<RebuildCalibrationResult>({ method: 'POST', path: '/predictions-engine/calibration/rebuild', body: args.body }),
   listCalibration: () => apiRequest<MarketCalibrationRecord[]>({ method: 'GET', path: '/predictions-engine/calibration' }),
 } as const;
+

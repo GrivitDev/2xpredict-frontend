@@ -284,7 +284,7 @@ export default function SystemMonitorStorage() {
             <button type="button" onClick={() => void historyQuery.refetch()} disabled={historyQuery.isFetching} className="h-6 rounded border border-border px-2 text-[10px] hover:bg-muted disabled:opacity-50">{historyQuery.isFetching ? 'Loading…' : 'Refresh'}</button>
           </div>
         </header>
-        {historyQuery.isError ? <p role="alert" className="px-2 py-2 text-[10px] text-rose-600">Storage history unavailable.</p> : <div className="overflow-x-auto">
+        {historyQuery.isError ? <p role="alert" className="px-2 py-2 text-[10px] text-status-danger">Storage history unavailable.</p> : <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-[10px]">
             <thead className="bg-muted/80 text-muted-foreground"><tr>{['Captured', 'Database', 'Collections', 'Documents', 'Data', 'Storage', 'Indexes', 'Total'].map((heading) => <th key={heading} className="whitespace-nowrap px-2 py-1.5 font-semibold">{heading}</th>)}</tr></thead>
             <tbody>{(historyQuery.data ?? []).map((item, index) => <tr key={`${item.capturedAt}-${index}`} className="border-t border-border/60 hover:bg-muted/20">
@@ -497,3 +497,4 @@ function CollectionStat({
     </div>
   );
 }
+

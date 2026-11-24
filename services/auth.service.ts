@@ -1,6 +1,39 @@
 /* Generated from backend controller: auth/auth.controller.ts. */
 import { apiRequest } from '../lib/axios';
-import type { ChangePasswordArgs, LoginArgs, RegisterArgs, RequestEmailChangeArgs, RequestPasswordResetArgs, ResetPasswordArgs, VerifyCurrentEmailForChangeArgs, VerifyNewEmailForChangeArgs } from '../types/endpoint-args/auth';
+import type {
+  ChangePasswordArgs,
+  LoginArgs,
+  RegisterArgs,
+  RequestEmailChangeArgs,
+  RequestPasswordResetArgs,
+  ResetPasswordArgs,
+  VerifyCurrentEmailForChangeArgs,
+  VerifyNewEmailForChangeArgs,
+} from '../types/endpoint-args/auth';
+import Cookies from 'js-cookie';
+import { otpService } from './otp.service';
+
+export interface GoogleAuthPayload {
+  idToken: string;
+  referralCode?: string;
+  promoCode?: string;
+}
+
+export interface AuthSessionResponse {
+  message: string;
+  token: string;
+  user: {
+    id: string;
+    fullName: string;
+    username: string;
+    email: string;
+    role: string;
+    country: string;
+    countryCode: string;
+    currency: 'NGN' | 'USD';
+    isVerified: boolean;
+  };
+}
 
 export const authService = {
   register: <TResponse = any>(args: RegisterArgs) => {
@@ -14,6 +47,13 @@ export const authService = {
     return apiRequest<TResponse>({
       method: 'POST',
       path: '/auth/login',
+      body: args.body,
+    });
+  },
+  googleAuth: <TResponse = AuthSessionResponse>(args: { body: GoogleAuthPayload }) => {
+    return apiRequest<TResponse>({
+      method: 'POST',
+      path: '/auth/google',
       body: args.body,
     });
   },
@@ -67,23 +107,40 @@ export const authService = {
   },
 } as const;
 
-import Cookies from 'js-cookie';
-import { otpService } from './otp.service';
-export async function registerUser(payload: Record<string, unknown>) { return authService.register<any>({ body: payload as never }); }
-export async function loginUser(payload: { email: string; password: string }) { return authService.login<any>({ body: payload as never }); }
+export async function registerUser(payload: Record<string, unknown>) {
+  return authService.register<any>({ body: payload as never });
+}
+
+export async function loginUser(payload: { email: string; password: string }) {
+  return authService.login<AuthSessionResponse>({ body: payload as never });
+}
+
+export async function googleAuthUser(payload: GoogleAuthPayload) {
+  return authService.googleAuth<AuthSessionResponse>({ body: payload });
+}
+
 export async function verifyOtp(payload: Record<string, unknown> | string, code?: string) {
   const body = typeof payload === 'string' ? { email: payload, code: code ?? '' } : payload;
-  return otpService.verifyOtp<any>({ body: { email: String((body as any).email ?? ''), code: String((body as any).code ?? (body as any).otp ?? '') } });
+  return otpService.verifyOtp<any>({
+    body: {
+      email: String((body as any).email ?? ''),
+      code: String((body as any).code ?? (body as any).otp ?? ''),
+    },
+  });
 }
+
 export async function resendOtp(payload: Record<string, unknown> | string) {
   const body = typeof payload === 'string' ? { email: payload } : payload;
   return otpService.resendOtp<any>({ body: { email: String((body as any).email ?? '') } });
 }
-export async function changePassword(payload: Record<string, unknown>) { return authService.changePassword<any>({ body: payload as never }); }
+
+export async function changePassword(payload: Record<string, unknown>) {
+  return authService.changePassword<any>({ body: payload as never });
+}
+
 export function logoutUser() {
   if (typeof window === 'undefined') return;
   Cookies.remove('token');
   window.localStorage.removeItem('token');
   window.localStorage.removeItem('user');
 }
-

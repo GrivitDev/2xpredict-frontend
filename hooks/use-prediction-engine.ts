@@ -16,7 +16,7 @@ import type {
   AdminCuratedPredictionResponse, AdminPickCenterResponse, AdminSlipListResponse,
   AdminPredictionCollection, AdminPredictionPage, CuratedPrediction,
   CuratedPredictionRefreshResult, MarketPrediction, PickCenterRecord,
-  PredictionPage, PredictionSlip,
+  PredictionPage, PredictionSlip, PredictionSlipListItem,
 } from '../types/predictions';
 import type {
   AutomaticSlipRefreshResult,
@@ -220,8 +220,8 @@ export function useListPickCenterQuery(args?: ListPickCenterArgs, options?: ApiQ
 export function useGetPickCenterQuery(args: GetPickCenterArgs, options?: ApiQueryHookOptions<PickCenterRecord>) {
   return useQuery({ queryKey: predictionEngineQueryKeys.pickCenterItem(args.path.eventId), queryFn: () => predictionEngineService.getPickCenter(args), enabled: Boolean(args.path.eventId) && options?.enabled !== false, ...options });
 }
-export function useListSlipsQuery(args?: ListSlipsArgs, options?: ApiQueryHookOptions<PredictionPage<PredictionSlip>>) {
-  return useQuery({ queryKey: predictionEngineQueryKeys.slips(args), queryFn: () => predictionEngineService.listSlips(args), ...options });
+export function useListSlipsQuery(args?: ListSlipsArgs, options?: ApiQueryHookOptions<PredictionPage<PredictionSlipListItem>>) {
+  return useQuery<PredictionPage<PredictionSlipListItem>>({ queryKey: predictionEngineQueryKeys.slips(args), queryFn: () => predictionEngineService.listSlips(args), ...options });
 }
 export function useGetPublishedSlipQuery(args: GetSlipArgs, options?: ApiQueryHookOptions<PredictionSlip>) {
   return useQuery({ queryKey: predictionEngineQueryKeys.slip(args.path.slipId), queryFn: () => predictionEngineService.getPublishedSlip(args), enabled: Boolean(args.path.slipId) && options?.enabled !== false, ...options });
@@ -337,3 +337,4 @@ export function useRefreshCuratedPredictionsMutation(options?: ApiMutationHookOp
   const client = useQueryClient();
   return useMutation<CuratedPredictionRefreshResult, Error, void>({ mutationFn: () => predictionEngineService.refreshCuratedPredictions(), ...options, onSuccess: async (data, vars, onMutateResult, context) => { await client.invalidateQueries({ queryKey: predictionEngineQueryKeys.all }); await options?.onSuccess?.(data, vars, onMutateResult, context); } });
 }
+

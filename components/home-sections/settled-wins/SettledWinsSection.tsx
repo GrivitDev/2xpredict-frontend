@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FaChevronDown, FaChevronUp, FaTrophy } from 'react-icons/fa6';
 import { useListCuratedPredictionsQuery } from '@/hooks/use-prediction-access';
 import { useGetV2CompetitionsQuery } from '@/hooks/use-sports';
-import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 import HomeDateSelector from '../HomeDateSelector';
 import LeagueSelector from '../LeagueSelector';
 import {
@@ -108,7 +108,7 @@ export default function SettledWinsSection() {
   );
 
   const competitionsQuery = useGetV2CompetitionsQuery(
-    { query: { activeOnly: true, limit: 1000 } },
+    { query: { activeOnly: false, limit: 1000 } },
     { staleTime: 30 * 60_000, retry: 1, refetchOnWindowFocus: false },
   );
   const competitions = asRows(competitionsQuery.data);
@@ -132,13 +132,24 @@ export default function SettledWinsSection() {
     return {
       eventId: prediction.eventId ?? selection.eventId,
       fixtureDate: prediction.fixtureDateFrom ?? prediction.fixtureDate ?? selection.fixtureDate,
+      leagueId: selection.leagueId ?? prediction.leagueId,
+      leagueName: selection.leagueName ?? prediction.leagueName,
+      leagueCountry: selection.country ?? prediction.country,
+      homeTeamId: selection.homeTeamId ?? prediction.homeTeamId,
+      awayTeamId: selection.awayTeamId ?? prediction.awayTeamId,
+      homeTeamName: selection.homeTeamName ?? prediction.homeTeamName,
+      awayTeamName: selection.awayTeamName ?? prediction.awayTeamName,
+      homeTeamLogo: selection.homeTeamLogo ?? prediction.homeTeamLogo,
+      awayTeamLogo: selection.awayTeamLogo ?? prediction.awayTeamLogo,
+      fixtureRecord: prediction,
+      summaryRecord: prediction.summary,
     };
   }), [predictions]);
 
   const presentations = useMatchPresentation(fixtureRefs);
 
   const leagues = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; logo?: string | null }>();
+    const map = new Map<string, { id: string; name: string; logo?: string | null; country?: string | null }>();
 
     for (const prediction of predictions) {
       const selection = prediction.selections?.[0] ?? {};
@@ -163,6 +174,7 @@ export default function SettledWinsSection() {
           presentation?.leagueName,
           existing?.name,
         ]),
+        country: presentation?.leagueCountry ?? competition?.country ?? null,
         logo: resolveLeagueLogo(
           selection.leagueLogo,
           prediction.leagueLogo,
@@ -199,7 +211,7 @@ export default function SettledWinsSection() {
     <section className="px-2.5 py-1.5 sm:px-5 sm:py-2">
       <div className="mx-auto max-w-[1600px]">
         <header className="mb-2 flex flex-col items-center justify-center text-center">
-          <h2 className="font-serif text-2xl font-semibold italic tracking-tight text-primary sm:text-3xl">Our Recent Wins</h2>
+          <h2 className="font-serif text-2xl font-semibold italic tracking-tight text-brand-accent sm:text-3xl">Our Recent Wins</h2>
           <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-[11px]">Winning predictions & slips</p>
         </header>
 
@@ -237,8 +249,8 @@ export default function SettledWinsSection() {
                 const firstSelection = selections[0] ?? {};
                 const eventId = String(prediction.eventId ?? firstSelection.eventId ?? '');
                 const presentation = presentations.get(eventId);
-                const homeName = presentation?.homeTeamName ?? firstSelection.homeTeamName ?? prediction.homeTeamName ?? 'Home';
-                const awayName = presentation?.awayTeamName ?? firstSelection.awayTeamName ?? prediction.awayTeamName ?? 'Away';
+                const homeName = resolveTeamDisplayName(presentation?.homeTeamName, firstSelection.homeTeamName, prediction.homeTeamName);
+                const awayName = resolveTeamDisplayName(presentation?.awayTeamName, firstSelection.awayTeamName, prediction.awayTeamName);
                 const sourceLeagueId = firstSelection.leagueId ?? prediction.leagueId ?? presentation?.leagueId ?? '';
                 const competition = findCompetition(leagueById, sourceLeagueId);
                 const leagueName = resolveLeagueName(sourceLeagueId, [
@@ -272,13 +284,13 @@ export default function SettledWinsSection() {
 
                 return (
                   <article key={prediction._id ?? prediction.predictionCode ?? eventId ?? index}
-                    className={`group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card p-1.5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:p-2.5 ${visibility}`}>
+                    className={`group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card p-1.5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand-accent/40 hover:shadow-md sm:p-2.5 ${visibility}`}>
                     <div className="mb-1 flex min-w-0 items-center justify-between gap-1 border-b border-border/60 pb-1">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <Logo src={leagueLogo} name={leagueName} size="h-4 w-4" eager={index < 4} />
                         <span className="truncate text-[9px] font-semibold text-muted-foreground">{leagueName}</span>
                       </div>
-                      <span className="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-600">Won</span>
+                      <span className="shrink-0 rounded-full bg-success/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-status-success">Won</span>
                     </div>
 
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
@@ -299,7 +311,7 @@ export default function SettledWinsSection() {
                     </div>
 
                     <div className="mt-1.5 flex-1 border-t border-border/60 pt-1.5">
-                      <p className="mb-1 flex items-center gap-1 text-[8px] font-bold uppercase tracking-[.1em] text-emerald-600"><FaTrophy className="text-[9px]" />Winning selections</p>
+                      <p className="mb-1 flex items-center gap-1 text-[8px] font-bold uppercase tracking-[.1em] text-status-success"><FaTrophy className="text-[9px]" />Winning selections</p>
                       <div className="space-y-0.5">
                         {selections.map((selection, selectionIndex) => (
                           <div key={`${selection.marketKey ?? selection.marketName}-${selection.selectionKey ?? selectionIndex}`} className="rounded-md bg-muted/60 px-1.5 py-1">
@@ -311,7 +323,7 @@ export default function SettledWinsSection() {
 
                     <div className="mt-1.5 flex items-center justify-between gap-1 border-t border-border/60 pt-1">
                       <span className="text-[8px] text-muted-foreground">Primary pick odds</span>
-                      <strong title={primaryOddsEstimated ? 'Grivit estimate; not a bookmaker offer.' : 'Price for the primary curated selection.'} className="text-[10px] font-bold tabular-nums text-emerald-600">{primaryOdds === null ? '—' : `${primaryOddsEstimated ? '~' : ''}${primaryOdds.toFixed(2)}`}</strong>
+                      <strong title={primaryOddsEstimated ? 'Grivit estimate; not a bookmaker offer.' : 'Price for the primary curated selection.'} className="text-[10px] font-bold tabular-nums text-status-success">{primaryOdds === null ? '—' : `${primaryOddsEstimated ? '~' : ''}${primaryOdds.toFixed(2)}`}</strong>
                     </div>
                   </article>
                 );
@@ -321,7 +333,7 @@ export default function SettledWinsSection() {
             {visible.length > 6 ? (
               <div className="mt-2 flex justify-center">
                 <button type="button" onClick={() => setExpanded((current) => !current)} aria-expanded={expanded}
-                  className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-[11px] font-bold text-primary transition hover:bg-primary/10">
+                  className="inline-flex items-center gap-2 rounded-full border border-brand-accent/30 bg-brand-accent/5 px-4 py-2 text-[11px] font-bold text-brand-accent transition hover:bg-brand-accent/10">
                   {expanded ? <>Show less <FaChevronUp className="text-[9px]" /></> : <>View all {visible.length} wins <FaChevronDown className="text-[9px]" /></>}
                 </button>
               </div>
@@ -332,3 +344,4 @@ export default function SettledWinsSection() {
     </section>
   );
 }
+

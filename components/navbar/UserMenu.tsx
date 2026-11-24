@@ -171,7 +171,7 @@ function ThemeMenuItem() {
       className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium outline-none focus:bg-muted data-[highlighted]:bg-muted"
     >
       <Icon
-        className="h-3.5 w-3.5 text-primary"
+        className="h-3.5 w-3.5 text-brand-accent"
         aria-hidden="true"
       />
 
@@ -198,7 +198,7 @@ function AccountLink({
     >
       <Link href={href} className="flex w-full items-center gap-2.5 text-xs font-medium">
         <Icon
-          className="h-3.5 w-3.5 text-primary"
+          className="h-3.5 w-3.5 text-brand-accent"
           aria-hidden="true"
         />
 

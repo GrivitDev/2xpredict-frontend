@@ -6,9 +6,9 @@ import type { AdminUser } from '@/types/users';
 type Props = { users: AdminUser[]; loading?: boolean };
 
 const statusStyle: Record<string, string> = {
-  active: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-  suspended: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
-  deleted: 'bg-red-500/10 text-red-700 dark:text-red-400',
+  active: 'bg-emerald-500/10 text-status-success',
+  suspended: 'bg-amber-500/10 text-status-warning',
+  deleted: 'bg-red-500/10 text-status-danger',
 };
 
 function initials(value = '') {
@@ -37,7 +37,7 @@ export default function UsersTable({ users, loading = false }: Props) {
               className="cursor-pointer outline-none hover:bg-muted/30 focus-visible:bg-muted/50">
               <td className="px-3 py-2.5">
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">{initials(user.fullName)}</span>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-brand-accent">{initials(user.fullName)}</span>
                   <span className="min-w-0">
                     <span className="block truncate font-medium">{user.fullName || user.username || '—'}</span>
                     <span className="block max-w-[240px] truncate text-xs text-muted-foreground">{user.email || '—'}</span>
@@ -56,5 +56,6 @@ export default function UsersTable({ users, loading = false }: Props) {
     </div>
   );
 }
+
 
 

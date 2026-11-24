@@ -86,7 +86,7 @@ export default function SystemMonitorModules() {
             <td className="px-2 py-1.5"><span className={`rounded border px-1.5 py-0.5 ${statusTone(item.status)}`}>{item.status}</span></td>
             <td className="px-2 py-1.5 capitalize">{item.monitoringLevel ?? '—'}</td>
             <td className="px-2 py-1.5 tabular-nums">{number(item.requests)}</td>
-            <td className={`px-2 py-1.5 tabular-nums ${item.requestFailures ? 'font-semibold text-rose-600' : ''}`}>{number(item.requestFailures)}</td>
+            <td className={`px-2 py-1.5 tabular-nums ${item.requestFailures ? 'font-semibold text-status-danger' : ''}`}>{number(item.requestFailures)}</td>
             <td className="px-2 py-1.5 tabular-nums">{duration(item.averageDurationMs)}</td>
             <td className="px-2 py-1.5 tabular-nums">{number(item.activeOperations)}</td>
             <td className="whitespace-nowrap px-2 py-1.5">{date(item.checkedAt)}</td>
@@ -98,7 +98,7 @@ export default function SystemMonitorModules() {
 
       {selectedName ? <section className="overflow-hidden rounded-md border border-border/70 bg-card">
         <header className="flex items-center justify-between gap-2 border-b border-border/70 px-2 py-1.5"><h3 className="truncate text-xs font-semibold">{selectedName}</h3><button type="button" onClick={() => setSelectedName('')} className="rounded border border-border px-1.5 py-0.5 text-[10px] hover:bg-muted">Close</button></header>
-        {detail.isError ? <p className="px-2 py-3 text-[10px] text-rose-600">Module details unavailable.</p> : detail.isLoading ? <p className="px-2 py-3 text-[10px] text-muted-foreground">Loading…</p> : <>
+        {detail.isError ? <p className="px-2 py-3 text-[10px] text-status-danger">Module details unavailable.</p> : detail.isLoading ? <p className="px-2 py-3 text-[10px] text-muted-foreground">Loading…</p> : <>
           {detail.data ? <div className="grid grid-cols-2 gap-1.5 p-2 sm:grid-cols-4">
             <Metric label="Last success" value={date(detail.data.lastSuccessfulAt)} />
             <Metric label="Last failure" value={date(detail.data.lastFailedAt)} />
@@ -111,3 +111,4 @@ export default function SystemMonitorModules() {
     </section>
   );
 }
+

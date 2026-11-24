@@ -7,6 +7,7 @@ import {
 } from "@/hooks/use-bet-lab-admin";
 import { asRecord, formatDate, firstValue, rowsFrom, text } from "@/lib/api-shapes";
 import { FaArrowsRotate } from "react-icons/fa6";
+import { resolveTeamDisplayName, useMatchPresentation } from "@/hooks/use-match-presentation";
 
 type Row = Record<string, unknown>;
 
@@ -184,6 +185,18 @@ export default function BetLabAdmin() {
     () => rowsFrom(events.data, ["items", "events", "results", "data"]),
     [events.data],
   );
+  const eventPresentations = useMatchPresentation(eventRows.map((event) => ({
+    eventId: text(firstValue(event, ['eventId']), ''),
+    fixtureDate: text(firstValue(event, ['fixtureDate', 'kickoffAt']), ''),
+    leagueId: text(firstValue(event, ['leagueId', 'competitionId']), ''),
+    leagueName: text(firstValue(event, ['leagueName', 'competitionName']), ''),
+    homeTeamName: text(firstValue(event, ['homeTeamName', 'homeTeam']), ''),
+    awayTeamName: text(firstValue(event, ['awayTeamName', 'awayTeam']), ''),
+    homeTeamLogo: text(firstValue(event, ['homeTeamLogo', 'homeLogo']), '') || undefined,
+    awayTeamLogo: text(firstValue(event, ['awayTeamLogo', 'awayLogo']), '') || undefined,
+    fixtureRecord: event,
+    summaryRecord: firstValue(event, ['summary', 'matchSummary']),
+  })));
 
   const isDegraded = String(health.status ?? "").toUpperCase() === "DEGRADED";
   const generatedAt = data.generatedAt;
@@ -431,6 +444,12 @@ export default function BetLabAdmin() {
               <tbody>
                 {eventRows.map((event, index) => {
                   const eventId = text(firstValue(event, ["_id", "id"]), String(index));
+                  const fixtureEventId = text(firstValue(event, ['eventId']), '');
+                  const presentation = eventPresentations.get(fixtureEventId);
+                  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, firstValue(event, ['homeTeamName', 'homeTeam']));
+                  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, firstValue(event, ['awayTeamName', 'awayTeam']));
+                  const matchName = fixtureEventId ? `${homeName} vs ${awayName}` : '';
+                  const leagueName = [presentation?.leagueName, presentation?.leagueCountry].filter(Boolean).join(' · ');
                   const expanded = expandedEventId === eventId;
                   return <Fragment key={eventId}>
                   <tr className="border-t border-border/70 align-top hover:bg-muted/20">
@@ -449,7 +468,7 @@ export default function BetLabAdmin() {
                     </td>
                     <td className="max-w-[160px] px-3 py-2 text-muted-foreground">
                       <span className="block truncate">{text(event.userId, "—")}</span>
-                      <span className="block truncate">{text(event.eventId, "")}</span>
+                      <span className="block truncate font-medium">{matchName || text(event.eventId, "—")}</span>{leagueName ? <span className="block truncate text-[9px] text-muted-foreground">{leagueName}</span> : null}<span className="block truncate font-mono text-[8px]">{text(event.eventId, "")}</span>
                     </td>
                     <td className="px-2 py-1 text-right">
                       <button type="button" onClick={() => setExpandedEventId(expanded ? null : eventId)} aria-expanded={expanded} className="rounded px-1.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground">{expanded ? "Hide" : "Details"}</button>
@@ -502,3 +521,4 @@ export default function BetLabAdmin() {
     </main>
   );
 }
+

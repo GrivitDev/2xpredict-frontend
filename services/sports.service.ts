@@ -43,6 +43,7 @@ import type {
   GetV2TeamScoringArgs,
   GetV2TeamStatisticsArgs,
   GetV2TeamsArgs,
+  GetV2TeamsByIdentifiersArgs,
   GetAdminSystemMonitorArgs,
 } from '../types/endpoint-args/sports';
 
@@ -63,6 +64,10 @@ export const sportsService = {
   getV2Teams: (args?: GetV2TeamsArgs) =>
     apiRequest<SportsTeam[], NonNullable<GetV2TeamsArgs['query']>>({
       method: 'GET', path: '/sports/v2/teams', query: args?.query,
+    }),
+  getV2TeamsByIdentifiers: (args: GetV2TeamsByIdentifiersArgs) =>
+    apiRequest<SportsTeam[]>({
+      method: 'POST', path: '/sports/v2/teams/lookup', body: args.body,
     }),
   getV2Team: (args: GetV2TeamArgs) =>
     apiRequest<SportsTeam | null>({

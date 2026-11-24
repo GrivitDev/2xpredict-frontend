@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { FaChartSimple, FaClock, FaFutbol, FaLock } from 'react-icons/fa6';
 import { useGetOddsQuery } from '@/hooks/use-bet-lab';
-import type { MatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveLeagueDisplayName, resolveTeamDisplayName, type MatchPresentation } from '@/hooks/use-match-presentation';
 import { asRecord, firstValue, rowsFrom, text, unwrapRecord, type ApiRecord } from '@/lib/api-shapes';
 import {
   arrayFrom,
@@ -34,7 +35,7 @@ import {
   buildBetLabSelectionPricing,
   type BetLabPricingMarket,
 } from './bet-lab-pricing';
-import FixtureStatsDialog from './stats/FixtureStatsDialog';
+const FixtureStatsDialog = dynamic(() => import('./stats/FixtureStatsDialog'), { ssr: false });
 import BetLabLogo from './BetLabLogo';
 
 type SelectionCategory = {
@@ -55,13 +56,12 @@ function readableLeagueName(fixture: ApiRecord, presentation?: MatchPresentation
   ];
 
   for (const candidate of candidates) {
-    const name = text(candidate);
-    if (!name) continue;
+    const name = resolveLeagueDisplayName(candidate);
+    if (name === 'League name unavailable') continue;
     if (ids.includes(name.toLowerCase())) continue;
-    if (/^[a-z0-9]+(?:[._-][a-z0-9]+)+$/i.test(name)) continue;
     return name;
   }
-  return 'Competition';
+  return 'League name unavailable';
 }
 
 function leagueLogoOf(fixture: ApiRecord, presentation?: MatchPresentation): string[] {
@@ -100,8 +100,8 @@ export default function FixtureMarketRow({
   const [statsOpen, setStatsOpen] = useState(false);
   const [oddsSnapshotExpired, setOddsSnapshotExpired] = useState(false);
   const eventId = eventIdOf(fixture);
-  const homeName = presentation?.homeTeamName ?? fixtureTeamName(fixture, 'home');
-  const awayName = presentation?.awayTeamName ?? fixtureTeamName(fixture, 'away');
+  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, fixtureTeamName(fixture, 'home'));
+  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, fixtureTeamName(fixture, 'away'));
   const homeLogo = fixtureTeamLogoSources(fixture, 'home', presentation);
   const awayLogo = fixtureTeamLogoSources(fixture, 'away', presentation);
   const leagueName = readableLeagueName(fixture, presentation);
@@ -427,7 +427,7 @@ export default function FixtureMarketRow({
       >
         <div className="mb-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 border-b border-border/45 pb-1">
           <BetLabLogo src={leagueLogo} name={leagueName} sizeClassName="h-4 w-4" shape="rounded" fallbackClassName="border-0 bg-transparent text-muted-foreground" />
-          <span title={leagueName} className="min-w-0 max-w-[48%] truncate text-[8px] font-bold text-foreground/85 sm:text-[9px]">{leagueName}</span>
+          <span title={`${leagueName}${presentation?.leagueCountry ? ` · ${presentation.leagueCountry}` : ''}`} className="min-w-0 max-w-[48%] truncate text-[8px] font-bold text-foreground/85 sm:text-[9px]">{leagueName}{presentation?.leagueCountry ? <span className="ml-1 font-normal opacity-70">· {presentation.leagueCountry}</span> : null}</span>
           <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[7px] font-extrabold uppercase tracking-wide ${statusTone}`}>
             {live ? <span className="h-1 w-1 animate-pulse rounded-full bg-current" /> : null}
             {statusLabel(status, presentation)}
@@ -498,6 +498,7 @@ export default function FixtureMarketRow({
     </>
   );
 }
+
 
 
 

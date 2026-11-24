@@ -134,7 +134,7 @@ export default function AccountSecurity() {
     <div className="space-y-3">
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaLock /></span>
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaLock /></span>
           <div>
             <h2 className="text-sm font-bold">Change password</h2>
             <p className="text-[10px] text-muted-foreground">Use your current password to set a new one.</p>
@@ -150,7 +150,7 @@ export default function AccountSecurity() {
 
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaShieldHalved /></span>
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaShieldHalved /></span>
           <div>
             <h2 className="text-sm font-bold">Change email address</h2>
             <p className="text-[10px] text-muted-foreground">Your current and new addresses must both be verified.</p>
@@ -176,7 +176,7 @@ export default function AccountSecurity() {
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaLaptop /></span>
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaLaptop /></span>
             <div><h2 className="text-sm font-bold">Active sessions</h2><p className="text-[10px] text-muted-foreground">Devices currently associated with your account.</p></div>
           </div>
           <button type="button" onClick={() => void sessionsQuery.refetch()} disabled={sessionsQuery.isFetching} className="rounded-lg border border-border px-3 py-2 text-[10px] font-semibold text-muted-foreground hover:bg-muted">{sessionsQuery.isFetching ? 'Refreshing…' : 'Refresh sessions'}</button>
@@ -193,11 +193,11 @@ export default function AccountSecurity() {
               return (
                 <article key={session._id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2"><p className="text-xs font-semibold">{session.device || session.userAgent || 'Unknown device'}</p>{isCurrent ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary">THIS DEVICE</span> : null}</div>
+                    <div className="flex flex-wrap items-center gap-2"><p className="text-xs font-semibold">{session.device || session.userAgent || 'Unknown device'}</p>{isCurrent ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-brand-accent">THIS DEVICE</span> : null}</div>
                     <p className="mt-1 text-[10px] text-muted-foreground">{location || session.ipAddress || 'Location unavailable'}</p>
                     <p className="mt-0.5 text-[9px] text-muted-foreground">Last active {dateLabel(session.lastActiveAt)} · Expires {dateLabel(session.expiresAt)}</p>
                   </div>
-                  <span className={`rounded-full px-2 py-1 text-[9px] font-bold ${session.isActive && !session.expired ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>{session.isActive && !session.expired ? 'ACTIVE' : 'INACTIVE'}</span>
+                  <span className={`rounded-full px-2 py-1 text-[9px] font-bold ${session.isActive && !session.expired ? 'bg-emerald-500/10 text-status-success' : 'bg-muted text-muted-foreground'}`}>{session.isActive && !session.expired ? 'ACTIVE' : 'INACTIVE'}</span>
                 </article>
               );
             })}
@@ -222,4 +222,5 @@ export default function AccountSecurity() {
     </div>
   );
 }
+
 

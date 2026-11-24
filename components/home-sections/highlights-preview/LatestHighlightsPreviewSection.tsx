@@ -233,7 +233,7 @@ function HighlightCard({
             "
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-[#8a7771] dark:text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-muted-foreground">
             <FaVideo className="size-7" aria-hidden="true" />
           </div>
         )}
@@ -338,8 +338,7 @@ function HighlightCard({
               font-bold
               uppercase
               tracking-[0.13em]
-              text-[#873d4e]
-              dark:text-primary
+              text-brand-accent
             "
           >
             Football highlights
@@ -348,7 +347,7 @@ function HighlightCard({
           {formattedDate ? (
             <time
               dateTime={publishedAt}
-              className="shrink-0 text-[8px] text-[#8a8179] dark:text-muted-foreground"
+              className="shrink-0 text-[8px] text-muted-foreground"
             >
               {formattedDate}
             </time>
@@ -368,9 +367,8 @@ function HighlightCard({
             tracking-[-0.02em]
             text-[#332c2b]
             transition-colors
-            group-hover:text-[#702b3d]
+            group-hover:text-brand-accent
             dark:text-foreground
-            dark:group-hover:text-primary
           "
         >
           {title}
@@ -384,8 +382,7 @@ function HighlightCard({
             truncate
             text-[9px]
             font-medium
-            text-[#827670]
-            dark:text-muted-foreground
+            text-muted-foreground
           "
         >
           {highlight.homeTeam} <span className="px-0.5">vs</span>{' '}
@@ -413,8 +410,7 @@ function HighlightCard({
               min-w-0
               truncate
               text-[8px]
-              text-[#928780]
-              dark:text-muted-foreground
+              text-muted-foreground
             "
           >
             {highlight.channelTitle || 'YouTube'}
@@ -430,10 +426,9 @@ function HighlightCard({
               font-bold
               uppercase
               tracking-[0.1em]
-              text-[#702b3d]
+              text-brand-accent
               transition-all
               group-hover:gap-1.5
-              dark:text-primary
             "
           >
             Watch
@@ -502,8 +497,7 @@ function SectionHeading() {
             font-bold
             uppercase
             tracking-[0.22em]
-            text-[#956b57]
-            dark:text-primary
+            text-brand-accent
           "
         >
           The matchday collection
@@ -525,7 +519,7 @@ function SectionHeading() {
           Latest Football Highlights
         </h2>
 
-        <p className="mt-0.5 text-[9px] text-[#8b807a] sm:text-[10px] dark:text-muted-foreground">
+        <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">
           Relive the moments that matter.
         </p>
       </div>
@@ -628,7 +622,7 @@ export default function LatestHighlightsPreviewSection() {
             <button
               type="button"
               onClick={() => void highlightsQuery.refetch()}
-              className="mt-2 text-[10px] font-bold text-[#702b3d] hover:underline dark:text-primary"
+              className="mt-2 text-[10px] font-bold text-brand-accent hover:underline "
             >
               Try again
             </button>
@@ -649,7 +643,7 @@ export default function LatestHighlightsPreviewSection() {
             "
           >
             <FaVideo
-              className="mx-auto size-5 text-[#9b897c] dark:text-muted-foreground"
+              className="mx-auto size-5 text-muted-foreground"
               aria-hidden="true"
             />
 

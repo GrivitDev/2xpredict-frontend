@@ -7,7 +7,8 @@ import { FaArrowRight, FaEnvelope, FaEye, FaEyeSlash, FaLock } from 'react-icons
 import toast from 'react-hot-toast';
 
 import AuthShell, { AuthFeedback, authButtonClassName, authInputClassName } from '@/components/auth/AuthShell';
-import { loginUser } from '@/services/auth.service';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import { googleAuthUser, loginUser } from '@/services/auth.service';
 import { useAuth } from '@/providers/auth-provider';
 
 function getErrorMessage(error: unknown): string {
@@ -54,7 +55,6 @@ export default function LoginPage() {
         throw new Error('The server did not return a valid sign-in session. Please try again.');
       }
 
-      // Keep the backend's verification state immediately available to the UI.
       login(response.token, response.user);
 
       if (response.user?.isVerified !== true) {
@@ -71,6 +71,26 @@ export default function LoginPage() {
     }
   }
 
+  async function handleGoogleCredential(idToken: string) {
+    setError('');
+
+    try {
+      setLoading(true);
+      const response = await googleAuthUser({ idToken });
+      if (!response?.token) {
+        throw new Error('Google sign-in did not return a valid 2xPredict session. Please try again.');
+      }
+
+      login(response.token, response.user);
+      toast.success('Signed in with Google.');
+      router.replace(response.user?.role === 'admin' ? '/admin' : '/');
+    } catch (googleError) {
+      setError(getErrorMessage(googleError));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <AuthShell
       eyebrow="Welcome back"
@@ -78,6 +98,15 @@ export default function LoginPage() {
       description="Access your account, predictions and football insights."
       footer={<>New to 2xPredict? <Link href="/register" className="font-semibold text-primary hover:underline">Create an account</Link></>}
     >
+      <div className="mb-4 space-y-3">
+        <GoogleSignInButton onCredential={handleGoogleCredential} disabled={loading} />
+        <div className="flex items-center gap-3" aria-hidden="true">
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">or continue with email</span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
         <div>
           <label htmlFor="login-email" className="mb-1.5 block text-xs font-semibold">Email address</label>

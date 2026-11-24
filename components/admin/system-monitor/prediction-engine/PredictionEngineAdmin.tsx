@@ -33,6 +33,7 @@ import {
 import { errorMessage } from '@/lib/api-shapes';
 import SectionHeader from '@/components/shared/SectionHeader';
 import PredictionMarketCoverage from './PredictionMarketCoverage';
+import { resolveLeagueDisplayName, resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 import type { ActiveSlipProductType, SlipProductType } from '@/types/predictions';
 import type {
   MonitorRecord,
@@ -166,10 +167,58 @@ export default function PredictionEngineAdmin() {
   const queueRows = useMemo(() => list(queue.data, ['items', 'queue', 'entries', 'results']), [queue.data]);
   const runRows = useMemo(() => list(runs.data, ['items', 'runs', 'results']), [runs.data]);
   const eventRows = useMemo(() => list(events.data, ['items', 'events', 'results']), [events.data]);
+  const operationalPresentationRefs = useMemo(() => [...queueRows, ...runRows, ...eventRows].map((row) => ({
+    eventId: value(row, ['eventId'], ''),
+    fixtureDate: value(row, ['fixtureDate', 'kickoffAt'], ''),
+    leagueId: value(row, ['leagueId', 'competitionId'], ''),
+    leagueName: value(row, ['leagueName', 'competitionName'], ''),
+    homeTeamId: value(row, ['homeTeamId', 'homeId'], ''),
+    awayTeamId: value(row, ['awayTeamId', 'awayId'], ''),
+    homeTeamName: value(row, ['homeTeamName', 'homeTeam'], ''),
+    awayTeamName: value(row, ['awayTeamName', 'awayTeam'], ''),
+    homeTeamLogo: value(row, ['homeTeamLogo', 'homeLogo'], ''),
+    awayTeamLogo: value(row, ['awayTeamLogo', 'awayLogo'], ''),
+    fixtureRecord: row,
+  })), [queueRows, runRows, eventRows]);
+  const operationalPresentations = useMatchPresentation(operationalPresentationRefs);
+  const operationalDisplayRows = useMemo(() => (rows: MonitorRecord[]) => rows.map((row) => {
+    const eventId = value(row, ['eventId'], '');
+    const presentation = operationalPresentations.get(eventId);
+    return {
+      ...row,
+      fixtureName: presentation?.homeTeamName && presentation?.awayTeamName
+        ? `${resolveTeamDisplayName(presentation.homeTeamName)} vs ${resolveTeamDisplayName(presentation.awayTeamName)}`
+        : 'Fixture name unavailable',
+      leagueDisplayName: [resolveLeagueDisplayName(presentation?.leagueName, value(row, ['leagueName', 'competitionName'], '')), presentation?.leagueCountry].filter(Boolean).join(' · '),
+    };
+  }), [operationalPresentations]);
   const catalogRows = useMemo(() => list(catalog.data, ['items', 'markets', 'catalog', 'results']), [catalog.data]);
   const calibrationRows = useMemo(() => list(calibration.data, ['items', 'calibration', 'records', 'results']), [calibration.data]);
   const marketRows = useMemo(() => list(eventMarkets.data, ['items', 'markets', 'results']), [eventMarkets.data]);
   const pickCenterRows = useMemo(() => list(pickCenter.data, ['items', 'records', 'markets', 'results']), [pickCenter.data]);
+  const pickCenterPresentations = useMatchPresentation(pickCenterRows.map((row) => ({
+    eventId: value(row, ['eventId'], ''),
+    fixtureDate: value(row, ['fixtureDate'], ''),
+    leagueId: value(row, ['leagueId'], ''),
+    leagueName: value(row, ['leagueName'], ''),
+    homeTeamId: value(row, ['homeTeamId'], ''),
+    awayTeamId: value(row, ['awayTeamId'], ''),
+    homeTeamName: value(row, ['homeTeamName'], ''),
+    awayTeamName: value(row, ['awayTeamName'], ''),
+    homeTeamLogo: value(row, ['homeTeamLogo', 'homeLogo'], ''),
+    awayTeamLogo: value(row, ['awayTeamLogo', 'awayLogo'], ''),
+    fixtureRecord: row,
+  })));
+  const pickCenterDisplayRows = useMemo(() => pickCenterRows.map((row) => {
+    const eventId = value(row, ['eventId'], '');
+    const presentation = pickCenterPresentations.get(eventId);
+    return {
+      ...row,
+      leagueName: [resolveLeagueDisplayName(presentation?.leagueName, value(row, ['leagueName'], '')), presentation?.leagueCountry].filter(Boolean).join(' · '),
+      homeTeamName: resolveTeamDisplayName(presentation?.homeTeamName, value(row, ['homeTeamName'], '')),
+      awayTeamName: resolveTeamDisplayName(presentation?.awayTeamName, value(row, ['awayTeamName'], '')),
+    };
+  }), [pickCenterRows, pickCenterPresentations]);
   const adminSlipRows = useMemo(() => list(adminSlips.data, ['items', 'slips', 'records', 'results']), [adminSlips.data]);
   const curatedRows = useMemo(() => list(curatedPredictions.data, ['items', 'predictions', 'records', 'results']), [curatedPredictions.data]);
 
@@ -455,7 +504,7 @@ export default function PredictionEngineAdmin() {
             <button type="button" disabled={!eventId.trim() || eventMarkets.isFetching} onClick={() => void eventMarkets.refetch()} className="h-8 rounded-md border border-border px-3 text-xs font-semibold hover:bg-muted disabled:opacity-50">{eventMarkets.isFetching ? 'Loading…' : 'Inspect'}</button>
           </div>
           <div className="mt-2">
-            {eventMarkets.isError ? <p className="text-xs text-rose-600">Could not load market documents for this event.</p> : <DataTable title="" rows={marketRows} loading={eventMarkets.isLoading && Boolean(eventId.trim())} fields={[
+            {eventMarkets.isError ? <p className="text-xs text-status-danger">Could not load market documents for this event.</p> : <DataTable title="" rows={marketRows} loading={eventMarkets.isLoading && Boolean(eventId.trim())} fields={[
               ['marketName', 'Market'], ['marketKey', 'Key'], ['status', 'Status'], ['modelVersion', 'Model version'], ['fixtureSourceRevision', 'Source revision'], ['sourceSummaryCollectedAt', 'Summary collected'], ['dataQuality', 'Data quality'], ['updatedAt', 'Updated'],
             ]} />}
             {!eventId.trim() && <p className="pt-2 text-[11px] text-muted-foreground">Enter a fixture event ID to inspect its stored market documents.</p>}
@@ -509,11 +558,11 @@ export default function PredictionEngineAdmin() {
           <label className="flex items-center gap-1 text-[10px] text-muted-foreground">Run rows<select value={runsLimit} onChange={(event) => setRunsLimit(event.target.value)} className="ml-1 h-7 rounded border border-border bg-background px-1.5 text-[10px]">{['10','25','50','100'].map((n) => <option key={n}>{n}</option>)}</select></label>
         </div>
         <div className="grid gap-2 xl:grid-cols-2">
-        <DataTable title="Queue items" loading={queue.isLoading} rows={queueRows} fields={[
-          ['eventId', 'Event'], ['status', 'Status'], ['priority', 'Priority'], ['attempts', 'Attempts'], ['fixtureDate', 'Fixture'], ['availableAt', 'Available at'], ['summaryCollectedAt', 'Sports summary'], ['oddsUpdatedAt', 'Odds updated'], ['reason', 'Queue reason'], ['errorMessage', 'Last error'],
+        <DataTable title="Queue items" loading={queue.isLoading} rows={operationalDisplayRows(queueRows)} fields={[
+          ['fixtureName', 'Fixture'], ['leagueDisplayName', 'League · Country'], ['eventId', 'Event ID'], ['status', 'Status'], ['priority', 'Priority'], ['attempts', 'Attempts'], ['fixtureDate', 'Fixture'], ['availableAt', 'Available at'], ['summaryCollectedAt', 'Sports summary'], ['oddsUpdatedAt', 'Odds updated'], ['reason', 'Queue reason'], ['errorMessage', 'Last error'],
         ]} />
-        <DataTable title="Generation runs" loading={runs.isLoading} rows={runRows} fields={[
-          ['runId', 'Run'], ['eventId', 'Event'], ['status', 'Status'], ['fixtureDate', 'Fixture'], ['startedAt', 'Started'], ['completedAt', 'Completed'], ['durationMs', 'Duration'], ['totalMarkets', 'Markets'], ['calculatedMarkets', 'Calculated'], ['failedMarkets', 'Failed'], ['errorMessage', 'Error'],
+        <DataTable title="Generation runs" loading={runs.isLoading} rows={operationalDisplayRows(runRows)} fields={[
+          ['fixtureName', 'Fixture'], ['leagueDisplayName', 'League · Country'], ['runId', 'Run'], ['eventId', 'Event ID'], ['status', 'Status'], ['fixtureDate', 'Fixture'], ['startedAt', 'Started'], ['completedAt', 'Completed'], ['durationMs', 'Duration'], ['totalMarkets', 'Markets'], ['calculatedMarkets', 'Calculated'], ['failedMarkets', 'Failed'], ['errorMessage', 'Error'],
         ]} />
         </div>
         <PayloadDetails title="Queue response" value={queue.data} />
@@ -527,8 +576,8 @@ export default function PredictionEngineAdmin() {
           <select value={eventsLevel} onChange={(event) => setEventsLevel(event.target.value as PredictionEventLevel | '')} className="h-7 rounded border border-border bg-background px-2 text-[10px]"><option value="">All event levels</option>{['DEBUG', 'INFO', 'WARNING', 'ERROR'].map((level) => <option key={level}>{level}</option>)}</select>
           <label className="flex items-center gap-1 text-[10px] text-muted-foreground">Rows<select value={eventsLimit} onChange={(event) => setEventsLimit(event.target.value)} className="ml-1 h-7 rounded border border-border bg-background px-1.5 text-[10px]">{['10','25','40','50','100','200'].map((n) => <option key={n}>{n}</option>)}</select></label>
         </div>
-        <DataTable title="Engine events" loading={events.isLoading} rows={eventRows} fields={[
-        ['level', 'Level'], ['type', 'Type'], ['message', 'Message'], ['eventId', 'Event'], ['runId', 'Run'], ['occurredAt', 'Occurred'],
+        <DataTable title="Engine events" loading={events.isLoading} rows={operationalDisplayRows(eventRows)} fields={[
+        ['level', 'Level'], ['type', 'Type'], ['message', 'Message'], ['fixtureName', 'Fixture'], ['leagueDisplayName', 'League · Country'], ['eventId', 'Event ID'], ['runId', 'Run'], ['occurredAt', 'Occurred'],
       ]} />
         <PayloadDetails title="Full engine events response" value={events.data} />
       </section>
@@ -545,7 +594,7 @@ export default function PredictionEngineAdmin() {
             <label className="flex items-center gap-1 text-[10px] text-muted-foreground">Page size<select value={pickPageSize} onChange={(event) => { setPickPageSize(Number(event.target.value)); setPickPage(1); }} className="h-7 rounded border border-border bg-background px-1.5 text-[10px] text-foreground">{[10,25,50,100].map((n) => <option key={n}>{n}</option>)}</select></label>
             <button type="button" onClick={() => void pickCenter.refetch()} disabled={pickCenter.isFetching} className="h-7 rounded border border-border px-2 text-[10px] font-medium hover:bg-muted disabled:opacity-50">Apply</button>
           </div>
-          <DataTable title="Pick Center" loading={pickCenter.isLoading} rows={pickCenterRows} fields={[
+          <DataTable title="Pick Center" loading={pickCenter.isLoading} rows={pickCenterDisplayRows} fields={[
             ['eventId', 'Event'], ['leagueName', 'League'], ['homeTeamName', 'Home'], ['awayTeamName', 'Away'], ['fixtureDate', 'Kickoff'], ['status', 'Status'], ['selectedMarketCount', 'Selected'], ['eligibleMarketCount', 'Eligible'], ['generalConfidence', 'Confidence'], ['exclusionReason', 'Exclusion'],
           ]} />
           <Pager data={pickCenter.data} page={pickPage} pageSize={pickPageSize} onPage={setPickPage} />
@@ -696,3 +745,5 @@ function DataTable({ title, rows, fields, loading }: { title: string; rows: Moni
     })}</tr>)}</tbody></table></div>}
   </section>;
 }
+
+

@@ -156,7 +156,7 @@ export default function InternalAdsAdmin() {
       />
 
       {notice ? (
-        <p role="status" className="rounded-lg bg-emerald-500/10 p-2.5 text-sm text-emerald-700">
+        <p role="status" className="rounded-lg bg-emerald-500/10 p-2.5 text-sm text-status-success">
           {notice}
         </p>
       ) : null}
@@ -314,7 +314,7 @@ export default function InternalAdsAdmin() {
                         className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
                           item.isActive === false
                             ? 'bg-muted text-muted-foreground'
-                            : 'bg-emerald-500/10 text-emerald-700'
+                            : 'bg-emerald-500/10 text-status-success'
                         }`}
                       >
                         {item.isActive === false ? 'Inactive' : 'Active'}
@@ -348,3 +348,4 @@ export default function InternalAdsAdmin() {
     </main>
   );
 }
+

@@ -102,7 +102,7 @@ export default function HomePricingPreview() {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-brand-burgundy sm:text-xs">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-brand-accent sm:text-xs">
               Our Subscriptions
             </p>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-foreground sm:text-3xl">
@@ -111,7 +111,7 @@ export default function HomePricingPreview() {
           </div>
           <Link
             href="/pricing"
-            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-brand-burgundy px-4 py-2.5 text-xs font-bold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-burgundy focus-visible:ring-offset-2 sm:self-auto"
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-brand-burgundy px-4 py-2.5 text-xs font-bold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 sm:self-auto"
           >
             Compare all benefits <FaArrowRight aria-hidden="true" className="h-3 w-3" />
           </Link>
@@ -147,7 +147,7 @@ export default function HomePricingPreview() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${isPremium ? 'bg-brand-burgundy text-white' : isVip ? 'bg-brand-champagne/30 text-foreground' : 'bg-brand-burgundy/10 text-brand-burgundy'}`}>
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${isPremium ? 'bg-brand-burgundy text-white' : isVip ? 'bg-brand-champagne/30 text-foreground' : 'bg-brand-burgundy/10 text-brand-accent'}`}>
                       <Icon aria-hidden="true" className="h-4 w-4" />
                     </span>
                     <div className="min-w-0">
@@ -170,7 +170,7 @@ export default function HomePricingPreview() {
                   <ul className="mt-1 flex-1 space-y-2">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                        <FaCheck aria-hidden="true" className="mt-1 h-2.5 w-2.5 shrink-0 text-emerald-600" />
+                        <FaCheck aria-hidden="true" className="mt-1 h-2.5 w-2.5 shrink-0 text-status-success" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -178,12 +178,12 @@ export default function HomePricingPreview() {
 
                   <Link
                     href="/pricing"
-                    className={`mt-2 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-burgundy focus-visible:ring-offset-2 ${
+                    className={`mt-2 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 ${
                       isPremium
-                        ? 'bg-brand-burgundy text-white hover:brightness-160'
+                        ? 'bg-brand-burgundy text-white hover:brightness-110'
                         : isVip
-                          ? 'bg-brand-champagne text-burgundy hover:brightness-50'
-                          : 'border border-border bg-background/70 text-foreground hover:border-brand-burgundy/30 hover:text-brand-burgundy'
+                          ? 'bg-brand-champagne text-brand-slate hover:brightness-95'
+                          : 'border border-border bg-background/70 text-foreground hover:border-brand-accent/40 hover:text-brand-accent'
                     }`}
                   >
                     {plan.id === 'free' ? 'Get started' : 'View plan'}

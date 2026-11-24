@@ -1,20 +1,20 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { FaGlobe, FaLock, FaTicketSimple } from 'react-icons/fa6';
 import { useAuth } from '@/providers/auth-provider';
 import { useGetV2CompetitionsQuery } from '@/hooks/use-sports';
-import { useGetMarketCatalogQuery } from '@/hooks/use-bet-lab';
+import { useGetPolicyQuery } from '@/hooks/use-prediction-access';
 import {
-  useGetPolicyQuery,
-  useListPickCenterCollectionQuery,
-  useListCuratedPredictionsCollectionQuery,
-  useListSlipsCollectionQuery,
-  useListSureOddsCollectionQuery,
-} from '@/hooks/use-prediction-access';
+  useListPickCenterInfiniteQuery,
+  useListCuratedPredictionsInfiniteQuery,
+  useListSlipsInfiniteQuery,
+  useListSureOddsInfiniteQuery,
+} from '@/hooks/use-prediction-access-infinite';
 import { useGetEntitlementsQuery } from '@/hooks/use-subscriptions';
 import { getSlipProductRequiredPlan, getVisiblePredictionMarketKeys } from '@/lib/prediction-access.utils';
-import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import { useMatchPresentation, type MatchPresentation } from '@/hooks/use-match-presentation';
 import {
   asRecord,
   firstValue,
@@ -43,7 +43,10 @@ import PredictionSlipSelector, {
 } from './PredictionSlipSelector';
 import PredictionMatchCard from './PredictionMatchCard';
 import PredictionMarketDetailsPanel from './PredictionMarketDetailsPanel';
-import FixtureStatsDialog from '@/components/bet-lab/stats/FixtureStatsDialog';
+const FixtureStatsDialog = dynamic(
+  () => import('@/components/bet-lab/stats/FixtureStatsDialog'),
+  { ssr: false },
+);
 
 type AccessPlan = 'anonymous' | 'free' | 'regular' | 'vip' | 'premium';
 const EMPTY_ROWS: ApiRecord[] = [];
@@ -135,7 +138,85 @@ function marketKeyOf(item: ApiRecord): string {
   return text(firstValue(item, ['marketKey', 'marketCode', 'market'])).toUpperCase();
 }
 
-function leagueMeta(item: ApiRecord, competitions: ApiRecord[]) {
+function visibleMarketKeysForMode(
+  policyData: unknown,
+  plan: AccessPlan,
+  mode: PredictionMode,
+): Set<string> | null {
+  if (mode !== 'special') return getVisiblePredictionMarketKeys(policyData, plan);
+
+  // Curated Predictions has its own market allowlist, distinct from Pick Center.
+  const rules = asRecord(unwrapRecord(policyData).rules) ?? {};
+  const planRules = asRecord(rules[plan]) ?? {};
+  const curated = asRecord(planRules.curatedPredictionCenter) ?? {};
+  const marketAccess = asRecord(curated.marketAccess) ?? {};
+  const configured = firstValue(marketAccess, ['visibleMarketKeys']);
+  if (!Array.isArray(configured)) return null;
+
+  return new Set(
+    configured
+      .filter((key): key is string => typeof key === 'string')
+      .map((key) => key.trim().toUpperCase())
+      .filter(Boolean),
+  );
+}
+
+/**
+ * Build the public Predictions market selector from the backend's public plan
+ * policy. Labels are enriched from already-loaded, entitlement-filtered
+ * prediction rows; no protected Bet Lab catalogue request is needed.
+ */
+function marketCatalogFromVisibleRows(
+  rows: ApiRecord[],
+  mode: PredictionMode,
+  policyData: unknown,
+  plan: AccessPlan,
+): ApiRecord[] {
+  const visibleMarketKeys = visibleMarketKeysForMode(policyData, plan, mode);
+  if (!visibleMarketKeys) return [];
+
+  const metadataByKey = new Map<string, ApiRecord>();
+  for (const row of rows) {
+    for (const selection of selectionRows(row, mode)) {
+      const key = marketKeyOf(selection);
+      if (!key || !visibleMarketKeys.has(key)) continue;
+
+      const existing = metadataByKey.get(key) ?? {};
+      const name = text(firstValue(selection, ['marketName', 'fullName', 'name']));
+      const abbreviation = text(
+        firstValue(selection, ['marketAbbreviation', 'abbreviation', 'shortName', 'shortLabel']),
+      );
+      metadataByKey.set(key, {
+        ...existing,
+        ...(name && !existing.marketName ? { marketName: name, fullName: name } : {}),
+        ...(abbreviation && !existing.abbreviation ? { abbreviation } : {}),
+      });
+    }
+  }
+
+  // The public policy contains the complete ordered allowlist for this plan.
+  // Keep all allowed filters available, even when a market has no selections
+  // in the currently loaded page; the prediction rows still determine results.
+  return [...visibleMarketKeys].map((key) => {
+    const metadata = metadataByKey.get(key) ?? {};
+    const fallbackName = key
+      .replace(/[_-]+/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const name = text(firstValue(metadata, ['fullName', 'marketName']), fallbackName);
+
+    return {
+      ...metadata,
+      code: key,
+      marketCode: key,
+      predictionMarketKey: key,
+      fullName: name,
+      marketName: name,
+    };
+  });
+}
+
+function leagueMeta(item: ApiRecord, competitions: ApiRecord[], presentation?: MatchPresentation) {
   const selections = rowsFrom(item.selections, ['items', 'selections']);
   const firstSelection = selections[0] ?? {};
   const leagueId = text(firstValue(item, ['leagueId', 'competitionId']), text(firstValue(firstSelection, ['leagueId', 'competitionId'])));
@@ -148,19 +229,21 @@ function leagueMeta(item: ApiRecord, competitions: ApiRecord[]) {
     firstValue(item, ['leagueName', 'competitionName']),
     firstValue(firstSelection, ['leagueName', 'competitionName']),
     firstValue(competition ?? {}, ['displayName', 'fullName', 'name', 'leagueName', 'shortName']),
+    presentation?.leagueName,
   ].map((value) => text(value, '').trim()).filter(Boolean);
   const name = nameCandidates.find((value) =>
     value.toLowerCase() !== leagueId.toLowerCase() &&
     !/^[a-z0-9]+(?:[._-][a-z0-9]+)+$/i.test(value),
   ) ?? 'Football competition';
   const id = leagueId || text(firstValue(competition ?? {}, ['leagueId', 'competitionId', 'espnLeagueSlug', 'id', '_id'])) || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const country = text(
+  const storedCountry = text(
     firstValue(item, ['predictionCountryGroup', 'countryGroup', 'country', 'countryName']),
-    text(
-      firstValue(firstSelection, ['predictionCountryGroup', 'countryGroup', 'country', 'countryName']),
-      competition ? countryOf(competition) : 'Other competitions',
-    ),
+    text(firstValue(firstSelection, ['predictionCountryGroup', 'countryGroup', 'country', 'countryName']), ''),
   );
+  const storedCountryIsPlaceholder = !storedCountry || /^(other competitions|country unavailable|unknown|regional)$/i.test(storedCountry);
+  const country = storedCountryIsPlaceholder
+    ? (presentation?.leagueCountry ?? (competition ? countryOf(competition) : 'Other competitions'))
+    : storedCountry;
   const logo = text(
     firstValue(item, ['leagueLogo', 'competitionLogo']),
     text(firstValue(firstSelection, ['leagueLogo']), text(firstValue(competition ?? {}, ['leagueLogo', 'logo', 'logos', 'emblem', 'crest']))),
@@ -174,6 +257,7 @@ function buildCountryGroups(
   competitions: ApiRecord[],
   plan: AccessPlan,
   policyData: unknown,
+  presentations?: ReadonlyMap<string, MatchPresentation>,
 ): PredictionCountryItem[] {
   type LeagueAccumulator = PredictionLeagueItem & { eventIds: Set<string> };
   const countries = new Map<string, Map<string, LeagueAccumulator>>();
@@ -183,7 +267,7 @@ function buildCountryGroups(
     const predictions = selectionRows(row, mode);
     if (!eventId || !predictions.length) continue;
 
-    const meta = leagueMeta(row, competitions);
+    const meta = leagueMeta(row, competitions, presentations?.get(eventId));
     const countryName = meta.country || 'Other competitions';
     if (!countries.has(countryName)) countries.set(countryName, new Map());
     const leagueMap = countries.get(countryName)!;
@@ -348,8 +432,8 @@ function makePresentationFixtures(rows: ApiRecord[]): ApiRecord[] {
       ...row,
       eventId,
       fixtureDate: fixtureDateOf(row),
-      homeTeamName: text(firstValue(row, ['homeTeamName', 'homeName']), 'Home'),
-      awayTeamName: text(firstValue(row, ['awayTeamName', 'awayName']), 'Away'),
+      homeTeamName: text(firstValue(row, ['homeTeamName', 'homeName']), ''),
+      awayTeamName: text(firstValue(row, ['awayTeamName', 'awayName']), ''),
     });
   }
   return [...unique.values()];
@@ -419,51 +503,52 @@ export default function PredictionsHub() {
   const dateRange = useMemo(() => localDayRange(selectedDate), [selectedDate]);
 
   const competitionsQuery = useGetV2CompetitionsQuery(
-    { query: { activeOnly: true, limit: 1000 } },
+    { query: { activeOnly: false, limit: 1000 } },
     {
+      enabled: mode !== 'slips',
       staleTime: 10 * 60_000,
       gcTime: 30 * 60_000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
   );
-  const policyQuery = useGetPolicyQuery({ staleTime: 120_000 });
-  const entitlementsQuery = useGetEntitlementsQuery({ staleTime: 30_000 });
-  const plan = resolveAccessPlan(entitlementsQuery.data?.plan, signedIn);
-  // /bet-lab/catalog is protected by the backend JWT guard. Anonymous users
-  // must not trigger that request or receive a fabricated fallback catalogue.
-  const marketCatalogQuery = useGetMarketCatalogQuery<unknown>({
-    enabled: signedIn,
-    staleTime: 30 * 60_000,
-    gcTime: 60 * 60_000,
+  const policyQuery = useGetPolicyQuery({
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
     retry: 1,
   });
-
+  const entitlementsQuery = useGetEntitlementsQuery({
+    staleTime: 2 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+  const plan = resolveAccessPlan(entitlementsQuery.data?.plan, signedIn);
   const predictionCacheScope = `${plan}:${signedIn}`;
-  const pickCenterQuery = useListPickCenterCollectionQuery(
-    { query: { from: dateRange.from, to: dateRange.to }, cacheScope: predictionCacheScope },
+  const pickCenterQuery = useListPickCenterInfiniteQuery(
+    { query: { from: dateRange.from, to: dateRange.to }, pageSize: 25, cacheScope: predictionCacheScope },
     {
       enabled: mode === 'general',
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
   );
 
-  const curatedQuery = useListCuratedPredictionsCollectionQuery(
-    { query: { from: dateRange.from, to: dateRange.to }, cacheScope: predictionCacheScope },
+  const curatedQuery = useListCuratedPredictionsInfiniteQuery(
+    { query: { from: dateRange.from, to: dateRange.to }, pageSize: 20, cacheScope: predictionCacheScope },
     {
       enabled: mode === 'special',
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
   );
 
-  const settledPickCenterQuery = useListPickCenterCollectionQuery(
+  const settledPickCenterQuery = useListPickCenterInfiniteQuery(
     {
       query: {
         from: dateRange.from,
@@ -471,61 +556,65 @@ export default function PredictionsHub() {
         includePast: true,
         settledOnly: true,
       },
+      pageSize: 25,
       cacheScope: predictionCacheScope,
     },
     {
       enabled: mode === 'settled',
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
   );
 
-  const regularSlipsQuery = useListSlipsCollectionQuery(
-    { query: { from: dateRange.from, to: dateRange.to }, cacheScope: predictionCacheScope },
+  const regularSlipsQuery = useListSlipsInfiniteQuery(
+    { query: { from: dateRange.from, to: dateRange.to }, pageSize: 20, cacheScope: predictionCacheScope },
     {
       enabled: mode === 'slips',
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
   );
 
-  const sureSlipsQuery = useListSureOddsCollectionQuery(
-    { query: { from: dateRange.from, to: dateRange.to }, cacheScope: predictionCacheScope },
+  const sureSlipsQuery = useListSureOddsInfiniteQuery(
+    { query: { from: dateRange.from, to: dateRange.to }, pageSize: 20, cacheScope: predictionCacheScope },
     {
       enabled: mode === 'slips',
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
   );
 
   const competitions = useMemo(
-    () => (competitionsQuery.data ?? []).filter((competition) => competition.isActive) as unknown as ApiRecord[],
+    () => (competitionsQuery.data ?? []) as unknown as ApiRecord[],
     [competitionsQuery.data],
   );
-  const marketCatalog = useMemo(() => {
-    if (!signedIn) return [];
-    const visibleMarketKeys = getVisiblePredictionMarketKeys(policyQuery.data, plan);
-    if (!visibleMarketKeys) return [];
-    return rowsFrom(marketCatalogQuery.data, ['items', 'markets', 'catalog', 'data'])
-      .filter((market) => {
-        if (market.pricingEnabled === false) return false;
-        const key = text(firstValue(market, ['predictionMarketKey'])).trim().toUpperCase();
-        return Boolean(key) && visibleMarketKeys.has(key);
-      });
-  }, [marketCatalogQuery.data, policyQuery.data, plan, signedIn]);
-
-  const pickCenterRows = (pickCenterQuery.data?.items ?? EMPTY_ROWS) as unknown as ApiRecord[];
-  const curatedRawRows = (curatedQuery.data?.items ?? EMPTY_ROWS) as unknown as ApiRecord[];
+  const pickCenterRows = useMemo(
+    () => (pickCenterQuery.data?.pages.flatMap((page) => page.items) ?? EMPTY_ROWS) as unknown as ApiRecord[],
+    [pickCenterQuery.data?.pages],
+  );
+  const curatedRawRows = useMemo(
+    () => (curatedQuery.data?.pages.flatMap((page) => page.items) ?? EMPTY_ROWS) as unknown as ApiRecord[],
+    [curatedQuery.data?.pages],
+  );
   const curatedFixtures = useMemo(() => curateFixtureRows(curatedRawRows), [curatedRawRows]);
-  const settledPickCenterRows = (settledPickCenterQuery.data?.items ?? EMPTY_ROWS) as unknown as ApiRecord[];
-  const regularSlips = (regularSlipsQuery.data?.items ?? EMPTY_ROWS) as unknown as ApiRecord[];
-  const sureSlips = (sureSlipsQuery.data?.items ?? EMPTY_ROWS) as unknown as ApiRecord[];
+  const settledPickCenterRows = useMemo(
+    () => (settledPickCenterQuery.data?.pages.flatMap((page) => page.items) ?? EMPTY_ROWS) as unknown as ApiRecord[],
+    [settledPickCenterQuery.data?.pages],
+  );
+  const regularSlips = useMemo(
+    () => (regularSlipsQuery.data?.pages.flatMap((page) => page.items) ?? EMPTY_ROWS) as unknown as ApiRecord[],
+    [regularSlipsQuery.data?.pages],
+  );
+  const sureSlips = useMemo(
+    () => (sureSlipsQuery.data?.pages.flatMap((page) => page.items) ?? EMPTY_ROWS) as unknown as ApiRecord[],
+    [sureSlipsQuery.data?.pages],
+  );
   const allSlips = useMemo(() => {
     const byId = new Map<string, ApiRecord>();
     for (const slip of [...regularSlips, ...sureSlips]) {
@@ -545,6 +634,27 @@ export default function PredictionsHub() {
       : mode === 'settled'
         ? settledPickCenterRows
         : [], [mode, pickCenterRows, curatedFixtures, settledPickCenterRows]);
+  const rowPresentationRefs = useMemo(() => makePresentationFixtures(currentRows).map((row) => ({
+    eventId: eventIdOf(row), fixtureDate: fixtureDateOf(row),
+    leagueId: text(firstValue(row, ['leagueId', 'competitionId']), '') || undefined,
+    leagueName: text(firstValue(row, ['leagueName', 'competitionName']), '') || undefined,
+    leagueCountry: text(firstValue(row, ['leagueCountry', 'country', 'countryName']), '') || undefined,
+    homeTeamId: text(firstValue(row, ['homeTeamId', 'homeId']), '') || undefined,
+    awayTeamId: text(firstValue(row, ['awayTeamId', 'awayId']), '') || undefined,
+    homeTeamName: text(firstValue(row, ['homeTeamName', 'homeTeam']), '') || undefined,
+    awayTeamName: text(firstValue(row, ['awayTeamName', 'awayTeam']), '') || undefined,
+    homeTeamLogo: text(firstValue(row, ['homeTeamLogo']), '') || undefined,
+    awayTeamLogo: text(firstValue(row, ['awayTeamLogo']), '') || undefined,
+    fixtureRecord: row,
+  })), [currentRows]);
+  const rowPresentations = useMatchPresentation(rowPresentationRefs, undefined, {
+    refetchInterval: mode !== 'settled' && selectedDate === localDateKey(new Date()) ? 3 * 60_000 : false,
+  });
+
+  const marketCatalog = useMemo(
+    () => marketCatalogFromVisibleRows(currentRows, mode, policyQuery.data, plan),
+    [currentRows, mode, policyQuery.data, plan],
+  );
   const selectedMarket = marketCatalog.find(
     (market) => marketCodeOf(market).toUpperCase() === selectedMarketCode,
   ) ?? marketCatalog.find((market) => {
@@ -561,20 +671,27 @@ export default function PredictionsHub() {
 
   const countryGroups = useMemo(() => {
     const summary = mode === 'general'
-      ? pickCenterQuery.data?.leagueSummary
+      ? pickCenterQuery.data?.pages[0]?.leagueSummary
       : mode === 'special'
-        ? curatedQuery.data?.leagueSummary
+        ? curatedQuery.data?.pages[0]?.leagueSummary
         : mode === 'settled'
-          ? settledPickCenterQuery.data?.leagueSummary
+          ? settledPickCenterQuery.data?.pages[0]?.leagueSummary
           : null;
-    if (summary) return countryGroupsFromSummary(summary);
-    return buildCountryGroups(currentRows, mode, competitions, plan, policyQuery.data);
-  }, [currentRows, mode, competitions, plan, policyQuery.data, pickCenterQuery.data?.leagueSummary, curatedQuery.data?.leagueSummary, settledPickCenterQuery.data?.leagueSummary]);
+    if (summary) {
+      const summaryGroups = countryGroupsFromSummary(summary);
+      const unresolvedSummaryCountry = summaryGroups.some((country) =>
+        /^(other competitions|country unavailable|unknown|regional)$/i.test(country.name),
+      );
+      if (summaryGroups.length && !unresolvedSummaryCountry) return summaryGroups;
+    }
+    return buildCountryGroups(currentRows, mode, competitions, plan, policyQuery.data, rowPresentations);
+  }, [currentRows, mode, competitions, plan, policyQuery.data, rowPresentations, pickCenterQuery.data?.pages[0]?.leagueSummary, curatedQuery.data?.pages[0]?.leagueSummary, settledPickCenterQuery.data?.pages[0]?.leagueSummary]);
 
   const visibleRows = useMemo(() => {
     const filtered = currentRows.filter((row) => {
-      if (selectedLeagueId) return leagueMeta(row, competitions).id === selectedLeagueId;
-      if (selectedCountry) return leagueMeta(row, competitions).country === selectedCountry;
+      const presentation = rowPresentations.get(eventIdOf(row));
+      if (selectedLeagueId) return leagueMeta(row, competitions, presentation).id === selectedLeagueId;
+      if (selectedCountry) return leagueMeta(row, competitions, presentation).country === selectedCountry;
       return true;
     });
     return [...filtered].sort((a, b) => {
@@ -585,7 +702,7 @@ export default function PredictionsHub() {
       if (!Number.isFinite(bTime)) return -1;
       return aTime - bTime;
     });
-  }, [currentRows, selectedLeagueId, selectedCountry, competitions]);
+  }, [currentRows, selectedLeagueId, selectedCountry, competitions, rowPresentations]);
 
   const selectedLeagueMeta = countryGroups.flatMap((country) => country.leagues)
     .find((league) => league.id === selectedLeagueId) ?? null;
@@ -629,15 +746,26 @@ export default function PredictionsHub() {
     ? selectedEventId
     : eventIdOf(selectableEventRows[0] ?? {});
 
-  const presentationSourceRows = useMemo(() => {
-    if (mode === 'slips') return makePresentationFixtures(slipLegFixtures);
-    return makePresentationFixtures(visibleRows);
-  }, [mode, visibleRows, slipLegFixtures]);
-  const presentationRefs = useMemo(
-    () => presentationSourceRows.map((row) => ({ eventId: eventIdOf(row), fixtureDate: fixtureDateOf(row) })),
-    [presentationSourceRows],
-  );
-  const presentations = useMatchPresentation(presentationRefs);
+  const slipPresentationRefs = useMemo(() => mode === 'slips'
+    ? makePresentationFixtures(slipLegFixtures).map((row) => ({
+        eventId: eventIdOf(row), fixtureDate: fixtureDateOf(row),
+        leagueId: text(firstValue(row, ['leagueId', 'competitionId']), '') || undefined,
+        leagueName: text(firstValue(row, ['leagueName', 'competitionName']), '') || undefined,
+        leagueCountry: text(firstValue(row, ['leagueCountry', 'country', 'countryName']), '') || undefined,
+        homeTeamId: text(firstValue(row, ['homeTeamId', 'homeId']), '') || undefined,
+        awayTeamId: text(firstValue(row, ['awayTeamId', 'awayId']), '') || undefined,
+        homeTeamName: text(firstValue(row, ['homeTeamName', 'homeTeam']), '') || undefined,
+        awayTeamName: text(firstValue(row, ['awayTeamName', 'awayTeam']), '') || undefined,
+        homeTeamLogo: text(firstValue(row, ['homeTeamLogo']), '') || undefined,
+        awayTeamLogo: text(firstValue(row, ['awayTeamLogo']), '') || undefined,
+        fixtureRecord: row,
+        summaryRecord: firstValue(row, ['summary', 'matchSummary']),
+      }))
+    : [], [mode, slipLegFixtures]);
+  const slipPresentations = useMatchPresentation(slipPresentationRefs, undefined, {
+    refetchInterval: mode === 'slips' && selectedDate === localDateKey(new Date()) ? 3 * 60_000 : false,
+  });
+  const presentations = mode === 'slips' ? slipPresentations : rowPresentations;
 
   const selectedSlipCategoryPlan = getSlipProductRequiredPlan(
     policyQuery.data,
@@ -675,9 +803,9 @@ export default function PredictionsHub() {
   const selectedSlipLocked = selectedSlipCategoryLocked || currentSlipLocked;
 
   const predictionSummary = mode === 'special'
-    ? curatedQuery.data?.leagueSummary
+    ? curatedQuery.data?.pages[0]?.leagueSummary
     : mode === 'general'
-      ? pickCenterQuery.data?.leagueSummary
+      ? pickCenterQuery.data?.pages[0]?.leagueSummary
       : null;
   const availableItemCount = mode === 'slips'
     ? selectedCategorySlips.length
@@ -740,6 +868,36 @@ export default function PredictionsHub() {
     else if (mode === 'settled') void settledPickCenterQuery.refetch();
     else void Promise.all([regularSlipsQuery.refetch(), sureSlipsQuery.refetch()]);
   };
+
+  const hasMoreResults = mode === 'general'
+    ? Boolean(pickCenterQuery.hasNextPage)
+    : mode === 'special'
+      ? Boolean(curatedQuery.hasNextPage)
+      : mode === 'settled'
+        ? Boolean(settledPickCenterQuery.hasNextPage)
+        : Boolean(regularSlipsQuery.hasNextPage || sureSlipsQuery.hasNextPage);
+  const isLoadingMore = mode === 'general'
+    ? pickCenterQuery.isFetchingNextPage
+    : mode === 'special'
+      ? curatedQuery.isFetchingNextPage
+      : mode === 'settled'
+        ? settledPickCenterQuery.isFetchingNextPage
+        : regularSlipsQuery.isFetchingNextPage || sureSlipsQuery.isFetchingNextPage;
+
+  async function loadMoreResults() {
+    if (mode === 'general' && pickCenterQuery.hasNextPage) {
+      await pickCenterQuery.fetchNextPage();
+    } else if (mode === 'special' && curatedQuery.hasNextPage) {
+      await curatedQuery.fetchNextPage();
+    } else if (mode === 'settled' && settledPickCenterQuery.hasNextPage) {
+      await settledPickCenterQuery.fetchNextPage();
+    } else if (mode === 'slips') {
+      const pending: Promise<unknown>[] = [];
+      if (regularSlipsQuery.hasNextPage) pending.push(regularSlipsQuery.fetchNextPage());
+      if (sureSlipsQuery.hasNextPage) pending.push(sureSlipsQuery.fetchNextPage());
+      await Promise.all(pending);
+    }
+  }
 
   const modeTitle = mode === 'general'
     ? 'General Picks · Pick Center'
@@ -836,6 +994,9 @@ export default function PredictionsHub() {
             selectedCategory={selectedSlipCategory}
             selectedSlipId={activeSelectedSlipId}
             mobileOpen={slipPanelOpen}
+            hasMore={hasMoreResults}
+            loadingMore={isLoadingMore}
+            onLoadMore={() => void loadMoreResults()}
             onSelectCategory={(category) => {
               setSelectedSlipCategory(category);
               setSelectedSlipId('');
@@ -898,14 +1059,12 @@ export default function PredictionsHub() {
               <MarketSelector
                 markets={marketCatalog}
                 activeMarketCode={activeMarketCode}
-                loading={marketCatalogQuery.isLoading || policyQuery.isLoading}
-                emptyMessage={!signedIn
-                  ? 'Sign in to view the supported market catalogue.'
-                  : policyQuery.isError
-                    ? 'Prediction access rules unavailable. Try again shortly.'
-                    : marketCatalogQuery.isError
-                      ? 'Market catalogue unavailable. Try again shortly.'
-                      : 'No priced markets are available under this plan.'}
+                loading={isLoading || policyQuery.isLoading}
+                emptyMessage={policyQuery.isError
+                  ? 'Prediction access rules are unavailable. Try again shortly.'
+                  : isError
+                    ? 'Prediction markets are unavailable. Try again shortly.'
+                    : 'No markets are available under this plan.'}
                 onSelect={(code) => setSelectedMarketCode(code.toUpperCase())}
               />
             </div>
@@ -1026,6 +1185,16 @@ export default function PredictionsHub() {
                       />
                     );
                   })}
+                  {hasMoreResults ? (
+                    <button
+                      type="button"
+                      onClick={() => void loadMoreResults()}
+                      disabled={isLoadingMore}
+                      className="mx-auto flex h-8 min-w-40 items-center justify-center rounded-md border border-border bg-background px-3 text-[9px] font-bold text-foreground transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {isLoadingMore ? 'Loading more slips…' : 'Load more published slips'}
+                    </button>
+                  ) : null}
                 </div>
               )
             ) : (selectedLeagueLocked || selectedCountryLocked) && !visibleRows.length ? (
@@ -1078,10 +1247,15 @@ export default function PredictionsHub() {
                     />
                   );
                 })}
-                {(pickCenterQuery.data?.truncated || curatedQuery.data?.truncated || settledPickCenterQuery.data?.truncated) ? (
-                  <p className="px-2 py-2 text-center text-[9px] text-muted-foreground">
-                    This date contains more records than the current page safety limit. Select a league to narrow the results.
-                  </p>
+                {hasMoreResults ? (
+                  <button
+                    type="button"
+                    onClick={() => void loadMoreResults()}
+                    disabled={isLoadingMore}
+                    className="mx-auto flex h-8 min-w-40 items-center justify-center rounded-md border border-border bg-background px-3 text-[9px] font-bold text-foreground transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {isLoadingMore ? 'Loading more predictions…' : 'Load more predictions'}
+                  </button>
                 ) : null}
               </div>
             ) : (mode === 'special' || mode === 'general') && availableItemCount > 0 ? (
@@ -1131,6 +1305,9 @@ export default function PredictionsHub() {
     </>
   );
 }
+
+
+
 
 
 

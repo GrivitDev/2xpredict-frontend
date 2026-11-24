@@ -79,7 +79,7 @@ export default function SessionHistoryTable({
               justify-center
               rounded-xl
               bg-blue-500/10
-              text-blue-500
+              text-status-info
             "
           >
             <ShieldCheck className="h-5 w-5" />
@@ -196,7 +196,7 @@ function SessionRow({
               justify-center
               rounded-xl
               bg-blue-500/10
-              text-blue-500
+              text-status-info
             "
           >
             <Monitor className="h-4 w-4" />
@@ -254,12 +254,12 @@ function SessionStatus({
             ? `
               border-green-500/20
               bg-green-500/10
-              text-green-500
+              text-status-success
             `
             : `
               border-red-500/20
               bg-red-500/10
-              text-red-500
+              text-status-danger
             `
         }
       `}

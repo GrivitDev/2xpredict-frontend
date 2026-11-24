@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaBell, FaInbox } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
@@ -35,11 +36,12 @@ function notificationTime(value: string): string {
 export default function NotificationBell() {
   const router = useRouter();
   const { user } = useAuth();
+  const [open, setOpen] = useState(false);
   const enabled = Boolean(user);
   const unread = useUnreadNotificationCountQuery({ enabled, staleTime: 15_000 });
   const recent = useNotificationsQuery(
     { query: { page: 1, limit: 5 } },
-    { enabled, staleTime: 15_000 },
+    { enabled: enabled && open, staleTime: 15_000 },
   );
   const markRead = useMarkNotificationReadMutation();
   const notifications = recent.data?.items ?? [];
@@ -59,7 +61,7 @@ export default function NotificationBell() {
   if (!enabled) return null;
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -84,7 +86,7 @@ export default function NotificationBell() {
               {unreadCount === 0 ? 'You are all caught up' : `${unreadCount} unread`}
             </p>
           </div>
-          <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">2xPredict</span>
+          <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-brand-accent">2xPredict</span>
         </PopoverHeader>
 
         <div className="max-h-[min(65vh,440px)] overflow-y-auto">
@@ -115,12 +117,12 @@ export default function NotificationBell() {
                     <span className="min-w-0 flex-1">
                       <span className="flex items-start justify-between gap-2">
                         <span className="line-clamp-1 text-xs font-bold text-foreground">{notification.title}</span>
-                        {!notification.readAt ? <span className="shrink-0 text-[9px] font-bold text-primary">NEW</span> : null}
+                        {!notification.readAt ? <span className="shrink-0 text-[9px] font-bold text-brand-accent">NEW</span> : null}
                       </span>
                       <span className="mt-1 line-clamp-2 block text-[11px] leading-relaxed text-muted-foreground">{notification.message}</span>
                       <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-muted-foreground/80">
                         <span>{notificationTime(notification.createdAt)}</span>
-                        {actionLabel ? <span className="font-bold text-primary">· {actionLabel}</span> : null}
+                        {actionLabel ? <span className="font-bold text-brand-accent">· {actionLabel}</span> : null}
                       </span>
                     </span>
                   </button>

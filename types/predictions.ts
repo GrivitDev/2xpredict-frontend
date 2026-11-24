@@ -18,13 +18,133 @@ export type SureOddsProduct = 'SURE_2' | 'SURE_5' | 'SURE_7';
 export type PredictionPriceType = 'PROVIDER' | 'ESTIMATED';
 export type PredictionOddsSource = 'PROVIDER' | 'ESTIMATED';
 
+export type PredictionMarketFamily =
+  | 'RESULT'
+  | 'GOALS'
+  | 'PERIOD'
+  | 'HANDICAP'
+  | 'STATISTICS'
+  | 'PLAYER'
+  | 'EVENTS';
+export type PredictionMarketDiversity = 'LIMITED' | 'EXPANDED' | 'FULL';
+export type PredictionSlipProductId = 'ODDS_10' | 'ODDS_25' | 'ODDS_50';
+
+export interface PredictionMarketAccessDiversity {
+  level: PredictionMarketDiversity;
+  strategy?: string;
+  visibleFamilies: PredictionMarketFamily[];
+  visibleFamilyCount: number;
+  lockedFamilies: PredictionMarketFamily[];
+  lockedFamilyCount: number;
+  totalMarketFamilies: number;
+}
+
+/** Access metadata returned by PredictionAccessService for Pick Center/Curated responses. */
+export interface PredictionMarketAccessSummary {
+  mode: string;
+  marketLimit: number | null;
+  visibleMarketTypeCount: number;
+  totalPricingEnabledMarketTypes: number;
+  lockedMarketTypeCount: number;
+  marketSelectionDiversity?: PredictionMarketAccessDiversity;
+  visibleMarketKeys: string[];
+  marketKeysAreFixtureSpecific?: boolean;
+  settledOutcomesPublic?: boolean;
+}
+
+export interface PredictionDailyLeagueAccessDay {
+  date: string;
+  totalActiveLeagues: number;
+  accessibleLeagues: number;
+  lockedLeagues: number;
+}
+export interface PredictionDailyLeagueAccessSummary {
+  mode: 'DAILY_ACTIVE_LEAGUE_ALLOCATION';
+  percentage: number;
+  basis: string;
+  totalActiveLeagueDays: number;
+  accessibleLeagueDays: number;
+  days: PredictionDailyLeagueAccessDay[];
+}
+export interface PredictionSettledPublicAccess {
+  mode: 'SETTLED_PUBLIC';
+  percentage: 100;
+}
+export type PredictionLeagueAccessSummary =
+  | PredictionDailyLeagueAccessSummary
+  | PredictionSettledPublicAccess;
+
+export interface PredictionAccessTierRule {
+  settledPredictionHistory?: boolean;
+  browseFixturesAndLeagues?: boolean;
+  activePickCenter?: {
+    leagueAccessPercentage?: number;
+    allocationBasis?: string;
+    mode?: string;
+    predictionVisibility?: 'FULL' | 'LIMITED' | string;
+    marketAccess?: PredictionMarketAccessSummary;
+    [key: string]: unknown;
+  };
+  curatedPredictionCenter?: {
+    allowed?: boolean;
+    settledPublic?: boolean;
+    leagueAccessPercentage?: number;
+    mode?: string;
+    marketAccess?: PredictionMarketAccessSummary;
+    [key: string]: unknown;
+  };
+  slipProducts?: PredictionSlipProductId[];
+  sureOdds?: SureOddsProduct[];
+  marketAccess?: PredictionMarketAccessSummary;
+  [key: string]: unknown;
+}
+
+export interface PredictionSlipProductPolicy {
+  minOdds: number;
+  maxOdds: number;
+  requiredPlan: Exclude<PredictionAccessPlan, 'anonymous' | 'free'>;
+}
+export interface SureOddsProductPolicy {
+  minOdds: number;
+  maxOdds: number;
+  requiredPlan: Exclude<PredictionAccessPlan, 'anonymous' | 'free'>;
+  dailyTarget?: number;
+  [key: string]: unknown;
+}
+export interface PredictionSureOddsPolicy {
+  vipDailyTarget?: number;
+  premiumDailyTarget?: number;
+  products?: Partial<Record<SureOddsProduct, SureOddsProductPolicy>>;
+  minimumProbability?: number;
+  minimumConfidence?: number;
+  [key: string]: unknown;
+}
+
 export interface PredictionAccessPolicy {
   anonymousActivePredictions?: string[];
   freeActivePredictions?: string[];
   regularActivePredictions?: string[];
   vipActivePredictions?: string[];
   premiumActivePredictions?: string[];
-  rules?: Record<string, unknown>;
+  publicSettledPredictions?: boolean;
+  marketPageSize?: number;
+  maximumMarketPageSize?: number;
+  maximumPickCenterMatches?: number;
+  marketVisibility?: Partial<Record<PredictionAccessPlan, { limit: number | null; diversity: PredictionMarketDiversity }>>;
+  curatedMarketVisibility?: Partial<Record<PredictionAccessPlan, {
+    limit: number | null;
+    marketKeys: string[];
+    families: PredictionMarketFamily[];
+    diversity: PredictionMarketDiversity;
+  }>>;
+  leagueVisibility?: Partial<Record<PredictionAccessPlan, number>>;
+  curatedLeagueVisibility?: Partial<Record<PredictionAccessPlan, number>>;
+  enabledMarketCount?: number;
+  enabledMarketFamilyCount?: number;
+  slipProducts?: Partial<Record<PredictionSlipProductId, PredictionSlipProductPolicy>>;
+  sureOdds?: PredictionSureOddsPolicy;
+  planRank?: Partial<Record<PredictionAccessPlan, number>>;
+  rules?: Partial<Record<PredictionAccessPlan, PredictionAccessTierRule>> & Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -35,6 +155,15 @@ export interface PredictionAccessMeta {
   priority?: string;
   mode?: string;
   marketLimit?: number | null;
+  requiredPlan?: PredictionAccessPlan | null;
+  reason?: string;
+  leagueId?: string;
+  visiblePickCenterMarketCount?: number;
+  predictionVisibility?: 'FULL' | 'LIMITED' | string;
+  leagueAccessPercentage?: number;
+  marketSelectionDiversity?: PredictionMarketAccessDiversity;
+  settledOutcomesPublic?: boolean;
+  allSettledMarketsPublic?: boolean;
 }
 
 export interface MarketSelection {
@@ -277,6 +406,11 @@ export interface PredictionSlipLeg {
   awayTeamLogo?: string | null;
   leagueLogo?: string | null;
   leagueName?: string;
+  leagueCountry?: string | null;
+  homeTeamId?: string | null;
+  awayTeamId?: string | null;
+  /** Optional provider summary retained for fixture presentation fallbacks. */
+  summary?: unknown;
   country?: string | null;
   settlementOutcome?: PredictionOutcome;
   matchSettlementStatus?: PredictionOutcome;
@@ -323,14 +457,58 @@ export interface PredictionSlip {
   [key: string]: unknown;
 }
 
+/**
+ * Restricted slips are returned as metadata-only previews by the access API.
+ * They deliberately do not include legs, prices or selection details.
+ */
+export interface LockedPredictionSlipPreview {
+  _id: string;
+  slipId: string;
+  productType?: SlipProductType | string;
+  sureOdds?: boolean;
+  sureOddsProduct?: SureOddsProduct | null;
+  sureOddsTier?: SureOddsTier | null;
+  fixtureDateFrom?: string | null;
+  generatedDateKey?: string | null;
+  createdAt?: string | null;
+  status: 'DRAFT' | 'READY' | 'PUBLISHED' | 'CANCELLED' | string;
+  locked: true;
+  accessAllowed: false;
+  requiredPlan: Exclude<PredictionAccessPlan, 'anonymous' | 'free'>;
+  access: {
+    allowed: false;
+    plan: PredictionAccessPlan;
+    requiredPlan: Exclude<PredictionAccessPlan, 'anonymous' | 'free'>;
+    reason: string;
+  };
+  /** These optional fields are absent from backend locked previews. */
+  name?: string;
+  settlementStatus?: PredictionOutcome;
+  legs?: PredictionSlipLeg[];
+  legCount?: number;
+  combinedProbability?: number;
+  combinedFairOdds?: number;
+  combinedOdds?: number;
+  odds?: number | null;
+  averageConfidence?: number;
+  generalConfidence?: number;
+  [key: string]: unknown;
+}
+
+export type PredictionSlipListItem = PredictionSlip | LockedPredictionSlipPreview;
+
 export interface PredictionLeagueSummaryLeague {
   id: string;
   name: string;
+  logo?: string | null;
   count: number;
+  accessiblePredictionCount?: number;
+  lockedPredictionCount?: number;
+  dateCount?: number;
   locked: boolean;
+  partiallyLocked?: boolean;
   lockedCount?: number;
   requiredPlan?: PredictionAccessPlan | null;
-  logo?: string | null;
   priority?: string;
 }
 
@@ -348,18 +526,35 @@ export interface PredictionLeagueSummary {
   countries: PredictionLeagueSummaryCountry[];
   totalLeagues?: number;
   totalPredictions?: number;
-  access?: Record<string, unknown>;
+  access?: PredictionLeagueAccessSummary | Record<string, unknown>;
+}
+
+export interface PredictionPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  pages: number;
 }
 
 /** Exact shared response envelope returned by the public Prediction Access endpoints. */
-export type PredictionPage<T> = PageResult<T> & {
+export type PredictionPage<T> = Omit<PageResult<T>, 'pagination'> & {
+  pagination: PredictionPagination;
   accessPlan?: PredictionAccessPlan;
   locked?: boolean;
   message?: string;
   leagueSummary?: PredictionLeagueSummary | null;
-  marketAccess?: Record<string, unknown>;
-  leagueAccess?: Record<string, unknown>;
-  activePredictionsLocked?: boolean;
+  marketAccess?: PredictionMarketAccessSummary | Record<string, unknown>;
+  leagueAccess?: PredictionLeagueAccessSummary | Record<string, unknown>;
+  activePredictionsPartiallyLocked?: boolean;
+  requestedMarketUnavailable?: boolean;
+  requestedMarketLocked?: boolean;
+  lockedCount?: number;
+  sureOddsPolicy?: PredictionSureOddsPolicy;
+  dailySelectionTargets?: {
+    regular?: number;
+    vipAdditional?: number;
+    premiumTotal?: number;
+  };
 };
 
 /** UI collection assembled from the backend's paginated access-controlled response. */

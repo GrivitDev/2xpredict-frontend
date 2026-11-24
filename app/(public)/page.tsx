@@ -6,11 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/providers/auth-provider';
-import HomePricingPreview from '@/components/pricing/HomePricingPreview';
-import SettledWinsSection from '@/components/home-sections/settled-wins/SettledWinsSection';
-import WonSlipsSection from '@/components/home-sections/won-slips/WonSlipsSection';
-import FixturesSection from '@/components/home-sections/fixtures/FixturesSection';
-import StandingsSection from '@/components/home-sections/standings/StandingsSection';
 
 import {
   FaArrowRight,
@@ -29,8 +24,15 @@ import {
 
 import { analyticsService } from '@/services/analytics.service';
 import type { PublicAnalyticsStats } from '@/types/analytics';
-import LatestNewsPreviewSection from '@/components/home-sections/news-preview/LatestNewsPreviewSection';
-import LatestHighlightsPreviewSection from '@/components/home-sections/highlights-preview/LatestHighlightsPreviewSection';
+import DeferredHomeSection from '@/components/home-sections/DeferredHomeSection';
+
+const loadSettledWins = () => import('@/components/home-sections/settled-wins/SettledWinsSection');
+const loadWonSlips = () => import('@/components/home-sections/won-slips/WonSlipsSection');
+const loadFixtures = () => import('@/components/home-sections/fixtures/FixturesSection');
+const loadStandings = () => import('@/components/home-sections/standings/StandingsSection');
+const loadHomePricing = () => import('@/components/pricing/HomePricingPreview');
+const loadLatestNews = () => import('@/components/home-sections/news-preview/LatestNewsPreviewSection');
+const loadLatestHighlights = () => import('@/components/home-sections/highlights-preview/LatestHighlightsPreviewSection');
 
 // ============================================================
 // TYPES
@@ -644,7 +646,7 @@ export default function HomePage() {
                           justify-center
                           rounded-md
                           bg-brand-burgundy/10
-                          text-brand-burgundy
+                          text-brand-accent
                         "
                       >
                         <Icon className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />
@@ -702,7 +704,7 @@ export default function HomePage() {
                         sm:leading-4
                       "
                     >
-                      <span className="font-extrabold text-brand-burgundy">
+                      <span className="font-extrabold text-brand-accent">
                         {formatCount(secondaryValue)}
                       </span>
 
@@ -737,13 +739,14 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-      <SettledWinsSection />
-      <WonSlipsSection />
-      <FixturesSection />
-      <StandingsSection />
-      <HomePricingPreview />
-      <LatestNewsPreviewSection />
-      <LatestHighlightsPreviewSection />
+      {/* Mount data-heavy sections only as visitors approach them. */}
+      <DeferredHomeSection load={loadSettledWins} minHeight={170} label="Settled wins" />
+      <DeferredHomeSection load={loadWonSlips} minHeight={210} label="Won slips" />
+      <DeferredHomeSection load={loadFixtures} minHeight={360} label="Fixtures" />
+      <DeferredHomeSection load={loadStandings} minHeight={340} label="Standings" />
+      <DeferredHomeSection load={loadHomePricing} minHeight={220} label="Pricing" />
+      <DeferredHomeSection load={loadLatestNews} minHeight={230} label="Latest football news" />
+      <DeferredHomeSection load={loadLatestHighlights} minHeight={230} label="Latest football highlights" />
       {/* ========================================================
           ABOUT 2XPREDICT
       ======================================================== */}
@@ -818,7 +821,7 @@ export default function HomePage() {
                 font-extrabold
                 uppercase
                 tracking-[0.18em]
-                text-brand-burgundy
+                text-brand-accent
                 sm:text-xs
               "
             >
@@ -846,7 +849,7 @@ export default function HomePage() {
               "
             >
               Football is more than the
-              <span className="text-brand-burgundy">
+              <span className="text-brand-accent">
                 {' '}final score.
               </span>
             </h2>
@@ -999,7 +1002,7 @@ export default function HomePage() {
                     hover:brightness-110
                     focus-visible:outline-none
                     focus-visible:ring-2
-                    focus-visible:ring-brand-burgundy
+                    focus-visible:ring-brand-accent
                     focus-visible:ring-offset-2
                   "
                 >
@@ -1031,10 +1034,10 @@ export default function HomePage() {
                     transition-colors
                     hover:border-brand-burgundy/30
                     hover:bg-brand-burgundy/5
-                    hover:text-brand-burgundy
+                    hover:text-brand-accent
                     focus-visible:outline-none
                     focus-visible:ring-2
-                    focus-visible:ring-brand-burgundy
+                    focus-visible:ring-brand-accent
                     focus-visible:ring-offset-2
                   "
                 >
@@ -1058,7 +1061,7 @@ export default function HomePage() {
                       font-extrabold
                       uppercase
                       tracking-[0.16em]
-                      text-brand-burgundy
+                      text-brand-accent
                       sm:text-xs
                     "
                   >
@@ -1092,7 +1095,7 @@ export default function HomePage() {
                     border
                     border-border/70
                     bg-card/70
-                    text-brand-burgundy
+                    text-brand-accent
                     sm:flex
                   "
                 >
@@ -1134,7 +1137,7 @@ export default function HomePage() {
                         hover:shadow-brand-burgundy/[0.04]
                         focus-visible:outline-none
                         focus-visible:ring-2
-                        focus-visible:ring-brand-burgundy
+                        focus-visible:ring-brand-accent
                         sm:p-4
                         ${index === aboutFeatures.length - 1 ? 'sm:col-span-2' : ''}
                       `}
@@ -1166,7 +1169,7 @@ export default function HomePage() {
                             justify-center
                             rounded-xl
                             bg-brand-burgundy/10
-                            text-brand-burgundy
+                            text-brand-accent
                             transition-colors
                             group-hover:bg-brand-burgundy
                             group-hover:text-white
@@ -1196,7 +1199,7 @@ export default function HomePage() {
                               tracking-tight
                               text-foreground
                               transition-colors
-                              group-hover:text-brand-burgundy
+                              group-hover:text-brand-accent
                             "
                           >
                             {title}
@@ -1213,7 +1216,7 @@ export default function HomePage() {
                             text-muted-foreground/60
                             transition-all
                             group-hover:translate-x-0.5
-                            group-hover:text-brand-burgundy
+                            group-hover:text-brand-accent
                           "
                         />
                       </div>
@@ -1251,7 +1254,7 @@ export default function HomePage() {
                     justify-center
                     rounded-lg
                     bg-brand-burgundy/10
-                    text-brand-burgundy
+                    text-brand-accent
                   "
                 >
                   <FaShieldHalved className="h-4 w-4" />

@@ -6,12 +6,9 @@ import { useMemo, useState } from 'react';
 import {
   useGetV2CompetitionsQuery,
   useGetV2FixturesQuery,
-  useGetV2TeamsQuery,
 } from '@/hooks/use-sports';
-import type {
-  SportsFixture as SportsV2Fixture,
-  SportsTeam,
-} from '@/types/sports-v2';
+import type { SportsFixture as SportsV2Fixture } from '@/types/sports-v2';
+import { useMatchPresentation, type MatchPresentation } from '@/hooks/use-match-presentation';
 import HomeDateSelector from '../HomeDateSelector';
 import LeagueSelector from '../LeagueSelector';
 import {
@@ -112,30 +109,32 @@ function Logo({ src, name, size = 'h-6 w-6', eager = false }: { src?: string | n
   );
 }
 
-function fixtureTeam(fixture: SportsV2Fixture, side: TeamSide, teamsById: Map<string, SportsTeam>) {
+function fixtureTeam(
+  fixture: SportsV2Fixture,
+  side: TeamSide,
+  presentation?: MatchPresentation,
+) {
   const competitor = fixture.competitors.find((item) => item.homeAway === side);
-  if (!competitor) return { name: side === 'HOME' ? 'Home' : 'Away', logo: null as string | null, score: null as number | null };
+  if (!competitor) return { name: 'Team name unavailable', logo: null as string | null, score: null as number | null };
 
-  const team = teamsById.get(competitor.teamId);
   const raw = asRecord(competitor.rawPayload);
   const rawTeam = asRecord(raw.team ?? raw.competitor ?? raw);
+  const isHome = side === 'HOME';
   const name = firstText(
-    team?.displayName,
-    team?.name,
-    team?.shortName,
+    isHome ? presentation?.homeTeamName : presentation?.awayTeamName,
     rawTeam.displayName,
     rawTeam.fullName,
     rawTeam.name,
     rawTeam.shortDisplayName,
     rawTeam.shortName,
-    competitor.teamId,
-  ) ?? (side === 'HOME' ? 'Home' : 'Away');
-  const logo = team?.logo ?? logoUrl(rawTeam.logo ?? rawTeam.logos ?? rawTeam.crest ?? rawTeam.emblem);
-  const score = competitor.score === null || competitor.score === undefined || !Number.isFinite(Number(competitor.score))
+  ) ?? 'Team name unavailable';
+  const teamLogo = isHome ? presentation?.homeTeamLogo : presentation?.awayTeamLogo;
+  const logo = teamLogo ?? logoUrl(rawTeam.logo ?? rawTeam.logos ?? rawTeam.crest ?? rawTeam.emblem);
+  const parsedScore = competitor.score === null || competitor.score === undefined || !Number.isFinite(Number(competitor.score))
     ? null
     : Number(competitor.score);
 
-  return { name, logo, score };
+  return { name, logo, score: parsedScore };
 }
 
 function statusFor(fixture: SportsV2Fixture): FixtureStatus {
@@ -201,13 +200,14 @@ export default function FixturesSection({
   const [league, setLeague] = useState('ALL');
   const bounds = useMemo(() => localDayBounds(date), [date]);
   const competitionsQuery = useGetV2CompetitionsQuery(
-    { query: { activeOnly: true, limit: 1000 } },
-    { staleTime: 30 * 60_000, retry: 1, refetchOnWindowFocus: false },
+    { query: { activeOnly: false, limit: 1000 } },
+    { staleTime: 30 * 60_000, gcTime: 60 * 60_000, retry: 1, refetchOnWindowFocus: false },
   );
   const fixturesQuery = useGetV2FixturesQuery(
     { query: { ...bounds, limit: 500 } },
     {
       staleTime: 2 * 60_000,
+      gcTime: 15 * 60_000,
       refetchInterval: 3 * 60_000,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -222,27 +222,20 @@ export default function FixturesSection({
   );
   const competitions = useMemo(() => competitionsQuery.data ?? [], [competitionsQuery.data]);
   const leagueById = useMemo(() => createCompetitionLookup(competitions), [competitions]);
-  const teamsQuery = useGetV2TeamsQuery(
-    { query: {} },
-    {
-      staleTime: 30 * 60_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
+  const presentationRefs = useMemo(
+    () => fixtures.map((fixture) => ({ eventId: fixture.id, fixtureDate: fixture.kickoffAt, fixtureRecord: fixture })),
+    [fixtures],
   );
-  const teams: SportsTeam[] = useMemo(() => teamsQuery.data ?? [], [teamsQuery.data]);
-  const teamsById = useMemo(() => {
-    const map = new Map<string, SportsTeam>();
-    for (const team of teams) {
-      map.set(team.id, team);
-      if (team.espnId) map.set(team.espnId, team);
-    }
-    return map;
-  }, [teams]);
+  const presentations = useMatchPresentation(
+    presentationRefs,
+    { fixtures, competitions },
+    { refetchInterval: 3 * 60_000 },
+  );
 
   const leagues = useMemo<HomeLeague[]>(() => {
     const map = new Map<string, HomeLeague>();
     for (const fixture of fixtures) {
+      const presentation = presentations.get(fixture.id);
       const sourceId = fixture.competitionId;
       if (!sourceId) continue;
       const competition = findCompetition(leagueById, sourceId, fixture.espnCompetitionId);
@@ -251,15 +244,17 @@ export default function FixturesSection({
       map.set(id, {
         id,
         name: resolveLeagueName(competition?.slug ?? sourceId, [
+          presentation?.leagueName,
           competition?.displayName,
           competition?.name,
           competition?.slug,
         ]),
-        logo: resolveLeagueLogo(competition?.logo),
+        logo: resolveLeagueLogo(presentation?.leagueLogo ?? competition?.logo),
+        country: presentation?.leagueCountry ?? competition?.country ?? null,
       });
     }
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [fixtures, leagueById]);
+  }, [fixtures, leagueById, presentations]);
 
   const effectiveLeague = league !== 'ALL' && !leagues.some((item) => item.id === league) ? 'ALL' : league;
 
@@ -269,8 +264,9 @@ export default function FixturesSection({
     if (effectiveLeague !== 'ALL' && leagueFilterId(fixture.competitionId, competition) !== effectiveLeague) return false;
     if (!normalizedSearch) return true;
 
-    const home = fixtureTeam(fixture, 'HOME', teamsById);
-    const away = fixtureTeam(fixture, 'AWAY', teamsById);
+    const presentation = presentations.get(fixture.id);
+    const home = fixtureTeam(fixture, 'HOME', presentation);
+    const away = fixtureTeam(fixture, 'AWAY', presentation);
     const searchable = [
       home.name,
       away.name,
@@ -280,9 +276,11 @@ export default function FixturesSection({
       fixture.id,
     ].filter(Boolean).join(' ').toLocaleLowerCase();
     return searchable.includes(normalizedSearch);
-  }), [effectiveLeague, fixtures, leagueById, normalizedSearch, teamsById]);
+  }), [effectiveLeague, fixtures, leagueById, normalizedSearch, presentations]);
 
-  const loading = fixturesQuery.isLoading || competitionsQuery.isLoading || teamsQuery.isLoading;
+  // Fixtures are the primary page payload. Team and competition catalogues only
+  // enrich names, logos and filters, so they must not block the match list.
+  const loading = fixturesQuery.isLoading;
 
   return (
     <section className="px-2.5 py-2 sm:px-5 sm:py-3">
@@ -326,8 +324,9 @@ export default function FixturesSection({
                 const kickoff = new Date(fixture.kickoffAt);
                 const status = statusFor(fixture);
                 const label = statusLabel(fixture, status);
-                const home = fixtureTeam(fixture, 'HOME', teamsById);
-                const away = fixtureTeam(fixture, 'AWAY', teamsById);
+                const presentation = presentations.get(fixture.id);
+                const home = fixtureTeam(fixture, 'HOME', presentation);
+                const away = fixtureTeam(fixture, 'AWAY', presentation);
                 const showScore = status === 'LIVE' || status === 'FINISHED';
                 const homeScore = showScore ? (home.score ?? '–') : '–';
                 const awayScore = showScore ? (away.score ?? '–') : '–';
@@ -365,3 +364,4 @@ export default function FixturesSection({
     </section>
   );
 }
+

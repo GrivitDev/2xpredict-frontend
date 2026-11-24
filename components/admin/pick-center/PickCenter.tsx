@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FaCalendarDays, FaChevronDown, FaMagnifyingGlass, FaRotate } from 'react-icons/fa6';
 import { useGenerateFixtureMutation, useListAdminPickCenterCollectionQuery, useListAdminPickCenterQuery } from '@/hooks/use-prediction-engine';
 import type { PickCenterRecord } from '@/types/predictions';
-import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 import { displayScore, displayStatusLabel, displayStatusTone, getDisplayMatchStatus } from '@/lib/match-status';
 
 type PickFixture = PickCenterRecord;
@@ -144,10 +144,11 @@ function makeDateTabs(): DateTab[] {
 function leagueLabel(name?: string | null, id?: string | null) {
   const cleanName = String(name ?? '').trim();
   const cleanId = String(id ?? '').trim();
-  const looksLikeCode = (value: string) => /^[a-z0-9]+(?:[._][a-z0-9]+)+$/i.test(value);
-  if (cleanName && cleanName.toLowerCase() !== cleanId.toLowerCase() && !looksLikeCode(cleanName)) return cleanName;
-  if (cleanId && !looksLikeCode(cleanId)) return cleanId.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-  return cleanName && !looksLikeCode(cleanName) ? cleanName : 'League name unavailable';
+  const isIdentifier = (value: string) =>
+    !value || /^\s*(?:competition|league|team|fixture):/i.test(value) ||
+    /^[a-z0-9]+(?:[._-][a-z0-9]+)+$/i.test(value);
+  if (cleanName && cleanName.toLowerCase() !== cleanId.toLowerCase() && !isIdentifier(cleanName)) return cleanName;
+  return 'League name unavailable';
 }
 function formatTime(value: string) { return new Date(value).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
 function errorText(error: unknown) { const value = error as { response?: { data?: { message?: string } }; message?: string }; return value?.response?.data?.message ?? value?.message ?? 'Could not load admin Pick Center. Check the backend and try again.'; }
@@ -433,13 +434,13 @@ export default function PickCenter() {
             const presentation = matchPresentation.get(fixture.eventId);
             const status = getDisplayMatchStatus(presentation, undefined, fixture.fixtureDate);
             const rawFixture = fixture as PickFixture & { homeScore?: number | null; awayScore?: number | null };
-            const homeName = presentation?.homeTeamName || fixture.homeTeamName;
-            const awayName = presentation?.awayTeamName || fixture.awayTeamName;
+            const homeName = resolveTeamDisplayName(presentation?.homeTeamName, fixture.homeTeamName);
+            const awayName = resolveTeamDisplayName(presentation?.awayTeamName, fixture.awayTeamName);
             const leagueName = leagueLabel(presentation?.leagueName ?? fixture.leagueName, presentation?.leagueId ?? fixture.leagueId);
             const homeScore = displayScore(presentation?.homeScore ?? rawFixture.homeScore, status);
             const awayScore = displayScore(presentation?.awayScore ?? rawFixture.awayScore, status);
             return <div className="flex max-w-[260px] flex-col gap-1">
-              <div className="flex min-w-0 items-start gap-1"><CompactLogo src={presentation?.leagueLogo ?? fixture.leagueLogo} alt={leagueName} fallback={leagueName} size={12} /><span className="min-w-0 flex-1 whitespace-normal break-words text-[8px] text-muted-foreground">{leagueName}</span><span className={`inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 text-[7px] font-bold leading-none ${displayStatusTone(status)}`}>{displayStatusLabel(status, presentation)}</span></div>
+              <div className="flex min-w-0 items-start gap-1"><CompactLogo src={presentation?.leagueLogo ?? fixture.leagueLogo} alt={leagueName} fallback={leagueName} size={12} /><span className="min-w-0 flex-1 whitespace-normal break-words text-[8px] text-muted-foreground">{leagueName}{presentation?.leagueCountry ? <span className="ml-1 opacity-70">· {presentation.leagueCountry}</span> : null}</span><span className={`inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 text-[7px] font-bold leading-none ${displayStatusTone(status)}`}>{displayStatusLabel(status, presentation)}</span></div>
               <div className="flex min-w-0 items-start gap-1.5 text-[10px] font-bold leading-tight" title={homeName}><CompactLogo src={presentation?.homeTeamLogo ?? fixture.homeTeamLogo} alt={homeName} fallback={homeName} size={13} /><span className="min-w-0 flex-1 whitespace-normal break-words">{homeName}</span><span className="shrink-0 min-w-[12px] text-right font-bold tabular-nums">{homeScore}</span></div>
               <div className="flex min-w-0 items-start gap-1.5 text-[10px] font-bold leading-tight" title={awayName}><CompactLogo src={presentation?.awayTeamLogo ?? fixture.awayTeamLogo} alt={awayName} fallback={awayName} size={13} /><span className="min-w-0 flex-1 whitespace-normal break-words">{awayName}</span><span className="shrink-0 min-w-[12px] text-right font-bold tabular-nums">{awayScore}</span></div>
             </div>;
@@ -451,3 +452,4 @@ export default function PickCenter() {
     </table></div></section>
   </main>;
 }
+

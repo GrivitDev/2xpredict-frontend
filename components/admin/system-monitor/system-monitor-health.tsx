@@ -122,15 +122,15 @@ const statusClass = (
     case 'ONLINE':
     case 'SUCCESS':
     case 'COMPLETED':
-      return 'bg-emerald-500/10 text-emerald-600';
+      return 'bg-emerald-500/10 text-status-success';
 
     case 'RUNNING':
     case 'PROCESSING':
-      return 'bg-blue-500/10 text-blue-600';
+      return 'bg-blue-500/10 text-status-info';
 
     case 'FAILED':
     case 'PARTIAL':
-      return 'bg-red-500/10 text-red-600';
+      return 'bg-red-500/10 text-status-danger';
 
     default:
       return 'bg-muted text-muted-foreground';
@@ -268,8 +268,8 @@ export default function SystemMonitorHealth() {
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-md ${
                 dashboard?.system?.status === 'ONLINE'
-                  ? 'bg-emerald-500/10 text-emerald-600'
-                  : 'bg-red-500/10 text-red-600'
+                  ? 'bg-emerald-500/10 text-status-success'
+                  : 'bg-red-500/10 text-status-danger'
               }`}
             >
               <Server className="h-5 w-5" />
@@ -568,13 +568,13 @@ function HealthMetric({
       'bg-muted text-foreground',
 
     success:
-      'bg-emerald-500/10 text-emerald-600',
+      'bg-emerald-500/10 text-status-success',
 
     warning:
-      'bg-amber-500/10 text-amber-600',
+      'bg-amber-500/10 text-status-warning',
 
     danger:
-      'bg-red-500/10 text-red-600',
+      'bg-red-500/10 text-status-danger',
   };
 
   return (
@@ -600,4 +600,5 @@ function HealthMetric({
 // ============================================================
 // PROVIDER SUMMARY METRIC
 // ============================================================
+
 

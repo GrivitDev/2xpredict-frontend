@@ -47,7 +47,7 @@ export default function AccountNotificationPreferences() {
   return (
     <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
-        <div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><FaEnvelope /></span><div><h2 className="text-sm font-bold">Email notification preferences</h2><p className="text-[10px] text-muted-foreground">Control the categories of notification email sent to you.</p></div></div>
+        <div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaEnvelope /></span><div><h2 className="text-sm font-bold">Email notification preferences</h2><p className="text-[10px] text-muted-foreground">Control the categories of notification email sent to you.</p></div></div>
         <button type="button" onClick={() => void preferences.refetch()} disabled={preferences.isFetching} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[10px] font-semibold text-muted-foreground hover:bg-muted"><FaRotate className={preferences.isFetching ? 'animate-spin' : ''} /> Refresh</button>
       </div>
 
@@ -77,3 +77,4 @@ export default function AccountNotificationPreferences() {
     </section>
   );
 }
+

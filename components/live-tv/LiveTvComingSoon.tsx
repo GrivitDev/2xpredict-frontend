@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { FaArrowRight } from 'react-icons/fa6';
 
-const VIDEO_SRC = process.env.NEXT_PUBLIC_2XLIVE_TV_VIDEO_URL || '/2xlive.mp4';
+const VIDEO_SRC =  '/2xliv.mp4';
 
 export default function LiveTvComingSoon() {
   const [videoReady, setVideoReady] = useState(false);

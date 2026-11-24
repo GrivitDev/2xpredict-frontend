@@ -36,6 +36,9 @@ type Props = {
   selectedCategory: PredictionSlipCategoryId;
   selectedSlipId: string;
   mobileOpen: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
   onSelectCategory: (category: PredictionSlipCategoryId) => void;
   onSelectSlip: (slip: ApiRecord) => void;
   onCloseMobile: () => void;
@@ -91,6 +94,9 @@ export default function PredictionSlipSelector({
   selectedCategory,
   selectedSlipId,
   mobileOpen,
+  hasMore = false,
+  loadingMore = false,
+  onLoadMore,
   onSelectCategory,
   onSelectSlip,
   onCloseMobile,
@@ -117,7 +123,7 @@ export default function PredictionSlipSelector({
           </span>
         </div>
         <p className="mt-1 text-[9px] leading-4 text-muted-foreground">
-          Browse published slip counts. Locked slips keep their selections hidden.
+          Browse published slips. Locked slips keep their selections hidden.
         </p>
       </div>
 
@@ -219,6 +225,16 @@ export default function PredictionSlipSelector({
             </section>
           );
         })}
+        {hasMore ? (
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={loadingMore || !onLoadMore}
+            className="flex h-8 w-full items-center justify-center rounded-md border border-border bg-card px-2 text-[9px] font-bold text-foreground transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-wait disabled:opacity-60"
+          >
+            {loadingMore ? 'Loading more slips…' : 'Load more published slips'}
+          </button>
+        ) : null}
       </div>
     </>
   );
@@ -263,4 +279,5 @@ export default function PredictionSlipSelector({
     </>
   );
 }
+
 

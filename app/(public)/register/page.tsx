@@ -4,9 +4,12 @@ import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaArrowRight, FaAt, FaEnvelope, FaEye, FaEyeSlash, FaLock, FaPhone, FaTag, FaUser } from 'react-icons/fa6';
+import toast from 'react-hot-toast';
 
 import AuthShell, { AuthFeedback, authButtonClassName, authInputClassName, authSecondaryButtonClassName } from '@/components/auth/AuthShell';
-import { registerUser } from '@/services/auth.service';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import { googleAuthUser, registerUser } from '@/services/auth.service';
+import { useAuth } from '@/providers/auth-provider';
 
 function getErrorMessage(error: unknown): string {
   const value = error as { response?: { data?: { message?: unknown } }; message?: string };
@@ -18,6 +21,7 @@ function getErrorMessage(error: unknown): string {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -87,6 +91,31 @@ export default function RegisterPage() {
     }
   }
 
+  async function handleGoogleCredential(idToken: string) {
+    setError('');
+
+    try {
+      setLoading(true);
+      const response = await googleAuthUser({
+        idToken,
+        ...(referralCode ? { referralCode } : {}),
+        ...(promoCode ? { promoCode } : {}),
+      });
+
+      if (!response?.token) {
+        throw new Error('Google sign-in did not return a valid 2xPredict session. Please try again.');
+      }
+
+      login(response.token, response.user);
+      toast.success('Your 2xPredict account is ready.');
+      router.replace(response.user?.role === 'admin' ? '/admin' : '/');
+    } catch (googleError) {
+      setError(getErrorMessage(googleError));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (registeredEmail) {
     return (
       <AuthShell eyebrow="Account created" title="You’re all set" description={`A verification code has been sent to ${registeredEmail}. You can sign in now and verify later.`}>
@@ -111,6 +140,15 @@ export default function RegisterPage() {
       description="A few details are all you need to get started."
       footer={<>Already have an account? <Link href="/login" className="font-semibold text-primary hover:underline">Sign in</Link></>}
     >
+      <div className="mb-4 space-y-3">
+        <GoogleSignInButton onCredential={handleGoogleCredential} disabled={loading} />
+        <div className="flex items-center gap-3" aria-hidden="true">
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">or register with email</span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-3" noValidate>
         <div>
           <label htmlFor="register-fullname" className="mb-1.5 block text-xs font-semibold">Full name</label>

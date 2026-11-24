@@ -16,6 +16,7 @@ import {
 import { sportsService } from '@/services/sports.service';
 import { predictionEngineService } from '@/services/prediction-engine.service';
 import { betLabService } from '@/services/bet-lab.service';
+import { resolveLeagueDisplayName, resolveTeamDisplayName } from '@/hooks/use-match-presentation';
 
 type SearchKind = 'page' | 'matches' | 'teams' | 'predictions' | 'news' | 'highlights' | 'bet-lab';
 type SearchContext = 'all' | 'matches' | 'predictions' | 'news' | 'highlights' | 'bet-lab' | 'account' | 'admin' | 'pages';
@@ -131,20 +132,28 @@ function externalHref(value: string): string | undefined {
   return /^https?:\/\//i.test(value) ? value : undefined;
 }
 
+function safeTeamName(value: unknown): string {
+  const resolved = resolveTeamDisplayName(value);
+  return resolved === 'Team name unavailable' ? '' : resolved;
+}
+
+function safeLeagueName(value: unknown): string {
+  const resolved = resolveLeagueDisplayName(value);
+  return resolved === 'League name unavailable' ? '' : resolved;
+}
+
 function makeMatchResult(record: RecordLike, id: string, index: number): SearchResult {
   const competitors = Array.isArray(record.competitors)
     ? record.competitors.filter(isRecord)
     : [];
   const homeCompetitor = competitors.find((item) => String(item.homeAway ?? '').toUpperCase() === 'HOME');
   const awayCompetitor = competitors.find((item) => String(item.homeAway ?? '').toUpperCase() === 'AWAY');
-  const home = firstText(record, ['homeTeamName', 'homeName', 'homeTeam', 'home'])
-    || firstText(homeCompetitor ?? {}, ['displayName', 'name']);
-  const away = firstText(record, ['awayTeamName', 'awayName', 'awayTeam', 'away'])
-    || firstText(awayCompetitor ?? {}, ['displayName', 'name']);
+  const home = safeTeamName(firstText(record, ['homeTeamName', 'homeName', 'homeTeam', 'home']) || firstText(homeCompetitor ?? {}, ['displayName', 'name']));
+  const away = safeTeamName(firstText(record, ['awayTeamName', 'awayName', 'awayTeam', 'away']) || firstText(awayCompetitor ?? {}, ['displayName', 'name']));
   const title = home && away
     ? `${home} vs ${away}`
     : firstText(record, ['eventName', 'shortName', 'name', 'title']) || 'Football fixture';
-  const league = firstText(record, ['leagueName', 'competitionName', 'league', 'competitionId']);
+  const league = safeLeagueName(firstText(record, ['leagueName', 'competitionName', 'league']) || firstText(record, ['competitionId']));
   const date = firstText(record, ['kickoffAt', 'fixtureDate', 'matchDate', 'startTime', 'kickoff', 'date', 'dateUtc']);
   const subtitle = [league, date].filter(Boolean).join(' · ') || 'Match details and statistics';
   return {
@@ -176,10 +185,10 @@ function makeTeamResult(record: RecordLike, index: number): SearchResult {
 }
 
 function makePredictionResult(record: RecordLike, index: number): SearchResult {
-  const home = firstText(record, ['homeTeamName', 'homeName', 'homeTeam']);
-  const away = firstText(record, ['awayTeamName', 'awayName', 'awayTeam']);
+  const home = safeTeamName(firstText(record, ['homeTeamName', 'homeName', 'homeTeam']));
+  const away = safeTeamName(firstText(record, ['awayTeamName', 'awayName', 'awayTeam']));
   const title = home && away ? `${home} vs ${away}` : firstText(record, ['eventName', 'name', 'title']) || 'Football prediction';
-  const league = firstText(record, ['leagueName', 'competitionName', 'leagueId']);
+  const league = safeLeagueName(firstText(record, ['leagueName', 'competitionName']));
   const eventId = firstText(record, ['eventId', 'fixtureId', 'id', '_id']);
   const subtitle = [league, firstText(record, ['marketName', 'marketKey', 'selectionName'])].filter(Boolean).join(' · ') || 'Published prediction';
   return {
@@ -209,10 +218,10 @@ function makeNewsResult(record: RecordLike, index: number): SearchResult {
 }
 
 function makeHighlightResult(record: RecordLike, index: number): SearchResult {
-  const home = firstText(record, ['homeTeam', 'homeTeamName', 'homeName']);
-  const away = firstText(record, ['awayTeam', 'awayTeamName', 'awayName']);
+  const home = safeTeamName(firstText(record, ['homeTeam', 'homeTeamName', 'homeName']));
+  const away = safeTeamName(firstText(record, ['awayTeam', 'awayTeamName', 'awayName']));
   const title = firstText(record, ['title', 'videoTitle', 'name']) || (home && away ? `${home} vs ${away}` : 'Football highlight');
-  const league = firstText(record, ['competitionName', 'leagueName', 'competitionId']);
+  const league = resolveLeagueDisplayName(firstText(record, ['competitionName', 'leagueName']));
   const videoUrl = firstText(record, ['videoUrl', 'youtubeUrl', 'watchUrl', 'url']);
   const href = externalHref(videoUrl) ?? `/highlights?q=${encodeURIComponent(title)}`;
   return {
@@ -227,11 +236,11 @@ function makeHighlightResult(record: RecordLike, index: number): SearchResult {
 }
 
 function makeBetLabResult(record: RecordLike, index: number): SearchResult {
-  const home = firstText(record, ['homeTeamName', 'homeName', 'homeTeam']);
-  const away = firstText(record, ['awayTeamName', 'awayName', 'awayTeam']);
+  const home = safeTeamName(firstText(record, ['homeTeamName', 'homeName', 'homeTeam']));
+  const away = safeTeamName(firstText(record, ['awayTeamName', 'awayName', 'awayTeam']));
   const title = home && away ? `${home} vs ${away}` : firstText(record, ['eventName', 'name', 'title']) || 'Bet Lab fixture';
   const id = firstText(record, ['eventId', 'fixtureId', 'id', '_id']);
-  const league = firstText(record, ['leagueName', 'competitionName', 'leagueId']);
+  const league = safeLeagueName(firstText(record, ['leagueName', 'competitionName']));
   return {
     id: `betlab-${id || index}`,
     kind: 'bet-lab',
@@ -587,14 +596,14 @@ export default function UniversalSearch({
                     onClick={() => openResult(result)}
                     className="group flex w-full min-w-0 items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:border-primary/15 hover:bg-primary/[0.055] focus-visible:border-primary/20 focus-visible:bg-primary/[0.06] focus-visible:outline-none sm:px-4"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-primary/[0.08] text-primary transition-all group-hover:border-primary/20 group-hover:bg-primary/[0.12]">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-primary/[0.08] text-brand-accent transition-all group-hover:border-primary/20 group-hover:bg-primary/[0.12]">
                       <Icon className="h-4 w-4" aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-xs font-semibold sm:text-sm">{result.title}</span>
                       <span className="mt-1 block truncate text-[11px] text-muted-foreground">{result.subtitle}</span>
                     </span>
-                    <span className="hidden shrink-0 items-center gap-1.5 text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-primary sm:inline-flex">
+                    <span className="hidden shrink-0 items-center gap-1.5 text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-brand-accent sm:inline-flex">
                       {kindLabel(result.kind)}
                       <FaArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                     </span>
@@ -628,4 +637,6 @@ export default function UniversalSearch({
     </div>
   );
 }
+
+
 

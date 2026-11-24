@@ -3,6 +3,8 @@
 import { useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import SectionHeader from '@/components/shared/SectionHeader';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
+import type { MatchPresentation } from '@/hooks/use-match-presentation';
 import {
   useGetEventsQuery,
   useGetJobsQuery,
@@ -82,7 +84,42 @@ export default function SettlementAdmin() {
   );
   const manualSettle = useManualSettleBetLabLegMutation();
   const manualPredictionSettle = useManualSettlePredictionSelectionMutation();
+  const overduePresentations = useMatchPresentation((overdueLegs.data?.items ?? []).map((item) => ({
+    eventId: item.leg.eventId ?? '',
+    fixtureDate: item.leg.fixtureDate ?? '',
+    leagueId: String(item.leg.leagueId ?? ''),
+    leagueName: String(item.leg.leagueName ?? ''),
+    homeTeamId: String(item.leg.homeTeamId ?? ''),
+    awayTeamId: String(item.leg.awayTeamId ?? ''),
+    homeTeamName: item.leg.homeTeamName ?? item.leg.homeTeam ?? '',
+    awayTeamName: item.leg.awayTeamName ?? item.leg.awayTeam ?? '',
+    // The raw leg remains available through fixtureRecord for nested logo fallbacks.
+    // Only pass URL strings in the typed presentation fields.
+    homeTeamLogo: typeof item.leg.homeTeamLogo === 'string' ? item.leg.homeTeamLogo : null,
+    awayTeamLogo: typeof item.leg.awayTeamLogo === 'string' ? item.leg.awayTeamLogo : null,
+    fixtureRecord: item.leg, summaryRecord: item.leg.summary,
+  })));
   const data = monitor.data;
+  const operationalPresentations = useMatchPresentation([
+    ...(jobs.data?.items ?? []).map((row) => ({
+      eventId: String(row.eventId ?? ''), fixtureDate: String((row as SettlementJob & { fixtureDate?: string }).fixtureDate ?? ''),
+      leagueId: String(row.leagueId ?? ''), leagueName: String((row as SettlementJob & { leagueName?: string }).leagueName ?? ''), fixtureRecord: row,
+    })),
+    ...(runs.data?.items ?? []).map((row) => ({
+      eventId: String(row.eventId ?? ''), fixtureDate: String((row as SettlementRun & { fixtureDate?: string }).fixtureDate ?? ''),
+      leagueId: String(row.leagueId ?? ''), leagueName: String((row as SettlementRun & { leagueName?: string }).leagueName ?? ''), fixtureRecord: row,
+    })),
+    ...(data?.recentJobs ?? []).map((row) => ({
+      eventId: String(row.eventId ?? ''), fixtureDate: String((row as SettlementJob & { fixtureDate?: string }).fixtureDate ?? ''),
+      leagueId: String(row.leagueId ?? ''), leagueName: String((row as SettlementJob & { leagueName?: string }).leagueName ?? ''), fixtureRecord: row,
+    })),
+    ...(events.data?.items ?? []).map((row) => ({
+      eventId: String(row.eventId ?? ''), fixtureDate: String((row as SettlementEvent & { fixtureDate?: string }).fixtureDate ?? ''),
+      leagueId: String((row as SettlementEvent & { leagueId?: string }).leagueId ?? ''),
+      leagueName: String((row as SettlementEvent & { leagueName?: string }).leagueName ?? ''),
+      fixtureRecord: row,
+    })),
+  ]);
 
   async function refreshAll() {
     await Promise.all([
@@ -319,10 +356,14 @@ export default function SettlementAdmin() {
                     const key = `${item.ticketId}:${legId}`;
                     const outcome = manualOutcomes[key] ?? 'WON';
                     const reason = manualReasons[key] ?? '';
-                    const fixtureName = [item.leg.homeTeamName ?? item.leg.homeTeam, item.leg.awayTeamName ?? item.leg.awayTeam].filter(Boolean).join(' vs ');
+                    const presentation = overduePresentations.get(String(item.leg.eventId ?? ''));
+                    const homeName = resolveTeamDisplayName(presentation?.homeTeamName, item.leg.homeTeamName, item.leg.homeTeam);
+                    const awayName = resolveTeamDisplayName(presentation?.awayTeamName, item.leg.awayTeamName, item.leg.awayTeam);
+                    const leagueName = presentation?.leagueName ?? '';
+                    const fixtureName = `${homeName} vs ${awayName}`;
                     return <tr key={key} className="border-t border-border/60 align-top hover:bg-muted/25">
                       <td className="px-2 py-2"><p className="font-semibold">{item.ticketNumber || item.ticketId.slice(-8)}</p><p className="mt-0.5 truncate text-[9px] text-muted-foreground" title={item.userId}>{item.userId || 'Unknown user'}</p><p className="mt-1"><StatusTag status={item.ticketStatus} /></p></td>
-                      <td className="px-2 py-2"><p className="font-medium">{fixtureName || `Event ${item.leg.eventId || '—'}`}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{humanize(String(item.leg.marketCode ?? 'Market unavailable'))} · {String(item.leg.selectionFullName ?? item.leg.selectionName ?? item.leg.selectionCode ?? 'Selection unavailable')}</p><p className="mt-0.5 font-mono text-[8px] text-muted-foreground">{item.leg.eventId || '—'} · {formatDate(item.leg.fixtureDate)}</p></td>
+                      <td className="px-2 py-2"><p className="font-medium">{fixtureName}</p>{leagueName || presentation?.leagueCountry ? <p className="mt-0.5 text-[9px] text-muted-foreground">{[leagueName, presentation?.leagueCountry].filter(Boolean).join(' · ')}</p> : null}<p className="mt-0.5 text-[9px] text-muted-foreground">{humanize(String(item.leg.marketCode ?? 'Market unavailable'))} · {String(item.leg.selectionFullName ?? item.leg.selectionName ?? item.leg.selectionCode ?? 'Selection unavailable')}</p><p className="mt-0.5 font-mono text-[8px] text-muted-foreground">{item.leg.eventId || '—'} · {formatDate(item.leg.fixtureDate)}</p></td>
                       <td className="px-2 py-2"><p>{Number(item.stake ?? 0).toLocaleString()} pts</p><p className="mt-0.5 text-muted-foreground">{Number(item.leg.decimalOdds ?? 0).toFixed(2)} odds</p></td>
                       <td className="px-2 py-2"><Tag tone="amber">{Number(item.overdueHours ?? 0).toFixed(1)}h</Tag></td>
                       <td className="px-2 py-2"><select value={outcome} onChange={(event) => setManualOutcomes((current) => ({ ...current, [key]: event.target.value as ManualBetLabLegOutcome }))} className="h-8 w-full rounded-md border border-border bg-background px-2 text-[10px]"><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="PUSH">Push</option><option value="HALF_WON">Half won</option><option value="HALF_LOST">Half lost</option></select></td>
@@ -370,7 +411,7 @@ export default function SettlementAdmin() {
             <FilterSelect label="Status" value={jobStatus} onChange={(value) => { setJobStatus(value as '' | SettlementJobStatus); setJobPage(1); }} options={[{ value: '', label: 'All statuses' }, ...JOB_STATUSES.map((status) => ({ value: status, label: humanize(status) }))]} />
             <PageSize value={jobLimit} onChange={(value) => { setJobLimit(value); setJobPage(1); }} />
           </div>
-          <JobsTable rows={jobs.data?.items ?? []} loading={jobs.isLoading} error={jobs.isError} onRetry={() => void jobs.refetch()} />
+          <JobsTable rows={jobs.data?.items ?? []} presentations={operationalPresentations} loading={jobs.isLoading} error={jobs.isError} onRetry={() => void jobs.refetch()} />
           <Pagination page={jobs.data?.pagination.page ?? jobPage} pages={jobs.data?.pagination.pages ?? 0} total={jobs.data?.pagination.total ?? 0} onPage={setJobPage} />
         </Panel>
 ) : null}
@@ -381,7 +422,7 @@ export default function SettlementAdmin() {
             <FilterInput label="Filter by event ID" value={runEventFilter} onChange={(value) => { setRunEventFilter(value); setRunPage(1); }} placeholder="Any fixture" />
             <PageSize value={runLimit} onChange={(value) => { setRunLimit(value); setRunPage(1); }} />
           </div>
-          <RunsTable rows={runs.data?.items ?? []} loading={runs.isLoading} error={runs.isError} onRetry={() => void runs.refetch()} />
+          <RunsTable rows={runs.data?.items ?? []} presentations={operationalPresentations} loading={runs.isLoading} error={runs.isError} onRetry={() => void runs.refetch()} />
           <Pagination page={runs.data?.pagination.page ?? runPage} pages={runs.data?.pagination.pages ?? 0} total={runs.data?.pagination.total ?? 0} onPage={setRunPage} />
         </Panel>
 ) : null}
@@ -403,7 +444,7 @@ export default function SettlementAdmin() {
       {tab === 'overview' ? (
 <section className="grid gap-3 xl:grid-cols-2">
         <Panel title="Recent queue activity" eyebrow="Latest 10 jobs">
-          <JobsTable rows={data?.recentJobs ?? []} loading={monitor.isLoading} error={monitor.isError} onRetry={() => void monitor.refetch()} compact />
+          <JobsTable rows={data?.recentJobs ?? []} presentations={operationalPresentations} loading={monitor.isLoading} error={monitor.isError} onRetry={() => void monitor.refetch()} compact />
         </Panel>
         <Panel title="Recent warnings & errors" eyebrow="Latest 20 events">
           <EventsTable rows={data?.recentWarningsAndErrors ?? []} loading={monitor.isLoading} error={monitor.isError} onRetry={() => void monitor.refetch()} compact />
@@ -471,15 +512,15 @@ function Tag({ children, tone = 'neutral' }: { children: ReactNode; tone?: Tone 
   return <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[9px] font-semibold ${styles[tone]}`}>{children}</span>;
 }
 
-function JobsTable({ rows, loading, error, onRetry, compact = false }: { rows: SettlementJob[]; loading: boolean; error: boolean; onRetry: () => void; compact?: boolean }) {
+function JobsTable({ rows, presentations, loading, error, onRetry, compact = false }: { rows: SettlementJob[]; presentations: ReadonlyMap<string, MatchPresentation>; loading: boolean; error: boolean; onRetry: () => void; compact?: boolean }) {
   return <TableState loading={loading} error={error} onRetry={onRetry} empty="No settlement jobs match these filters.">
-    {rows.length > 0 && <div className="max-h-[300px] overflow-auto rounded-md border border-border/70"><table className="w-full min-w-[680px] table-fixed text-left text-[10px]"><thead className="sticky top-0 z-[1] bg-muted/90 text-muted-foreground backdrop-blur"><tr>{['Fixture / league', 'Status', 'Attempts', 'Trigger', 'Updated', ...(compact ? [] : ['Result / issue'])].map((label) => <th key={label} className="px-2.5 py-2 font-semibold">{label}</th>)}</tr></thead><tbody>{rows.map((job, index) => <tr key={job._id ?? job.jobKey ?? `${job.eventId}-${index}`} className="border-t border-border/60 align-top hover:bg-muted/25"><td className="px-2.5 py-2"><p className="truncate font-semibold text-foreground">{job.eventId || 'Unknown event'}</p><p className="mt-0.5 truncate text-[9px] text-muted-foreground">{job.leagueId || 'Unknown league'}</p><p className="mt-0.5 truncate font-mono text-[8px] text-muted-foreground" title={job.jobKey}>{job.jobKey || '—'}</p></td><td className="px-2.5 py-2"><StatusTag status={job.status} /></td><td className="px-2.5 py-2 tabular-nums">{job.attempts ?? 0}<span className="text-muted-foreground"> / {job.maximumAttempts ?? '—'}</span><p className="mt-0.5 text-[9px] text-muted-foreground">P{job.priority ?? '—'}</p></td><td className="px-2.5 py-2"><p className="truncate" title={job.triggerReason}>{humanize(job.triggerReason || '—')}</p>{job.lastDurationMs != null && <p className="mt-0.5 text-[9px] text-muted-foreground">{formatDuration(job.lastDurationMs)}</p>}</td><td className="px-2.5 py-2 text-muted-foreground">{formatDate(job.updatedAt ?? job.createdAt)}</td>{!compact && <td className="px-2.5 py-2">{job.lastError ? <p className="line-clamp-2 text-rose-700 dark:text-rose-300" title={job.lastError}>{job.lastError}</p> : <><p className="truncate text-muted-foreground" title={JSON.stringify(job.resultCounts ?? {})}>{countSummary(job.resultCounts)}</p>{job.unresolvedReasons?.length > 0 && <p className="mt-1 truncate text-amber-700 dark:text-amber-300" title={job.unresolvedReasons.join('\n')}>{job.unresolvedReasons.length} unresolved reason(s)</p>}</>}</td>}</tr>)}</tbody></table></div>}
+    {rows.length > 0 && <div className="max-h-[300px] overflow-auto rounded-md border border-border/70"><table className="w-full min-w-[680px] table-fixed text-left text-[10px]"><thead className="sticky top-0 z-[1] bg-muted/90 text-muted-foreground backdrop-blur"><tr>{['Fixture / league', 'Status', 'Attempts', 'Trigger', 'Updated', ...(compact ? [] : ['Result / issue'])].map((label) => <th key={label} className="px-2.5 py-2 font-semibold">{label}</th>)}</tr></thead><tbody>{rows.map((job, index) => { const presentation = presentations.get(String(job.eventId ?? '')); const home = resolveTeamDisplayName(presentation?.homeTeamName); const away = resolveTeamDisplayName(presentation?.awayTeamName); const match = presentation?.homeTeamName && presentation?.awayTeamName ? `${home} vs ${away}` : ''; const league = [presentation?.leagueName, presentation?.leagueCountry].filter(Boolean).join(' · '); return <tr key={job._id ?? job.jobKey ?? `${job.eventId}-${index}`} className="border-t border-border/60 align-top hover:bg-muted/25"><td className="px-2.5 py-2"><p className="truncate font-semibold text-foreground">{match || (job.eventId ? `Event ${job.eventId}` : 'Fixture name unavailable')}</p><p className="mt-0.5 truncate text-[9px] text-muted-foreground">{league || 'League name unavailable'}</p><p className="mt-0.5 truncate font-mono text-[8px] text-muted-foreground">{job.eventId || '—'}</p><p className="mt-0.5 truncate font-mono text-[8px] text-muted-foreground" title={job.jobKey}>{job.jobKey || '—'}</p></td><td className="px-2.5 py-2"><StatusTag status={job.status} /></td><td className="px-2.5 py-2 tabular-nums">{job.attempts ?? 0}<span className="text-muted-foreground"> / {job.maximumAttempts ?? '—'}</span><p className="mt-0.5 text-[9px] text-muted-foreground">P{job.priority ?? '—'}</p></td><td className="px-2.5 py-2"><p className="truncate" title={job.triggerReason}>{humanize(job.triggerReason || '—')}</p>{job.lastDurationMs != null && <p className="mt-0.5 text-[9px] text-muted-foreground">{formatDuration(job.lastDurationMs)}</p>}</td><td className="px-2.5 py-2 text-muted-foreground">{formatDate(job.updatedAt ?? job.createdAt)}</td>{!compact && <td className="px-2.5 py-2">{job.lastError ? <p className="line-clamp-2 text-rose-700 dark:text-rose-300" title={job.lastError}>{job.lastError}</p> : <><p className="truncate text-muted-foreground" title={JSON.stringify(job.resultCounts ?? {})}>{countSummary(job.resultCounts)}</p>{job.unresolvedReasons?.length > 0 && <p className="mt-1 truncate text-amber-700 dark:text-amber-300" title={job.unresolvedReasons.join('\n')}>{job.unresolvedReasons.length} unresolved reason(s)</p>}</>}</td>}</tr>; })}</tbody></table></div>}
   </TableState>;
 }
 
-function RunsTable({ rows, loading, error, onRetry }: { rows: SettlementRun[]; loading: boolean; error: boolean; onRetry: () => void }) {
+function RunsTable({ rows, presentations, loading, error, onRetry }: { rows: SettlementRun[]; presentations: ReadonlyMap<string, MatchPresentation>; loading: boolean; error: boolean; onRetry: () => void }) {
   return <TableState loading={loading} error={error} onRetry={onRetry} empty="No settlement runs match this fixture filter.">
-    {rows.length > 0 && <div className="max-h-[300px] overflow-auto rounded-md border border-border/70"><table className="w-full min-w-[620px] table-fixed text-left text-[10px]"><thead className="sticky top-0 z-[1] bg-muted/90 text-muted-foreground backdrop-blur"><tr>{['Fixture / league', 'Status', 'Started', 'Duration', 'Counts / unresolved'].map((label) => <th key={label} className="px-2.5 py-2 font-semibold">{label}</th>)}</tr></thead><tbody>{rows.map((run, index) => <tr key={run._id ?? `${run.eventId}-${run.sourceFingerprint}-${index}`} className="border-t border-border/60 align-top hover:bg-muted/25"><td className="px-2.5 py-2"><p className="truncate font-semibold">{run.eventId || 'Unknown event'}</p><p className="mt-0.5 truncate text-[9px] text-muted-foreground">{run.leagueId || 'Unknown league'}</p></td><td className="px-2.5 py-2"><StatusTag status={run.status} /></td><td className="px-2.5 py-2 text-muted-foreground">{formatDate(run.startedAt ?? run.createdAt)}<p className="mt-0.5 text-[9px]">Done: {formatDate(run.completedAt)}</p></td><td className="px-2.5 py-2 tabular-nums">{run.durationMs == null ? '—' : formatDuration(run.durationMs)}</td><td className="px-2.5 py-2"><p className="line-clamp-2" title={JSON.stringify(run.counts ?? {})}>{countSummary(run.counts)}</p>{run.unresolvedReasons?.length > 0 && <details className="mt-1"><summary className="cursor-pointer text-amber-700 dark:text-amber-300">{run.unresolvedReasons.length} unresolved</summary><ul className="mt-1 list-disc space-y-1 pl-3 text-[9px] text-muted-foreground">{run.unresolvedReasons.map((reason, i) => <li key={`${i}-${reason}`}>{reason}</li>)}</ul></details>}</td></tr>)}</tbody></table></div>}
+    {rows.length > 0 && <div className="max-h-[300px] overflow-auto rounded-md border border-border/70"><table className="w-full min-w-[620px] table-fixed text-left text-[10px]"><thead className="sticky top-0 z-[1] bg-muted/90 text-muted-foreground backdrop-blur"><tr>{['Fixture / league', 'Status', 'Started', 'Duration', 'Counts / unresolved'].map((label) => <th key={label} className="px-2.5 py-2 font-semibold">{label}</th>)}</tr></thead><tbody>{rows.map((run, index) => { const presentation = presentations.get(String(run.eventId ?? '')); const home = resolveTeamDisplayName(presentation?.homeTeamName); const away = resolveTeamDisplayName(presentation?.awayTeamName); const match = presentation?.homeTeamName && presentation?.awayTeamName ? `${home} vs ${away}` : ''; const league = [presentation?.leagueName, presentation?.leagueCountry].filter(Boolean).join(' · '); return <tr key={run._id ?? `${run.eventId}-${run.sourceFingerprint}-${index}`} className="border-t border-border/60 align-top hover:bg-muted/25"><td className="px-2.5 py-2"><p className="truncate font-semibold">{match || (run.eventId ? `Event ${run.eventId}` : 'Fixture name unavailable')}</p><p className="mt-0.5 truncate text-[9px] text-muted-foreground">{league || 'League name unavailable'}</p><p className="mt-0.5 truncate font-mono text-[8px] text-muted-foreground">{run.eventId || '—'}</p></td><td className="px-2.5 py-2"><StatusTag status={run.status} /></td><td className="px-2.5 py-2 text-muted-foreground">{formatDate(run.startedAt ?? run.createdAt)}<p className="mt-0.5 text-[9px]">Done: {formatDate(run.completedAt)}</p></td><td className="px-2.5 py-2 tabular-nums">{run.durationMs == null ? '—' : formatDuration(run.durationMs)}</td><td className="px-2.5 py-2"><p className="line-clamp-2" title={JSON.stringify(run.counts ?? {})}>{countSummary(run.counts)}</p>{run.unresolvedReasons?.length > 0 && <details className="mt-1"><summary className="cursor-pointer text-amber-700 dark:text-amber-300">{run.unresolvedReasons.length} unresolved</summary><ul className="mt-1 list-disc space-y-1 pl-3 text-[9px] text-muted-foreground">{run.unresolvedReasons.map((reason, i) => <li key={`${i}-${reason}`}>{reason}</li>)}</ul></details>}</td></tr>; })}</tbody></table></div>}
   </TableState>;
 }
 
@@ -580,4 +621,3 @@ function requeueReason(reason?: string) {
   };
   return messages[reason ?? ''] ?? `Fixture was not queued${reason ? `: ${humanize(reason)}` : '.'}`;
 }
-

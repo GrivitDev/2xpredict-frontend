@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import {
   FaCircleUser,
@@ -14,12 +15,24 @@ import {
 import type { IconType } from 'react-icons';
 import { useAuth } from '@/providers/auth-provider';
 import { useGetStatusQuery } from '@/hooks/use-subscriptions';
-import AccountBillingPanel from '@/components/account/AccountBillingPanel';
-import AccountPersonalDetails from '@/components/account/AccountPersonalDetails';
-import AccountRewardsReferrals from '@/components/account/AccountRewardsReferrals';
-import AccountBetLabWallet from '@/components/account/AccountBetLabWallet';
-import AccountSecurity from '@/components/account/AccountSecurity';
-import AccountNotificationPreferences from '@/components/account/AccountNotificationPreferences';
+function ProfilePanelLoading() {
+  return (
+    <div aria-busy="true" className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
+      <div className="h-5 w-36 animate-pulse rounded bg-muted" />
+      <div className="h-10 w-full animate-pulse rounded-lg bg-muted/70" />
+      <div className="h-10 w-full animate-pulse rounded-lg bg-muted/70" />
+      <div className="h-24 w-full animate-pulse rounded-lg bg-muted/70" />
+    </div>
+  );
+}
+
+// Account sections are loaded only when the member opens that tab.
+const AccountBillingPanel = dynamic(() => import('@/components/account/AccountBillingPanel'), { loading: () => <ProfilePanelLoading /> });
+const AccountPersonalDetails = dynamic(() => import('@/components/account/AccountPersonalDetails'), { loading: () => <ProfilePanelLoading /> });
+const AccountRewardsReferrals = dynamic(() => import('@/components/account/AccountRewardsReferrals'), { loading: () => <ProfilePanelLoading /> });
+const AccountBetLabWallet = dynamic(() => import('@/components/account/AccountBetLabWallet'), { loading: () => <ProfilePanelLoading /> });
+const AccountSecurity = dynamic(() => import('@/components/account/AccountSecurity'), { loading: () => <ProfilePanelLoading /> });
+const AccountNotificationPreferences = dynamic(() => import('@/components/account/AccountNotificationPreferences'), { loading: () => <ProfilePanelLoading /> });
 
 type ProfileTab =
   | 'overview'

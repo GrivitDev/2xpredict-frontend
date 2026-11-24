@@ -6,7 +6,7 @@ import {
   useGetV2CompetitionStandingsQuery,
   useGetV2CompetitionsQuery,
   useGetV2TeamFormQuery,
-  useGetV2TeamsQuery,
+  useGetV2TeamsByIdentifiersQuery,
 } from '@/hooks/use-sports';
 import type { SportsCalculatedStanding, SportsCompetition, SportsTeam } from '@/types/sports-v2';
 import LeagueSelector from '../LeagueSelector';
@@ -72,7 +72,7 @@ function StandingRow({
   seasonId: string;
 }) {
   const metrics = row.metrics;
-  const teamName = team?.displayName ?? team?.name ?? row.teamId;
+  const teamName = team?.displayName ?? team?.name ?? team?.shortName ?? 'Team name unavailable';
 
   return (
     <tr className="transition-colors hover:bg-muted/20">
@@ -112,6 +112,7 @@ export default function StandingsSection() {
     id: competition.id,
     name: resolveLeagueName(competition.slug || competition.id, [competition.displayName, competition.name]),
     logo: resolveLeagueLogo(competition.logo),
+    country: competition.country ?? null,
   })), [competitions]);
 
   const selected = competitionId || competitions[0]?.id || '';
@@ -130,23 +131,34 @@ export default function StandingsSection() {
     { path: { competitionId: selected }, query: { seasonId } },
     { ...DATA_OPTIONS, enabled: Boolean(selected && seasonId) },
   );
-  const teamsQuery = useGetV2TeamsQuery(
-    { query: { leagueId: selectedCompetition?.espnId, limit: 1000 } },
-    { ...COMPETITION_OPTIONS, enabled: Boolean(selectedCompetition?.espnId) },
+  const standings = standingsQuery.data ?? [];
+  const standingTeamIds = useMemo(
+    () => [...new Set(standings.map((row) => String(row.teamId ?? '').trim()).filter(Boolean))].sort(),
+    [standings],
+  );
+  const teamsQuery = useGetV2TeamsByIdentifiersQuery(
+    { body: { ids: standingTeamIds } },
+    { ...COMPETITION_OPTIONS, enabled: standingTeamIds.length > 0 },
   );
 
   const teamsById = useMemo(() => {
     const map = new Map<string, SportsTeam>();
     for (const team of teamsQuery.data ?? []) {
-      map.set(team.id, team);
-      map.set(team.espnId, team);
+      for (const identifier of [team.id, team.espnId]) {
+        const key = String(identifier ?? '').trim().toLowerCase();
+        if (!key) continue;
+        const sourceId = key.replace(/^team:/, '');
+        map.set(key, team);
+        map.set(sourceId, team);
+        map.set(`team:${sourceId}`, team);
+      }
     }
     return map;
   }, [teamsQuery.data]);
 
-  const standings = standingsQuery.data ?? [];
   const selectedName = selectedCompetition?.displayName ?? selectedCompetition?.name ?? 'League Table';
-  const loading = competitionsQuery.isLoading || seasonsQuery.isLoading || standingsQuery.isLoading || teamsQuery.isLoading;
+  // Team identity enrichment is non-blocking; render the table as soon as standings arrive.
+  const loading = competitionsQuery.isLoading || seasonsQuery.isLoading || standingsQuery.isLoading;
   const failed = competitionsQuery.isError || standingsQuery.isError;
 
   return (
@@ -232,3 +244,4 @@ export default function StandingsSection() {
     </section>
   );
 }
+

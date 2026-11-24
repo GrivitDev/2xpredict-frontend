@@ -155,7 +155,7 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
     <section id="account-billing" className="mt-5 space-y-3 scroll-mt-24" px-12 aria-labelledby="account-billing-title">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Account</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-accent">Account</p>
           <h2 id="account-billing-title" className="mt-1 text-lg font-bold tracking-tight">Subscription & payments</h2>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Your current access, payment status and transaction history.</p>
         </div>
@@ -173,13 +173,13 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
         <div className="grid gap-2 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
           <article className="rounded-xl border border-border/70 bg-card p-3">
             <div className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary"><FaCrown className="h-4 w-4" /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaCrown className="h-4 w-4" /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] text-muted-foreground">Current plan</p>
                 <p className="truncate text-sm font-bold capitalize">{subscriptionQuery.isLoading ? 'Checking…' : plan ?? '—'}</p>
               </div>
               {plan && paidPlans.has(plan) ? (
-                <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">ACTIVE ACCESS</span>
+                <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-status-success">ACTIVE ACCESS</span>
               ) : null}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -193,7 +193,7 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
               </div>
             </div>
             {subscription ? (
-              <p className="mt-2 inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><FaCalendarCheck className="text-primary" /> {daysRemaining === null ? 'Expiry date unavailable' : `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining`}</p>
+              <p className="mt-2 inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><FaCalendarCheck className="text-brand-accent" /> {daysRemaining === null ? 'Expiry date unavailable' : `${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining`}</p>
             ) : (
               <p className="mt-2 text-[10px] text-muted-foreground">No active paid subscription is currently returned by the subscription service.</p>
             )}
@@ -204,7 +204,7 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
 
           <article className="rounded-xl border border-border/70 bg-card p-3">
             <div className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400"><FaShieldHalved className="h-4 w-4" /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-sky-500/10 text-status-info"><FaShieldHalved className="h-4 w-4" /></span>
               <div>
                 <p className="text-[10px] text-muted-foreground">Backend entitlements</p>
                 <p className="text-sm font-bold capitalize">{entitlements?.plan ?? plan ?? '—'}</p>
@@ -223,7 +223,7 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
       {activePayment ? (
         <article className="rounded-xl border border-amber-500/25 bg-amber-500/[0.04] p-3">
           <div className="flex items-start gap-2.5">
-            <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300">
+            <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-500/10 text-status-warning">
               {activePayment.status === 'processing' ? <FaClock className="h-3.5 w-3.5" /> : <FaTriangleExclamation className="h-3.5 w-3.5" />}
             </span>
             <div className="min-w-0 flex-1">
@@ -259,7 +259,7 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
 
       <article className="overflow-hidden rounded-xl border border-border/70 bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-3 py-2.5">
-          <div className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-primary"><FaReceipt className="h-3.5 w-3.5" /></span><div><h3 className="text-xs font-bold">Payment history</h3><p className="text-[10px] text-muted-foreground">Subscription purchases, renewals and upgrades</p></div></div>
+          <div className="flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-brand-accent"><FaReceipt className="h-3.5 w-3.5" /></span><div><h3 className="text-xs font-bold">Payment history</h3><p className="text-[10px] text-muted-foreground">Subscription purchases, renewals and upgrades</p></div></div>
           <span className="text-[10px] text-muted-foreground">{payments.length} record{payments.length === 1 ? '' : 's'}</span>
         </div>
         <div className="grid grid-cols-3 gap-px border-b border-border/60 bg-border/60">
@@ -295,6 +295,7 @@ export default function AccountBillingPanel({ enabled }: AccountBillingPanelProp
 }
 
 function Metric({ label, value, tone }: { label: string; value: number; tone: 'success' | 'warning' | 'danger' }) {
-  const toneClass = tone === 'success' ? 'text-emerald-700 dark:text-emerald-300' : tone === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-destructive';
+  const toneClass = tone === 'success' ? 'text-status-success' : tone === 'warning' ? 'text-status-warning' : 'text-destructive';
   return <div className="bg-card px-3 py-2"><p className="text-[9px] text-muted-foreground">{label}</p><p className={`mt-0.5 text-sm font-bold ${toneClass}`}>{value}</p></div>;
 }
+

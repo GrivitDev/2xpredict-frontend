@@ -1,6 +1,6 @@
 'use client';
 /* React Query hooks for every bet-lab controller endpoint. */
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import type { ApiMutationHookOptions, ApiQueryHookOptions } from '../types/common';
 import { betLabService } from '../services/bet-lab.service';
 import type { BetLabCatalog, BetLabFixtureMarketsResponse, BetLabFixtureOddsResponse, BetLabFixturesPage, BetLabPlacementResponse, BetLabStatisticsResponse, BetLabTicket, BetLabTicketPage } from '../types/bet-lab';
@@ -18,6 +18,51 @@ export function useGetFixturesQuery<TData = BetLabFixturesPage>(args?: GetFixtur
   return useQuery<BetLabFixturesPage, Error, TData>({
     queryKey: ['bet-lab', 'getFixtures', args ?? null],
     queryFn: () => betLabService.getFixtures(args),
+    ...options,
+  });
+}
+
+
+export interface BetLabFixturesInfiniteQueryOptions {
+  enabled?: boolean;
+  staleTime?: number;
+  gcTime?: number;
+  refetchInterval?: number | false;
+  refetchIntervalInBackground?: boolean;
+  refetchOnWindowFocus?: boolean;
+  retry?: number;
+}
+
+/** Return the next numeric page only while the backend reports more pages. */
+export function getNextBetLabFixturesPage(
+  lastPage: BetLabFixturesPage,
+): number | undefined {
+  const currentPage = Math.max(1, Math.floor(Number(lastPage.pagination?.page) || 1));
+  const totalPages = Math.max(0, Math.floor(Number(lastPage.pagination?.pages) || 0));
+  return currentPage < totalPages ? currentPage + 1 : undefined;
+}
+
+/** Paginated Bet Lab fixture read; later pages are fetched only on demand. */
+export function useGetFixturesInfiniteQuery(
+  args?: GetFixturesArgs,
+  options?: BetLabFixturesInfiniteQueryOptions,
+) {
+  const pageSize = Math.min(100, Math.max(1, Math.floor(args?.query?.limit ?? 50)));
+  const initialPage = Math.max(1, Math.floor(args?.query?.page ?? 1));
+
+  return useInfiniteQuery({
+    queryKey: ['bet-lab', 'getFixtures', 'infinite', args?.query ?? null],
+    initialPageParam: initialPage,
+    queryFn: ({ pageParam }) => betLabService.getFixtures({
+      query: {
+        ...args?.query,
+        page: pageParam,
+        limit: pageSize,
+      },
+    }),
+    getNextPageParam: getNextBetLabFixturesPage,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
     ...options,
   });
 }

@@ -84,7 +84,7 @@ export default function SystemMonitorSportsExplorer() {
       {monitor.isLoading ? (
         <p className="px-3 py-8 text-center text-[11px] text-muted-foreground">Loading Sports monitor…</p>
       ) : monitor.isError ? (
-        <div className="px-3 py-8 text-center text-[11px] text-rose-600">
+        <div className="px-3 py-8 text-center text-[11px] text-status-danger">
           <p>Sports monitor could not be loaded.</p>
           <button type="button" onClick={() => void monitor.refetch()} className="mt-2 rounded border border-border px-2 py-1 font-medium">Retry</button>
         </div>
@@ -100,3 +100,4 @@ export default function SystemMonitorSportsExplorer() {
     </section>
   );
 }
+

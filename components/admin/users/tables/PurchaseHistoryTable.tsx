@@ -66,8 +66,7 @@ export default function PurchaseHistoryTable({
             justify-center
             rounded-md
             bg-emerald-500/10
-            text-emerald-600
-            dark:text-emerald-400
+            text-status-success
           "
         >
           <Trophy
@@ -163,8 +162,7 @@ export default function PurchaseHistoryTable({
                             justify-center
                             rounded-md
                             bg-emerald-500/10
-                            text-emerald-600
-                            dark:text-emerald-400
+                            text-status-success
                           "
                         >
                           <Trophy
@@ -202,8 +200,7 @@ export default function PurchaseHistoryTable({
                           py-1
                           text-xs
                           font-semibold
-                          text-emerald-600
-                          dark:text-emerald-400
+                          text-status-success
                         "
                       >
                         <Wallet

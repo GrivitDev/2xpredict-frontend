@@ -15,7 +15,7 @@ import {
 } from '@/hooks/use-prediction-engine';
 import type { ActiveSlipProductType, PickCenterRecord, PredictionSlip, PredictionSlipLeg, SureOddsProduct, UpdatePredictionSlipLegsPayload } from '@/types/predictions';
 import type { BuildSlipArgs } from '@/types/endpoint-args/prediction-engine';
-import { useMatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, useMatchPresentation } from '@/hooks/use-match-presentation';
 import { displayScore, displayStatusLabel, displayStatusTone, getDisplayMatchStatus } from '@/lib/match-status';
 
 type Slip = PredictionSlip;
@@ -92,10 +92,11 @@ function CompactLogo({ src, alt, size = 14, fallback = alt }: { src?: string | n
 function leagueLabel(name?: string | null, id?: string | null) {
   const cleanName = String(name ?? '').trim();
   const cleanId = String(id ?? '').trim();
-  const looksLikeCode = (value: string) => /^[a-z0-9]+(?:[._][a-z0-9]+)+$/i.test(value);
-  if (cleanName && cleanName.toLowerCase() !== cleanId.toLowerCase() && !looksLikeCode(cleanName)) return cleanName;
-  if (cleanId && !looksLikeCode(cleanId)) return cleanId.replace(/[_-]+/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
-  return cleanName && !looksLikeCode(cleanName) ? cleanName : 'League name unavailable';
+  const isIdentifier = (value: string) =>
+    !value || /^\s*(?:competition|league|team|fixture):/i.test(value) ||
+    /^[a-z0-9]+(?:[._-][a-z0-9]+)+$/i.test(value);
+  if (cleanName && cleanName.toLowerCase() !== cleanId.toLowerCase() && !isIdentifier(cleanName)) return cleanName;
+  return 'League name unavailable';
 }
 
 
@@ -176,7 +177,12 @@ export default function SlipCenter() {
   const dateTabs = useMemo(() => makeDateTabs(), []);
   const [selectedDate, setSelectedDate] = useState(dateTabs[1].key);
   const [slips, setSlips] = useState<Slip[]>([]);
-  const matchPresentation = useMatchPresentation(slips.flatMap((slip) => (slip.legs ?? []).map((leg) => ({ eventId: leg.eventId, fixtureDate: leg.fixtureDate }))));
+  const matchPresentation = useMatchPresentation(slips.flatMap((slip) => (slip.legs ?? []).map((leg) => ({
+    eventId: leg.eventId, fixtureDate: leg.fixtureDate, leagueId: leg.leagueId, leagueName: leg.leagueName,
+    leagueCountry: leg.country ?? leg.leagueCountry, homeTeamId: leg.homeTeamId, awayTeamId: leg.awayTeamId,
+    homeTeamName: leg.homeTeamName, awayTeamName: leg.awayTeamName, homeTeamLogo: leg.homeTeamLogo, awayTeamLogo: leg.awayTeamLogo,
+    fixtureRecord: leg, summaryRecord: leg.summary,
+  }))));
   const [error, setError] = useState('');
   const [activeSlipType, setActiveSlipType] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -566,7 +572,7 @@ export default function SlipCenter() {
         </div>
       </button>
       {expanded ? <div className="border-t border-border bg-muted/15 p-2">{loadingSlipDetails === slip._id ? <p className="mb-1 text-[9px] text-muted-foreground">Refreshing slip details…</p> : null}
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-[10px] font-semibold">Matches in slip <span className="font-normal text-muted-foreground">({eventCount})</span></p><div className="flex flex-wrap items-center gap-1"><span className="rounded border border-border px-1.5 py-0.5 text-[8px] text-muted-foreground">Fair odds {Number.isFinite(Number(slip.combinedFairOdds)) ? Number(slip.combinedFairOdds).toFixed(2) : '—'}</span><span className="rounded border border-border px-1.5 py-0.5 text-[8px] text-muted-foreground">{String(slip.oddsBasis || (slip.legs?.some((leg) => leg.priceType === 'ESTIMATED') ? 'ESTIMATED' : 'PROVIDER'))}</span><span className="rounded border border-border px-1.5 py-0.5 text-[8px] text-muted-foreground">Created {formatDate(slip.createdAt)}</span><button type="button" onClick={() => editingSlip === slip._id ? setEditingSlip('') : beginEdit(slip)} className="rounded border border-primary/40 px-2 py-1 text-[9px] font-semibold text-primary hover:bg-primary/5">{editingSlip === slip._id ? 'Close editor' : 'Edit slip'}</button>{slip.status?.toUpperCase() !== 'PUBLISHED' ? <button type="button" onClick={() => void publishSlip(slip)} disabled={publishingSlip === slip._id} className="rounded border border-green-600/40 px-2 py-1 text-[9px] font-semibold text-green-700 hover:bg-green-600/5 disabled:opacity-50">{publishingSlip === slip._id ? 'Publishing…' : 'Publish'}</button> : null}</div></div>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-[10px] font-semibold">Matches in slip <span className="font-normal text-muted-foreground">({eventCount})</span></p><div className="flex flex-wrap items-center gap-1"><span className="rounded border border-border px-1.5 py-0.5 text-[8px] text-muted-foreground">Fair odds {Number.isFinite(Number(slip.combinedFairOdds)) ? Number(slip.combinedFairOdds).toFixed(2) : '—'}</span><span className="rounded border border-border px-1.5 py-0.5 text-[8px] text-muted-foreground">{String(slip.oddsBasis || (slip.legs?.some((leg) => leg.priceType === 'ESTIMATED') ? 'ESTIMATED' : 'PROVIDER'))}</span><span className="rounded border border-border px-1.5 py-0.5 text-[8px] text-muted-foreground">Created {formatDate(slip.createdAt)}</span><button type="button" onClick={() => editingSlip === slip._id ? setEditingSlip('') : beginEdit(slip)} className="rounded border border-primary/40 px-2 py-1 text-[9px] font-semibold text-primary hover:bg-primary/5">{editingSlip === slip._id ? 'Close editor' : 'Edit slip'}</button>{slip.status?.toUpperCase() !== 'PUBLISHED' ? <button type="button" onClick={() => void publishSlip(slip)} disabled={publishingSlip === slip._id} className="rounded border border-green-600/40 px-2 py-1 text-[9px] font-semibold text-status-success hover:bg-green-600/5 disabled:opacity-50">{publishingSlip === slip._id ? 'Publishing…' : 'Publish'}</button> : null}</div></div>
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
           {visibleMatchGroups.map(({ eventId, legs }) => {
             const match = legs[0];
@@ -582,13 +588,13 @@ export default function SlipCenter() {
                   const status = getDisplayMatchStatus(presentation, undefined, match.fixtureDate ?? presentation?.fixtureDate ?? undefined);
                   const homeScore = displayScore(presentation?.homeScore, status);
                   const awayScore = displayScore(presentation?.awayScore, status);
-                  const homeName = presentation?.homeTeamName ?? match.homeTeamName;
-                  const awayName = presentation?.awayTeamName ?? match.awayTeamName;
+                  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, match.homeTeamName);
+                  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, match.awayTeamName);
                   const leagueName = leagueLabel(presentation?.leagueName ?? match.leagueName, presentation?.leagueId ?? match.leagueId);
                   return <div className="space-y-1.5">
                     <div className="flex min-w-0 items-center gap-1">
                       <CompactLogo src={presentation?.leagueLogo ?? match.leagueLogo} alt={leagueName} fallback={leagueName} size={12} />
-                      <span className="min-w-0 flex-1 whitespace-normal break-words text-[8px] text-muted-foreground">{leagueName}</span>
+                      <span className="min-w-0 flex-1 whitespace-normal break-words text-[8px] text-muted-foreground">{leagueName}{presentation?.leagueCountry ? <span className="ml-1 opacity-70">· {presentation.leagueCountry}</span> : null}</span>
                       <span className={`inline-flex shrink-0 items-center rounded-full border px-1.5 py-0.5 text-[7px] font-bold leading-none ${displayStatusTone(status)}`}>
                         {displayStatusLabel(status, presentation)}
                       </span>
@@ -617,7 +623,7 @@ export default function SlipCenter() {
                   return <div key={selectionIdentity(leg)} className="rounded border border-border/70 bg-card px-1.5 py-1.5">
                     <div className="flex min-w-0 items-start justify-between gap-1">
                       <div className="min-w-0 flex-1"><p className="text-[8px] font-semibold uppercase leading-tight text-muted-foreground">{leg.marketName || marketAbbreviation(leg.marketKey, leg.marketKey)}</p><p className="break-words text-[9px] font-semibold leading-tight text-foreground">{leg.selectionName || leg.selectionKey}</p></div>
-                      <div className="flex shrink-0 flex-col items-end gap-1"><span className={`rounded px-1 py-0.5 text-[7px] font-bold ${settlementTone(outcome)}`}>{outcome}</span>{isEditing ? <button type="button" onClick={() => setDraftLegs((current) => current.filter((item) => selectionIdentity(item) !== selectionIdentity(leg)))} className="text-[8px] font-bold text-red-600 hover:underline">Remove</button> : null}</div>
+                      <div className="flex shrink-0 flex-col items-end gap-1"><span className={`rounded px-1 py-0.5 text-[7px] font-bold ${settlementTone(outcome)}`}>{outcome}</span>{isEditing ? <button type="button" onClick={() => setDraftLegs((current) => current.filter((item) => selectionIdentity(item) !== selectionIdentity(leg)))} className="text-[8px] font-bold text-status-danger hover:underline">Remove</button> : null}</div>
                     </div>
                     <div className="mt-1 grid grid-cols-3 gap-x-1 border-t border-border/50 pt-1">
                       <div><p className="text-[7px] uppercase text-muted-foreground">Probability</p><p className={`text-[9px] font-semibold tabular-nums ${probabilityTone(legProbability)}`}>{legProbability === null ? '—' : `${legProbability.toFixed(1)}%`}</p></div>
@@ -648,7 +654,7 @@ export default function SlipCenter() {
             <label className="space-y-1 text-[9px] text-muted-foreground">SportyBet code<input value={sportyCode} onChange={(event) => setSportyCode(event.target.value)} placeholder="Enter slip code" className="h-8 w-full rounded border border-border bg-background px-2 text-[11px] text-foreground" /></label>
             <label className="space-y-1 text-[9px] text-muted-foreground">SportyBet link<input value={sportyLink} onChange={(event) => setSportyLink(event.target.value)} placeholder="https://…" className="h-8 w-full rounded border border-border bg-background px-2 text-[11px] text-foreground" /></label>
           </div>
-          {actionMessage ? <p role="status" className={`text-[10px] ${actionMessage.toLowerCase().includes('saved') ? 'text-green-600' : 'text-destructive'}`}>{actionMessage}</p> : null}
+          {actionMessage ? <p role="status" className={`text-[10px] ${actionMessage.toLowerCase().includes('saved') ? 'text-status-success' : 'text-destructive'}`}>{actionMessage}</p> : null}
           <div className="flex justify-end gap-1.5"><button type="button" onClick={() => setEditingSlip('')} className="h-7 rounded border border-border px-2.5 text-[10px] hover:bg-muted">Cancel</button><button type="button" onClick={() => void saveSlipEdits(slip)} disabled={savingSlip || draftLegs.length === 0} className="h-7 rounded bg-primary px-3 text-[10px] font-semibold text-primary-foreground disabled:opacity-50">{savingSlip ? 'Saving…' : 'Save slip'}</button></div>
         </div> : null}
       </div> : null}
@@ -734,10 +740,12 @@ export default function SlipCenter() {
       <div className="flex justify-end"><button type="button" onClick={() => void createSlipFromPickCenter()} disabled={buildSlipMutation.isPending} className="h-8 rounded bg-primary px-3 text-[10px] font-semibold text-primary-foreground disabled:opacity-50">{buildSlipMutation.isPending ? 'Building slip…' : 'Build slip'}</button></div>
     </section> : null}
     {errorMessage ? <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-[10px] text-destructive"><span>{errorMessage}</span><button type="button" onClick={() => void load()} className="rounded border border-destructive/30 px-2 py-1 font-semibold">Retry</button></div> : null}
-    {actionMessage && !editingSlip ? <div role="status" className={`rounded-md border px-2.5 py-2 text-[10px] ${actionMessage.toLowerCase().includes('failed') || actionMessage.toLowerCase().includes('could not') ? 'border-destructive/30 bg-destructive/5 text-destructive' : 'border-green-600/25 bg-green-600/5 text-green-700 dark:text-green-300'}`}>{actionMessage}</div> : null}
+    {actionMessage && !editingSlip ? <div role="status" className={`rounded-md border px-2.5 py-2 text-[10px] ${actionMessage.toLowerCase().includes('failed') || actionMessage.toLowerCase().includes('could not') ? 'border-destructive/30 bg-destructive/5 text-destructive' : 'border-green-600/25 bg-green-600/5 text-status-success'}`}>{actionMessage}</div> : null}
     <section><div className="mb-1 flex items-center justify-between gap-2"><p className="text-[10px] font-medium text-muted-foreground">{loading ? 'Loading slips…' : `${shownSlips.length} slip${shownSlips.length === 1 ? '' : 's'}`}</p></div>
       {loading ? <div className="rounded-md border border-border bg-card px-2 py-10 text-center text-[10px] text-muted-foreground">Loading Slip Center…</div> : shownSlips.length ? <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4">{shownSlips.map((slip) => <SlipCard key={slip._id} slip={slip} />)}</div> : <div className="rounded-md border border-border bg-card px-2 py-10 text-center text-[10px] text-muted-foreground">No slips found for this date and slip type.</div>}
     </section>
   </main>;
 }
+
+
 

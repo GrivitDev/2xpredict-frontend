@@ -47,6 +47,7 @@ import type {
   GetV2TeamScoringArgs,
   GetV2TeamStatisticsArgs,
   GetV2TeamsArgs,
+  GetV2TeamsByIdentifiersArgs,
 } from '../types/endpoint-args/sports';
 
 /** Sports module operational monitor; route is /admin/sports/monitor. */
@@ -114,6 +115,20 @@ export function useGetV2TeamsQuery(args?: GetV2TeamsArgs, options?: ApiQueryHook
     queryKey: ['sports', 'v2', 'teams', args?.query ?? null],
     queryFn: () => sportsService.getV2Teams(args),
     ...options,
+  });
+}
+
+/** Batch-resolve canonical or ESPN team IDs without depending on league membership. */
+export function useGetV2TeamsByIdentifiersQuery(
+  args: GetV2TeamsByIdentifiersArgs,
+  options?: ApiQueryHookOptions<SportsTeam[]>,
+) {
+  const identifiers = [...new Set(args.body.ids.map((id) => String(id).trim()).filter(Boolean))].sort();
+  return useQuery({
+    queryKey: ['sports', 'v2', 'teams-by-identifiers', identifiers],
+    queryFn: () => sportsService.getV2TeamsByIdentifiers({ body: { ids: identifiers } }),
+    ...options,
+    enabled: identifiers.length > 0 && options?.enabled !== false,
   });
 }
 

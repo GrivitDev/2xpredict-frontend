@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { FaChartSimple, FaListCheck } from 'react-icons/fa6';
-import type { MatchPresentation } from '@/hooks/use-match-presentation';
+import { resolveTeamDisplayName, type MatchPresentation } from '@/hooks/use-match-presentation';
 import { firstValue, numeric, text, type ApiRecord } from '@/lib/api-shapes';
 import { formatPredictionOutcome, formatPredictionPrice, predictionConfidence, predictionOutcome, predictionPrice, predictionProbabilityPercent } from '@/lib/prediction-display';
 
@@ -131,8 +131,8 @@ export default function PredictionMatchCard({
   onInspectMarkets,
 }: Props) {
   const eventId = text(firstValue(fixture, ['eventId', 'fixtureId', 'id', '_id']));
-  const homeName = text(presentation?.homeTeamName, text(firstValue(fixture, ['homeTeamName', 'homeName']), 'Home'));
-  const awayName = text(presentation?.awayTeamName, text(firstValue(fixture, ['awayTeamName', 'awayName']), 'Away'));
+  const homeName = resolveTeamDisplayName(presentation?.homeTeamName, firstValue(fixture, ['homeTeamName', 'homeName']));
+  const awayName = resolveTeamDisplayName(presentation?.awayTeamName, firstValue(fixture, ['awayTeamName', 'awayName']));
   const homeLogo = (presentation?.homeTeamLogo ?? text(firstValue(fixture, ['homeTeamLogo', 'homeLogo']))) || null;
   const awayLogo = (presentation?.awayTeamLogo ?? text(firstValue(fixture, ['awayTeamLogo', 'awayLogo']))) || null;
   const leagueName = displayLeagueName(fixture, presentation);
@@ -257,3 +257,4 @@ export default function PredictionMatchCard({
     </article>
   );
 }
+

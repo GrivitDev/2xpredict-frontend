@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback(async (requestTimeoutMs = 30_000) => {
     const currentToken = Cookies.get(TOKEN_COOKIE);
     if (!currentToken) {
       setUser(null);
@@ -85,8 +85,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(currentToken);
     setUser((current) => mergeUser(decoded, current));
     try {
-      // /users/me returns the persisted user, including isVerified/status.
-      const response = await api.get('/users/me');
+      // /users/me returns persisted fields such as isVerified/status. The
+      // initial bootstrap uses a shorter timeout; later explicit refreshes keep
+      // the normal API timeout. On failure, the decoded identity is preserved.
+      const response = await api.get('/users/me', { timeout: requestTimeoutMs });
       setUser(mergeUser(decoded, response.data));
     } catch (error: unknown) {
       const status = (error as { response?: { status?: number } })?.response?.status;
@@ -104,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let alive = true;
     const initialize = async () => {
       try {
-        if (Cookies.get(TOKEN_COOKIE)) await refreshUser();
+        if (Cookies.get(TOKEN_COOKIE)) await refreshUser(8_000);
       } finally {
         if (alive) setLoading(false);
       }
@@ -137,4 +139,5 @@ export function useAuth(): AuthContextType {
   if (!context) throw new Error('useAuth must be used within AuthProvider.');
   return context;
 }
+
 

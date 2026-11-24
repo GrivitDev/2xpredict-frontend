@@ -123,7 +123,7 @@ export default function VerifyOtpModal({ email, returnTo, onResend, onVerified }
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/25 p-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><FaEnvelope className="h-4 w-4" /></span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-brand-accent"><FaEnvelope className="h-4 w-4" /></span>
         <div className="min-w-0">
           <p className="text-sm font-semibold">Check your inbox</p>
           <p className="mt-0.5 break-all text-xs leading-5 text-muted-foreground">Enter the 6-digit code sent to <span className="font-semibold text-foreground">{email}</span>. The code is valid for 20 minutes.</p>
@@ -168,7 +168,8 @@ export default function VerifyOtpModal({ email, returnTo, onResend, onVerified }
       </button>
 
       <p className="text-center text-[11px] leading-4 text-muted-foreground">No email yet? Check your spam or junk folder before requesting another code.</p>
-      <p className="text-center text-xs text-muted-foreground"><Link href="/login" className="font-semibold text-primary hover:underline">Back to sign in</Link></p>
+      <p className="text-center text-xs text-muted-foreground"><Link href="/login" className="font-semibold text-brand-accent hover:underline">Back to sign in</Link></p>
     </div>
   );
 }
+

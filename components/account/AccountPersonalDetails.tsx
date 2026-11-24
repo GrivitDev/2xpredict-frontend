@@ -52,7 +52,7 @@ export default function AccountPersonalDetails() {
       <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border/60 pb-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Your account</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-accent">Your account</p>
             <h2 className="mt-1 text-base font-bold">Personal information</h2>
             <p className="mt-0.5 text-[11px] text-muted-foreground">Update the details supported by your 2xPredict account.</p>
           </div>
@@ -85,7 +85,7 @@ export default function AccountPersonalDetails() {
 
           <div className="rounded-lg border border-border/60 bg-muted/35 p-3">
             <div className="flex items-start gap-2">
-              <FaCircleInfo className="mt-0.5 shrink-0 text-primary" />
+              <FaCircleInfo className="mt-0.5 shrink-0 text-brand-accent" />
               <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-3">
                 <ReadOnlyField label="Email address" value={String(profile.email ?? user?.email ?? '—')} />
                 <ReadOnlyField label="Country" value={String(profile.country ?? user?.country ?? '—')} />
@@ -108,7 +108,7 @@ export default function AccountPersonalDetails() {
         <h3 className="text-sm font-bold">Profile identity</h3>
         <p className="mt-0.5 text-[11px] text-muted-foreground">Your account identity uses your initials. No profile-photo upload is included.</p>
         <div className="mt-3 flex items-center gap-3 rounded-lg border border-border/60 bg-background p-3">
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl border border-primary/20 bg-gradient-to-br from-primary/15 to-muted text-lg font-extrabold text-primary">
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl border border-primary/20 bg-gradient-to-br from-primary/15 to-muted text-lg font-extrabold text-brand-accent">
             {getInitials(fullName, username, String(profile.email ?? user?.email ?? ''))}
           </div>
           <div className="min-w-0">
@@ -135,3 +135,4 @@ function getInitials(fullName: string, username: string, email: string): string 
   const parts = source.split(/[\s@._-]+/).filter(Boolean);
   return (parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : source.slice(0, 2)).toUpperCase();
 }
+

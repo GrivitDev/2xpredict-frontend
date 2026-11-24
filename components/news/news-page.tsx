@@ -416,7 +416,7 @@ function FeedCard({
             decoding="async"
           />
         ) : (
-          <div className="absolute inset-0 grid place-items-center bg-[#eee7de] text-[#998a80] dark:bg-muted dark:text-muted-foreground">
+          <div className="absolute inset-0 grid place-items-center bg-[#eee7de] text-muted-foreground dark:bg-muted">
             {item.kind === 'VIDEO' ? (
               <FaVideo className="size-6" />
             ) : (
@@ -513,7 +513,7 @@ function FeedCard({
         <div className="mb-1 flex min-w-0 items-center gap-1">
           <span className="size-1 shrink-0 rounded-full bg-[#a77b62]" />
 
-          <span className="min-w-0 truncate text-[8px] font-semibold uppercase tracking-[0.1em] text-[#8d6455] dark:text-primary">
+          <span className="min-w-0 truncate text-[8px] font-semibold uppercase tracking-[0.1em] text-brand-accent">
             {item.source || 'Football desk'}
           </span>
         </div>
@@ -529,10 +529,9 @@ function FeedCard({
             tracking-[-0.015em]
             text-[#352c2b]
             transition-colors
-            group-hover:text-[#702b3d]
+            group-hover:text-brand-accent
             sm:text-[11px]
             dark:text-foreground
-            dark:group-hover:text-primary
           "
         >
           {item.link &&
@@ -552,11 +551,11 @@ function FeedCard({
         </h2>
 
         {item.description ? (
-          <p className="mt-1 line-clamp-2 text-[9px] leading-[1.4] text-[#82776f] dark:text-muted-foreground">
+          <p className="mt-1 line-clamp-2 text-[9px] leading-[1.4] text-muted-foreground">
             {stripHtml(item.description)}
           </p>
         ) : articleText && item.kind !== 'VIDEO' ? (
-          <p className="mt-1 line-clamp-2 text-[9px] leading-[1.4] text-[#82776f] dark:text-muted-foreground">
+          <p className="mt-1 line-clamp-2 text-[9px] leading-[1.4] text-muted-foreground">
             {articleText}
           </p>
         ) : null}
@@ -575,7 +574,7 @@ function FeedCard({
             dark:border-border/70
           "
         >
-          <span className="min-w-0 truncate text-[7px] font-bold uppercase tracking-[0.11em] text-[#9b8d83] dark:text-muted-foreground">
+          <span className="min-w-0 truncate text-[7px] font-bold uppercase tracking-[0.11em] text-muted-foreground">
             {item.kind === 'VIDEO' ? 'Video report' : 'News report'}
           </span>
 
@@ -593,10 +592,10 @@ function FeedCard({
                 font-bold
                 uppercase
                 tracking-[0.06em]
-                text-[#702b3d]
+                text-brand-accent
                 transition
                 hover:underline
-                dark:text-primary
+
               "
             >
               {item.kind === 'VIDEO' ? 'Watch' : 'Read'}
@@ -680,9 +679,9 @@ function FeaturedVideoCard({
       <div className="flex min-w-0 flex-col p-3 sm:p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="size-1.5 shrink-0 rounded-full bg-[#702b3d] dark:bg-primary" />
+            <span className="size-1.5 shrink-0 rounded-full bg-[#702b3d]" />
 
-            <span className="truncate text-[8px] font-bold uppercase tracking-[0.17em] text-[#956b57] dark:text-primary">
+            <span className="truncate text-[8px] font-bold uppercase tracking-[0.17em] text-brand-accent">
               Football video report
             </span>
           </div>
@@ -704,7 +703,7 @@ function FeaturedVideoCard({
               transition
               hover:border-[#702b3d]/40
               hover:bg-[#f0e9df]
-              hover:text-[#702b3d]
+              hover:text-brand-accent
               dark:border-border
               dark:text-muted-foreground
               dark:hover:bg-muted
@@ -720,20 +719,20 @@ function FeaturedVideoCard({
         </h2>
 
         {dateLabel ? (
-          <p className="mt-1 text-[9px] text-[#93867c] dark:text-muted-foreground">
+          <p className="mt-1 text-[9px] text-muted-foreground">
             {dateLabel}
           </p>
         ) : null}
 
         {articleText ? (
-          <p className="mt-2 line-clamp-4 text-[10px] leading-relaxed text-[#756a64] sm:text-[11px] dark:text-muted-foreground">
+          <p className="mt-2 line-clamp-4 text-[10px] leading-relaxed text-muted-foreground sm:text-[11px]">
             {articleText}
           </p>
         ) : null}
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-[#e9dfd2] pt-3 dark:border-border/70">
           <div className="min-w-0">
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-[#a08d80] dark:text-muted-foreground">
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
               Presented by
             </p>
 
@@ -822,7 +821,7 @@ function FeedSkeleton({
 function EmptyState() {
   return (
     <div className="rounded-lg border border-dashed border-[#d8c9b8] bg-[#fffdf9] px-3 py-8 text-center dark:border-border dark:bg-card">
-      <div className="mx-auto grid size-9 place-items-center rounded-full bg-[#eee5dc] text-[#8d6455] dark:bg-muted dark:text-muted-foreground">
+      <div className="mx-auto grid size-9 place-items-center rounded-full bg-[#eee5dc] text-brand-accent dark:bg-muted dark:text-muted-foreground">
         <FaNewspaper className="size-4" />
       </div>
 
@@ -830,7 +829,7 @@ function EmptyState() {
         No football stories
       </p>
 
-      <p className="mt-1 text-[10px] text-[#92867d] dark:text-muted-foreground">
+      <p className="mt-1 text-[10px] text-muted-foreground">
         New football stories will appear here.
       </p>
     </div>
@@ -873,7 +872,7 @@ function NewsHeader({
       "
     >
       <div className="min-w-0">
-        <p className="mb-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-[#956b57] dark:text-primary">
+        <p className="mb-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-brand-accent">
           2XP / Football newsroom
         </p>
 
@@ -881,12 +880,12 @@ function NewsHeader({
           The Football Desk
         </h1>
 
-        <p className="mt-0.5 text-[9px] text-[#897d74] sm:text-[10px] dark:text-muted-foreground">
+        <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">
           News, analysis and matchday coverage.
         </p>
 
         {search ? (
-          <p className="mt-1 truncate text-[9px] text-[#702b3d] dark:text-primary">
+          <p className="mt-1 truncate text-[9px] text-brand-accent">
             Search: <span className="font-semibold">{search}</span>
           </p>
         ) : null}
@@ -894,21 +893,21 @@ function NewsHeader({
 
       <div className="flex shrink-0 items-center gap-1.5">
         <div className="min-w-[48px] rounded-md border border-[#dfd1c0] bg-[#fffdf9] px-2 py-1.5 text-center dark:border-border dark:bg-card">
-          <p className="font-serif text-base font-semibold leading-none text-[#702b3d] dark:text-primary">
+          <p className="font-serif text-base font-semibold leading-none text-brand-accent">
             {newsCount}
           </p>
 
-          <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.1em] text-[#8d8077] dark:text-muted-foreground">
+          <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
             News
           </p>
         </div>
 
         <div className="min-w-[48px] rounded-md border border-[#dfd1c0] bg-[#fffdf9] px-2 py-1.5 text-center dark:border-border dark:bg-card">
-          <p className="font-serif text-base font-semibold leading-none text-[#702b3d] dark:text-primary">
+          <p className="font-serif text-base font-semibold leading-none text-brand-accent">
             {videoCount}
           </p>
 
-          <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.1em] text-[#8d8077] dark:text-muted-foreground">
+          <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
             Videos
           </p>
         </div>
@@ -933,9 +932,9 @@ export default function NewsPage({
   const newsQuery = useGetV2SportsNewsQuery(
     { query: { limit: 100 } },
     {
-      staleTime: 60_000,
+      staleTime: 3 * 60_000,
       refetchInterval: 5 * 60_000,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       retry: 1,
     },
   );
@@ -1096,9 +1095,9 @@ export default function NewsPage({
               >
                 <div className="mb-1.5 flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-[#702b3d] dark:bg-primary" />
+                    <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-[#702b3d]" />
 
-                    <h2 className="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-[#702b3d] dark:text-primary">
+                    <h2 className="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-brand-accent">
                       Now playing
                     </h2>
                   </div>
@@ -1123,7 +1122,7 @@ export default function NewsPage({
                       transition
                       hover:border-[#702b3d]/40
                       hover:bg-[#f0e9df]
-                      hover:text-[#702b3d]
+                      hover:text-brand-accent
                       dark:border-border
                       dark:bg-card
                       dark:text-muted-foreground
@@ -1148,14 +1147,14 @@ export default function NewsPage({
               <div className="flex min-w-0 items-center gap-1.5">
                 <span className="size-1.5 shrink-0 rounded-full bg-[#702b3d]" />
 
-                <p className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-[#8d786c] dark:text-muted-foreground">
+                <p className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                   {activeVideoItem
                     ? 'More from the newsroom'
                     : 'Latest from the football desk'}
                 </p>
               </div>
 
-              <span className="shrink-0 text-[8px] text-[#94877d] dark:text-muted-foreground">
+              <span className="shrink-0 text-[8px] text-muted-foreground">
                 {remainingItems.length} stories
               </span>
             </div>
@@ -1227,13 +1226,13 @@ export default function NewsPage({
                     font-bold
                     uppercase
                     tracking-[0.1em]
-                    text-[#702b3d]
+                    text-brand-accent
                     transition
                     hover:border-[#702b3d]/50
                     hover:bg-[#f0e9df]
                     dark:border-border
                     dark:bg-card
-                    dark:text-primary
+
                     dark:hover:bg-muted
                   "
                 >
@@ -1249,7 +1248,7 @@ export default function NewsPage({
             {/* Streaming Indicator */}
 
             {streamLoading ? (
-              <div className="flex items-center justify-center gap-1.5 py-2 text-[9px] text-[#93877e] dark:text-muted-foreground">
+              <div className="flex items-center justify-center gap-1.5 py-2 text-[9px] text-muted-foreground">
                 <span className="size-1.5 animate-pulse rounded-full bg-[#702b3d]" />
                 Refreshing football news...
               </div>
@@ -1260,3 +1259,4 @@ export default function NewsPage({
     </main>
   );
 }
+

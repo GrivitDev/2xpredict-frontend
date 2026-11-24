@@ -216,7 +216,7 @@ function MessageThread({
 
   if (!threadItems.length) {
     return <div className="flex flex-1 flex-col items-center justify-center px-5 py-8 text-center">
-      <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/15 bg-primary/5 text-primary"><FaHeadset className="h-5 w-5" /></span>
+      <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/15 bg-primary/5 text-brand-accent"><FaHeadset className="h-5 w-5" /></span>
       <p className="text-sm font-semibold text-foreground">{adminMode ? 'Conversation history' : 'How can we help?'}</p>
       <p className="mt-1 max-w-[260px] text-xs leading-5 text-muted-foreground">{adminMode ? 'The customer’s messages and support replies will appear here.' : 'Send us your question. You can close this chat while we prepare a response.'}</p>
     </div>;
@@ -406,11 +406,11 @@ export default function CustomerCareWidget() {
   }, [storageKey, corner, positionLoaded]);
   const customerSummary = useSupportNotificationSummary({
     enabled: !authLoading && !hiddenOnAuthRoute && isSignedIn && !isAdmin,
-    refetchInterval: open ? 5_000 : 8_000,
+    refetchInterval: open ? 5_000 : 60_000,
   });
   const adminSummary = useCustomerCareAdminInboxSummary({
     enabled: !authLoading && !hiddenOnAuthRoute && isAdmin,
-    refetchInterval: open ? 4_000 : 8_000,
+    refetchInterval: open ? 4_000 : 60_000,
   });
   const customerConversationsQuery = useMySupportConversations(
     { limit: 20 },
@@ -725,7 +725,7 @@ export default function CustomerCareWidget() {
       className={`absolute ${panelPosition} flex h-[min(540px,calc(100dvh-180px))] max-h-[calc(100dvh-120px)] w-[min(360px,calc(100vw-24px))] md:h-[min(570px,calc(100dvh-96px))] md:max-h-[calc(100dvh-40px)] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card text-card-foreground shadow-2xl shadow-black/20 ring-1 ring-black/5`}
     >
       <header className="flex shrink-0 items-center gap-2 border-b border-border/70 bg-gradient-to-r from-card via-card to-primary/[0.06] px-3 py-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><FaHeadset className="h-4 w-4" /></span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-brand-accent"><FaHeadset className="h-4 w-4" /></span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-semibold">{panelTitle}</p>
           <p className="truncate text-[10px] text-muted-foreground">{isAdmin ? 'Admin support workspace' : isSignedIn ? activeAssistantName : 'Help and account support'}</p>
@@ -735,14 +735,14 @@ export default function CustomerCareWidget() {
       </header>
 
       {showPosition ? <div className="flex shrink-0 flex-wrap gap-1 border-b border-border/70 bg-muted/25 px-3 py-2">
-        {corners.map((item) => <button key={item} type="button" onClick={() => { setCorner(item); setPositionLoaded(true); setShowPosition(false); }} className={`rounded-md border px-2 py-1 text-[10px] ${activeCorner === item ? 'border-primary/40 bg-primary/10 font-semibold text-primary' : 'border-border bg-background text-muted-foreground hover:bg-muted'}`}>{cornerLabels[item]}</button>)}
+        {corners.map((item) => <button key={item} type="button" onClick={() => { setCorner(item); setPositionLoaded(true); setShowPosition(false); }} className={`rounded-md border px-2 py-1 text-[10px] ${activeCorner === item ? 'border-primary/40 bg-primary/10 font-semibold text-brand-accent' : 'border-border bg-background text-muted-foreground hover:bg-muted'}`}>{cornerLabels[item]}</button>)}
       </div> : null}
 
       {!isSignedIn ? <div className="flex flex-1 flex-col justify-center gap-3 p-4">
         <div><h3 className="text-sm font-semibold">Sign in for personal support</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">Your conversations are connected to your 2xPredict account. Sign in to continue a conversation or request help.</p></div>
         <Link href="/login" onClick={close} className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-semibold text-white transition hover:opacity-90">Sign in <span aria-hidden="true">→</span></Link>
         <Link href="/register" onClick={close} className="inline-flex h-9 items-center justify-center rounded-xl border border-border px-3 text-xs font-semibold hover:bg-muted">Create an account</Link>
-        <div className="rounded-xl border border-border/70 bg-muted/30 p-3"><p className="text-xs font-semibold">Having trouble signing in?</p><p className="mt-1 text-[11px] leading-5 text-muted-foreground">Use account recovery or email verification. Never send your password, OTP, or authentication code in a support message.</p><Link href="/forgot-password" onClick={close} className="mt-2 inline-flex text-[11px] font-semibold text-primary hover:underline">Recover account</Link></div>
+        <div className="rounded-xl border border-border/70 bg-muted/30 p-3"><p className="text-xs font-semibold">Having trouble signing in?</p><p className="mt-1 text-[11px] leading-5 text-muted-foreground">Use account recovery or email verification. Never send your password, OTP, or authentication code in a support message.</p><Link href="/forgot-password" onClick={close} className="mt-2 inline-flex text-[11px] font-semibold text-brand-accent hover:underline">Recover account</Link></div>
       </div> : isAdmin ? <>
         <nav aria-label="Admin support views" className="flex shrink-0 gap-1 border-b border-border/70 px-2 py-2">
           {(['open', 'mine', 'all'] as const).map((view) => <button key={view} type="button" onClick={() => { setAdminView(view); setSelectedAdminConversationId(''); setNotice(null); }} className={`flex-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold capitalize ${adminView === view ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-muted'}`}>{view === 'open' ? `Open (${Number(record(adminSummary.data).unclaimedRequests ?? 0)})` : view === 'mine' ? `Mine (${Number(record(adminSummary.data).assignedConversationsNeedingReply ?? 0)})` : 'All'}</button>)}
@@ -757,9 +757,9 @@ export default function CustomerCareWidget() {
             <div className="min-h-0 flex-1 overflow-y-auto"><MessageThread messages={adminMessages} adminMode assistantName={safeText(adminConversationRecord.assistantName, 'Customer Care')} /></div>
             {adminConversationRecord.status === 'OPEN' && !adminOwnsSelected ? <div className="shrink-0 border-t border-border/70 p-3">{String(adminConversationRecord.humanSupportStatus ?? 'AI_HANDLING') === 'WAITING_FOR_ADMIN' && !assignedAdminId ? <><p className="mb-2 text-[10px] leading-4 text-muted-foreground">This request is waiting in the shared queue. Accept it to take responsibility for the conversation.</p><button type="button" onClick={() => void claimSelectedConversation()} disabled={claimConversation.isPending} className="h-9 w-full rounded-xl bg-primary px-3 text-xs font-semibold text-white disabled:opacity-60">{claimConversation.isPending ? 'Accepting…' : 'Accept request'}</button></> : <p className="text-[10px] leading-4 text-muted-foreground">{assignedAdminId ? 'This conversation is assigned to another administrator.' : `${safeText(adminConversationRecord.assistantName, 'Customer Care')} is handling this conversation. A claim will become available if human assistance is requested.`}</p>}</div> : null}
             {adminOwnsSelected && adminConversationRecord.status === 'OPEN' ? <form onSubmit={submitMessage} className="shrink-0 border-t border-border/70 bg-card p-2.5">
-              {notice ? <p role={notice.kind === 'error' ? 'alert' : 'status'} className={`mb-2 text-[10px] ${notice.kind === 'error' ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>{notice.message}</p> : null}
+              {notice ? <p role={notice.kind === 'error' ? 'alert' : 'status'} className={`mb-2 text-[10px] ${notice.kind === 'error' ? 'text-destructive' : 'text-status-success'}`}>{notice.message}</p> : null}
               <div className="flex items-end gap-1.5"><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Write a support reply…" className="min-h-10 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50" /><button type="submit" disabled={sending || !draft.trim()} aria-label="Send reply" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white disabled:opacity-50"><FaPaperPlane className="h-3.5 w-3.5" /></button></div>
-              <div className="mt-2 flex flex-wrap gap-1.5"><button type="button" onClick={() => void releaseSelectedConversation()} disabled={releaseConversation.isPending} className="rounded-lg border border-border px-2 py-1 text-[9px] font-semibold hover:bg-muted disabled:opacity-50">Release to queue</button><button type="button" onClick={() => void resolveSelectedConversation()} disabled={resolveConversation.isPending} className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 text-[9px] font-semibold text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300 disabled:opacity-50">Resolve</button></div>
+              <div className="mt-2 flex flex-wrap gap-1.5"><button type="button" onClick={() => void releaseSelectedConversation()} disabled={releaseConversation.isPending} className="rounded-lg border border-border px-2 py-1 text-[9px] font-semibold hover:bg-muted disabled:opacity-50">Release to queue</button><button type="button" onClick={() => void resolveSelectedConversation()} disabled={resolveConversation.isPending} className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 text-[9px] font-semibold text-status-success hover:bg-emerald-500/10 disabled:opacity-50">Resolve</button></div>
             </form> : null}
           </div>}
         </> : <div className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -777,7 +777,7 @@ export default function CustomerCareWidget() {
         </div>}
       </> : <>
         <div className="flex shrink-0 items-center gap-2 border-b border-border/60 px-3 py-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary"><span className="text-xs font-bold">{customerIsWithHumanSupport ? "C" : activeAssistantName.slice(0, 1)}</span></span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-brand-accent"><span className="text-xs font-bold">{customerIsWithHumanSupport ? "C" : activeAssistantName.slice(0, 1)}</span></span>
           <div className="min-w-0 flex-1"><p className="truncate text-[11px] font-semibold">{customerIsWithHumanSupport ? 'Customer Care' : activeAssistantName}</p><p className="text-[9px] text-muted-foreground">Your messages are saved automatically</p></div>
           <select aria-label="Select conversation" value={String(customerConversationRecord.status ?? '') === 'CLOSED' ? '' : selectedCustomerConversationId} onChange={(event) => { const value = event.target.value; setSelectedCustomerConversationId(value); setCustomerHasChosenNewChat(!value); setNotice(null); }} className="max-w-[116px] rounded-lg border border-border bg-background px-1.5 py-1 text-[9px]">
             <option value="">New chat</option>
@@ -786,7 +786,7 @@ export default function CustomerCareWidget() {
         </div>
         {customerConversation.isError ? <div role="alert" className="m-3 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-[11px] text-destructive">This conversation could not be loaded. Close and reopen the chat to try again.</div> : null}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {customerIsWithHumanSupport ? <div className={`mx-3 mt-3 rounded-xl border px-3 py-2 ${customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'border-amber-500/20 bg-amber-500/5' : 'border-primary/15 bg-primary/[0.035]'}`}><p className={`text-[10px] font-semibold ${customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'text-amber-800 dark:text-amber-300' : 'text-foreground'}`}>{customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'Waiting for an administrator' : customerHumanSupportStatus === 'ASSIGNED' ? 'A support administrator has joined' : 'Your support team has replied'}</p><p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">{customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'Your message has been passed to our support team. You can close this chat and continue using 2xPredict.' : customerHumanSupportStatus === 'ASSIGNED' ? 'An administrator is handling your conversation. You can close this chat while you wait.' : 'A member of Customer Care has responded in this conversation.'}</p></div> : null}
+          {customerIsWithHumanSupport ? <div className={`mx-3 mt-3 rounded-xl border px-3 py-2 ${customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'border-amber-500/20 bg-amber-500/5' : 'border-primary/15 bg-primary/[0.035]'}`}><p className={`text-[10px] font-semibold ${customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'text-status-warning' : 'text-foreground'}`}>{customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'Waiting for an administrator' : customerHumanSupportStatus === 'ASSIGNED' ? 'A support administrator has joined' : 'Your support team has replied'}</p><p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">{customerHumanSupportStatus === 'WAITING_FOR_ADMIN' ? 'Your message has been passed to our support team. You can close this chat and continue using 2xPredict.' : customerHumanSupportStatus === 'ASSIGNED' ? 'An administrator is handling your conversation. You can close this chat while you wait.' : 'A member of Customer Care has responded in this conversation.'}</p></div> : null}
           <MessageThread
             messages={customerMessages}
             adminMode={false}
@@ -797,7 +797,7 @@ export default function CustomerCareWidget() {
           />
         </div>
         <form onSubmit={submitMessage} className="shrink-0 border-t border-border/70 bg-card p-2.5">
-          {notice ? <p role={notice.kind === 'error' ? 'alert' : 'status'} className={`mb-2 text-[10px] ${notice.kind === 'error' ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>{notice.message}</p> : null}
+          {notice ? <p role={notice.kind === 'error' ? 'alert' : 'status'} className={`mb-2 text-[10px] ${notice.kind === 'error' ? 'text-destructive' : 'text-status-success'}`}>{notice.message}</p> : null}
           <div className="flex items-end gap-1.5"><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={2} maxLength={4000} placeholder="Write your message…" className="min-h-10 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50" /><button type="submit" disabled={sending || !draft.trim()} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white disabled:opacity-50"><FaPaperPlane className="h-3.5 w-3.5" /></button></div>
           <div className="mt-1.5 flex items-center justify-between gap-2"><p className="text-[9px] leading-4 text-muted-foreground">Never send passwords or OTP codes.</p><span className="text-[9px] text-muted-foreground">Enter to send is not enabled</span></div>
         </form>
@@ -819,4 +819,6 @@ export default function CustomerCareWidget() {
     </button>
   </div>;
 }
+
+
 

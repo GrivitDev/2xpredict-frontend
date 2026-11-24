@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   FaServer,
   FaFutbol,
@@ -17,23 +18,38 @@ import {
   FaBell,
 } from 'react-icons/fa6';
 
-import SystemMonitorErrors from './system-monitor-errors';
-import SystemMonitorHealth from './system-monitor-health';
-import SystemMonitorOverview from './system-monitor-overview';
-import SystemMonitorCrons from './system-monitor-crons';
-import SystemMonitorStorage from './system-monitor-storage';
-import SystemMonitorActivity from './system-monitor-activity';
-import SystemMonitorSportsExplorer from './system-monitor-sports-explorer';
-import SystemMonitorSportsV2 from './system-monitor-sports-v2';
-import SystemMonitorModules from './system-monitor-modules';
-import SystemMonitorDatabase from './system-monitor-database';
-import BetLabAdmin from '@/components/admin/system-monitor/bet-lab/BetLabAdmin';
-import PredictionEngineAdmin from '@/components/admin/system-monitor/prediction-engine/PredictionEngineAdmin';
-import SettlementAdmin from '@/components/admin/system-monitor/settlement/SettlementAdmin';
-import ModuleMonitorAdmin from './module-monitor';
-import CustomerCareAdmin from './customer-care/CustomerCareAdmin';
-import NotificationsMonitor from '@/components/admin/notifications/NotificationsMonitor';
-import SystemMonitorCoverage from './system-monitor-coverage';
+function MonitorPanelLoading() {
+  return (
+    <div aria-busy="true" className="space-y-2 rounded-lg border border-border/70 bg-card p-3">
+      <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => <div key={index} className="h-16 animate-pulse rounded-md bg-muted/70" />)}
+      </div>
+      <div className="h-28 animate-pulse rounded-md bg-muted/70" />
+    </div>
+  );
+}
+
+// The monitor is a collection of independent workspaces. Keep inactive tabs
+// out of the initial route bundle and load each workspace on first selection.
+// Next.js 16 requires the dynamic() options argument to be an object literal.
+const SystemMonitorErrors = dynamic(() => import('./system-monitor-errors'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorHealth = dynamic(() => import('./system-monitor-health'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorOverview = dynamic(() => import('./system-monitor-overview'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorCrons = dynamic(() => import('./system-monitor-crons'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorStorage = dynamic(() => import('./system-monitor-storage'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorActivity = dynamic(() => import('./system-monitor-activity'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorSportsExplorer = dynamic(() => import('./system-monitor-sports-explorer'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorSportsV2 = dynamic(() => import('./system-monitor-sports-v2'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorModules = dynamic(() => import('./system-monitor-modules'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorDatabase = dynamic(() => import('./system-monitor-database'), { loading: () => <MonitorPanelLoading /> });
+const BetLabAdmin = dynamic(() => import('@/components/admin/system-monitor/bet-lab/BetLabAdmin'), { loading: () => <MonitorPanelLoading /> });
+const PredictionEngineAdmin = dynamic(() => import('@/components/admin/system-monitor/prediction-engine/PredictionEngineAdmin'), { loading: () => <MonitorPanelLoading /> });
+const SettlementAdmin = dynamic(() => import('@/components/admin/system-monitor/settlement/SettlementAdmin'), { loading: () => <MonitorPanelLoading /> });
+const ModuleMonitorAdmin = dynamic(() => import('./module-monitor'), { loading: () => <MonitorPanelLoading /> });
+const CustomerCareAdmin = dynamic(() => import('./customer-care/CustomerCareAdmin'), { loading: () => <MonitorPanelLoading /> });
+const NotificationsMonitor = dynamic(() => import('@/components/admin/notifications/NotificationsMonitor'), { loading: () => <MonitorPanelLoading /> });
+const SystemMonitorCoverage = dynamic(() => import('./system-monitor-coverage'), { loading: () => <MonitorPanelLoading /> });
 
 type ModuleId =
   | 'system'

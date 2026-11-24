@@ -24,11 +24,11 @@ function countStatus(statuses: Record<string, number> | undefined, key: string) 
 
 function StatusBadge({ status }: { status?: string }) {
   const tone = status === 'HEALTHY' || status === 'COMPLETED' || status === 'READY'
-    ? 'bg-emerald-500/10 text-emerald-600'
+    ? 'bg-emerald-500/10 text-status-success'
     : status === 'DEGRADED' || status === 'RUNNING' || status === 'PROCESSING'
-      ? 'bg-amber-500/10 text-amber-600'
+      ? 'bg-amber-500/10 text-status-warning'
       : status === 'FAILED'
-        ? 'bg-rose-500/10 text-rose-600'
+        ? 'bg-rose-500/10 text-status-danger'
         : 'bg-muted text-muted-foreground';
   return <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${tone}`}>{status ?? 'UNKNOWN'}</span>;
 }
@@ -53,7 +53,7 @@ function AlertRow({ alert }: { alert: SportsOperationalAlert }) {
         <p className="text-[10px] font-semibold text-foreground">{alert.message}</p>
         <p className="mt-0.5 text-[9px] text-muted-foreground">{alert.code}{alert.count !== undefined ? ` · ${alert.count}` : ''}</p>
       </div>
-      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${critical ? 'bg-rose-500/10 text-rose-600' : 'bg-amber-500/10 text-amber-600'}`}>{alert.severity}</span>
+      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${critical ? 'bg-rose-500/10 text-status-danger' : 'bg-amber-500/10 text-status-warning'}`}>{alert.severity}</span>
     </div>
   );
 }
@@ -110,7 +110,7 @@ export default function SystemMonitorSportsV2() {
         </div>
       </header>
 
-      {query.isError ? <div role="alert" className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3 text-[11px] text-rose-600">Unable to retrieve Sports operational monitor. Check admin access and API availability.</div> : null}
+      {query.isError ? <div role="alert" className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3 text-[11px] text-status-danger">Unable to retrieve Sports operational monitor. Check admin access and API availability.</div> : null}
 
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 xl:grid-cols-6">
         <Metric label="Competitions" value={fixtures?.competitions ?? '—'} />
@@ -125,7 +125,7 @@ export default function SystemMonitorSportsV2() {
         <Panel title="ESPN provider" icon={FaBolt}>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <StatusBadge status={provider?.health} />
-            <span className={`text-[9px] font-medium ${cooldownActive ? 'text-amber-600' : 'text-muted-foreground'}`}>{cooldownActive ? `Cooldown until ${fmtTime(provider?.cooldownUntil)}` : 'No active cooldown'}</span>
+            <span className={`text-[9px] font-medium ${cooldownActive ? 'text-status-warning' : 'text-muted-foreground'}`}>{cooldownActive ? `Cooldown until ${fmtTime(provider?.cooldownUntil)}` : 'No active cooldown'}</span>
           </div>
           <div className="grid grid-cols-3 gap-1.5">
             <Metric label="Request attempts" value={provider?.requestAttempts ?? '—'} />
@@ -193,3 +193,4 @@ export default function SystemMonitorSportsV2() {
     </div>
   );
 }
+
